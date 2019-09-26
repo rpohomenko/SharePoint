@@ -4,14 +4,14 @@
     <!--*-->
     <id>LinqToSP.o365</id>
     <!--*-->
-    <version>1.0.0</version>
+    <version>1.0.0.1</version>
     <title>Linq To SharePoint (o365) Framework</title>
     <!--*-->
     <authors>Ruslan Pakhomenka</authors>
     <owners>Ruslan Pakhomenka</owners>
+    <projectUrl>https://github.com/rpohomenko/SharePoint/tree/master/LinqToSP</projectUrl>
     <!--
-    <licenseUrl></licenseUrl>
-    <projectUrl></projectUrl>
+    <licenseUrl></licenseUrl>   
     <iconUrl></iconUrl>
 -->
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
@@ -21,11 +21,11 @@
     <releaseNotes>First release</releaseNotes>
     <copyright>Copyright ©  2019</copyright>
     <tags>
-    </tags>
+            Linq,SharePoint
+        </tags>
     <dependencies>
-      <!--
-      <dependency id="SampleDependency" version="1.0" />
--->
+      <dependency id="Microsoft.SharePointOnline.CSOM" version="16.1.19223.12000" />
+      <dependency id="Remotion.Linq" version="2.2.0" />
     </dependencies>
   </metadata>
 </package>
