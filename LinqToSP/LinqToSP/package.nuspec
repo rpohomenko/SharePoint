@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<package>
+  <metadata>
+    <!--*-->
+    <id>LinqToSP.o365</id>
+    <!--*-->
+    <version>1.0.0</version>
+    <title>Linq To SharePoint (o365) Framework</title>
+    <!--*-->
+    <authors>Ruslan Pakhomenka</authors>
+    <owners>Ruslan Pakhomenka</owners>
+    <!--
+    <licenseUrl></licenseUrl>
+    <projectUrl></projectUrl>
+    <iconUrl></iconUrl>
+-->
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <!--*-->
+    <description>Linq To SharePoint (o365) Framework.</description>
+    <!--*-->
+    <releaseNotes>First release</releaseNotes>
+    <copyright>Copyright ©  2019</copyright>
+    <tags>
+    </tags>
+    <dependencies>
+      <!--
+      <dependency id="SampleDependency" version="1.0" />
+-->
+    </dependencies>
+  </metadata>
+</package>
