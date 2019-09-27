@@ -27,7 +27,6 @@ namespace SP.Client.Linq
       return null;
     }
 
-
     public static string GetChoiceValue(this Enum enumValue)
     {
       return GetChoiceValue(enumValue.GetType(), enumValue);
