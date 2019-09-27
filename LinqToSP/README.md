@@ -8,7 +8,3 @@ SharePoint Online - [Install-Package LinqToSP.o365](https://www.nuget.org/packag
 ## Usage
 
 [Tutorial](https://github.com/rpohomenko/SharePoint/wiki/LinqToSp)
-
-## License
-
-TODO: Write license
