@@ -154,7 +154,7 @@ namespace SP.Client.Linq.Query.ExpressionVisitors
         visitor.Visit(expression);
         Operator = visitor.Operator;
       }
-      if (node.Method.Name == "Equals")
+      else if (node.Method.Name == "Equals")
       {
         var visitor = new SpComparisonExpressionVisitor<TContext>(SpQueryArgs);
         visitor.Visit(expression);
