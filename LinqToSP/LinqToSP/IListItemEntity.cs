@@ -8,5 +8,11 @@ namespace SP.Client.Linq
   {
     [Field(Name = "ID", Required = true, DataType = FieldType.Counter, IsReadOnly = true)]
     int Id { get; }
+
+    [Field(Name = "ContentTypeId", DataType = FieldType.ContentTypeId)]
+    string ContentTypeId
+    {
+      get; set;
+    }
   }
 }

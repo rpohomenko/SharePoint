@@ -41,7 +41,6 @@ namespace SP.Client.Linq
     /// <summary>
     /// Content Type ID
     /// </summary>
-    [Field(Name = "ContentTypeId", DataType = FieldType.ContentTypeId)]
     [DataMember]
     public virtual string ContentTypeId
     {
@@ -83,6 +82,15 @@ namespace SP.Client.Linq
     public DateTime? Modified
     {
       get; internal set;
+    }
+
+    public override string ToString()
+    {
+      if (!string.IsNullOrWhiteSpace(Title))
+      {
+        return Title;
+      }
+      return base.ToString();
     }
   }
 }
