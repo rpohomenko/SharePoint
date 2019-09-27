@@ -42,6 +42,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -58,8 +59,10 @@
     <Compile Include="Attributes\FieldAttribute.cs" />
     <Compile Include="Attributes\DependentLookupFieldAttribute.cs" />
     <Compile Include="Attributes\LookupFieldAttribute.cs" />
+    <Compile Include="DocumentEntity.cs" />
     <Compile Include="EnumExtensions.cs" />
     <Compile Include="EventItemEntity.cs" />
+    <Compile Include="IDocumentEntity.cs" />
     <Compile Include="IEventItemEntity.cs" />
     <Compile Include="Infrastructure\ISpChangeTrackable.cs" />
     <Compile Include="Provisioning\FieldProvisionHandler.cs" />
