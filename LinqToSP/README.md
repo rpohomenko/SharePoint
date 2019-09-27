@@ -7,7 +7,7 @@ Also it translates LINQ queries into Collaborative Application Markup Language (
 SharePoint Online - [Install-Package LinqToSP.o365](https://www.nuget.org/packages/LinqToSP.o365/)
 ## Usage
 
-TODO: Write usage instructions
+[Tutorial](https://github.com/rpohomenko/SharePoint/wiki/LinqToSp)
 
 ## License
 
