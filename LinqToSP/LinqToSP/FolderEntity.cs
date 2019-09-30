@@ -1,19 +1,31 @@
 ﻿using SP.Client.Linq.Attributes;
 using System;
+using System.Runtime.Serialization;
 
 namespace SP.Client.Linq
 {
     public class FolderEntity : ListItemEntity, IFolderEntity
     {
+        [DataMember]
         public string Name { get; set; }
 
+        [DataMember]
         public string Url { get; internal set; }
 
+        [DataMember]
+        public string ParentFolderUrl
+        {
+            get;
+            internal set;
+        }
+
+        [DataMember]
         public int ItemChildCount
         {
             get; internal set;
         }
 
+        [DataMember]
         public int FolderChildCount
         {
             get; internal set;

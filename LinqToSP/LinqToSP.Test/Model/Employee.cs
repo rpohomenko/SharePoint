@@ -6,6 +6,7 @@ using System.Linq;
 namespace LinqToSP.Test.Model
 {
     [List(Title = "Employees", Url = "Lists/Employees")]
+    [ContentType(Id = "0x0100")]
     public class Employee : ListItemEntity
     {
         public Employee()

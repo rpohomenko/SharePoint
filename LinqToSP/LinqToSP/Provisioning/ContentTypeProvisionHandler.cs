@@ -29,7 +29,7 @@ namespace SP.Client.Linq.Provisioning
 
         public override void Provision()
         {
-            if (_contentType != null && Model != null && Model.Context != null && Model.Context.Context != null)
+            if (_contentType != null && !string.IsNullOrEmpty(_contentType.Name) && Model != null && Model.Context != null && Model.Context.Context != null)
             {
                 var context = Model.Context.Context;
                 Web web = context.Web;
@@ -60,29 +60,22 @@ namespace SP.Client.Linq.Provisioning
                 ContentType webContentType = null;
                 ContentType listContentType = null;
                 string ctName = _contentType.Name;
-                if (string.IsNullOrEmpty(ctName))
+                string ctId = _contentType.Id;
+                if (!string.IsNullOrEmpty(ctId))
                 {
-                    string ctId = _contentType.Id;
-                    if (!string.IsNullOrEmpty(ctId))
+                    IEnumerable<ContentType> webContentTypes = context.LoadQuery(web.AvailableContentTypes.Where(ct => ct.Id.StringValue == ctId));
+                    IEnumerable<ContentType> listContentTypes = null;
+                    if (list != null)
                     {
-                        IEnumerable<ContentType> webContentTypes = context.LoadQuery(web.AvailableContentTypes.Where(ct => ct.Id.StringValue == ctId));
-                        IEnumerable<ContentType> listContentTypes = null;
-                        if (list != null)
-                        {
-                            listContentTypes = context.LoadQuery(list.ContentTypes.Where(ct => ct.Id.StringValue == ctId || ct.Parent.Id.StringValue == ctId));
-                        }
-
-                        context.ExecuteQuery();
-
-                        webContentType = webContentTypes.FirstOrDefault();
-                        if (listContentTypes != null)
-                        {
-                            listContentType = listContentTypes.FirstOrDefault();
-                        }
+                        listContentTypes = context.LoadQuery(list.ContentTypes.Where(ct => ct.Id.StringValue == ctId || ct.Parent.Id.StringValue == ctId));
                     }
-                    else
+
+                    context.ExecuteQuery();
+
+                    webContentType = webContentTypes.FirstOrDefault();
+                    if (listContentTypes != null)
                     {
-                        return;
+                        listContentType = listContentTypes.FirstOrDefault();
                     }
                 }
                 else

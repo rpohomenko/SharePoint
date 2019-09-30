@@ -19,6 +19,12 @@ namespace SP.Client.Linq
             get;
         }
 
+        [Field(Name = "FileDirRef", IsReadOnly = true, DataType = FieldType.Text)]
+        string ParentFolderUrl
+        {
+            get;
+        }
+
         [LookupField(Name = "ItemChildCount", IsReadOnly = true, DataType = FieldType.Lookup, Result = LookupItemResult.Value)]
         int ItemChildCount
         {

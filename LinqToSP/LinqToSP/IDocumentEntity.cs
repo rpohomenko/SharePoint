@@ -3,26 +3,26 @@ using SP.Client.Linq.Attributes;
 
 namespace SP.Client.Linq
 {
-  [ContentType(Id = "0x0101")]
-  public interface IDocumentEntity: IListItemEntity
-  {
-    [Field(Name = "FileLeafRef", Required = true, DataType = FieldType.File)]
-    string Name
+    [ContentType(Id = "0x0101")]
+    public interface IDocumentEntity : IListItemEntity
     {
-      get;
-      set;
-    }
+        [Field(Name = "FileLeafRef", Required = true, DataType = FieldType.File)]
+        string Name
+        {
+            get;
+            set;
+        }
 
-    [Field(Name = "FileRef", IsReadOnly = true, DataType = FieldType.Text)]
-    string Url
-    {
-      get;
-    }
+        [Field(Name = "FileRef", IsReadOnly = true, DataType = FieldType.Text)]
+        string Url
+        {
+            get;
+        }
 
-    [Field(Name = "FileDirRef", IsReadOnly = true, DataType = FieldType.Text)]
-    string FileDirUrl
-    {
-      get;
-    }   
-  }
+        [Field(Name = "FileDirRef", IsReadOnly = true, DataType = FieldType.Text)]
+        string ParentFolderUrl
+        {
+            get;
+        }
+    }
 }

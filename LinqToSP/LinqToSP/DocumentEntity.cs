@@ -24,7 +24,7 @@ namespace SP.Client.Linq
         }
 
         [DataMember]
-        public string FileDirUrl
+        public string ParentFolderUrl
         {
             get;
             internal set;

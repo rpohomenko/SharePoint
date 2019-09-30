@@ -19,16 +19,16 @@ namespace SP.Client.Linq.Attributes
         {
             if (typeof(IListItemEntity).IsAssignableFrom(entityType))
             {
-                var attributes = (IEnumerable<TAttribute>)entityType.GetCustomAttributes(typeof(TAttribute), inherit);
-                if (attributes == null)
-                {
-                    attributes = Enumerable.Empty<TAttribute>();
-                }
+                var attributes = Enumerable.Empty<TAttribute>();
                 foreach (var vInterface in entityType.GetInterfaces())
                 {
                     attributes = attributes.Concat((IEnumerable<TAttribute>)vInterface.GetCustomAttributes(typeof(TAttribute), inherit));
                 }
-
+                attributes = attributes.Concat((IEnumerable<TAttribute>)entityType.GetCustomAttributes(typeof(TAttribute), inherit));
+                if (attributes == null)
+                {
+                    attributes = Enumerable.Empty<TAttribute>();
+                }
                 return attributes;
             }
             return null;
