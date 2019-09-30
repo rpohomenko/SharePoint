@@ -186,6 +186,10 @@ namespace SP.Client.Linq.Query
             if (entity == null) return null;
 
             List list = _manager.GetList();
+            if(list == null)
+            {
+                Check.NotNull(list, nameof(List));
+            }
             ListItem listItem = entity.Id > 0
                 ? list.GetItemById(entity.Id)
                 : list.AddItem(new ListItemCreationInformation());
@@ -231,6 +235,10 @@ namespace SP.Client.Linq.Query
         public ListItem DeleteItem(int itemId)
         {
             List list = _manager.GetList();
+            if (list == null)
+            {
+                Check.NotNull(list, nameof(List));
+            }
             ListItem listItem = list.GetItemById(itemId);
             listItem.DeleteObject();
             return listItem;
@@ -251,6 +259,10 @@ namespace SP.Client.Linq.Query
             if (itemIds != null && itemIds.Any())
             {
                 List list = _manager.GetList();
+                if (list == null)
+                {
+                    Check.NotNull(list, nameof(List));
+                }
                 foreach (int itemId in itemIds)
                 {
                     ListItem listItem = list.GetItemById(itemId);
