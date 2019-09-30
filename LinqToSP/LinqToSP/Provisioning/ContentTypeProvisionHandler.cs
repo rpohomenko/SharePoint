@@ -29,17 +29,21 @@ namespace SP.Client.Linq.Provisioning
 
         public override void Provision()
         {
-            if (_contentType != null && !string.IsNullOrEmpty(_contentType.Name) && Model != null && Model.Context != null && Model.Context.Context != null)
+            if (_contentType != null /*&& !string.IsNullOrEmpty(_contentType.Name)*/ && Model != null && Model.Context != null && Model.Context.Context != null)
             {
                 var context = Model.Context.Context;
                 Web web = context.Web;
                 List list = null;
                 ContentType parentContentType = null;
                 ContentType contentType = null;
+                ContentType webContentType = null;
+                ContentType listContentType = null;
 
-                if (!string.IsNullOrEmpty(_contentType.ParentId))
+                if (string.IsNullOrEmpty(_contentType.Id) && !string.IsNullOrEmpty(_contentType.ParentId))
                 {
                     parentContentType = web.AvailableContentTypes.GetById(_contentType.ParentId);
+                    context.Load(parentContentType);
+                    context.ExecuteQuery();
                 }
 
                 if (_list != null)
@@ -49,57 +53,67 @@ namespace SP.Client.Linq.Provisioning
                                          : (_list.Title != null ? context.Web.Lists.GetByTitle(_list.Title) : null);
                 }
 
-                var newContentType = new ContentTypeCreationInformation()
-                {
-                    Id = _contentType.Id,
-                    Name = _contentType.Name,
-                    Group = _contentType.Group,
-                    ParentContentType = parentContentType
-                };
+                var newContentType = !string.IsNullOrEmpty(_contentType.Name)
+                    ? new ContentTypeCreationInformation()
+                    {
+                        Id = _contentType.Id,
+                        Name = _contentType.Name,
+                        Group = _contentType.Group,
+                        ParentContentType = parentContentType
+                    } : null;
 
-                ContentType webContentType = null;
-                ContentType listContentType = null;
                 string ctName = _contentType.Name;
                 string ctId = _contentType.Id;
                 if (!string.IsNullOrEmpty(ctId))
                 {
-                    IEnumerable<ContentType> webContentTypes = context.LoadQuery(web.AvailableContentTypes.Where(ct => ct.Id.StringValue == ctId));
-                    IEnumerable<ContentType> listContentTypes = null;
                     if (list != null)
                     {
-                        listContentTypes = context.LoadQuery(list.ContentTypes.Where(ct => ct.Id.StringValue == ctId || ct.Parent.Id.StringValue == ctId));
+                        var listContentTypes = context.LoadQuery(list.ContentTypes.Where(ct => ct.Id.StringValue == ctId || ct.Parent.Id.StringValue == ctId));
+                        try
+                        {
+                            context.ExecuteQuery();
+                            listContentType = listContentTypes.FirstOrDefault();
+                        }
+                        catch { }
                     }
-
-                    context.ExecuteQuery();
-
-                    webContentType = webContentTypes.FirstOrDefault();
-                    if (listContentTypes != null)
+                    if (listContentType == null)
                     {
-                        listContentType = listContentTypes.FirstOrDefault();
+                        webContentType = web.AvailableContentTypes.GetById(ctId);
+                        context.Load(webContentType);
+                        try
+                        {
+                            context.ExecuteQuery();
+                            ctName = webContentType.Name;
+                        }
+                        catch {
+                            webContentType = null;
+                        }
                     }
                 }
-                else
+                else if (!string.IsNullOrEmpty(ctName))
                 {
-                    IEnumerable<ContentType> webContentTypes = context.LoadQuery(web.AvailableContentTypes.Where(ct => ct.Name == ctName));
-                    IEnumerable<ContentType> listContentTypes = null;
                     if (list != null)
                     {
-                        listContentTypes = context.LoadQuery(list.ContentTypes.Where(ct => ct.Name == ctName));
+                        var listContentTypes = context.LoadQuery(list.ContentTypes.Where(ct => ct.Name == ctName));
+                        try
+                        {
+                            context.ExecuteQuery();
+                            listContentType = listContentTypes.FirstOrDefault();
+                        }
+                        catch { }
                     }
-
-                    context.ExecuteQuery();
-
-                    webContentType = webContentTypes.FirstOrDefault();
-                    if (listContentTypes != null)
+                    if (listContentType == null)
                     {
-                        listContentType = listContentTypes.FirstOrDefault();
+                        var webContentTypes = context.LoadQuery(web.AvailableContentTypes.Where(ct => ct.Name == ctName));
+                        try
+                        {
+                            context.ExecuteQuery();
+                            webContentType = webContentTypes.FirstOrDefault();
+                        }
+                        catch {
+                            webContentType = null;
+                        }
                     }
-                }
-
-                if (listContentType != null)
-                {
-                    OnProvisioned?.Invoke(this, listContentType);
-                    return;
                 }
 
                 if (list != null)
@@ -108,21 +122,24 @@ namespace SP.Client.Linq.Provisioning
                     {
                         contentType = list.ContentTypes.AddExistingContentType(webContentType);
                     }
-                    else
+                    else if (listContentType == null)
                     {
-                        contentType = list.ContentTypes.Add(newContentType);
-                        OnProvisioning?.Invoke(this, contentType);
-                        contentType.Update(false);
+                        if (newContentType != null)
+                        {
+                            contentType = list.ContentTypes.Add(newContentType);
+                            OnProvisioning?.Invoke(this, contentType);
+                            contentType.Update(false);
+                        }
                     }
                 }
                 else
                 {
                     if (webContentType != null)
                     {
-                        OnProvisioned?.Invoke(this, webContentType);
+                        //OnProvisioned?.Invoke(this, webContentType);
                         return;
                     }
-                    else
+                    else if (newContentType != null)
                     {
                         contentType = web.ContentTypes.Add(newContentType);
                         OnProvisioning?.Invoke(this, contentType);

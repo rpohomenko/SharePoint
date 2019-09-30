@@ -73,7 +73,7 @@ namespace SP.Client.Linq.Provisioning
           valueType = (field.Key as FieldInfo).FieldType;
         }
         var fieldHandler = new FieldProvisionHandler<TContext, TEntity>(field.Value,
-            AttributeHelper.GetCustomAttributes<TEntity, ContentTypeAttribute>(false).FirstOrDefault(), list, this, valueType);
+            AttributeHelper.GetCustomAttributes<TEntity, ContentTypeAttribute>(true).LastOrDefault(), list, this, valueType);
         fieldHandler.OnProvisioned += FieldHandler_OnProvisioned;
         fieldHandler.OnProvisioning += FieldHandler_OnProvisioning;
 

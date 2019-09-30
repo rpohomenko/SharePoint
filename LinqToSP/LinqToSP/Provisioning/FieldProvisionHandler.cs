@@ -65,7 +65,7 @@ namespace SP.Client.Linq.Provisioning
                 var context = Model.Context.Context;
                 Web web = context.Web;
                 List list = null;
-                ContentType contentType = null;
+                //ContentType contentType = null;
                 Field field = null;
 
                 if (_list != null)
@@ -75,48 +75,68 @@ namespace SP.Client.Linq.Provisioning
                       : (_list.Title != null ? context.Web.Lists.GetByTitle(_list.Title) : null);
                 }
 
-                if (_contentType != null)
-                {
-                    string ctName = _contentType.Name;
-                    if (string.IsNullOrEmpty(ctName))
-                    {
-                        string ctId = _contentType.Id;
-                        if (!string.IsNullOrEmpty(ctId))
-                        {
-                            IEnumerable<ContentType> webContentTypes = context.LoadQuery(web.AvailableContentTypes.Where(ct => ct.Id.StringValue == ctId));
-                            IEnumerable<ContentType> listContentTypes = null;
-                            if (list != null)
-                            {
-                                listContentTypes = context.LoadQuery(list.ContentTypes.Where(ct => ct.Id.StringValue == ctId));
-                            }
+                //if (_contentType != null)
+                //{
+                //    string ctName = _contentType.Name;
+                //    string ctId = _contentType.Id;
 
-                            context.ExecuteQuery();
-
-                            contentType = webContentTypes.FirstOrDefault();
-                            if (listContentTypes != null)
-                            {
-                                contentType = listContentTypes.FirstOrDefault();
-                            }
-                        }
-                    }
-                    else
-                    {
-                        IEnumerable<ContentType> webContentTypes = context.LoadQuery(web.AvailableContentTypes.Where(ct => ct.Name == ctName));
-                        IEnumerable<ContentType> listContentTypes = null;
-                        if (list != null)
-                        {
-                            listContentTypes = context.LoadQuery(list.ContentTypes.Where(ct => ct.Name == ctName));
-                        }
-
-                        context.ExecuteQuery();
-
-                        contentType = webContentTypes.FirstOrDefault();
-                        if (listContentTypes != null)
-                        {
-                            contentType = listContentTypes.FirstOrDefault();
-                        }
-                    }
-                }
+                //    if (!string.IsNullOrEmpty(ctId))
+                //    {
+                //        if (list != null)
+                //        {
+                //            //contentType = list.ContentTypes.GetById(ctId);
+                //            var listContentTypes = context.LoadQuery(list.ContentTypes.Where(ct => ct.Id.StringValue == ctId || ct.Parent.Id.StringValue == ctId));
+                //            try
+                //            {
+                //                context.ExecuteQuery();
+                //                contentType = listContentTypes.FirstOrDefault();
+                //            }
+                //            catch { }
+                //        }
+                //        else
+                //        {
+                //            contentType = web.AvailableContentTypes.GetById(ctId);
+                //            context.Load(contentType);
+                //            try
+                //            {
+                //                context.ExecuteQuery();
+                //                ctName = contentType.Name;
+                //            }
+                //            catch
+                //            {
+                //                contentType = null;
+                //            }
+                //        }
+                //    }
+                //    else if (!string.IsNullOrEmpty(ctName))
+                //    {
+                //        IEnumerable<ContentType> listContentTypes = null;
+                //        if (list != null)
+                //        {
+                //            listContentTypes = context.LoadQuery(list.ContentTypes.Where(ct => ct.Name == ctName));
+                //            try
+                //            {
+                //                context.ExecuteQuery();
+                //                contentType = listContentTypes.FirstOrDefault();
+                //            }
+                //            catch
+                //            {
+                //            }
+                //        }
+                //        else
+                //        {
+                //            IEnumerable<ContentType> webContentTypes = context.LoadQuery(web.AvailableContentTypes.Where(ct => ct.Name == ctName));
+                //            try
+                //            {
+                //                context.ExecuteQuery();
+                //                contentType = webContentTypes.FirstOrDefault();
+                //            }
+                //            catch
+                //            {
+                //            }
+                //        }
+                //    }
+                //}
 
                 string fieldXml = _field.DataType == FieldType.Calculated
                     ? $"<Field Type='{_field.DataType}' Name='{_field.Name}' StaticName='{_field.Name}' DisplayName='{_field.Title ?? _field.Name}' ResultType='{{2}}'><Formula>{{0}}</Formula><FieldRefs>{{1}}</FieldRefs></Field>"
@@ -238,30 +258,30 @@ namespace SP.Client.Linq.Provisioning
 
                 //OnProvisioned?.Invoke(this, field);
 
-                if (contentType != null && field != null)
-                {
-                    Guid fieldId = field.Id;
-                    var fieldLink = contentType.FieldLinks.GetById(fieldId);
+                //if (contentType != null && !contentType.Sealed && field != null)
+                //{
+                //    Guid fieldId = field.Id;
+                //    var fieldLink = contentType.FieldLinks.GetById(fieldId);
 
-                    try
-                    {
-                        context.Load(contentType.FieldLinks);
-                        context.Load(fieldLink);
-                        context.ExecuteQuery();
-                        fieldLink = contentType.FieldLinks.FirstOrDefault(f => f.Id == fieldId);
-                    }
-                    catch
-                    {
-                        fieldLink = null;
-                    }
+                //    try
+                //    {
+                //        context.Load(contentType.FieldLinks);
+                //        context.Load(fieldLink);
+                //        context.ExecuteQuery();
+                //        fieldLink = contentType.FieldLinks.FirstOrDefault(f => f.Id == fieldId);
+                //    }
+                //    catch
+                //    {
+                //        fieldLink = null;
+                //    }
 
-                    if (fieldLink == null)
-                    {
-                        fieldLink = contentType.FieldLinks.Add(new FieldLinkCreationInformation() { Field = field });
-                        contentType.Update(false);
-                        context.ExecuteQuery();
-                    }
-                }
+                //    if (fieldLink == null)
+                //    {
+                //        fieldLink = contentType.FieldLinks.Add(new FieldLinkCreationInformation() { Field = field });
+                //        contentType.Update(false);
+                //        context.ExecuteQuery();
+                //    }
+                //}
             }
         }
     }
