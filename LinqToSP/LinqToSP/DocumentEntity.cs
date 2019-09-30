@@ -23,13 +23,6 @@ namespace SP.Client.Linq
             internal set;
         }
 
-        [DataMember]
-        public string ParentFolderUrl
-        {
-            get;
-            internal set;
-        }
-
         [Field(Name = "File_x0020_Size", IsReadOnly = true, DataType = FieldType.Lookup)]
         [DataMember]
         public int FileSize

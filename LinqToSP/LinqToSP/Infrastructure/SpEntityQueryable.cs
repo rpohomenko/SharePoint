@@ -6,7 +6,6 @@ using SP.Client.Linq.Attributes;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using System;
 using JetBrains.Annotations;
 using SP.Client.Linq.Query;
 
@@ -160,13 +159,11 @@ namespace SP.Client.Linq.Infrastructure
         {
             if (entity != null)
             {
-                var executor = GetExecutor();
-                if (executor != null && executor.SpQueryArgs != null && executor.SpQueryArgs.FieldMappings != null)
+                var entry = this.AddOrUpdate(entity);
+                if (entry != null && entry.Context != null)
                 {
-                    if (entity is ListItemEntity)
-                    {
-                        return executor.InsertOrUpdateEntity(entity);
-                    }
+                    entry.Context.Context.ExecuteQuery();
+                    return entry.Entity;
                 }
             }
             return null;
@@ -179,7 +176,12 @@ namespace SP.Client.Linq.Infrastructure
                 var executor = GetExecutor();
                 if (executor != null && executor.SpQueryArgs != null && executor.SpQueryArgs.FieldMappings != null)
                 {
-                    return executor.Delete(itemIds);
+                    var items = executor.DeleteItems(itemIds);
+                    if (executor.SpQueryArgs.Context != null)
+                    {
+                        executor.SpQueryArgs.Context.Context.ExecuteQuery();
+                    }
+                    return items.Count();
                 }
             }
             return 0;
@@ -202,7 +204,17 @@ namespace SP.Client.Linq.Infrastructure
                 var executor = GetExecutor();
                 if (executor != null && executor.SpQueryArgs != null && executor.SpQueryArgs.FieldMappings != null)
                 {
-                    return executor.InsertOrUpdateEntities(entities).Cast<TEntity>();
+                    var entries = new List<SpEntityEntry<TEntity, ISpEntryDataContext>>();
+                    foreach (var entity in entities)
+                    {
+                        var entry = this.AddOrUpdate(entity);
+                        if (entry != null) entries.Add(entry);
+                    }
+                    if (executor.SpQueryArgs.Context != null)
+                    {
+                        executor.SpQueryArgs.Context.Context.ExecuteQuery();
+                    }
+                    return entries.Where(entry => entry.Entity != null).Select(entry => entry.Entity);
                 }
             }
             return null;

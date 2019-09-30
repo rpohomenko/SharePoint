@@ -5,13 +5,11 @@ using System.Data;
 using SP.Client.Linq.Query.ExpressionVisitors;
 using Microsoft.SharePoint.Client;
 using SpView = SP.Client.Caml.View;
-using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Threading;
 using Remotion.Linq.Clauses.ResultOperators;
 using SP.Client.Linq.Attributes;
-using SP.Client.Extensions;
 using SP.Client.Caml;
 
 namespace SP.Client.Linq.Query
@@ -74,6 +72,10 @@ namespace SP.Client.Linq.Query
 
         protected void VisitQueryModel(QueryModel queryModel)
         {
+            if (SpQueryArgs == null) return;
+
+            SpQueryArgs.OnExecute?.Invoke();
+
             var spView = new SpView() { Scope = SpQueryArgs.ViewScope };
             if (!string.IsNullOrEmpty(SpQueryArgs.Query))
             {
@@ -158,119 +160,9 @@ namespace SP.Client.Linq.Query
             }
         }
 
-        public TEntity InsertOrUpdateEntity(TEntity entity)
-        {
-            if (entity == null) return null;
-
-            ListItem listItem = InsertOrUpdateItem(entity);
-
-            if (listItem != null)
-            {
-                listItem.Context.ExecuteQuery();
-                entity = _manager.MapEntity(listItem, entity.GetType());
-            }
-            return entity;
-        }
-
-        public IEnumerable<TEntity> InsertOrUpdateEntities(IEnumerable<TEntity> entities)
-        {
-            if (entities == null || !entities.Any()) return null;
-
-            var items = entities.ToDictionary(entity => entity, entity => InsertOrUpdateItem(entity));
-            SpQueryArgs.Context.Context.ExecuteQuery();
-            return items.Select(item => _manager.MapEntity(item.Value, item.Key.GetType()));
-        }
-
-        public ListItem InsertOrUpdateItem(TEntity entity)
-        {
-            if (entity == null) return null;
-
-            List list = _manager.GetList();
-            if(list == null)
-            {
-                Check.NotNull(list, nameof(List));
-            }
-            ListItem listItem = entity.Id > 0
-                ? list.GetItemById(entity.Id)
-                : list.AddItem(new ListItemCreationInformation());
-
-            var fieldMappings = SpQueryArgs.FieldMappings;
-            bool fUpdate = false;
-            foreach (var fieldMapping in fieldMappings)
-            {
-                if (fieldMapping.Value.IsReadOnly || typeof(DependentLookupFieldAttribute).IsAssignableFrom(fieldMapping.Value.GetType())) { continue; }
-
-                var prop = entity.GetType().GetProperty(fieldMapping.Key);
-                if (prop != null)
-                {
-                    var value = prop.GetValue(entity);
-                    if (entity.Id > 0 || (entity.Id <= 0 && !Equals(value, prop.PropertyType.GetDefaultValue())))
-                    {
-                        listItem[fieldMapping.Value.Name] = value;
-                        fUpdate = true;
-                    }
-                }
-
-                var field = entity.GetType().GetField(fieldMapping.Key);
-                if (field != null)
-                {
-                    var value = field.GetValue(entity);
-                    if (entity.Id > 0 || (entity.Id <= 0 && !Equals(value, prop.PropertyType.GetDefaultValue())))
-                    {
-                        listItem[fieldMapping.Value.Name] = value;
-                        fUpdate = true;
-                    }
-                }
-            }
-
-            if (fUpdate)
-            {
-                listItem.Update();
-                listItem.Context.Load(listItem);
-                return listItem;
-            }
-            return null;
-        }
-
-        public ListItem DeleteItem(int itemId)
-        {
-            List list = _manager.GetList();
-            if (list == null)
-            {
-                Check.NotNull(list, nameof(List));
-            }
-            ListItem listItem = list.GetItemById(itemId);
-            listItem.DeleteObject();
-            return listItem;
-        }
-
-        public int Delete(IEnumerable<int> itemIds)
-        {
-            var items = DeleteItems(itemIds).ToArray();
-            if (items.Length > 0)
-            {
-                SpQueryArgs.Context.Context.ExecuteQuery();
-            }
-            return items.Count();
-        }
-
         public IEnumerable<ListItem> DeleteItems(IEnumerable<int> itemIds)
         {
-            if (itemIds != null && itemIds.Any())
-            {
-                List list = _manager.GetList();
-                if (list == null)
-                {
-                    Check.NotNull(list, nameof(List));
-                }
-                foreach (int itemId in itemIds)
-                {
-                    ListItem listItem = list.GetItemById(itemId);
-                    list.Context.Load(listItem);
-                    listItem.DeleteObject();
-                    yield return listItem;
-                }
-            }
+            return _manager.DeleteItems(itemIds);
         }
 
         #endregion

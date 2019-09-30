@@ -87,6 +87,12 @@ namespace SP.Client.Linq
             get; internal set;
         }
 
+        [Field(Name = "FileDirRef", IsReadOnly = true, DataType = FieldType.Text)]
+        public string ParentFolderUrl
+        {
+            get; internal set;
+        }
+
         #endregion
 
         #region Methods

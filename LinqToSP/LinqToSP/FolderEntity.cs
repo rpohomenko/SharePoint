@@ -13,13 +13,6 @@ namespace SP.Client.Linq
         public string Url { get; internal set; }
 
         [DataMember]
-        public string ParentFolderUrl
-        {
-            get;
-            internal set;
-        }
-
-        [DataMember]
         public int ItemChildCount
         {
             get; internal set;

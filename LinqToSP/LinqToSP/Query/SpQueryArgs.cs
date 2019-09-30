@@ -20,6 +20,7 @@ namespace SP.Client.Linq.Query
         internal bool SkipResult { get; set; }
         internal bool IsAsync { get; set; }
         internal string FolderUrl { get; set; }
+        public Action OnExecute { get; set; }
 
         public SpQueryArgs(string listTitle, string listUrl, Guid listId, string query)
         {
