@@ -2,8 +2,8 @@
 
 namespace SP.Client.Linq.Infrastructure
 {
-    public interface ISpChangeTracker
-    {
-        bool DetectChanges(Dictionary<string, object> originalValues);
-    }
+  public interface ISpChangeTracker
+  {
+    Dictionary<string, object> DetectChanges(Dictionary<string, object> originalValues, Dictionary<string, object> currentValues);
+  }
 }
