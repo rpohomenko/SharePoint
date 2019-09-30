@@ -16,14 +16,14 @@ namespace SP.Client.Linq
     }
 
     public interface ISpEntityLookupCollection<TEntityLookup, TEntity> : IEnumerable<ISpEntityLookup<TEntity>>, ISpEntityLookupCollection
-      where TEntity : class, IListItemEntity
+      where TEntity : class, IListItemEntity, new()
       where TEntityLookup : class, ISpEntityLookup
     {
 
     }
 
     public sealed class SpEntityLookupCollection<TEntity> : ISpEntityLookupCollection<ISpEntityLookup<TEntity>, TEntity>
-        where TEntity : class, IListItemEntity
+        where TEntity : class, IListItemEntity, new()
     {
         public SpQueryArgs<ISpEntryDataContext> SpQueryArgs { get; }
 

@@ -68,7 +68,7 @@ namespace SP.Client.Linq
         #region Methods
 
         public IQueryable<TListItem> View<TListItem>(string query)
-            where TListItem : class, IListItemEntity
+            where TListItem : class, IListItemEntity, new()
         {
             var listAtt = AttributeHelper.GetCustomAttributes<TListItem, ListAttribute>(false).FirstOrDefault();
             if (listAtt != null)
@@ -79,25 +79,25 @@ namespace SP.Client.Linq
         }
 
         public IQueryable<TListItem> View<TListItem>(string listTitle, string query)
-          where TListItem : class, IListItemEntity
+          where TListItem : class, IListItemEntity, new()
         {
             return List<TListItem>(new SpQueryArgs<ISpEntryDataContext>(this, listTitle, null, default, query));
         }
 
         public IQueryable<TListItem> View<TListItem>(Uri listUrl, string query)
-            where TListItem : class, IListItemEntity
+            where TListItem : class, IListItemEntity, new()
         {
             return List<TListItem>(new SpQueryArgs<ISpEntryDataContext>(this, null, Convert.ToString(listUrl), default, query));
         }
 
         public IQueryable<TListItem> View<TListItem>(Guid listId, string query)
-          where TListItem : class, IListItemEntity
+          where TListItem : class, IListItemEntity, new()
         {
             return List<TListItem>(new SpQueryArgs<ISpEntryDataContext>(this, null, null, listId, query));
         }
 
         public IQueryable<TListItem> List<TListItem>()
-            where TListItem : class, IListItemEntity
+            where TListItem : class, IListItemEntity, new()
         {
             return View<TListItem>(null);
         }
@@ -109,7 +109,7 @@ namespace SP.Client.Linq
         /// <param name="listTitle">List title</param>
         /// <returns></returns>
         public IQueryable<TListItem> List<TListItem>(string listTitle)
-            where TListItem : class, IListItemEntity
+            where TListItem : class, IListItemEntity, new()
         {
             return View<TListItem>(listTitle, null);
         }
@@ -121,7 +121,7 @@ namespace SP.Client.Linq
         /// <param name="listUrl">List url</param>
         /// <returns></returns>
         public IQueryable<TListItem> List<TListItem>(Uri listUrl)
-           where TListItem : class, IListItemEntity
+           where TListItem : class, IListItemEntity, new()
         {
             return View<TListItem>(listUrl, null);
         }
@@ -133,19 +133,19 @@ namespace SP.Client.Linq
         /// <param name="listId">List id</param>
         /// <returns></returns>
         public IQueryable<TListItem> List<TListItem>(Guid listId)
-          where TListItem : class, IListItemEntity
+          where TListItem : class, IListItemEntity, new()
         {
             return View<TListItem>(listId, null);
         }
 
         public IQueryable<TListItem> List<TListItem>(SpQueryArgs<ISpEntryDataContext> args)
-          where TListItem : class, IListItemEntity
+          where TListItem : class, IListItemEntity, new()
         {
             return new SpEntityQueryable<TListItem>(args);
         }
 
         public IQueryable<TListItem> Query<TListItem>(string query = null)
-        where TListItem : class, IListItemEntity
+        where TListItem : class, IListItemEntity, new()
         {
             var listAtt = AttributeHelper.GetCustomAttributes<TListItem, ListAttribute>(false).FirstOrDefault();
             if (listAtt != null)
@@ -156,19 +156,19 @@ namespace SP.Client.Linq
         }
 
         public IQueryable<TListItem> Query<TListItem>(string listTitle, string query = null)
-          where TListItem : class, IListItemEntity
+          where TListItem : class, IListItemEntity, new()
         {
             return List<TListItem>(new SpQueryArgs<ISpEntryDataContext>(this, listTitle, null, default, query) { SkipResult = true });
         }
 
         public IQueryable<TListItem> Query<TListItem>(Uri listUrl, string query = null)
-         where TListItem : class, IListItemEntity
+         where TListItem : class, IListItemEntity, new()
         {
             return List<TListItem>(new SpQueryArgs<ISpEntryDataContext>(this, null, listUrl.ToString(), default, query) { SkipResult = true });
         }
 
         public IQueryable<TListItem> Query<TListItem>(Guid listId, string query = null)
-          where TListItem : class, IListItemEntity
+          where TListItem : class, IListItemEntity, new()
         {
             return List<TListItem>(new SpQueryArgs<ISpEntryDataContext>(this, null, null, listId, query) { SkipResult = true });
         }

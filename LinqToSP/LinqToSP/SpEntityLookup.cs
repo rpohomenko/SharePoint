@@ -7,7 +7,7 @@ using System.Linq;
 namespace SP.Client.Linq
 {
     public sealed class SpEntityLookup<TEntity> : ISpEntityLookup<TEntity>
-         where TEntity : class, IListItemEntity
+         where TEntity : class, IListItemEntity, new()
     {
         public SpQueryArgs<ISpEntryDataContext> SpQueryArgs { get; }
 

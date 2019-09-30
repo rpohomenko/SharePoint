@@ -76,7 +76,7 @@ namespace SP.Client.Linq
     }
 
     public static SpEntityEntry<TEntity, TContext> GetEntry<TEntity, TContext>(this TEntity entity, SpQueryArgs<TContext> args)
-            where TEntity : class, IListItemEntity
+            where TEntity : class, IListItemEntity, new()
        where TContext : class, ISpEntryDataContext
     {
       return new SpEntityEntry<TEntity, TContext>(entity, args);

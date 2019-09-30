@@ -13,8 +13,8 @@ using SP.Client.Linq.Query;
 namespace SP.Client.Linq.Infrastructure
 {
   public class SpEntityQueryable<TEntity> : SpEntityQueryable<TEntity, ISpEntryDataContext>
-  where TEntity : class, IListItemEntity
-  {
+  where TEntity : class, IListItemEntity, new()
+    {
     public SpEntityQueryable(SpQueryArgs<ISpEntryDataContext> args)
         : base(args)
     {
@@ -42,7 +42,7 @@ namespace SP.Client.Linq.Infrastructure
 
 
   public class SpEntityQueryable<TEntity, TContext> : QueryableBase<TEntity>, IAsyncEnumerable<TEntity>, ISpRepository<TEntity>, ISpChangeTrackable<TEntity, TContext>
-    where TEntity : class, IListItemEntity
+    where TEntity : class, IListItemEntity, new()
     where TContext : class, ISpEntryDataContext
   {
     public SpEntityQueryable(SpQueryArgs<TContext> args)

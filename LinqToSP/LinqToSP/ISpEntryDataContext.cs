@@ -13,11 +13,11 @@ namespace SP.Client.Linq
         event Action<SpSaveArgs> OnAfterSaveChanges;
 
         bool SaveChanges();
-        IQueryable<TListItem> List<TListItem>(SpQueryArgs<ISpEntryDataContext> args) where TListItem : class, IListItemEntity;
+        IQueryable<TListItem> List<TListItem>(SpQueryArgs<ISpEntryDataContext> args) where TListItem : class, IListItemEntity, new();
 
         TProvisionModel CreateModel<TProvisionModel, TDataContext, TEntity>()
         where TProvisionModel : SpProvisionModel<TDataContext, TEntity>
         where TDataContext : class, ISpEntryDataContext
-        where TEntity : class, IListItemEntity;
+        where TEntity : class, IListItemEntity, new();
     }
 }

@@ -12,8 +12,8 @@ namespace SP.Client.Linq
   {
     public static IQueryable<TEntity> Include<TEntity>(
           this IQueryable<TEntity> source, params Expression<Func<TEntity, object>>[] predicates)
-           where TEntity : class, IListItemEntity
-    {
+           where TEntity : class, IListItemEntity, new()
+        {
       Check.NotNull(source, nameof(source));
       Check.NotNull(predicates, nameof(predicates));
       if (source.Provider is IQueryProvider)
@@ -26,15 +26,15 @@ namespace SP.Client.Linq
 
     public static IQueryable<TEntity> GroupBy<TEntity>(
          this IQueryable<TEntity> source, params Expression<Func<TEntity, object>>[] predicates)
-          where TEntity : class, IListItemEntity
-    {
+          where TEntity : class, IListItemEntity, new()
+        {
       return GroupBy(source, 0, predicates);
     }
 
     public static IQueryable<TEntity> GroupBy<TEntity>(
         this IQueryable<TEntity> source, int limit, params Expression<Func<TEntity, object>>[] predicates)
-         where TEntity : class, IListItemEntity
-    {
+         where TEntity : class, IListItemEntity, new()
+        {
       Check.NotNull(source, nameof(source));
       Check.NotNull(predicates, nameof(predicates));
       if (source.Provider is IQueryProvider)
@@ -46,8 +46,8 @@ namespace SP.Client.Linq
     }
 
     public static IEnumerable<SpEntityEntry<TEntity, ISpEntryDataContext>> GetEntries<TEntity>(this IQueryable<TEntity> source)
-      where TEntity : class, IListItemEntity
-    {
+      where TEntity : class, IListItemEntity, new()
+        {
       Check.NotNull(source, nameof(source));
       if (source is SpEntityQueryable<TEntity, ISpEntryDataContext>)
       {
@@ -57,8 +57,8 @@ namespace SP.Client.Linq
     }
 
     public static SpEntityEntry<TEntity, ISpEntryDataContext> GetEntry<TEntity>(this IQueryable<TEntity> source, TEntity entity, bool reload = false)
-     where TEntity : class, IListItemEntity
-    {
+     where TEntity : class, IListItemEntity, new()
+        {
       Check.NotNull(source, nameof(source));
       if (source is SpEntityQueryable<TEntity, ISpEntryDataContext>)
       {
@@ -79,8 +79,8 @@ namespace SP.Client.Linq
     }
 
     public static string Caml<TEntity>(this IQueryable<TEntity> source, bool disableFormatting = false, bool queryOnly = false)
-          where TEntity : class, IListItemEntity
-    {
+          where TEntity : class, IListItemEntity, new()
+        {
       Check.NotNull(source, nameof(source));
       if (source is SpEntityQueryable<TEntity, ISpEntryDataContext>)
       {

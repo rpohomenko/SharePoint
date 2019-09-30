@@ -64,7 +64,9 @@
     <Compile Include="EventItemEntity.cs" />
     <Compile Include="IDocumentEntity.cs" />
     <Compile Include="IEventItemEntity.cs" />
+    <Compile Include="Infrastructure\ICustomMapping.cs" />
     <Compile Include="Infrastructure\ISpChangeTrackable.cs" />
+    <Compile Include="Infrastructure\ISpChangeTracker.cs" />
     <Compile Include="Provisioning\FieldProvisionHandler.cs" />
     <Compile Include="Provisioning\ListProvisionHandler.cs" />
     <Compile Include="Provisioning\ContentTypeProvisionHandler.cs" />

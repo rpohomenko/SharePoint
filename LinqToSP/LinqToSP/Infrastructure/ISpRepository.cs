@@ -4,7 +4,7 @@ using System.Linq;
 namespace SP.Client.Linq.Infrastructure
 {
     public interface ISpRepository<TEntity>
-        where TEntity : IListItemEntity
+        where TEntity : class, IListItemEntity, new()
     {
         TEntity Find(int itemId);
 
