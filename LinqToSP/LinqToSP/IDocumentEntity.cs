@@ -14,13 +14,13 @@ namespace SP.Client.Linq
     }
 
     [Field(Name = "FileRef", IsReadOnly = true, DataType = FieldType.Text)]
-    string FileRef
+    string Url
     {
       get;
     }
 
     [Field(Name = "FileDirRef", IsReadOnly = true, DataType = FieldType.Text)]
-    string FileDirRef
+    string FileDirUrl
     {
       get;
     }   

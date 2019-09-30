@@ -169,9 +169,13 @@ namespace SP.Client.Linq.Infrastructure
                     var fieldMapping = SpQueryArgs.FieldMappings[value.Key];
                     if (fieldMapping.IsReadOnly) continue;
 
-                    if (Entity.Id <= 0)
+                    if (Equals(default, value.Value))
                     {
-                        if (Equals(default, value.Value))
+                        if (fieldMapping.Required)
+                        {
+                            throw new Exception($"Field '{fieldMapping.Name}' is required.");
+                        }
+                        if (Entity.Id <= 0)
                         {
                             continue;
                         }

@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 namespace SP.Client.Linq
 {
     internal sealed class SpQueryManager<TEntity, TContext>
-        where TEntity : class, IListItemEntity
+        where TEntity : class, IListItemEntity, new()
         where TContext : class, ISpEntryDataContext
     {
         #region Fields
@@ -166,10 +166,13 @@ namespace SP.Client.Linq
 
         public ListItemCollection GetItems(Caml.View spView, ListItemCollectionPosition position)
         {
+            string folderUrl = string.IsNullOrWhiteSpace(this._args.FolderUrl)
+                ? null
+                : new Uri(string.Concat(this._args.Context.SiteUrl.TrimEnd('/'), "/", string.IsNullOrEmpty(_args.ListUrl) ? "" : $"{_args.ListUrl.Trim('/')}/", (!string.IsNullOrEmpty(_args.ListUrl) ? this._args.FolderUrl.Replace(_args.ListUrl, "") : this._args.FolderUrl).TrimStart('/'))).LocalPath;
             var list = GetList();
             if (list != null && spView != null)
             {
-                var items = list.GetItems(new CamlQuery() { ViewXml = spView.ToString(true), ListItemCollectionPosition = position });
+                var items = list.GetItems(new CamlQuery() { FolderServerRelativeUrl = folderUrl, ViewXml = spView.ToString(true), ListItemCollectionPosition = position });
                 items.Context.Load(items, item => item.Include(i => i.EffectiveBasePermissions));
                 items.Context.Load(items, item => item.ListItemCollectionPosition);
                 return items;
@@ -275,6 +278,7 @@ namespace SP.Client.Linq
                 PropertyInfo prop = entity.GetType().GetProperty(fieldMap.Key, BindingFlags.Public | BindingFlags.Instance);
                 if (null != prop)
                 {
+                    if (prop.CustomAttributes.Any(att => att.AttributeType == typeof(RemovedFieldAttribute))) continue;
                     if (item.FieldValues.ContainsKey(fieldMap.Value.Name))
                     {
                         object value = item[fieldMap.Value.Name];
@@ -292,6 +296,8 @@ namespace SP.Client.Linq
                 FieldInfo field = entity.GetType().GetField(fieldMap.Key, BindingFlags.Public | BindingFlags.Instance);
                 if (null != field)
                 {
+                    if (field.CustomAttributes.Any(att => att.AttributeType == typeof(RemovedFieldAttribute))) continue;
+
                     if (item.FieldValues.ContainsKey(fieldMap.Value.Name))
                     {
                         object value = item[fieldMap.Value.Name];
@@ -410,7 +416,7 @@ namespace SP.Client.Linq
                 }
             }
 
-            if(onUpdating != null)
+            if (onUpdating != null)
             {
                 fUpdate = onUpdating(listItem) || fUpdate;
             }

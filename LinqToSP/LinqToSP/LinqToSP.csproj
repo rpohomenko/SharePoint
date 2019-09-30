@@ -59,11 +59,14 @@
     <Compile Include="Attributes\FieldAttribute.cs" />
     <Compile Include="Attributes\DependentLookupFieldAttribute.cs" />
     <Compile Include="Attributes\LookupFieldAttribute.cs" />
+    <Compile Include="Attributes\RemovedFieldAttribute.cs" />
     <Compile Include="DocumentEntity.cs" />
     <Compile Include="EnumExtensions.cs" />
     <Compile Include="EventItemEntity.cs" />
+    <Compile Include="FolderEntity.cs" />
     <Compile Include="IDocumentEntity.cs" />
     <Compile Include="IEventItemEntity.cs" />
+    <Compile Include="IFolderEntity .cs" />
     <Compile Include="Infrastructure\ICustomMapping.cs" />
     <Compile Include="Infrastructure\ISpChangeTrackable.cs" />
     <Compile Include="Infrastructure\ISpChangeTracker.cs" />

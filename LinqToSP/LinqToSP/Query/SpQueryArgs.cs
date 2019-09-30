@@ -1,10 +1,11 @@
-﻿using SP.Client.Linq.Attributes;
+﻿using Microsoft.SharePoint.Client;
+using SP.Client.Linq.Attributes;
 using System;
 using System.Collections.Generic;
 
 namespace SP.Client.Linq.Query
 {
-    public class SpQueryArgs<TContext>
+    public class SpQueryArgs<TContext>: ICloneable
         where TContext : ISpDataContext
     {
         internal TContext Context { get; set; }
@@ -14,9 +15,11 @@ namespace SP.Client.Linq.Query
         public string Query { get; set; }
         public int BatchSize { get; set; }
         public bool IncludeItemPermissions { get; set; }
+        public ViewScope ViewScope { get; set; }
         internal Dictionary<string, FieldAttribute> FieldMappings { get; }
         internal bool SkipResult { get; set; }
         internal bool IsAsync { get; set; }
+        internal string FolderUrl { get; set; }
 
         public SpQueryArgs(string listTitle, string listUrl, Guid listId, string query)
         {
@@ -27,6 +30,7 @@ namespace SP.Client.Linq.Query
             FieldMappings = new Dictionary<string, FieldAttribute>();
             BatchSize = 100;
             IncludeItemPermissions = true;
+            ViewScope = ViewScope.RecursiveAll;
         }
 
         internal SpQueryArgs(TContext context, string listTitle, string listUrl, Guid listId, string query)
@@ -41,6 +45,11 @@ namespace SP.Client.Linq.Query
             if (!string.IsNullOrWhiteSpace(ListUrl)) return ListUrl;
             if (ListId != default) return ListId.ToString();
             return base.ToString();
+        }
+
+        public object Clone()
+        {
+            return this.MemberwiseClone();
         }
     }
 }

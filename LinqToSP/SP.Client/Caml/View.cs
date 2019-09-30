@@ -1,4 +1,5 @@
-﻿using SP.Client.Extensions;
+﻿using Microsoft.SharePoint.Client;
+using SP.Client.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,6 +11,7 @@ namespace SP.Client.Caml
     public sealed class View : CamlElement
     {
         internal const string ViewTag = "View";
+        internal const string ScopeAttr = "FieldRef";
 
         public View(int rowLimit = 0, bool? paged = null) : this(null, null, null, rowLimit, paged)
         {
@@ -30,6 +32,7 @@ namespace SP.Client.Caml
             Joins = new JoinsCamlElement(joins);
             ProjectedFields = new ProjectedFieldsCamlElement(projectedFields);
             RowLimit = new CamlRowLimit(rowLimit, paged);
+            Scope = ViewScope.DefaultValue;
         }
 
         public View(string existingView) : base(ViewTag, existingView)
@@ -54,6 +57,8 @@ namespace SP.Client.Caml
             get { return RowLimit.Limit; }
             set { RowLimit.Limit = value; }
         }
+
+        public ViewScope Scope { get; set; }
 
         public ViewFieldsCamlElement ViewFields { get; set; }
         public JoinsCamlElement Joins { get; set; }
@@ -91,6 +96,10 @@ namespace SP.Client.Caml
         public override XElement ToXElement()
         {
             var el = base.ToXElement();
+            if (Scope != ViewScope.DefaultValue)
+            {
+                el.Add(new XAttribute("Scope", Enum.GetName(typeof(ViewScope), Scope)));
+            }
             var queryElement = Query.ToXElement();
             if (queryElement != null)
             {

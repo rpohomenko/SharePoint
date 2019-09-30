@@ -20,7 +20,7 @@ namespace SP.Client.Linq
         public int Id { get; internal set; }
 
         [DataMember]
-        [Field("Title", FieldType.Text, Required = false)]
+        [Field("Title", FieldType.Text, Required = true)]
         public virtual string Title { get; set; }
 
         /// <summary>

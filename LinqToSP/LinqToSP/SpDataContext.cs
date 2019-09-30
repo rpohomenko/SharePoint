@@ -87,7 +87,8 @@ namespace SP.Client.Linq
         public IQueryable<TListItem> View<TListItem>(Uri listUrl, string query)
             where TListItem : class, IListItemEntity, new()
         {
-            return List<TListItem>(new SpQueryArgs<ISpEntryDataContext>(this, null, Convert.ToString(listUrl), default, query));
+            return List<TListItem>(new SpQueryArgs<ISpEntryDataContext>(this, null, listUrl == null
+                ? null : (listUrl.IsAbsoluteUri ? listUrl.LocalPath : listUrl.OriginalString), default, query));
         }
 
         public IQueryable<TListItem> View<TListItem>(Guid listId, string query)
@@ -164,7 +165,7 @@ namespace SP.Client.Linq
         public IQueryable<TListItem> Query<TListItem>(Uri listUrl, string query = null)
          where TListItem : class, IListItemEntity, new()
         {
-            return List<TListItem>(new SpQueryArgs<ISpEntryDataContext>(this, null, listUrl.ToString(), default, query) { SkipResult = true });
+            return List<TListItem>(new SpQueryArgs<ISpEntryDataContext>(this, null, (listUrl.IsAbsoluteUri ? listUrl.LocalPath : listUrl.OriginalString), default, query) { SkipResult = true });
         }
 
         public IQueryable<TListItem> Query<TListItem>(Guid listId, string query = null)
