@@ -6,7 +6,7 @@ using System.Linq;
 namespace LinqToSP.Test.Model
 {
     [List(Title = "Employees", Url = "Lists/Employees")]
-    [ContentType(Id = "0x0100E565C775F9444F2A854437781B8D2749", Name = "Employee2", ParentId = "0x01")]
+    [ContentType(Id = "0x0100E565C775F9444F2A854437781B8D2749", Name = "Employee", ParentId = "0x01")]
     public class Employee : ListItemEntity
     {
         public Employee()
