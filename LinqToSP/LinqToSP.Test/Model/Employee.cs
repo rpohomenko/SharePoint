@@ -34,20 +34,23 @@ namespace LinqToSP.Test.Model
         {
             get
             {
-                if (string.IsNullOrEmpty(base.Title))
+                if (string.IsNullOrWhiteSpace(base.Title))
                 {
-                    base.Title = string.Join(" ", new[] { FirstName, LastName });
+                    base.Title = string.IsNullOrWhiteSpace(FirstName) ? LastName : string.Join(" ", new[] { FirstName, LastName }).Trim();
                 }
                 return base.Title;
             }
-            set => base.Title = value;
+            set
+            {
+                base.Title = value;
+            }
         }
 
         [CalculatedField(Name = "FullName", Title = "Full Name", Order = 0, Group = "Custom", Formula = "=CONCATENATE([FirstName], \" \", [LastName])", FieldRefs = new[] { "FirstName", "LastName" })]
         public string FullName
         {
             get;
-            set;
+            internal set;
         }
 
         [Field(Name = "FirstName", Title = "First Name", Order = 1, DataType = FieldType.Text)]
