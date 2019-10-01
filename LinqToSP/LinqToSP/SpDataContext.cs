@@ -75,7 +75,8 @@ namespace SP.Client.Linq
             {
                 return List<TListItem>(new SpQueryArgs<ISpEntryDataContext>(this, listAtt.Title, listAtt.Url, default, query));
             }
-            return Enumerable.Empty<TListItem>().AsQueryable();
+            throw new Exception($"{nameof(ListAttribute)} in {typeof(TListItem)} class is not found.");
+            //return Enumerable.Empty<TListItem>().AsQueryable();
         }
 
         public IQueryable<TListItem> View<TListItem>(string listTitle, string query)
@@ -153,7 +154,8 @@ namespace SP.Client.Linq
             {
                 return List<TListItem>(new SpQueryArgs<ISpEntryDataContext>(this, listAtt.Title, listAtt.Url, default, query) { SkipResult = true });
             }
-            return Enumerable.Empty<TListItem>().AsQueryable();
+            throw new Exception($"{nameof(ListAttribute)} in {typeof(TListItem)} class is not found.");
+            //return Enumerable.Empty<TListItem>().AsQueryable();
         }
 
         public IQueryable<TListItem> Query<TListItem>(string listTitle, string query = null)

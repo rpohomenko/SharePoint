@@ -176,7 +176,8 @@ namespace SP.Client.Linq.Query
 
         internal SpAsyncQueryExecutor(SpQueryArgs<TContext> args) : base(args)
         {
-            args.IsAsync = true;
+            if (args != null)
+                args.IsAsync = true;
         }
 
         public async Task<IEnumerable<TResult>> ExecuteCollectionAsync<TResult>(QueryModel queryModel)

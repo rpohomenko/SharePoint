@@ -17,5 +17,6 @@ namespace SP.Client.Linq.Attributes
         public virtual string Group { get; set; }
 
         public virtual string ParentId { get; set; }
+
     }
 }

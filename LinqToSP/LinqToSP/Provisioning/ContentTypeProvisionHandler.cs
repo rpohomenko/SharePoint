@@ -29,7 +29,7 @@ namespace SP.Client.Linq.Provisioning
 
         public override void Provision()
         {
-            if (_contentType != null /*&& !string.IsNullOrEmpty(_contentType.Name)*/ && Model != null && Model.Context != null && Model.Context.Context != null)
+            if (_contentType != null && Model != null && Model.Context != null && Model.Context.Context != null)
             {
                 var context = Model.Context.Context;
                 Web web = context.Web;

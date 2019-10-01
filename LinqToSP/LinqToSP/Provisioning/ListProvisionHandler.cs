@@ -8,7 +8,7 @@ namespace SP.Client.Linq.Provisioning
         where TContext : class, ISpEntryDataContext
         where TEntity : class, IListItemEntity
     {
-        private readonly ListAttribute _list;
+        private readonly ListAttribute List;
 
         public event Action<ListProvisionHandler<TContext, TEntity>, List> OnProvisioning;
 
@@ -16,18 +16,18 @@ namespace SP.Client.Linq.Provisioning
 
         public ListProvisionHandler(ListAttribute list, SpProvisionModel<TContext, TEntity> model) : base(model)
         {
-            _list = list;
+            List = list;
         }
 
         public override void Provision()
         {
-            if (_list != null && Model != null && Model.Context != null && Model.Context.Context != null)
+            if (List != null && Model != null && Model.Context != null && Model.Context.Context != null)
             {
                 var context = Model.Context.Context;
                 Web web = context.Web;
-                List list = _list.Url != null
-                        ? context.Web.GetList($"{ Model.Context.SiteUrl.TrimEnd('/')}/{_list.Url.TrimStart('/')}")
-                        : (_list.Title != null ? context.Web.Lists.GetByTitle(_list.Title) : null);
+                List list = List.Url != null
+                        ? context.Web.GetList($"{ Model.Context.SiteUrl.TrimEnd('/')}/{List.Url.TrimStart('/')}")
+                        : (List.Title != null ? context.Web.Lists.GetByTitle(List.Title) : null);
 
                 context.Load(list);
                 try
@@ -43,9 +43,9 @@ namespace SP.Client.Linq.Provisioning
 
                 var newList = new ListCreationInformation()
                 {
-                    Title = _list.Title,
-                    Url = _list.Url,
-                    TemplateType = (int)_list.Type
+                    Title = List.Title,
+                    Url = List.Url,
+                    TemplateType = (int)List.Type
                 };
 
                 list = web.Lists.Add(newList);

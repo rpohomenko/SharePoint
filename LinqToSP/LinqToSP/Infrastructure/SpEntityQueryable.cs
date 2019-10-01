@@ -46,13 +46,14 @@ namespace SP.Client.Linq.Infrastructure
         public SpEntityQueryable(SpQueryArgs<TContext> args)
             : this(QueryParser.CreateDefault(), new SpAsyncQueryExecutor<TEntity, TContext>(args))
         {
-            foreach (var att in GetFieldAttributes())
-            {
-                if (!args.FieldMappings.ContainsKey(att.Key))
+            if (args != null)
+                foreach (var att in GetFieldAttributes())
                 {
-                    args.FieldMappings.Add(att.Key, att.Value);
+                    if (!args.FieldMappings.ContainsKey(att.Key))
+                    {
+                        args.FieldMappings.Add(att.Key, att.Value);
+                    }
                 }
-            }
         }
 
         internal SpEntityQueryable(IQueryParser queryParser, IAsyncQueryExecutor executor)
@@ -107,7 +108,7 @@ namespace SP.Client.Linq.Infrastructure
         internal string GenerateCaml(bool disableFormatting = false, bool queryOnly = false)
         {
             var executor = GetExecutor();
-            if (executor != null)
+            if (executor != null && executor.SpQueryArgs != null)
             {
                 bool skipResult = executor.SpQueryArgs.SkipResult;
                 try
