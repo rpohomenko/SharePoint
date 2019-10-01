@@ -5,7 +5,7 @@ using System;
 namespace SP.Client.Linq
 {
   [ContentType(Id = "0x0102")]
-  public interface IEventItemEntity : IListItemEntity
+  public interface IEventEntity : IListItemEntity
   {
     [Field(Name = "StartDate", Required = true, DataType = FieldType.DateTime)]
     DateTime StartTime { get; set; }

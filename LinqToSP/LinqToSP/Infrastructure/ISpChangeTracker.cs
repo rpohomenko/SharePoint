@@ -1,9 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using SP.Client.Linq.Attributes;
+using System.Collections.Generic;
 
 namespace SP.Client.Linq.Infrastructure
 {
     public interface ISpChangeTracker
     {
-        bool DetectChanges(string fieldName, object originalValue, ref object currentValue);
+        bool DetectChanges(FieldAttribute field, object originalValue, ref object currentValue);
     }
 }

@@ -62,10 +62,10 @@
     <Compile Include="Attributes\RemovedFieldAttribute.cs" />
     <Compile Include="DocumentEntity.cs" />
     <Compile Include="EnumExtensions.cs" />
-    <Compile Include="EventItemEntity.cs" />
+    <Compile Include="EventEntity.cs" />
     <Compile Include="FolderEntity.cs" />
     <Compile Include="IDocumentEntity.cs" />
-    <Compile Include="IEventItemEntity.cs" />
+    <Compile Include="IEventEntity.cs" />
     <Compile Include="IFolderEntity .cs" />
     <Compile Include="Infrastructure\ICustomMapping.cs" />
     <Compile Include="Infrastructure\ISpChangeTrackable.cs" />

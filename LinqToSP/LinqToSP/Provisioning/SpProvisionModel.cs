@@ -126,7 +126,6 @@ namespace SP.Client.Linq.Provisioning
                         provisionHandler.Provision();
                 }
 
-
                 var allFields = new Dictionary<string, int>();
                 foreach (var fieldHandler in ProvisionHandlers.OfType<FieldProvisionHandler<TContext, TEntity>>())
                 {
@@ -139,7 +138,7 @@ namespace SP.Client.Linq.Provisioning
                     {
                         foreach (ContentType contentType in _contentTypes.Keys)
                         {
-                            if (contentType.Sealed) continue;
+                            if (contentType.Sealed || contentType.ReadOnly) continue;
 
                             var fieldLinks = contentType.FieldLinks;
                             contentType.Context.Load(fieldLinks);

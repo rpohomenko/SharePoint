@@ -8,7 +8,7 @@ namespace SP.Client.Linq
 {
   [Serializable]
   [DataContract]
-  public class EventItemEntity : ListItemEntity, IEventItemEntity
+  public class EventEntity : ListItemEntity, IEventEntity
   {
     [Field(Name = "EventDate", Required = true, DataType = FieldType.DateTime)]
     [DataMember]

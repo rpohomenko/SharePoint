@@ -155,7 +155,7 @@ namespace SP.Client.Linq.Infrastructure
               .Concat(AttributeHelper.GetPropertyValues<TEntity, FieldAttribute>(entity)).ToDictionary(val => val.Key.Name, val => val.Value);
         }
 
-        private bool DetectChanges(string fieldName, object originalValue, ref object currentValue)
+        private bool DetectChanges(FieldAttribute field, object originalValue, ref object currentValue)
         {
             if (currentValue is ISpEntityLookup)
             {
@@ -198,7 +198,7 @@ namespace SP.Client.Linq.Infrastructure
                 bool isChanged = false;
                 if (typeof(ISpChangeTracker).IsAssignableFrom(Entity.GetType()))
                 {
-                    isChanged = (Entity as ISpChangeTracker).DetectChanges(fieldName, originalValue, ref currentValue);
+                    isChanged = (Entity as ISpChangeTracker).DetectChanges(field, originalValue, ref currentValue);
                 }
                 else
                 {
@@ -231,13 +231,14 @@ namespace SP.Client.Linq.Infrastructure
                 {
                     if (!SpQueryArgs.FieldMappings.ContainsKey(currentValue.Key)) continue;
                     var fieldMapping = SpQueryArgs.FieldMappings[currentValue.Key];
+                    if (fieldMapping == null) continue;
                     if (fieldMapping.IsReadOnly || typeof(DependentLookupFieldAttribute).IsAssignableFrom(fieldMapping.GetType())
                     || typeof(CalculatedFieldAttribute).IsAssignableFrom(fieldMapping.GetType())
                     || fieldMapping.DataType == FieldType.Calculated) continue;
 
                     var value = currentValue.Value;
                     var originalValue = OriginalValues.ContainsKey(currentValue.Key) ? OriginalValues[currentValue.Key] : null;
-                    bool isChanged = DetectChanges(currentValue.Key, originalValue, ref value);
+                    bool isChanged = DetectChanges(fieldMapping, originalValue, ref value);
                     if (isChanged)
                     {
                         if (Equals(default, value))
