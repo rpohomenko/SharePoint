@@ -94,6 +94,16 @@ namespace SP.Client.Linq.Provisioning
                 {
                     context.Load(field);
                     context.ExecuteQuery();
+                    if (Field.Overwrite)
+                    {
+                        field.DeleteObject();
+                        try
+                        {
+                            context.ExecuteQuery();
+                            field = null;
+                        }
+                        catch { }
+                    }
                 }
                 catch
                 {
@@ -138,6 +148,8 @@ namespace SP.Client.Linq.Provisioning
                             field = fields.AddFieldAsXml(fieldXml, true, AddFieldOptions.AddFieldInternalNameHint);
                             field.FieldTypeKind = Field.DataType;
                             field.ReadOnlyField = Field.IsReadOnly;
+                            if (!string.IsNullOrEmpty(Field.Group)) field.Group = Field.Group;
+
                             var calculatedField = context.CastTo<FieldCalculated>(field);
                             calculatedField.OutputType = (Field as CalculatedFieldAttribute).ResultType;
                             calculatedField.Formula = formula;
@@ -154,6 +166,7 @@ namespace SP.Client.Linq.Provisioning
                                 field.FieldTypeKind = Field.DataType;
                                 field.Required = Field.Required;
                                 field.ReadOnlyField = Field.IsReadOnly;
+                                if (!string.IsNullOrEmpty(Field.Group)) field.Group = Field.Group;
 
                                 var lookupField = context.CastTo<FieldLookup>(field);
                                 if (typeof(LookupFieldAttribute).IsAssignableFrom(Field.GetType()))
@@ -182,6 +195,7 @@ namespace SP.Client.Linq.Provisioning
                             field.FieldTypeKind = Field.DataType;
                             field.Required = Field.Required;
                             field.ReadOnlyField = Field.IsReadOnly;
+                            if (!string.IsNullOrEmpty(Field.Group)) field.Group = Field.Group;
 
                             var choiceField = context.CastTo<FieldChoice>(field);
                             var choices = AttributeHelper.GetFieldAttributes<ChoiceAttribute>(_valueType).Select(choice => choice.Value);
@@ -195,6 +209,7 @@ namespace SP.Client.Linq.Provisioning
                             field.FieldTypeKind = Field.DataType;
                             field.Required = Field.Required;
                             field.ReadOnlyField = Field.IsReadOnly;
+                            if (!string.IsNullOrEmpty(Field.Group)) field.Group = Field.Group;
 
                             OnProvisioning?.Invoke(this, field);
                         }

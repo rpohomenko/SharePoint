@@ -43,7 +43,7 @@ namespace LinqToSP.Test.Model
             set => base.Title = value;
         }
 
-        [CalculatedField(Name = "FullName", Title = "Full Name", Order = 0, Formula = "=CONCATENATE([FirstName], \" \", [LastName])", FieldRefs = new[] { "FirstName", "LastName" })]
+        [CalculatedField(Name = "FullName", Title = "Full Name", Order = 0, Group = "Custom", Formula = "=CONCATENATE([FirstName], \" \", [LastName])", FieldRefs = new[] { "FirstName", "LastName" })]
         public string FullName
         {
             get;
@@ -64,7 +64,7 @@ namespace LinqToSP.Test.Model
             set;
         }
 
-        [Field(Name = "Position", Title = "Position", Order = 3, DataType = FieldType.Choice)]
+        [Field(Name = "Position", Title = "Position", Order = 3, DataType = FieldType.Choice, Group = "Custom")]
         public EmployeePosition Position
         {
             get;
@@ -85,7 +85,7 @@ namespace LinqToSP.Test.Model
             set;
         }
 
-        [Field(Name = "Manager", Title = "Manager", DataType = FieldType.Lookup, Order = 6)]
+        [Field(Name = "Manager", Title = "Manager", DataType = FieldType.Lookup, Order = 6, Overwrite = true)]
         public ISpEntityLookup<Employee> Manager
         {
             get;
@@ -97,7 +97,7 @@ namespace LinqToSP.Test.Model
             get;
         }
 
-        [Field(Name = "Department", Title = "Department", DataType = FieldType.Lookup, Order = 7)]
+        [Field(Name = "Department", Title = "Department", DataType = FieldType.Lookup, Order = 7, Overwrite = true)]
         public ISpEntityLookup<Department> Department
         {
             get;

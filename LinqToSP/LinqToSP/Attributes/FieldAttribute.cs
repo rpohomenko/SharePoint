@@ -30,7 +30,11 @@ namespace SP.Client.Linq.Attributes
 
         public virtual FieldType DataType { get; set; }
 
+        public virtual string Group { get; set; }
+
         public int Order { get; set; }
+
+        public bool Overwrite { get; set; }
 
         public override string ToString()
         {
