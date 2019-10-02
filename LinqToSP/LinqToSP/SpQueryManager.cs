@@ -235,7 +235,8 @@ namespace SP.Client.Linq
             return entities;
         }
 
-        public async Task<IEnumerable<TEntity>> GetEntitiesAsync(Type type, Caml.View spView)
+#if !SP2013
+    public async Task<IEnumerable<TEntity>> GetEntitiesAsync(Type type, Caml.View spView)
         {
             CheckEntityType(type);
             ListItemCollectionPosition position = null;
@@ -279,7 +280,7 @@ namespace SP.Client.Linq
             spView.Limit = rowLimit;
             return entities;
         }
-
+#endif
         public TEntity MapEntity(TEntity entity, ListItem item)
         {
             if (_args == null || entity == null || item == null) return entity;
@@ -468,6 +469,6 @@ namespace SP.Client.Linq
             }
         }
 
-        #endregion
+#endregion
     }
 }

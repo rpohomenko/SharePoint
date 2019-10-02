@@ -16,3 +16,8 @@
 /LinqToSP/LinqToSP/bin
 /LinqToSP/LinqToSP.Test/bin/Release
 /LinqToSP/SP.Client/bin/Release
+/LinqToSP/nuget
+/LinqToSP/LinqToSP.2013/bin/Debug
+/LinqToSP/LinqToSP.2013/obj/Debug
+/LinqToSP/SP.Client.SP2013/bin/Debug
+/LinqToSP/SP.Client.SP2013/obj/Debug
