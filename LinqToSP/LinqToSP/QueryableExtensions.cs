@@ -59,7 +59,7 @@ namespace SP.Client.Linq
         {
           var args = (SpQueryArgs<ISpEntryDataContext>)executor.SpQueryArgs.Clone();
           args.FolderUrl = folderUrl;
-          source = new SpEntityQueryable<TEntity>(args);
+          source = new SpEntityQueryable<TEntity>(new SpEntityQueryable<TEntity>(args).Provider, source.Expression);
         }
       }
       return source;
@@ -156,6 +156,21 @@ namespace SP.Client.Linq
       where TEntity : class, IListItemEntity, new()
     {
       return source.Where(entity => entity.Includes(e => e.Id, entityIds)).Take(entityIds.Length).DeleteAll();
+    }
+
+    public static SpEntitySet<TEntity> ToEntitySet<TEntity>(this IQueryable<TEntity> source)
+      where TEntity : class, IListItemEntity, new()
+    {
+      Check.NotNull(source, nameof(source));
+      if (source is SpEntityQueryable<TEntity, ISpEntryDataContext>)
+      {
+        var executor = (source as SpEntityQueryable<TEntity, ISpEntryDataContext>).GetExecutor();
+        if (executor != null)
+        {
+          return new SpEntitySet<TEntity>(source.Provider, source.Expression);
+        }
+      }
+      return null;
     }
   }
 }

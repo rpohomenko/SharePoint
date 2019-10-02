@@ -9,12 +9,13 @@ namespace LinqToSP.Test.Model
   [List(Title = "Employees", Url = "Lists/Employees")]
   public class Employee : ListItemEntity
   {
+    private SpEntitySet<Employee> _managers;
+
     public Employee()
     {
       Manager = new SpEntityLookup<Employee>();
       Department = new SpEntityLookup<Department>();
-      string query = new SpEntitySet<Employee>().Where(employee => employee.Position == EmployeePosition.Manager).Caml(true, true);
-      Managers = new SpEntitySet<Employee>(query);
+      _managers = new SpEntitySet<Employee>();
     }
 
     public override string ContentTypeId
@@ -97,7 +98,14 @@ namespace LinqToSP.Test.Model
 
     public ISpEntitySet<Employee> Managers
     {
-      get;
+      get
+      {
+        if (_managers.SpQueryArgs != null && _managers.SpQueryArgs.Context != null)
+        {
+          _managers = _managers.Where(employee => employee.Position == EmployeePosition.Manager).ToEntitySet();
+        }
+        return _managers;
+      }
     }
 
     [Field(Name = "Emp_Department", Title = "Department", DataType = FieldType.Lookup, Order = 7, Overwrite = true)]
