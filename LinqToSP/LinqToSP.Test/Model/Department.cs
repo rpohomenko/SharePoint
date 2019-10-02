@@ -5,9 +5,9 @@ using System.Linq;
 
 namespace LinqToSP.Test.Model
 {
-    [ContentType(Name = "Department", Id = "0x01004BF822E9207E43869D826290F33C909C")]
-    [List(Title = "Departments", Url = "Lists/Departments")]
-    public class Department : ListItemEntity
+    [ContentType(Name = "Department", Id = "0x01004BF822E9207E43869D826290F33C909C", Group = "Custom Content Types")]
+  [List(Title = "Departments", Url = "Lists/Departments")]
+  public class Department : ListItemEntity
     {
         private readonly SpEntitySet<Employee> _employees;
 

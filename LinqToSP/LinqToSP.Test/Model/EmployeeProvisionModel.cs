@@ -13,12 +13,12 @@ namespace LinqToSP.Test.Model
 
         }
 
-        public override void Provision()
+        public override void Provision(bool overwrite = false)
         {
             var model = (Context as SpDataContext).CreateModel<Department>();
-            model.Provision();
+            model.Provision(overwrite);
 
-            base.Provision();
+            base.Provision(overwrite);
         }
 
         protected override void ListHandler_OnProvisioning(ListProvisionHandler<TContext, Employee> handler, List list)
