@@ -1,6 +1,3 @@
-// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -15,9 +12,7 @@ namespace SP.Client.Extensions
     [ContractAnnotation("value:null => halt")]
     public static T NotNull<T>([NoEnumeration] T value, [InvokerParameterName] [NotNull] string parameterName)
     {
-#pragma warning disable IDE0041 // Use 'is null' check
       if (ReferenceEquals(value, null))
-#pragma warning restore IDE0041 // Use 'is null' check
       {
         NotEmpty(parameterName, nameof(parameterName));
 
