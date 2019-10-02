@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<package>
+  <metadata>
+    <!--*-->
+    <id>SP.Client.o365</id>
+    <!--*-->
+    <version>1.0.0</version>
+    <title>CSOM Framework Extension</title>
+    <!--*-->
+    <authors>Ruslan Pakhomenka</authors>
+    <owners>Ruslan Pakhomenka</owners>
+    <projectUrl>https://github.com/rpohomenko/SharePoint/tree/master/LinqToSP/SP.Client</projectUrl>
+    <!--
+    <licenseUrl></licenseUrl>
+    <iconUrl></iconUrl>
+-->
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <!--*-->
+    <description>.NET client-side object model (CSOM) Framework Extension.</description>
+    <!--*-->
+    <releaseNotes>first release</releaseNotes>
+    <copyright>Copyright ©  2019</copyright>
+    <tags>
+    </tags>
+    <dependencies>
+      <dependency id="Microsoft.SharePointOnline.CSOM" version="16.1.19223.12000" />
+    </dependencies>
+  </metadata>
+</package>
