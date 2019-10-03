@@ -1,7 +1,9 @@
-﻿using SP.Client.Linq.Attributes;
+﻿using Microsoft.SharePoint.Client;
+using SP.Client.Linq.Attributes;
 using SP.Client.Linq.Infrastructure;
 using SP.Client.Linq.Query;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace SP.Client.Linq
@@ -11,7 +13,31 @@ namespace SP.Client.Linq
     {
         public SpQueryArgs<ISpEntryDataContext> SpQueryArgs { get; }
 
-        public int EntityId { get; set; }
+        public ISpEntryDataContext Context
+        {
+            get
+            {
+                return SpQueryArgs == null ? null : SpQueryArgs.Context;
+            }
+            internal set
+            {
+                if (SpQueryArgs != null)
+                {
+                    SpQueryArgs.Context = value;
+                }
+            }
+        }
+
+
+        public TEntity Entity
+        {
+            get; private set;
+        }
+
+        public int EntityId
+        {
+            get; set;
+        }
 
         public Type EntityType => typeof(TEntity);
 
@@ -25,6 +51,12 @@ namespace SP.Client.Linq
         {
         }
 
+        private void Entry_OnAfterSaveChanges(SpEntityEntry<TEntity, ISpEntryDataContext> entry, ListItem item)
+        {
+            EntityId = item.Id;
+            entry.OnAfterSaveChanges -= Entry_OnAfterSaveChanges;
+        }
+
         public SpEntityLookup(int entityId, ISpEntryDataContext context)
         {
             EntityId = entityId;
@@ -32,6 +64,13 @@ namespace SP.Client.Linq
             if (listAtt != null)
             {
                 SpQueryArgs = new SpQueryArgs<ISpEntryDataContext>(context, listAtt.Title, listAtt.Url, default, null);
+                foreach (var att in GetFieldAttributes())
+                {
+                    if (!SpQueryArgs.FieldMappings.ContainsKey(att.Key))
+                    {
+                        SpQueryArgs.FieldMappings.Add(att.Key, att.Value);
+                    }
+                }
             }
         }
 
@@ -86,15 +125,42 @@ namespace SP.Client.Linq
             SpQueryArgs = args;
         }
 
+        private static IEnumerable<KeyValuePair<string, FieldAttribute>> GetFieldAttributes()
+        {
+            return AttributeHelper.GetFieldAttributes<TEntity, FieldAttribute>()
+              .Concat(AttributeHelper.GetPropertyAttributes<TEntity, FieldAttribute>())
+              .Select(f => new KeyValuePair<string, FieldAttribute>(f.Key.Name, f.Value));
+        }
+
+        private SpEntityEntry<TEntity, ISpEntryDataContext> GetEntry()
+        {
+            if (Entity == null)
+            {
+                Entity = GetEntity();
+            }
+            if (Entity != null)
+            {
+                var entry = new SpEntityEntry<TEntity, ISpEntryDataContext>(Entity, SpQueryArgs);
+                if (EntityId > 0 && EntityId != Entity.Id)
+                {
+                    entry.EntityId = EntityId;
+                    entry.Reload(true);
+                }
+                entry.OnAfterSaveChanges += Entry_OnAfterSaveChanges;
+                return entry;
+            }
+            return null;
+        }
+
         public TEntity GetEntity()
         {
-            if (EntityId > 0 && SpQueryArgs != null)
+            if (EntityId > 0)
             {
-                if (SpQueryArgs.Context == null)
+                if (Context == null)
                 {
                     throw new ArgumentNullException(nameof(SpQueryArgs.Context));
                 }
-                return (SpQueryArgs.Context.List<TEntity>(SpQueryArgs) as ISpRepository<TEntity>).Find(EntityId);
+                return Context.List<TEntity>(SpQueryArgs).FirstOrDefault(entity => entity.Id == EntityId);
             }
 
             return null;
@@ -102,23 +168,21 @@ namespace SP.Client.Linq
 
         public void SetEntity(TEntity entity)
         {
-            if (entity != null)
+            if (entity != null && !Equals(entity, Entity))
             {
-                EntityId = entity.Id;
+                Entity = entity;
             }
+            EntityId = entity != null ? entity.Id : 0;
         }
 
-        public SpEntityEntry<TEntity, ISpEntryDataContext> GetEntry()
+        public bool Update()
         {
-            if (EntityId > 0 && SpQueryArgs != null)
+            var entry = GetEntry();
+            if (entry != null)
             {
-                if (SpQueryArgs.Context == null)
-                {
-                    throw new ArgumentNullException(nameof(SpQueryArgs.Context));
-                }
-                return SpQueryArgs.Context.List<TEntity>(SpQueryArgs).GetEntry(GetEntity());
+                return entry.Update();
             }
-            return null;
+            return false;
         }
     }
 }

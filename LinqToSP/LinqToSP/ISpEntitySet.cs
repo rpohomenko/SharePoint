@@ -18,5 +18,6 @@ namespace SP.Client.Linq
          where TEntity : class, IListItemEntity, new()
          where TContext : class, ISpEntryDataContext
     {
+        TContext Context { get; }
     }
 }

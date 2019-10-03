@@ -8,7 +8,7 @@ namespace SP.Client.Linq.Query
     public class SpQueryArgs<TContext>: ICloneable
         where TContext : ISpDataContext
     {
-        public TContext Context { get; internal set; }
+        internal TContext Context { get; set; }
         public string ListTitle { get; }
         public string ListUrl { get; }
         public Guid ListId { get; }

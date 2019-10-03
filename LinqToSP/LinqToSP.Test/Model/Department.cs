@@ -5,40 +5,36 @@ using System.Linq;
 
 namespace LinqToSP.Test.Model
 {
-  [ContentType(Name = "Department", Id = "0x01004BF822E9207E43869D826290F33C909C", Group = "Custom Content Types")]
-  [List(Title = "Departments", Url = "Lists/Departments")]
-  public class Department : ListItemEntity
-  {
-    private SpEntitySet<Employee> _employees;
-
-    public Department()
+    [ContentType(Name = "Department", Id = "0x01004BF822E9207E43869D826290F33C909C", Group = "Custom Content Types")]
+    [List(Title = "Departments", Url = "Lists/Departments")]
+    public class Department : ListItemEntity
     {
-      _employees = new SpEntitySet<Employee>();
-    }
+        private SpEntitySet<Employee> _employees;
 
-    public override string ContentTypeId
-    {
-      get
-      {
-        if (string.IsNullOrEmpty(base.ContentTypeId))
+        public Department()
         {
-          base.ContentTypeId = "0x01004BF822E9207E43869D826290F33C909C";
+            _employees = new SpEntitySet<Employee>();
         }
-        return base.ContentTypeId;
-      }
-      set => base.ContentTypeId = value;
-    }
 
-    public ISpEntitySet<Employee> Employees
-    {
-      get
-      {
-        if (_employees.SpQueryArgs != null && _employees.SpQueryArgs.Context != null)
+        public override string ContentTypeId
         {
-          _employees = _employees.Where(employee => employee.DepartmentId == this.Id).ToEntitySet();
+            get
+            {
+                if (string.IsNullOrEmpty(base.ContentTypeId))
+                {
+                    base.ContentTypeId = "0x01004BF822E9207E43869D826290F33C909C";
+                }
+                return base.ContentTypeId;
+            }
+            set => base.ContentTypeId = value;
         }
-        return _employees;
-      }
+
+        public ISpEntitySet<Employee> Employees
+        {
+            get
+            {
+                return _employees.Where(employee => employee.DepartmentId == this.Id).ToEntitySet();
+            }
+        }
     }
-  }
 }

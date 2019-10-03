@@ -8,9 +8,9 @@ namespace SP.Client.Linq
 {
     public interface ISpEntryDataContext : ISpDataContext
     {
-        event Action<SpSaveArgs> OnBeforeSaveChanges;
+        event Action<ISpEntryDataContext, SpSaveArgs> OnBeforeSaveChanges;
 
-        event Action<SpSaveArgs> OnAfterSaveChanges;
+        event Action<ISpEntryDataContext, SpSaveArgs> OnAfterSaveChanges;
 
         bool SaveChanges();
         IQueryable<TListItem> List<TListItem>(SpQueryArgs<ISpEntryDataContext> args) where TListItem : class, IListItemEntity, new();

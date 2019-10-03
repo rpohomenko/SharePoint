@@ -60,8 +60,8 @@ namespace SP.Client.Linq
             Context = new ClientContext(siteUrl);
         }
 
-        public event Action<SpSaveArgs> OnBeforeSaveChanges;
-        public event Action<SpSaveArgs> OnAfterSaveChanges;
+        public event Action<ISpEntryDataContext, SpSaveArgs> OnBeforeSaveChanges;
+        public event Action<ISpEntryDataContext, SpSaveArgs> OnAfterSaveChanges;
 
         #endregion
 
@@ -179,11 +179,11 @@ namespace SP.Client.Linq
         public virtual bool SaveChanges()
         {
             var args = new SpSaveArgs() { Items = new List<ListItem>() };
-            OnBeforeSaveChanges?.Invoke(args);
+            OnBeforeSaveChanges?.Invoke(this, args);
             if (args.HasChanges)
             {
                 Context.ExecuteQuery();
-                OnAfterSaveChanges?.Invoke(args);
+                OnAfterSaveChanges?.Invoke(this, args);
             }
             return args.HasChanges;
         }

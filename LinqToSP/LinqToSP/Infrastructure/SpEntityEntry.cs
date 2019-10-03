@@ -17,8 +17,8 @@ namespace SP.Client.Linq.Infrastructure
         private readonly SpQueryManager<TEntity, TContext> _manager;
         private ListItem _item;
         private readonly object _lock = new object();
-        public event Action<ListItem> OnBeforeSaveChanges;
-        public event Action<ListItem> OnAfterSaveChanges;
+        public event Action<SpEntityEntry<TEntity, TContext>, ListItem> OnBeforeSaveChanges;
+        public event Action<SpEntityEntry<TEntity, TContext>, ListItem> OnAfterSaveChanges;
 
         #endregion
 
@@ -29,8 +29,11 @@ namespace SP.Client.Linq.Infrastructure
             Entity = entity;
             SpQueryArgs = args;
             _manager = new SpQueryManager<TEntity, TContext>(args);
-            Context.OnBeforeSaveChanges += Context_OnOnBeforeSaveChanges;
-            Context.OnAfterSaveChanges += Context_OnAfterSaveChanges;
+            if (Context != null)
+            {
+                Context.OnBeforeSaveChanges += Context_OnOnBeforeSaveChanges;
+                Context.OnAfterSaveChanges += Context_OnAfterSaveChanges;
+            }
             Attach();
         }
 
@@ -99,7 +102,7 @@ namespace SP.Client.Linq.Infrastructure
             }
         }
 
-        private void Context_OnOnBeforeSaveChanges(SpSaveArgs args)
+        private void Context_OnOnBeforeSaveChanges(ISpEntryDataContext context, SpSaveArgs args)
         {
             if (HasChanges)
             {
@@ -110,18 +113,18 @@ namespace SP.Client.Linq.Infrastructure
                     //requires to reload it after saving item.
                     Detach();
                     args.HasChanges = true;
-                    OnBeforeSaveChanges?.Invoke(_item);
+                    OnBeforeSaveChanges?.Invoke(this, _item);
                 }
             }
         }
-        private void Context_OnAfterSaveChanges(SpSaveArgs args)
+        private void Context_OnAfterSaveChanges(ISpEntryDataContext context, SpSaveArgs args)
         {
             if (_item != null)
             {
                 EntityId = _item.Id;
                 Entity = _manager.MapEntity(Entity, _item);
                 Attach();
-                OnAfterSaveChanges?.Invoke(_item);
+                OnAfterSaveChanges?.Invoke(this, _item);
             }
         }
 
@@ -157,6 +160,8 @@ namespace SP.Client.Linq.Infrastructure
 
         private bool DetectChanges(FieldAttribute field, object originalValue, ref object currentValue)
         {
+            bool isChanged = false;
+
             if (currentValue is ISpEntityLookup)
             {
                 if (originalValue == null || Equals(originalValue, default))
@@ -164,13 +169,13 @@ namespace SP.Client.Linq.Infrastructure
                     if (EntityId > 0)
                     {
                         currentValue = (currentValue as ISpEntityLookup).EntityId;
-                        return true;
+                        isChanged = true;
                     }
                 }
                 else if (originalValue is ISpEntityLookup && !Equals((originalValue as ISpEntityLookup).EntityId, (currentValue as ISpEntityLookup).EntityId))
                 {
                     currentValue = (currentValue as ISpEntityLookup).EntityId;
-                    return EntityId > 0 || !Equals(default(int), currentValue);
+                    isChanged = EntityId > 0 || !Equals(default(int), currentValue);
                 }
             }
             else if (currentValue is ISpEntityLookupCollection)
@@ -180,12 +185,12 @@ namespace SP.Client.Linq.Infrastructure
                     if (EntityId > 0)
                     {
                         currentValue = (currentValue as ISpEntityLookupCollection).EntityIds.Where(entityId => entityId > 0).ToArray();
-                        return true;
+                        isChanged = true;
                     }
                     else if ((currentValue as ISpEntityLookupCollection).EntityIds != null && (currentValue as ISpEntityLookupCollection).EntityIds.Any(entityId => entityId > 0))
                     {
                         currentValue = (currentValue as ISpEntityLookupCollection).EntityIds.Where(entityId => entityId > 0).ToArray();
-                        return EntityId > 0 || !Equals(default(int[]), currentValue);
+                        isChanged = EntityId > 0 || !Equals(default(int[]), currentValue);
                     }
                     else
                     {
@@ -195,7 +200,6 @@ namespace SP.Client.Linq.Infrastructure
             }
             else
             {
-                bool isChanged = false;
                 if (typeof(ISpChangeTracker).IsAssignableFrom(Entity.GetType()))
                 {
                     isChanged = (Entity as ISpChangeTracker).DetectChanges(field, originalValue, ref currentValue);
@@ -213,9 +217,8 @@ namespace SP.Client.Linq.Infrastructure
                 {
                     isChanged = currentValue != null && !Equals(currentValue.GetType().GetDefaultValue(), currentValue);
                 }
-                return isChanged;
             }
-            return false;
+            return isChanged;
         }
 
         public bool DetectChanges()
@@ -302,7 +305,7 @@ namespace SP.Client.Linq.Infrastructure
             return Entity;
         }
 
-        public void Update()
+        public bool Update()
         {
             lock (_lock)
             {
@@ -311,6 +314,27 @@ namespace SP.Client.Linq.Infrastructure
                 {
                     State = EntityId > 0 ? EntityState.Modified : EntityState.Added;
                 }
+
+                foreach (var currentValue in GetValues(Entity))
+                {
+                    if (currentValue.Value is ISpEntityLookup)
+                    {
+                        if ((currentValue.Value as ISpEntityLookup).SpQueryArgs != null && (currentValue.Value as ISpEntityLookup).SpQueryArgs.Context == null)
+                        {
+                            (currentValue.Value as ISpEntityLookup).SpQueryArgs.Context = this.Context;
+                        }
+                        hasChanges = (currentValue.Value as ISpEntityLookup).Update() || hasChanges;
+                    }
+                    else if (currentValue.Value is ISpEntityLookupCollection)
+                    {
+                        if ((currentValue.Value as ISpEntityLookupCollection).SpQueryArgs != null && (currentValue.Value as ISpEntityLookupCollection).SpQueryArgs.Context == null)
+                        {
+                            (currentValue.Value as ISpEntityLookupCollection).SpQueryArgs.Context = this.Context;
+                        }
+                        hasChanges = (currentValue.Value as ISpEntityLookupCollection).Update() || hasChanges;
+                    }
+                }
+                return hasChanges;
             }
         }
 

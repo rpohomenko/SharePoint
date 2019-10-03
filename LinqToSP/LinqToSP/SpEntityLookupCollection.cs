@@ -13,6 +13,8 @@ namespace SP.Client.Linq
         int[] EntityIds { get; set; }
 
         Type EntityType { get; }
+
+        bool Update();
     }
 
     public interface ISpEntityLookupCollection<TEntityLookup, TEntity> : IEnumerable<ISpEntityLookup<TEntity>>, ISpEntityLookupCollection
@@ -87,6 +89,16 @@ namespace SP.Client.Linq
                  ? Enumerable.Empty<SpEntityLookup<TEntity>>()
                  : EntityIds.Select(entityId => new SpEntityLookup<TEntity>(entityId, SpQueryArgs));
             return result.GetEnumerator();
+        }
+
+        public bool Update()
+        {
+            bool updated = false;
+            foreach (var lookupItem in this)
+            {
+                updated = lookupItem.Update() || updated;
+            }
+            return updated;
         }
     }
 }
