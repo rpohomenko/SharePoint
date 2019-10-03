@@ -178,7 +178,7 @@ namespace SP.Client.Linq
 
         public virtual bool SaveChanges()
         {
-            var args = new SpSaveArgs() { Items = new List<ListItem>() };
+            var args = new SpSaveArgs() { Items = new Dictionary<ListItem, bool>() };
             OnBeforeSaveChanges?.Invoke(this, args);
             if (args.HasChanges)
             {

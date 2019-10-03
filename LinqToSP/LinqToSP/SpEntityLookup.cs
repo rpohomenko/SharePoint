@@ -51,6 +51,12 @@ namespace SP.Client.Linq
         {
         }
 
+        private void Entry_OnBeforeSaveChanges(SpEntityEntry<TEntity, ISpEntryDataContext> entry, ListItem item)
+        {
+            EntityId = item.Id;
+            entry.OnBeforeSaveChanges -= Entry_OnBeforeSaveChanges;
+        }
+
         private void Entry_OnAfterSaveChanges(SpEntityEntry<TEntity, ISpEntryDataContext> entry, ListItem item)
         {
             EntityId = item.Id;
@@ -146,6 +152,7 @@ namespace SP.Client.Linq
                     entry.EntityId = EntityId;
                     entry.Reload(true);
                 }
+                entry.OnBeforeSaveChanges += Entry_OnBeforeSaveChanges; ;
                 entry.OnAfterSaveChanges += Entry_OnAfterSaveChanges;
                 return entry;
             }

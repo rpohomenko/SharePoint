@@ -29,11 +29,6 @@ namespace SP.Client.Linq.Infrastructure
             Entity = entity;
             SpQueryArgs = args;
             _manager = new SpQueryManager<TEntity, TContext>(args);
-            if (Context != null)
-            {
-                Context.OnBeforeSaveChanges += Context_OnOnBeforeSaveChanges;
-                Context.OnAfterSaveChanges += Context_OnAfterSaveChanges;
-            }
             Attach();
         }
 
@@ -65,6 +60,11 @@ namespace SP.Client.Linq.Infrastructure
                 CurrentValues = new ConcurrentDictionary<string, object>();
                 OriginalValues = new ConcurrentDictionary<string, object>();
                 State = EntityState.Unchanged;
+                if (Context != null)
+                {
+                    Context.OnBeforeSaveChanges += Context_OnOnBeforeSaveChanges;
+                    Context.OnAfterSaveChanges += Context_OnAfterSaveChanges;
+                }
 
                 foreach (var value in GetValues(Entity))
                 {
@@ -97,21 +97,24 @@ namespace SP.Client.Linq.Infrastructure
             lock (_lock)
             {
                 CurrentValues = new ConcurrentDictionary<string, object>();
-                //requires to reload it after saving item.
                 State = EntityState.Detached;
+                if (Context != null)
+                {
+                    Context.OnBeforeSaveChanges -= Context_OnOnBeforeSaveChanges;
+                    Context.OnAfterSaveChanges -= Context_OnAfterSaveChanges;
+                }
             }
         }
 
         private void Context_OnOnBeforeSaveChanges(ISpEntryDataContext context, SpSaveArgs args)
         {
+            _item = null;
             if (HasChanges)
             {
                 _item = Save();
                 if (_item != null)
                 {
-                    args.Items.Add(_item);
-                    //requires to reload it after saving item.
-                    Detach();
+                    args.Items[_item] = true;
                     args.HasChanges = true;
                     OnBeforeSaveChanges?.Invoke(this, _item);
                 }
@@ -121,10 +124,14 @@ namespace SP.Client.Linq.Infrastructure
         {
             if (_item != null)
             {
-                EntityId = _item.Id;
-                Entity = _manager.MapEntity(Entity, _item);
-                Attach();
-                OnAfterSaveChanges?.Invoke(this, _item);
+                if (args.Items.ContainsKey(_item) && args.Items[_item])
+                {
+                    Detach();
+                    EntityId = _item.Id;
+                    Entity = _manager.MapEntity(Entity, _item);
+                    Attach();
+                    OnAfterSaveChanges?.Invoke(this, _item);
+                }
             }
         }
 
@@ -164,37 +171,43 @@ namespace SP.Client.Linq.Infrastructure
 
             if (currentValue is ISpEntityLookup)
             {
-                if (originalValue == null || Equals(originalValue, default))
+                if (originalValue == null)
                 {
-                    if (EntityId > 0)
-                    {
-                        currentValue = (currentValue as ISpEntityLookup).EntityId;
-                        isChanged = true;
-                    }
+                    currentValue = (currentValue as ISpEntityLookup).EntityId;
+                    isChanged = !Equals(default(int), currentValue);
                 }
                 else if (originalValue is ISpEntityLookup && !Equals((originalValue as ISpEntityLookup).EntityId, (currentValue as ISpEntityLookup).EntityId))
                 {
                     currentValue = (currentValue as ISpEntityLookup).EntityId;
                     isChanged = EntityId > 0 || !Equals(default(int), currentValue);
                 }
+                else
+                {
+                    if (EntityId <= 0)
+                    {
+                        currentValue = (currentValue as ISpEntityLookup).EntityId;
+                        isChanged = !Equals(default(int), currentValue);
+                    }
+                }
             }
             else if (currentValue is ISpEntityLookupCollection)
             {
-                if (originalValue == null || Equals(originalValue, default))
+                if (originalValue == null)
                 {
-                    if (EntityId > 0)
+                    currentValue = (currentValue as ISpEntityLookupCollection).EntityIds.Where(entityId => entityId > 0).ToArray();
+                    isChanged = !Equals(default(int[]), currentValue);
+                }
+                else if (originalValue is ISpEntityLookupCollection && !Equals((originalValue as ISpEntityLookupCollection).EntityIds, (currentValue as ISpEntityLookupCollection).EntityIds))
+                {
+                    currentValue = (currentValue as ISpEntityLookupCollection).EntityIds.Where(entityId => entityId > 0).ToArray();
+                    isChanged = EntityId > 0 || !Equals(default(int[]), currentValue);
+                }
+                else
+                {
+                    if (EntityId <= 0)
                     {
                         currentValue = (currentValue as ISpEntityLookupCollection).EntityIds.Where(entityId => entityId > 0).ToArray();
-                        isChanged = true;
-                    }
-                    else if ((currentValue as ISpEntityLookupCollection).EntityIds != null && (currentValue as ISpEntityLookupCollection).EntityIds.Any(entityId => entityId > 0))
-                    {
-                        currentValue = (currentValue as ISpEntityLookupCollection).EntityIds.Where(entityId => entityId > 0).ToArray();
-                        isChanged = EntityId > 0 || !Equals(default(int[]), currentValue);
-                    }
-                    else
-                    {
-                        currentValue = (currentValue as ISpEntityLookupCollection).EntityIds.Where(entityId => entityId > 0).ToArray();
+                        isChanged = !Equals(default(int[]), currentValue);
                     }
                 }
             }
@@ -211,7 +224,7 @@ namespace SP.Client.Linq.Infrastructure
 
                 if (EntityId > 0)
                 {
-
+                    //nothing
                 }
                 else
                 {
@@ -272,7 +285,7 @@ namespace SP.Client.Linq.Infrastructure
             return false;
         }
 
-        public TEntity Reload(bool setOriginalValuesOnly = false)
+        public TEntity Reload(bool update = false)
         {
             if (EntityId > 0 && Context != null && SpQueryArgs != null)
             {
@@ -290,14 +303,20 @@ namespace SP.Client.Linq.Infrastructure
                         Entity = entity;
                         Attach();
 
-                        if (setOriginalValuesOnly)
+                        if (update)
                         {
                             Entity = originalEntity;
+                            Update();
+                            Entity = entity;
                         }
                     }
                     else
                     {
-                        EntityId = originalEntity.Id;
+                        EntityId = 0;
+                        if (update)
+                        {
+                            Update();
+                        }
                     }
                     return entity;
                 }
