@@ -14,7 +14,7 @@ namespace LinqToSP.Test.Model
         public Employee()
         {
             Manager = new SpEntityLookup<Employee>();
-            Department = new SpEntityLookup<Department>();
+            DepartmentEntity = new SpEntityLookup<Department>();
             _managers = new SpEntitySet<Employee>();
         }
 
@@ -105,7 +105,7 @@ namespace LinqToSP.Test.Model
         }
 
         [Field(Name = "Emp_Department", Title = "Department", DataType = FieldType.Lookup, Order = 7, Overwrite = true)]
-        public ISpEntityLookup<Department> Department
+        public ISpEntityLookup<Department> DepartmentEntity
         {
             get;
         }
@@ -113,8 +113,14 @@ namespace LinqToSP.Test.Model
         [LookupField(Name = "Emp_Department", Result = LookupItemResult.Id)]
         public int DepartmentId
         {
-            get { return Department.EntityId; }
-            set { Department.EntityId = value; }
+            get { return DepartmentEntity.EntityId; }
+            set { DepartmentEntity.EntityId = value; }
+        }
+
+        public Department Department
+        {
+            get { return DepartmentEntity.GetEntity(); }
+            set { DepartmentEntity.SetEntity(value); }
         }
     }
 

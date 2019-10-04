@@ -17,6 +17,7 @@ namespace SP.Client.Linq
     public interface ISpEntityLookup<TEntity> : ISpEntityLookup
      where TEntity : class, IListItemEntity, new()
     {
+        SpEntityEntry<TEntity, ISpEntryDataContext> Entry { get; }
         TEntity GetEntity();
         void SetEntity(TEntity entity);
     }

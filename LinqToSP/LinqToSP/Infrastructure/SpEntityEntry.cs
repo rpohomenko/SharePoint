@@ -5,6 +5,7 @@ using SP.Client.Linq.Query;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace SP.Client.Linq.Infrastructure
@@ -29,13 +30,14 @@ namespace SP.Client.Linq.Infrastructure
             Entity = entity;
             SpQueryArgs = args;
             _manager = new SpQueryManager<TEntity, TContext>(args);
+            FetchOriginalValues();
             Attach();
         }
 
         #endregion
 
         #region Properties
-        public TContext Context { get { return SpQueryArgs.Context; } }
+        public TContext Context { get { return SpQueryArgs.Context; } internal set { SpQueryArgs.Context = value; } }
         public SpQueryArgs<TContext> SpQueryArgs { get; }
         public TEntity Entity { get; private set; }
         public int EntityId { get; internal set; }
@@ -53,41 +55,46 @@ namespace SP.Client.Linq.Infrastructure
         #endregion
 
         #region Methods
+
+        private void FetchOriginalValues()
+        {
+            OriginalValues = new ConcurrentDictionary<string, object>();
+            foreach (var value in GetValues(Entity))
+            {
+                if (!SpQueryArgs.FieldMappings.ContainsKey(value.Key)) continue;
+                var fieldMapping = SpQueryArgs.FieldMappings[value.Key];
+                if (fieldMapping.IsReadOnly) continue;
+
+                if (value.Value != null && fieldMapping.Name.ToLower() == "owshiddenversion")
+                {
+                    Version = (int)value.Value;
+                }
+                if (value.Value is ISpEntityLookup)
+                {
+                    OriginalValues[value.Key] = (value.Value as ISpEntityLookup).EntityId;
+                }
+                if (value.Value is ISpEntityLookupCollection)
+                {
+                    OriginalValues[value.Key] = (value.Value as ISpEntityLookupCollection).EntityIds;
+                }
+                else if (!Equals(default, value.Value))
+                {
+                    OriginalValues[value.Key] = value.Value;
+                }
+            }
+            State = EntityState.Unchanged;
+        }
+
         public void Attach()
         {
             lock (_lock)
             {
-                CurrentValues = new ConcurrentDictionary<string, object>();
-                OriginalValues = new ConcurrentDictionary<string, object>();
-                State = EntityState.Unchanged;
+                Detach();
                 if (Context != null)
                 {
                     Context.OnBeforeSaveChanges += Context_OnOnBeforeSaveChanges;
                     Context.OnAfterSaveChanges += Context_OnAfterSaveChanges;
-                }
-
-                foreach (var value in GetValues(Entity))
-                {
-                    if (!SpQueryArgs.FieldMappings.ContainsKey(value.Key)) continue;
-                    var fieldMapping = SpQueryArgs.FieldMappings[value.Key];
-                    if (fieldMapping.IsReadOnly) continue;
-
-                    if (value.Value != null && fieldMapping.Name.ToLower() == "owshiddenversion")
-                    {
-                        Version = (int)value.Value;
-                    }
-                    if (value.Value is ISpEntityLookup)
-                    {
-                        OriginalValues[value.Key] = (value.Value as ISpEntityLookup).EntityId;
-                    }
-                    if (value.Value is ISpEntityLookupCollection)
-                    {
-                        OriginalValues[value.Key] = (value.Value as ISpEntityLookupCollection).EntityIds;
-                    }
-                    else if (!Equals(default, value.Value))
-                    {
-                        OriginalValues[value.Key] = value.Value;
-                    }
+                    State = EntityState.Unchanged;
                 }
             }
         }
@@ -96,8 +103,8 @@ namespace SP.Client.Linq.Infrastructure
         {
             lock (_lock)
             {
-                CurrentValues = new ConcurrentDictionary<string, object>();
                 State = EntityState.Detached;
+                CurrentValues = new ConcurrentDictionary<string, object>();
                 if (Context != null)
                 {
                     Context.OnBeforeSaveChanges -= Context_OnOnBeforeSaveChanges;
@@ -111,6 +118,7 @@ namespace SP.Client.Linq.Infrastructure
             _item = null;
             if (HasChanges)
             {
+                Debug.WriteLine($"Saving list item: {Entity}.");
                 _item = Save();
                 if (_item != null)
                 {
@@ -126,9 +134,11 @@ namespace SP.Client.Linq.Infrastructure
             {
                 if (args.Items.ContainsKey(_item) && args.Items[_item])
                 {
+                    Debug.WriteLine($"List item saved: {Entity}.");
+
                     Detach();
                     EntityId = _item.Id;
-                    Entity = _manager.MapEntity(Entity, _item);
+                    Entity = _manager.MapEntity(_item);
                     Attach();
                     OnAfterSaveChanges?.Invoke(this, _item);
                 }
@@ -291,23 +301,26 @@ namespace SP.Client.Linq.Infrastructure
             {
                 lock (_lock)
                 {
-                    var originalEntity = Entity;
-                    if (originalEntity != null && originalEntity.Id > 0 && EntityId != originalEntity.Id)
-                    {
-                        EntityId = originalEntity.Id;
-                    }
-                    var entity = (Context.List<TEntity>(SpQueryArgs as SpQueryArgs<ISpEntryDataContext>) as ISpRepository<TEntity>).Find(EntityId);
+                    var entity = Context.List<TEntity>().FirstOrDefault(item => item.Id == EntityId);
                     if (entity != null)
                     {
                         Detach();
-                        Entity = entity;
-                        Attach();
-
                         if (update)
                         {
-                            Entity = originalEntity;
-                            Update();
+                            var entry = entity.GetEntry(SpQueryArgs);
+                            entry.Entity = Entity;
+                            entry.Update();
+
                             Entity = entity;
+                            Attach();
+                            this.State = entry.State;
+                            CurrentValues = entry.CurrentValues;
+                            entry.Detach();
+                        }
+                        else
+                        {
+                            Entity = entity;
+                            Attach();
                         }
                     }
                     else

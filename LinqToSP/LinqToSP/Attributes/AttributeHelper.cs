@@ -173,9 +173,9 @@ namespace SP.Client.Linq.Attributes
                 foreach (var property in typeof(TEntity).GetProperties())
                 {
                     if (property.CustomAttributes.Any(att => att.AttributeType == typeof(RemovedFieldAttribute))) continue;
-                    var value = property.GetValue(entity);
-                    if (value != null && value is TValueType)
+                    if (typeof(TValueType).IsAssignableFrom(property.PropertyType))
                     {
+                        var value = property.GetValue(entity);
                         yield return new KeyValuePair<MemberInfo, object>(property, value);
                     }
                 }
@@ -188,9 +188,9 @@ namespace SP.Client.Linq.Attributes
                 foreach (var field in typeof(TEntity).GetFields())
                 {
                     if (field.CustomAttributes.Any(att => att.AttributeType == typeof(RemovedFieldAttribute))) continue;
-                    var value = field.GetValue(entity);
-                    if (value != null && value is TValueType)
+                    if (typeof(TValueType).IsAssignableFrom(field.FieldType))
                     {
+                        var value = field.GetValue(entity);
                         yield return new KeyValuePair<MemberInfo, object>(field, value);
                     }
                 }

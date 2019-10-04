@@ -39,6 +39,8 @@ namespace SP.Client.Linq
             get; set;
         }
 
+        public SpEntityEntry<TEntity, ISpEntryDataContext> Entry { get; private set; }
+
         public Type EntityType => typeof(TEntity);
 
         public SpEntityLookup()
@@ -53,7 +55,6 @@ namespace SP.Client.Linq
 
         private void Entry_OnBeforeSaveChanges(SpEntityEntry<TEntity, ISpEntryDataContext> entry, ListItem item)
         {
-            EntityId = item.Id;
             entry.OnBeforeSaveChanges -= Entry_OnBeforeSaveChanges;
         }
 
@@ -140,19 +141,10 @@ namespace SP.Client.Linq
 
         private SpEntityEntry<TEntity, ISpEntryDataContext> GetEntry()
         {
-            if (Entity == null)
-            {
-                Entity = GetEntity();
-            }
             if (Entity != null)
             {
                 var entry = new SpEntityEntry<TEntity, ISpEntryDataContext>(Entity, SpQueryArgs);
-                if (EntityId > 0 && EntityId != Entity.Id)
-                {
-                    entry.EntityId = EntityId;
-                    entry.Reload(true);
-                }
-                entry.OnBeforeSaveChanges += Entry_OnBeforeSaveChanges; ;
+                entry.OnBeforeSaveChanges += Entry_OnBeforeSaveChanges;
                 entry.OnAfterSaveChanges += Entry_OnAfterSaveChanges;
                 return entry;
             }
@@ -161,13 +153,19 @@ namespace SP.Client.Linq
 
         public TEntity GetEntity()
         {
+            if (Entity != null)
+            {
+                return Entity;
+            }
             if (EntityId > 0)
             {
                 if (Context == null)
                 {
                     throw new ArgumentNullException(nameof(SpQueryArgs.Context));
                 }
-                return Context.List<TEntity>(SpQueryArgs).FirstOrDefault(entity => entity.Id == EntityId);
+                Entity = Context.List<TEntity>(SpQueryArgs).FirstOrDefault(entity => entity.Id == EntityId);
+                Entry = GetEntry();
+                return Entity;
             }
 
             return null;
@@ -178,16 +176,24 @@ namespace SP.Client.Linq
             if (entity != null && !Equals(entity, Entity))
             {
                 Entity = entity;
+                Entry = GetEntry();
             }
             EntityId = entity != null ? entity.Id : 0;
         }
 
         public bool Update()
         {
-            var entry = GetEntry();
-            if (entry != null)
+            if (this.Context != null)
             {
-                return entry.Update();
+                if (Entry != null)
+                {
+                    if (Entry.Context == null)
+                    {
+                        Entry.Context = this.Context;
+                    }
+                    Entry.Attach();
+                    return Entry.Update();
+                }
             }
             return false;
         }

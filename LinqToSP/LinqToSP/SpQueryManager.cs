@@ -191,9 +191,8 @@ namespace SP.Client.Linq
             return null;
         }
 
-        public IEnumerable<TEntity> GetEntities(Type type, Caml.View spView)
+        public IEnumerable<TEntity> GetEntities(Caml.View spView)
         {
-            CheckEntityType(type);
             ListItemCollectionPosition position = null;
             var entities = Enumerable.Empty<TEntity>();
             if (_args == null || spView == null) return entities;
@@ -226,7 +225,7 @@ namespace SP.Client.Linq
                         position = items.ListItemCollectionPosition;
                     }
                     itemCount += items.Count;
-                    entities = entities.Concat(MapEntities(items, type));
+                    entities = entities.Concat(MapEntities(items));
                 }
             }
             while (position != null);
@@ -236,9 +235,8 @@ namespace SP.Client.Linq
         }
 
 #if !SP2013
-    public async Task<IEnumerable<TEntity>> GetEntitiesAsync(Type type, Caml.View spView)
+        public async Task<IEnumerable<TEntity>> GetEntitiesAsync(Caml.View spView)
         {
-            CheckEntityType(type);
             ListItemCollectionPosition position = null;
             var entities = Enumerable.Empty<TEntity>();
             if (_args == null || spView == null) return entities;
@@ -272,7 +270,7 @@ namespace SP.Client.Linq
                         position = items.ListItemCollectionPosition;
                     }
                     itemCount += items.Count;
-                    entities = entities.Concat(MapEntities(items, type));
+                    entities = entities.Concat(MapEntities(items));
                 }
             }
             while (position != null);
@@ -281,63 +279,6 @@ namespace SP.Client.Linq
             return entities;
         }
 #endif
-        public TEntity MapEntity(TEntity entity, ListItem item)
-        {
-            if (_args == null || entity == null || item == null) return entity;
-
-            foreach (var fieldMap in _args.FieldMappings)
-            {
-                PropertyInfo prop = entity.GetType().GetProperty(fieldMap.Key, BindingFlags.Public | BindingFlags.Instance);
-                if (null != prop)
-                {
-                    if (prop.CustomAttributes.Any(att => att.AttributeType == typeof(RemovedFieldAttribute))) continue;
-                    if (item.FieldValues.ContainsKey(fieldMap.Value.Name))
-                    {
-                        object value = item[fieldMap.Value.Name];
-                        if (!SetEntityLookup(prop.PropertyType, prop.GetValue(entity), value))
-                        {
-                            if (prop.CanWrite)
-                            {
-                                value = GetFieldValue(fieldMap.Value, prop.PropertyType, value);
-                                value = SpConverter.ConvertValue(value, prop.PropertyType);
-                                prop.SetValue(entity, value);
-                            }
-                        }
-                    }
-                }
-                FieldInfo field = entity.GetType().GetField(fieldMap.Key, BindingFlags.Public | BindingFlags.Instance);
-                if (null != field)
-                {
-                    if (field.CustomAttributes.Any(att => att.AttributeType == typeof(RemovedFieldAttribute))) continue;
-
-                    if (item.FieldValues.ContainsKey(fieldMap.Value.Name))
-                    {
-                        object value = item[fieldMap.Value.Name];
-                        value = GetFieldValue(fieldMap.Value, field.FieldType, value);
-                        value = SpConverter.ConvertValue(value, field.FieldType);
-                        field.SetValue(entity, value);
-                    }
-                }
-            }
-            if (_args.IncludeItemPermissions)
-            {
-                if (item.IsPropertyAvailable("EffectiveBasePermissions"))
-                {
-                    if (entity is ListItemEntity)
-                    {
-                        (entity as ListItemEntity).EffectiveBasePermissions = item.EffectiveBasePermissions;
-                    }
-                }
-            }
-
-            if (typeof(ICustomMapping).IsAssignableFrom(entity.GetType()))
-            {
-                (entity as ICustomMapping).MapFrom(item);
-            }
-
-            return entity;
-        }
-
         public IEnumerable<ISpEntitySet> GetEntitySets(TEntity entity)
         {
             return AttributeHelper.GetFieldValuesOfType<TEntity, ISpEntitySet>(entity).Select(val => val.Value)
@@ -345,21 +286,76 @@ namespace SP.Client.Linq
                 .Cast<ISpEntitySet>();
         }
 
-        public IEnumerable<TEntity> MapEntities(ListItemCollection items, Type type)
+        public IEnumerable<TEntity> MapEntities(ListItemCollection items)
         {
-            return MapEntities(items.Cast<ListItem>(), type);
+            return MapEntities(items.Cast<ListItem>());
         }
 
-        public IEnumerable<TEntity> MapEntities(IEnumerable<ListItem> items, Type type)
+        public IEnumerable<TEntity> MapEntities(IEnumerable<ListItem> items)
         {
-            return items.Select(item => MapEntity(item, type));
+            return items.Select(item => MapEntity(item));
         }
 
-        public TEntity MapEntity(ListItem item, Type type)
+        public TEntity MapEntity(ListItem item)
         {
-            var entity = MapEntity((TEntity)Activator.CreateInstance(type, new object[] { }), item);
+            //Type type = typeof(TEntity);
+            //var entity = MapEntity((TEntity)Activator.CreateInstance(type, new object[] { }), item);
+            var entity = new TEntity();
             if (_args != null)
             {
+                if (item != null)
+                {
+                    foreach (var fieldMap in _args.FieldMappings)
+                    {
+                        PropertyInfo prop = entity.GetType().GetProperty(fieldMap.Key, BindingFlags.Public | BindingFlags.Instance);
+                        if (null != prop)
+                        {
+                            if (prop.CustomAttributes.Any(att => att.AttributeType == typeof(RemovedFieldAttribute))) continue;
+                            if (item.FieldValues.ContainsKey(fieldMap.Value.Name))
+                            {
+                                object value = item[fieldMap.Value.Name];
+                                if (!SetEntityLookup(prop.PropertyType, prop.GetValue(entity), value))
+                                {
+                                    if (prop.CanWrite)
+                                    {
+                                        value = GetFieldValue(fieldMap.Value, prop.PropertyType, value);
+                                        value = SpConverter.ConvertValue(value, prop.PropertyType);
+                                        prop.SetValue(entity, value);
+                                    }
+                                }
+                            }
+                        }
+                        FieldInfo field = entity.GetType().GetField(fieldMap.Key, BindingFlags.Public | BindingFlags.Instance);
+                        if (null != field)
+                        {
+                            if (field.CustomAttributes.Any(att => att.AttributeType == typeof(RemovedFieldAttribute))) continue;
+
+                            if (item.FieldValues.ContainsKey(fieldMap.Value.Name))
+                            {
+                                object value = item[fieldMap.Value.Name];
+                                value = GetFieldValue(fieldMap.Value, field.FieldType, value);
+                                value = SpConverter.ConvertValue(value, field.FieldType);
+                                field.SetValue(entity, value);
+                            }
+                        }
+                    }
+                    if (_args.IncludeItemPermissions)
+                    {
+                        if (item.IsPropertyAvailable("EffectiveBasePermissions"))
+                        {
+                            if (entity is ListItemEntity)
+                            {
+                                (entity as ListItemEntity).EffectiveBasePermissions = item.EffectiveBasePermissions;
+                            }
+                        }
+                    }
+
+                    if (typeof(ICustomMapping).IsAssignableFrom(entity.GetType()))
+                    {
+                        (entity as ICustomMapping).MapFrom(item);
+                    }
+                }
+
                 foreach (var entitySet in GetEntitySets(entity))
                 {
                     if (entitySet != null && entitySet.SpQueryArgs != null)
@@ -469,6 +465,6 @@ namespace SP.Client.Linq
             }
         }
 
-#endregion
+        #endregion
     }
 }

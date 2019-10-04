@@ -149,7 +149,7 @@ namespace SP.Client.Linq.Query
         Debug.Write(SpView);
         Debug.WriteLine("");
 
-        IEnumerable<TResult> results = _manager.GetEntities(typeof(TResult), SpView).Cast<TResult>();
+        IEnumerable<TResult> results = _manager.GetEntities(SpView).Cast<TResult>();
 
         foreach (var resultOperator in queryModel.ResultOperators)
         {
@@ -195,7 +195,7 @@ namespace SP.Client.Linq.Query
                     return Enumerable.Empty<TResult>();
                 }
 
-                var results = await _manager.GetEntitiesAsync(typeof(TResult), SpView);
+                var results = await _manager.GetEntitiesAsync(SpView);
 
                 foreach (var resultOperator in queryModel.ResultOperators)
                 {
@@ -230,7 +230,7 @@ namespace SP.Client.Linq.Query
 
         protected virtual async Task<IEnumerable<TResult>> GetEntitiesAsync<TResult>() where TResult : ListItemEntity
         {
-            var entities = await _manager.GetEntitiesAsync(typeof(TResult), SpView);
+            var entities = await _manager.GetEntitiesAsync(SpView);
             return entities.Cast<TResult>();
         }
     }

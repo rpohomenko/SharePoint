@@ -1,14 +1,14 @@
 ﻿using Microsoft.SharePoint.Client;
 using SP.Client.Linq.Attributes;
+using SP.Client.Linq.Infrastructure;
 using System;
-using System.Linq;
 using System.Runtime.Serialization;
 
 namespace SP.Client.Linq
 {
     [Serializable]
     [DataContract]
-    public class ListItemEntity : IListItemEntity
+    public class ListItemEntity : IListItemEntity, ICustomMapping, ISpChangeTracker
     {
         public ListItemEntity()
         {
@@ -117,7 +117,7 @@ namespace SP.Client.Linq
             {
                 return Title;
             }
-            return base.ToString();
+            return Id.ToString();
         }
         #endregion
     }
