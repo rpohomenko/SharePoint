@@ -50,7 +50,9 @@ namespace SP.Client.Linq.Infrastructure
 
         public EntityState State { get; private set; }
 
-        public bool HasChanges => State == EntityState.Added || State == EntityState.Modified || State == EntityState.Deleted;
+        public bool HasChanges => State == EntityState.Added || State == EntityState.Modified || State == EntityState.Deleted || State == EntityState.Recycled;
+
+        public bool SystemUpdate { get; set; }
 
         #endregion
 
@@ -139,6 +141,7 @@ namespace SP.Client.Linq.Infrastructure
                     Detach();
                     EntityId = _item.Id;
                     Entity = _manager.MapEntity(_item);
+                    FetchOriginalValues();
                     Attach();
                     OnAfterSaveChanges?.Invoke(this, _item);
                 }
@@ -153,7 +156,7 @@ namespace SP.Client.Linq.Infrastructure
                 {
                     case EntityState.Added:
                     case EntityState.Modified:
-                        return _manager.Update(EntityId, CurrentValues.ToDictionary(pair => pair.Key, pair => pair.Value), Version,
+                        return _manager.Update(EntityId, CurrentValues.ToDictionary(pair => pair.Key, pair => pair.Value), Version, SystemUpdate,
                             (listItem) =>
                             {
                                 if (typeof(ICustomMapping).IsAssignableFrom(Entity.GetType()))
@@ -163,7 +166,8 @@ namespace SP.Client.Linq.Infrastructure
                                 return false;
                             });
                     case EntityState.Deleted:
-                        return _manager.DeleteItems(new[] { EntityId }).FirstOrDefault();
+                    case EntityState.Recycled:
+                        return _manager.DeleteItems(new[] { EntityId }, State == EntityState.Recycled).FirstOrDefault();
                 }
                 return null;
             }
@@ -249,6 +253,7 @@ namespace SP.Client.Linq.Infrastructure
             lock (_lock)
             {
                 if (State == EntityState.Deleted) return false;
+                if (State == EntityState.Recycled) return false;
                 if (State == EntityState.Detached) return false;
 
                 CurrentValues = new ConcurrentDictionary<string, object>();
@@ -295,7 +300,12 @@ namespace SP.Client.Linq.Infrastructure
             return false;
         }
 
-        public TEntity Reload(bool update = false)
+        public TEntity Reload()
+        {
+            return Reload(false);
+        }
+
+        internal TEntity Reload(bool update)
         {
             if (EntityId > 0 && Context != null && SpQueryArgs != null)
             {
@@ -312,7 +322,9 @@ namespace SP.Client.Linq.Infrastructure
                             entry.Update();
 
                             Entity = entity;
+                            FetchOriginalValues();
                             Attach();
+
                             this.State = entry.State;
                             CurrentValues = entry.CurrentValues;
                             entry.Detach();
@@ -320,6 +332,7 @@ namespace SP.Client.Linq.Infrastructure
                         else
                         {
                             Entity = entity;
+                            FetchOriginalValues();
                             Attach();
                         }
                     }
@@ -373,6 +386,11 @@ namespace SP.Client.Linq.Infrastructure
         public void Delete()
         {
             State = EntityId > 0 ? EntityState.Deleted : EntityState.Detached;
+        }
+
+        public void Recycle()
+        {
+            State = EntityId > 0 ? EntityState.Recycled : EntityState.Detached;
         }
 
         #endregion

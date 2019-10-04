@@ -112,12 +112,7 @@ namespace SP.Client.Linq
         public static SpEntityEntry<TEntity, ISpEntryDataContext> AddOrUpdate<TEntity>(this IQueryable<TEntity> source, TEntity entity)
           where TEntity : class, IListItemEntity, new()
         {
-            var entry = GetEntry(source, entity, true);
-            if (entry != null)
-            {
-                entry.Update();
-            }
-            return entry;
+            return AddOrUpdate(source, entity, entity.Id);
         }
 
         public static SpEntityEntry<TEntity, ISpEntryDataContext> AddOrUpdate<TEntity>(this IQueryable<TEntity> source, TEntity entity, int entityId)

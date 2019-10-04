@@ -160,9 +160,9 @@ namespace SP.Client.Linq.Query
       }
     }
 
-    public IEnumerable<ListItem> DeleteItems(IEnumerable<int> itemIds)
+    public IEnumerable<ListItem> DeleteItems(IEnumerable<int> itemIds, bool recycle)
     {
-      return _manager.DeleteItems(itemIds);
+      return _manager.DeleteItems(itemIds, recycle);
     }
 
     #endregion

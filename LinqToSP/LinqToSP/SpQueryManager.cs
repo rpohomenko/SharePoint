@@ -367,7 +367,7 @@ namespace SP.Client.Linq
             return entity;
         }
 
-        public ListItem Update(int itemId, Dictionary<string, object> properties, int version, Func<ListItem, bool> onUpdating = null)
+        public ListItem Update(int itemId, Dictionary<string, object> properties, int version, bool systemUpdate = false, Func<ListItem, bool> onUpdating = null)
         {
             if (properties == null || _args == null) return null;
 
@@ -439,14 +439,25 @@ namespace SP.Client.Linq
                 {
                     listItem["owshiddenversion"] = version;
                 }
-                listItem.Update();
+                if (systemUpdate)
+                {
+#if !SP2013
+                    listItem.SystemUpdate();
+#else
+                    throw new NotSupportedException(nameof(listItem.SystemUpdate));
+#endif
+                }
+                else
+                {
+                    listItem.Update();
+                }
                 listItem.Context.Load(listItem);
                 return listItem;
             }
             return null;
         }
 
-        public IEnumerable<ListItem> DeleteItems(IEnumerable<int> itemIds)
+        public IEnumerable<ListItem> DeleteItems(IEnumerable<int> itemIds, bool recycle)
         {
             if (itemIds != null && itemIds.Any())
             {
@@ -459,7 +470,14 @@ namespace SP.Client.Linq
                 {
                     ListItem listItem = list.GetItemById(itemId);
                     list.Context.Load(listItem);
-                    listItem.DeleteObject();
+                    if (recycle)
+                    {
+                        listItem.Recycle();
+                    }
+                    else
+                    {
+                        listItem.DeleteObject();
+                    }
                     yield return listItem;
                 }
             }

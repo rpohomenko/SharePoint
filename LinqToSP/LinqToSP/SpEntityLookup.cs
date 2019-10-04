@@ -28,7 +28,6 @@ namespace SP.Client.Linq
             }
         }
 
-
         public TEntity Entity
         {
             get; private set;

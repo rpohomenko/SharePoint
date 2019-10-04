@@ -215,7 +215,7 @@ namespace SP.Client.Linq.Infrastructure
                 var executor = GetExecutor();
                 if (executor != null && executor.SpQueryArgs != null && executor.SpQueryArgs.FieldMappings != null)
                 {
-                    var items = executor.DeleteItems(itemIds);
+                    var items = executor.DeleteItems(itemIds, false);
                     if (executor.SpQueryArgs.Context != null)
                     {
                         executor.SpQueryArgs.Context.Context.ExecuteQuery();
