@@ -444,7 +444,7 @@ namespace SP.Client.Linq
 #if !SP2013
                     listItem.SystemUpdate();
 #else
-                    throw new NotSupportedException(nameof(listItem.SystemUpdate));
+                    throw new NotSupportedException("ListItem.SystemUpdate()");
 #endif
                 }
                 else
