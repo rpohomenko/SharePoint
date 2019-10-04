@@ -53,6 +53,7 @@ namespace SP.Client.Linq.Infrastructure
         public bool HasChanges => State == EntityState.Added || State == EntityState.Modified || State == EntityState.Deleted || State == EntityState.Recycled;
 
         public bool SystemUpdate { get; set; }
+        public bool AutoUpdateLookups { get; set; }
 
         #endregion
 
@@ -260,6 +261,21 @@ namespace SP.Client.Linq.Infrastructure
 
                 foreach (var currentValue in GetValues(Entity))
                 {
+                    if (currentValue.Value is ISpEntityLookup)
+                    {
+                        if ((currentValue.Value as ISpEntityLookup).SpQueryArgs != null && (currentValue.Value as ISpEntityLookup).SpQueryArgs.Context == null)
+                        {
+                            (currentValue.Value as ISpEntityLookup).SpQueryArgs.Context = this.Context;
+                        }
+                    }
+                    else if (currentValue.Value is ISpEntityLookupCollection)
+                    {
+                        if ((currentValue.Value as ISpEntityLookupCollection).SpQueryArgs != null && (currentValue.Value as ISpEntityLookupCollection).SpQueryArgs.Context == null)
+                        {
+                            (currentValue.Value as ISpEntityLookupCollection).SpQueryArgs.Context = this.Context;
+                        }
+                    }
+
                     if (!SpQueryArgs.FieldMappings.ContainsKey(currentValue.Key)) continue;
                     var fieldMapping = SpQueryArgs.FieldMappings[currentValue.Key];
                     if (fieldMapping == null) continue;
@@ -318,6 +334,7 @@ namespace SP.Client.Linq.Infrastructure
                         if (update)
                         {
                             var entry = entity.GetEntry(SpQueryArgs);
+                            entry.AutoUpdateLookups = AutoUpdateLookups;
                             entry.Entity = Entity;
                             entry.Update();
 
@@ -350,6 +367,23 @@ namespace SP.Client.Linq.Infrastructure
             return Entity;
         }
 
+        private bool UpdateLookups()
+        {
+            bool hasChanges = false;
+            foreach (var currentValue in GetValues(Entity))
+            {
+                if (currentValue.Value is ISpEntityLookup)
+                {
+                    hasChanges = (currentValue.Value as ISpEntityLookup).Update() || hasChanges;
+                }
+                else if (currentValue.Value is ISpEntityLookupCollection)
+                {
+                    hasChanges = (currentValue.Value as ISpEntityLookupCollection).Update() || hasChanges;
+                }
+            }
+            return hasChanges;
+        }
+
         public bool Update()
         {
             lock (_lock)
@@ -360,25 +394,11 @@ namespace SP.Client.Linq.Infrastructure
                     State = EntityId > 0 ? EntityState.Modified : EntityState.Added;
                 }
 
-                foreach (var currentValue in GetValues(Entity))
+                if (AutoUpdateLookups)
                 {
-                    if (currentValue.Value is ISpEntityLookup)
-                    {
-                        if ((currentValue.Value as ISpEntityLookup).SpQueryArgs != null && (currentValue.Value as ISpEntityLookup).SpQueryArgs.Context == null)
-                        {
-                            (currentValue.Value as ISpEntityLookup).SpQueryArgs.Context = this.Context;
-                        }
-                        hasChanges = (currentValue.Value as ISpEntityLookup).Update() || hasChanges;
-                    }
-                    else if (currentValue.Value is ISpEntityLookupCollection)
-                    {
-                        if ((currentValue.Value as ISpEntityLookupCollection).SpQueryArgs != null && (currentValue.Value as ISpEntityLookupCollection).SpQueryArgs.Context == null)
-                        {
-                            (currentValue.Value as ISpEntityLookupCollection).SpQueryArgs.Context = this.Context;
-                        }
-                        hasChanges = (currentValue.Value as ISpEntityLookupCollection).Update() || hasChanges;
-                    }
+                    hasChanges = UpdateLookups() || hasChanges;
                 }
+
                 return hasChanges;
             }
         }

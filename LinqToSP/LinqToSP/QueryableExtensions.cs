@@ -109,18 +109,19 @@ namespace SP.Client.Linq
             return null;
         }
 
-        public static SpEntityEntry<TEntity, ISpEntryDataContext> AddOrUpdate<TEntity>(this IQueryable<TEntity> source, TEntity entity)
+        public static SpEntityEntry<TEntity, ISpEntryDataContext> AddOrUpdate<TEntity>(this IQueryable<TEntity> source, TEntity entity, bool autoUpdateLookups = false)
           where TEntity : class, IListItemEntity, new()
         {
-            return AddOrUpdate(source, entity, entity.Id);
+            return AddOrUpdate(source, entity, entity.Id, autoUpdateLookups);
         }
 
-        public static SpEntityEntry<TEntity, ISpEntryDataContext> AddOrUpdate<TEntity>(this IQueryable<TEntity> source, TEntity entity, int entityId)
+        public static SpEntityEntry<TEntity, ISpEntryDataContext> AddOrUpdate<TEntity>(this IQueryable<TEntity> source, TEntity entity, int entityId, bool autoUpdateLookups = false)
          where TEntity : class, IListItemEntity, new()
         {
             var entry = GetEntry(source, entity, false);
             if (entry != null)
             {
+                entry.AutoUpdateLookups = autoUpdateLookups;
                 entry.EntityId = entityId;
                 entity = entry.Reload(true);
             }
