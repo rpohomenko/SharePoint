@@ -9,11 +9,20 @@ namespace SP.Client.Linq
     [DataContract]
     public class DocumentEntity : ListItemEntity, IDocumentEntity
     {
+        private string _name;
+
         [DataMember]
         public virtual string Name
         {
-            get;
-            set;
+            get { return _name; }
+            set
+            {
+                if (value == _name) return;
+
+                OnPropertyChanging(nameof(Name), _name);
+                _name = value;
+                OnPropertyChanged(nameof(Name), value);
+            }
         }
 
         [DataMember]

@@ -1,9 +1,9 @@
 ﻿using SP.Client.Linq.Attributes;
-using System.Collections.Generic;
+using System.ComponentModel;
 
 namespace SP.Client.Linq.Infrastructure
 {
-    public interface ISpChangeTracker
+    public interface ISpChangeTracker: INotifyPropertyChanging, INotifyPropertyChanged
     {
         bool DetectChanges(FieldAttribute field, object originalValue, ref object currentValue);
     }

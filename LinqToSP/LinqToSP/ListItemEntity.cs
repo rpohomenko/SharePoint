@@ -2,6 +2,7 @@
 using SP.Client.Linq.Attributes;
 using SP.Client.Linq.Infrastructure;
 using System;
+using System.ComponentModel;
 using System.Runtime.Serialization;
 
 namespace SP.Client.Linq
@@ -10,6 +11,9 @@ namespace SP.Client.Linq
     [DataContract]
     public class ListItemEntity : IListItemEntity, ICustomMapping, ISpChangeTracker
     {
+        private string _title;
+        private string _contentTypeId;
+
         public ListItemEntity()
         {
         }
@@ -21,7 +25,18 @@ namespace SP.Client.Linq
 
         [DataMember]
         [Field("Title", FieldType.Text, Required = true)]
-        public virtual string Title { get; set; }
+        public virtual string Title
+        {
+            get { return _title; }
+            set
+            {
+                if (value == _title) return;
+
+                OnPropertyChanging(nameof(Title), _title);
+                _title = value;
+                OnPropertyChanged(nameof(Title), value);
+            }
+        }
 
         /// <summary>
         /// Effective Permissions
@@ -47,7 +62,15 @@ namespace SP.Client.Linq
         [DataMember]
         public virtual string ContentTypeId
         {
-            get; set;
+            get { return _contentTypeId; }
+            set
+            {
+                if (value == _contentTypeId) return;
+
+                OnPropertyChanging(nameof(ContentTypeId), _contentTypeId);
+                _contentTypeId = value;
+                OnPropertyChanged(nameof(ContentTypeId), value);
+            }
         }
 
         /// <summary>
@@ -93,6 +116,9 @@ namespace SP.Client.Linq
             get; internal set;
         }
 
+        public event PropertyChangingEventHandler PropertyChanging;
+        public event PropertyChangedEventHandler PropertyChanged;
+
         #endregion
 
         #region Methods
@@ -109,6 +135,16 @@ namespace SP.Client.Linq
         public virtual bool MapTo(ListItem listItem)
         {
             return false;
+        }
+
+        protected virtual void OnPropertyChanging(string propertyName, object value)
+        {
+            PropertyChanging?.Invoke(this, new PropertyChangingEventArgs(propertyName));
+        }
+
+        protected virtual void OnPropertyChanged(string propertyName, object value)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
         public override string ToString()

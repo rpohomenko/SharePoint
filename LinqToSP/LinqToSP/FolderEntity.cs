@@ -6,8 +6,21 @@ namespace SP.Client.Linq
 {
     public class FolderEntity : ListItemEntity, IFolderEntity
     {
+        private string _name;
+
         [DataMember]
-        public string Name { get; set; }
+        public virtual string Name
+        {
+            get { return _name; }
+            set
+            {
+                if (value == _name) return;
+
+                OnPropertyChanging(nameof(Name), _name);
+                _name = value;
+                OnPropertyChanged(nameof(Name), value);
+            }
+        }
 
         [DataMember]
         public string Url { get; internal set; }

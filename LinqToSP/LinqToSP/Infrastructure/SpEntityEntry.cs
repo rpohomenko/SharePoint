@@ -5,6 +5,7 @@ using SP.Client.Linq.Query;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 
@@ -99,6 +100,30 @@ namespace SP.Client.Linq.Infrastructure
                     Context.OnAfterSaveChanges += Context_OnAfterSaveChanges;
                     State = EntityState.Unchanged;
                 }
+                if (Entity != null)
+                {
+                    if (Entity is ISpChangeTracker)
+                    {
+                        (Entity as ISpChangeTracker).PropertyChanging += Entity_PropertyChanging;
+                        (Entity as ISpChangeTracker).PropertyChanged += Entity_PropertyChanged;
+                    }
+                }
+            }
+        }
+
+        private void Entity_PropertyChanging(object sender, PropertyChangingEventArgs e)
+        {
+
+        }
+
+        private void Entity_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            var property = sender.GetType().GetProperty(e.PropertyName);
+            if (property != null)
+            {
+                var value = property.GetValue(sender);
+                //TODO:
+                //bool isChanged = DetectChanges(e.PropertyName, value);
             }
         }
 
@@ -112,6 +137,14 @@ namespace SP.Client.Linq.Infrastructure
                 {
                     Context.OnBeforeSaveChanges -= Context_OnOnBeforeSaveChanges;
                     Context.OnAfterSaveChanges -= Context_OnAfterSaveChanges;
+                }
+                if (Entity != null)
+                {
+                    if (Entity is ISpChangeTracker)
+                    {
+                        (Entity as ISpChangeTracker).PropertyChanging -= Entity_PropertyChanging;
+                        (Entity as ISpChangeTracker).PropertyChanged -= Entity_PropertyChanged;
+                    }
                 }
             }
         }
@@ -249,6 +282,36 @@ namespace SP.Client.Linq.Infrastructure
             return isChanged;
         }
 
+        private bool DetectChanges(string propName, object value)
+        {
+            if (!SpQueryArgs.FieldMappings.ContainsKey(propName)) return false;
+            var fieldMapping = SpQueryArgs.FieldMappings[propName];
+            if (fieldMapping == null) return false;
+            if (fieldMapping.IsReadOnly || typeof(DependentLookupFieldAttribute).IsAssignableFrom(fieldMapping.GetType())
+            || typeof(CalculatedFieldAttribute).IsAssignableFrom(fieldMapping.GetType())
+            || fieldMapping.DataType == FieldType.Calculated) return false;
+
+            var originalValue = OriginalValues.ContainsKey(propName) ? OriginalValues[propName] : null;
+            bool isChanged = DetectChanges(fieldMapping, originalValue, ref value);
+            if (isChanged)
+            {
+                if (Equals(default, value))
+                {
+                    if (fieldMapping.Required)
+                    {
+                        throw new Exception($"Field '{fieldMapping.Name}' is required.");
+                    }
+                    if (Entity.Id <= 0)
+                    {
+                        return false;
+                    }
+                }
+
+                CurrentValues[propName] = value;
+            }
+            return isChanged;
+        }
+
         public bool DetectChanges()
         {
             lock (_lock)
@@ -276,32 +339,7 @@ namespace SP.Client.Linq.Infrastructure
                         }
                     }
 
-                    if (!SpQueryArgs.FieldMappings.ContainsKey(currentValue.Key)) continue;
-                    var fieldMapping = SpQueryArgs.FieldMappings[currentValue.Key];
-                    if (fieldMapping == null) continue;
-                    if (fieldMapping.IsReadOnly || typeof(DependentLookupFieldAttribute).IsAssignableFrom(fieldMapping.GetType())
-                    || typeof(CalculatedFieldAttribute).IsAssignableFrom(fieldMapping.GetType())
-                    || fieldMapping.DataType == FieldType.Calculated) continue;
-
-                    var value = currentValue.Value;
-                    var originalValue = OriginalValues.ContainsKey(currentValue.Key) ? OriginalValues[currentValue.Key] : null;
-                    bool isChanged = DetectChanges(fieldMapping, originalValue, ref value);
-                    if (isChanged)
-                    {
-                        if (Equals(default, value))
-                        {
-                            if (fieldMapping.Required)
-                            {
-                                throw new Exception($"Field '{fieldMapping.Name}' is required.");
-                            }
-                            if (Entity.Id <= 0)
-                            {
-                                continue;
-                            }
-                        }
-
-                        CurrentValues[currentValue.Key] = value;
-                    }
+                    bool isChanged = DetectChanges(currentValue.Key, currentValue.Value);
                 }
                 return CurrentValues.Count > 0;
             }
