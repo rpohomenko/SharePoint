@@ -1,4 +1,5 @@
 ﻿using Microsoft.SharePoint.Client;
+using SP.Client.Extensions;
 using SP.Client.Linq.Attributes;
 using SP.Client.Linq.Infrastructure;
 using SP.Client.Linq.Query;
@@ -182,18 +183,23 @@ namespace SP.Client.Linq
 
         public bool Update()
         {
-            if (this.Context != null)
+            if (this.Context == null)
             {
-                if (Entry != null)
-                {
-                    if (Entry.Context == null)
-                    {
-                        Entry.Context = this.Context;
-                    }
-                    Entry.Attach();
-                    return Entry.Update();
-                }
+                Check.NotNull(this.Context, nameof(this.Context));
             }
+            if (Entry != null)
+            {
+                if (Entry.Context == null)
+                {
+                    Entry.Context = this.Context;
+                }
+                if (Entry.State == EntityState.Detached)
+                {
+                    Entry.Attach();
+                }
+                return Entry.Update();
+            }
+
             return false;
         }
     }

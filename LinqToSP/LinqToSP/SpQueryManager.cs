@@ -225,7 +225,7 @@ namespace SP.Client.Linq
                         position = items.ListItemCollectionPosition;
                     }
                     itemCount += items.Count;
-                    entities = entities.Concat(MapEntities(items));
+                    entities = entities.Concat(ToEntities(items));
                 }
             }
             while (position != null);
@@ -270,7 +270,7 @@ namespace SP.Client.Linq
                         position = items.ListItemCollectionPosition;
                     }
                     itemCount += items.Count;
-                    entities = entities.Concat(MapEntities(items));
+                    entities = entities.Concat(ToEntities(items));
                 }
             }
             while (position != null);
@@ -286,20 +286,18 @@ namespace SP.Client.Linq
                 .Cast<ISpEntitySet>();
         }
 
-        public IEnumerable<TEntity> MapEntities(ListItemCollection items)
+        public IEnumerable<TEntity> ToEntities(ListItemCollection items)
         {
-            return MapEntities(items.Cast<ListItem>());
+            return ToEntities(items.Cast<ListItem>());
         }
 
-        public IEnumerable<TEntity> MapEntities(IEnumerable<ListItem> items)
+        public IEnumerable<TEntity> ToEntities(IEnumerable<ListItem> items)
         {
-            return items.Select(item => MapEntity(item));
+            return items.Select(item => ToEntity(item));
         }
 
-        public TEntity MapEntity(ListItem item)
+        public TEntity ToEntity(ListItem item)
         {
-            //Type type = typeof(TEntity);
-            //var entity = MapEntity((TEntity)Activator.CreateInstance(type, new object[] { }), item);
             var entity = new TEntity();
             if (_args != null)
             {

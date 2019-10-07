@@ -5,6 +5,6 @@ namespace SP.Client.Linq.Infrastructure
 {
     public interface ISpChangeTracker: INotifyPropertyChanging, INotifyPropertyChanged
     {
-        bool DetectChanges(FieldAttribute field, object originalValue, ref object currentValue);
+        bool DetectChanges(string propKey, FieldAttribute field, object originalValue, ref object currentValue);
     }
 }
