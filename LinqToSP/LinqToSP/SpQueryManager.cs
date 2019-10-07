@@ -316,6 +316,11 @@ namespace SP.Client.Linq
                                 {
                                     if (prop.CanWrite)
                                     {
+                                        if (typeof(IListItemEntity).IsAssignableFrom(prop.PropertyType))
+                                        {
+                                            continue;
+                                        }
+
                                         value = GetFieldValue(fieldMap.Value, prop.PropertyType, value);
                                         value = SpConverter.ConvertValue(value, prop.PropertyType);
                                         prop.SetValue(entity, value);
@@ -416,7 +421,13 @@ namespace SP.Client.Linq
                                 }
                                 else if ((fieldMapping as LookupFieldAttribute).IsMultiple)
                                 {
-                                    //TODO: update lookup field with multiple values.
+                                    value = value is int[] ? (value as int[]).Select(id => new FieldLookupValue() { LookupId = id }).ToArray() : null;
+                                }
+                                else
+                                {
+                                    if (value is IListItemEntity)
+                                    {
+                                    }
                                 }
                             }
                         }

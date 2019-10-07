@@ -173,11 +173,13 @@ namespace SP.Client.Linq
 
         public void SetEntity(TEntity entity)
         {
+            Entity = entity;
+
             if (entity != null && !Equals(entity, Entity))
             {
-                Entity = entity;
                 Entry = GetEntry();
             }
+
             EntityId = entity != null ? entity.Id : 0;
         }
 

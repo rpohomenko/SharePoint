@@ -73,14 +73,14 @@ namespace SP.Client.Linq.Infrastructure
                 {
                     Version = (int)value.Value;
                 }
-                if (value.Value is ISpEntityLookup)
-                {
-                    OriginalValues[value.Key] = (value.Value as ISpEntityLookup).EntityId;
-                }
-                if (value.Value is ISpEntityLookupCollection)
-                {
-                    OriginalValues[value.Key] = (value.Value as ISpEntityLookupCollection).EntityIds;
-                }
+                //if (value.Value is ISpEntityLookup)
+                //{
+                //    OriginalValues[value.Key] = (value.Value as ISpEntityLookup).EntityId;
+                //}
+                //if (value.Value is ISpEntityLookupCollection)
+                //{
+                //    OriginalValues[value.Key] = (value.Value as ISpEntityLookupCollection).EntityIds;
+                //}
                 else if (!Equals(default, value.Value))
                 {
                     OriginalValues[value.Key] = value.Value;
@@ -246,13 +246,32 @@ namespace SP.Client.Linq.Infrastructure
             {
                 if (originalValue == null)
                 {
-                    currentValue = (currentValue as ISpEntityLookupCollection).EntityIds.Where(entityId => entityId > 0).ToArray();
+                    if ((currentValue as ISpEntityLookupCollection).EntityIds == null)
+                    {
+                        currentValue = default(int[]);
+                    }
+                    else
+                    {
+                        currentValue = (currentValue as ISpEntityLookupCollection).EntityIds.Where(entityId => entityId > 0).OrderBy(entityId => entityId > 0).ToArray();
+                    }
                     isChanged = !Equals(default(int[]), currentValue);
                 }
                 else if (originalValue is ISpEntityLookupCollection && !Equals((originalValue as ISpEntityLookupCollection).EntityIds, (currentValue as ISpEntityLookupCollection).EntityIds))
                 {
-                    currentValue = (currentValue as ISpEntityLookupCollection).EntityIds.Where(entityId => entityId > 0).ToArray();
-                    isChanged = EntityId > 0 || !Equals(default(int[]), currentValue);
+                    if ((currentValue as ISpEntityLookupCollection).EntityIds == null)
+                    {
+                        currentValue = default(int[]);
+                        isChanged = EntityId > 0 && (originalValue as ISpEntityLookupCollection).EntityIds.Where(entityId => entityId > 0).OrderBy(entityId => entityId > 0).Any();
+                    }
+                    else
+                    {
+                        if ((originalValue as ISpEntityLookupCollection).EntityIds == null || !(originalValue as ISpEntityLookupCollection).EntityIds.Where(entityId => entityId > 0).OrderBy(entityId => entityId > 0)
+                            .SequenceEqual((currentValue as ISpEntityLookupCollection).EntityIds.Where(entityId => entityId > 0).OrderBy(entityId => entityId > 0)))
+                        {
+                            currentValue = (currentValue as ISpEntityLookupCollection).EntityIds.Where(entityId => entityId > 0).OrderBy(entityId => entityId > 0).ToArray();
+                            isChanged = EntityId > 0 || !Equals(default(int[]), currentValue);
+                        }
+                    }
                 }
                 else
                 {
@@ -262,6 +281,18 @@ namespace SP.Client.Linq.Infrastructure
                         isChanged = !Equals(default(int[]), currentValue);
                     }
                 }
+            }
+            else if (currentValue is IListItemEntity)
+            {
+                isChanged = originalValue == null ? true : (originalValue as IListItemEntity).Id != (currentValue as IListItemEntity).Id;
+                currentValue = (currentValue as IListItemEntity).Id;
+            }
+            else if (currentValue is ICollection<IListItemEntity>)
+            {
+                isChanged = originalValue == null ? true
+                    : (originalValue as ICollection<IListItemEntity>).Where(v => v.Id > 0).OrderBy(v => v.Id).Select(v => v.Id)
+                      .SequenceEqual((currentValue as ICollection<IListItemEntity>).Where(v => v.Id > 0).OrderBy(v => v.Id).Select(v => v.Id));
+                currentValue = (currentValue as ICollection<IListItemEntity>).Where(v => v.Id > 0).OrderBy(v => v.Id).Select(v => v.Id).ToArray();
             }
             else
             {
@@ -299,6 +330,10 @@ namespace SP.Client.Linq.Infrastructure
             bool isChanged = DetectChanges(propKey, fieldMapping, originalValue, ref value);
             if (isChanged)
             {
+                if (value is IListItemEntity)
+                {
+                    value = (value as IListItemEntity).Id;
+                }
                 if (Equals(default, value))
                 {
                     if (fieldMapping.Required)
@@ -331,7 +366,10 @@ namespace SP.Client.Linq.Infrastructure
                 else
                 {
                     object value = prop.GetValue(fromEntity);
-                    prop.SetValue(toEntity, value);
+                    if (prop.CanWrite)
+                    {
+                        prop.SetValue(toEntity, value);
+                    }
                 }
             }
         }

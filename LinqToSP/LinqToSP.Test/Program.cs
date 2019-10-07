@@ -1,6 +1,7 @@
 ﻿using LinqToSP.Test.Model;
 using Microsoft.SharePoint.Client;
 using SP.Client.Linq;
+using SP.Client.Linq.Infrastructure;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -52,7 +53,7 @@ namespace LinqToSP.Test
                     employees = ctx.List<Employee>().ToArray();
                 }
 
-                var managers = employees.First().Managers.ToArray();
+                var managers = employees.First().Managers;
 
                 Debugger.Break();
                 Console.ForegroundColor = ConsoleColor.Green;
@@ -92,12 +93,13 @@ namespace LinqToSP.Test
             {
                 Title = "Warner Brothers"
             }, 1);
+           
 
             var manager = spContext.List<Employee>().AddOrUpdate(new Employee()
             {
                 FirstName = "Emma",
                 LastName = "Stone",
-                Phone = "11-1111-999",
+                Phone = "8-1111-999",
                 Email = "emma.stone@people.com",
                 Position = EmployeePosition.Manager
             }, 1);
@@ -109,19 +111,22 @@ namespace LinqToSP.Test
             {
                 FirstName = "Will",
                 LastName = "Smith",
-                Phone = "11-1143-222",
+                Phone = "7-1143-222",
                 Email = "will.smith@people.com",
                 Position = EmployeePosition.Specialist,
+                AccountName = "Ruslan Pohomenko"
             };
 
-            specialist.Department.SetEntity(department.Entity);
+          
+            specialist.DepartmentLookup.SetEntity(department.Entity);
 
-            //specialist.Manager.EntityId = 1;
-            specialist.Manager.SetEntity(manager.Entity);
+          
+            specialist.ManagerLookups.SetEntities(new[] { manager.Entity });
 
-            spContext.List<Employee>().AddOrUpdate(specialist, 2);
-
+            var entry = spContext.List<Employee>().AddOrUpdate(specialist, 2, true);
+            
             spContext.SaveChanges();
+
         }
 
         private static SecureString GetPassword()

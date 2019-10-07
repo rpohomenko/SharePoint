@@ -21,7 +21,7 @@ namespace SP.Client.Linq.Attributes
         {
         }
 
-        public override FieldType DataType { get => FieldType.Lookup; set => base.DataType = value; }
+        public override FieldType DataType { get => base.DataType; set => base.DataType = value; }
 
         public LookupItemResult Result { get; set; }
 

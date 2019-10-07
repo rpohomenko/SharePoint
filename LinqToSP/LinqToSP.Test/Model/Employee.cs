@@ -1,7 +1,7 @@
 ﻿using Microsoft.SharePoint.Client;
 using SP.Client.Linq;
 using SP.Client.Linq.Attributes;
-using System.Linq;
+using System.Collections.Generic;
 
 namespace LinqToSP.Test.Model
 {
@@ -9,13 +9,13 @@ namespace LinqToSP.Test.Model
     [List(Title = "Employees", Url = "Lists/Employees")]
     public class Employee : ListItemEntity
     {
-        private SpEntitySet<Employee> _managers;
+        //private SpEntitySet<Employee> _managers;
 
         public Employee()
         {
-            Manager = new SpEntityLookup<Employee>();
-            DepartmentEntity = new SpEntityLookup<Department>();
-            _managers = new SpEntitySet<Employee>();
+            ManagerLookups = new SpEntityLookupCollection<Employee>();
+            DepartmentLookup = new SpEntityLookup<Department>();
+            //_managers = new SpEntitySet<Employee>();
         }
 
         public override string ContentTypeId
@@ -68,6 +68,27 @@ namespace LinqToSP.Test.Model
             set;
         }
 
+        [LookupField(Name = "Emp_Account", Title = "Account", Order = 3, Group = "Custom Columns", DataType = FieldType.User, IsMultiple = false)]
+        public FieldLookupValue Account
+        {
+            get;
+            set;
+        }
+
+        [LookupField(Name = "Emp_Account", Result = LookupItemResult.Id)]
+        public int AccountId
+        {
+            get;
+            set;
+        }
+
+        [LookupField(Name = "Emp_Account", Result = LookupItemResult.Value, IsReadOnly = false)]
+        public string AccountName
+        {
+            get;
+            set;
+        }
+
         [Field(Name = "Emp_Position", Title = "Position", Order = 3, Group = "Custom Columns", DataType = FieldType.Choice)]
         public EmployeePosition Position
         {
@@ -89,38 +110,41 @@ namespace LinqToSP.Test.Model
             set;
         }
 
-        [Field(Name = "Emp_Manager", Title = "Manager", DataType = FieldType.Lookup, Order = 6, Overwrite = true)]
-        public ISpEntityLookup<Employee> Manager
+        [LookupField(Name = "Emp_Manager", Title = "Manager", Order = 6, Overwrite = true, IsMultiple = true)]
+        public ISpEntityLookupCollection<Employee> ManagerLookups
         {
             get;
-
         }
-
-        public ISpEntitySet<Employee> Managers
+        public ICollection<Employee> Managers
         {
             get
             {
-                return _managers.Where(employee => employee.Position == EmployeePosition.Manager).ToEntitySet();
+                return ManagerLookups.GetEntities();
+            }
+            set
+            {
+                ManagerLookups.SetEntities(value);
             }
         }
 
-        [Field(Name = "Emp_Department", Title = "Department", DataType = FieldType.Lookup, Order = 7, Overwrite = true)]
-        public ISpEntityLookup<Department> DepartmentEntity
+        [LookupField(Name = "Emp_Department")]
+        public Department Department
         {
-            get;
+            get { return DepartmentLookup.GetEntity(); }
+            set { DepartmentLookup.SetEntity(value); }
         }
 
         [LookupField(Name = "Emp_Department", Result = LookupItemResult.Id)]
         public int DepartmentId
         {
-            get { return DepartmentEntity.EntityId; }
-            set { DepartmentEntity.EntityId = value; }
+            get { return DepartmentLookup.EntityId; }
+            set { DepartmentLookup.EntityId = value; }
         }
 
-        public Department Department
+        [Field(Name = "Emp_Department", Title = "Department", DataType = FieldType.Lookup, Order = 7, Overwrite = true)]
+        public ISpEntityLookup<Department> DepartmentLookup
         {
-            get { return DepartmentEntity.GetEntity(); }
-            set { DepartmentEntity.SetEntity(value); }
+            get;
         }
     }
 
