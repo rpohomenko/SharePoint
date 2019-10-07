@@ -167,7 +167,7 @@ namespace SP.Client.Linq
             return null;
         }
 
-        public ListItemCollection GetItems(Caml.View spView, ListItemCollectionPosition position)
+        public ListItemCollection GetItems(Caml.View spView, ListItemCollectionPosition position, bool countOnly)
         {
             string folderUrl = string.IsNullOrWhiteSpace(this._args.FolderUrl)
                 ? null
@@ -184,53 +184,69 @@ namespace SP.Client.Linq
             if (list != null && spView != null)
             {
                 var items = list.GetItems(new CamlQuery() { FolderServerRelativeUrl = folderUrl, ViewXml = spView.ToString(true), ListItemCollectionPosition = position });
-                items.Context.Load(items, item => item.Include(i => i.EffectiveBasePermissions));
-                items.Context.Load(items, item => item.ListItemCollectionPosition);
-                return items;
+                if (countOnly)
+                {
+                    items.Context.Load(items, item => item.ListItemCollectionPosition, item => item.Include(i => i.Id));
+                    return items;
+                }
+                else
+                {
+                    items.Context.Load(items, item => item.Include(i => i.EffectiveBasePermissions));
+                    items.Context.Load(items, item => item.ListItemCollectionPosition);
+                    return items;
+                }
             }
             return null;
         }
 
-        public IEnumerable<TEntity> GetEntities(Caml.View spView)
+        public void ProcessItems(Caml.View spView, bool countOnly, Action<ListItemCollection> action)
         {
-            ListItemCollectionPosition position = null;
-            var entities = Enumerable.Empty<TEntity>();
-            if (_args == null || spView == null) return entities;
+            if (_args == null || spView == null) return;
 
-            var rowLimit = spView.Limit;
-            int itemCount = 0;
-            do
+            if (action != null)
             {
-                if (_args.BatchSize > 0)
+                var rowLimit = spView.Limit;
+                int itemCount = 0;
+                ListItemCollectionPosition position = null;
+                do
                 {
-                    if (rowLimit > 0)
-                    {
-                        spView.Limit = Math.Min(rowLimit - itemCount, _args.BatchSize);
-                    }
-                    else
-                    {
-                        spView.Limit = _args.BatchSize;
-                    }
-                    if (spView.Limit == 0)
-                    {
-                        break;
-                    }
-                }
-                var items = GetItems(spView, position);
-                if (items != null)
-                {
-                    items.Context.ExecuteQuery();
                     if (_args.BatchSize > 0)
                     {
-                        position = items.ListItemCollectionPosition;
+                        if (rowLimit > 0)
+                        {
+                            spView.Limit = Math.Min(rowLimit - itemCount, _args.BatchSize);
+                        }
+                        else
+                        {
+                            spView.Limit = _args.BatchSize;
+                        }
+                        if (spView.Limit == 0)
+                        {
+                            break;
+                        }
                     }
-                    itemCount += items.Count;
-                    entities = entities.Concat(ToEntities(items));
+                    var items = GetItems(spView, position, countOnly);
+                    if (items != null)
+                    {
+                        items.Context.ExecuteQuery();
+                        if (_args.BatchSize > 0)
+                        {
+                            position = items.ListItemCollectionPosition;
+                        }
+                        itemCount += items.Count;
+                        action(items);
+                    }
                 }
+                while (position != null);
+                spView.Limit = rowLimit;
             }
-            while (position != null);
+        }
 
-            spView.Limit = rowLimit;
+        public IEnumerable<TEntity> GetEntities(Caml.View spView)
+        {
+            var entities = Enumerable.Empty<TEntity>();
+            if (_args == null || spView == null) return entities;
+            ProcessItems(spView, false, (items) => entities = entities.Concat(ToEntities(items)));
             return entities;
         }
 
@@ -260,7 +276,7 @@ namespace SP.Client.Linq
                         break;
                     }
                 }
-                var items = GetItems(spView, position);
+                var items = GetItems(spView, position, false);
                 if (items != null)
                 {
                     await items.Context.ExecuteQueryAsync();
@@ -421,7 +437,7 @@ namespace SP.Client.Linq
                                 }
                                 else if ((fieldMapping as LookupFieldAttribute).IsMultiple)
                                 {
-                                    value = value is int[] ? (value as int[]).Select(id => new FieldLookupValue() { LookupId = id }).ToArray() : null;
+                                    value = value is int[]? (value as int[]).Select(id => new FieldLookupValue() { LookupId = id }).ToArray() : null;
                                 }
                                 else
                                 {
