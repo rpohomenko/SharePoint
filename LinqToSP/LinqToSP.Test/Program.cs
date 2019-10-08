@@ -2,14 +2,10 @@
 using Microsoft.SharePoint.Client;
 using SP.Client.Linq;
 using System;
-using System.Collections.Generic;
 using System.Configuration;
 using System.Diagnostics;
 using System.Linq;
 using System.Security;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace LinqToSP.Test
 {
@@ -39,11 +35,15 @@ namespace LinqToSP.Test
 
                 clientContext.Credentials = new SharePointOnlineCredentials(userLogin, string.IsNullOrWhiteSpace(userPassword) ? GetPassword() : ConvertToSecureString(userPassword));
 
-                Deploy(ctx, true);
+                //Deploy(ctx, true);
 
                 ImportData(ctx, false);
 
+                //var res  = ctx.List<Employee>().Where(i => i.Id < 2).ToArray();
+
                 var departments = ctx.List<Department>().ToArray();
+
+                int count = ctx.List<Employee>().Where(i => i.Id > 0).Take(100).Count();
 
                 var employees = departments.First().Employees.ToArray();
 
@@ -52,7 +52,7 @@ namespace LinqToSP.Test
                     employees = ctx.List<Employee>().ToArray();
                 }
 
-                var managers = employees.First().Managers.ToArray();
+                var managers = employees.First().Managers;
 
                 Debugger.Break();
                 Console.ForegroundColor = ConsoleColor.Green;
@@ -93,11 +93,12 @@ namespace LinqToSP.Test
                 Title = "Warner Brothers"
             }, 1);
 
+
             var manager = spContext.List<Employee>().AddOrUpdate(new Employee()
             {
                 FirstName = "Emma",
                 LastName = "Stone",
-                Phone = "11-1111-999",
+                Phone = "8-1111-999",
                 Email = "emma.stone@people.com",
                 Position = EmployeePosition.Manager
             }, 1);
@@ -109,19 +110,25 @@ namespace LinqToSP.Test
             {
                 FirstName = "Will",
                 LastName = "Smith",
-                Phone = "11-1143-222",
+                Phone = "7-1143-222",
                 Email = "will.smith@people.com",
-                Position = EmployeePosition.Specialist,
+                Position = EmployeePosition.Specialist
             };
 
-            specialist.Department.SetEntity(department.Entity);
 
-            //specialist.Manager.EntityId = 1;
-            specialist.Manager.SetEntity(manager.Entity);
+            specialist.DepartmentLookup.SetEntity(department.Entity);
 
-            spContext.List<Employee>().AddOrUpdate(specialist, 2);
+            //department.Entity.Title = "test 1";
+
+            specialist.ManagerLookup.SetEntities(new[] { manager.Entity });
+
+            var entry = spContext.List<Employee>().AddOrUpdate(specialist, 2, true);
+
+            //department.Entity.Title = "test 2";
+            department.Update();
 
             spContext.SaveChanges();
+
         }
 
         private static SecureString GetPassword()

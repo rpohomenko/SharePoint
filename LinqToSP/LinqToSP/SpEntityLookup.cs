@@ -1,4 +1,5 @@
 ﻿using Microsoft.SharePoint.Client;
+using SP.Client.Extensions;
 using SP.Client.Linq.Attributes;
 using SP.Client.Linq.Infrastructure;
 using SP.Client.Linq.Query;
@@ -11,6 +12,7 @@ namespace SP.Client.Linq
     public sealed class SpEntityLookup<TEntity> : ISpEntityLookup<TEntity>
          where TEntity : class, IListItemEntity, new()
     {
+        private int _entityId;
         public SpQueryArgs<ISpEntryDataContext> SpQueryArgs { get; }
 
         public ISpEntryDataContext Context
@@ -35,7 +37,19 @@ namespace SP.Client.Linq
 
         public int EntityId
         {
-            get; set;
+            get
+            {
+                return _entityId;
+            }
+            set
+            {
+                if (value != _entityId)
+                {
+                    _entityId = value;
+                    Entity = null;
+                    Entry = null;
+                }
+            }
         }
 
         public SpEntityEntry<TEntity, ISpEntryDataContext> Entry { get; private set; }
@@ -154,6 +168,10 @@ namespace SP.Client.Linq
         {
             if (Entity != null)
             {
+                if (Entry == null)
+                {
+                    Entry = GetEntry();
+                }
                 return Entity;
             }
             if (EntityId > 0)
@@ -172,28 +190,30 @@ namespace SP.Client.Linq
 
         public void SetEntity(TEntity entity)
         {
-            if (entity != null && !Equals(entity, Entity))
-            {
-                Entity = entity;
-                Entry = GetEntry();
-            }
             EntityId = entity != null ? entity.Id : 0;
+            Entity = entity;
+            Entry = GetEntry();
         }
 
         public bool Update()
         {
-            if (this.Context != null)
+            if (this.Context == null)
             {
-                if (Entry != null)
-                {
-                    if (Entry.Context == null)
-                    {
-                        Entry.Context = this.Context;
-                    }
-                    Entry.Attach();
-                    return Entry.Update();
-                }
+                Check.NotNull(this.Context, nameof(this.Context));
             }
+            if (Entry != null)
+            {
+                if (Entry.Context == null)
+                {
+                    Entry.Context = this.Context;
+                }
+                if (Entry.State == EntityState.Detached)
+                {
+                    Entry.Attach();
+                }
+                return Entry.Update();
+            }
+
             return false;
         }
     }

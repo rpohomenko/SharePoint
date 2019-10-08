@@ -36,6 +36,9 @@
   <PropertyGroup>
     <AssemblyOriginatorKeyFile>key.pfx</AssemblyOriginatorKeyFile>
   </PropertyGroup>
+  <PropertyGroup>
+    <DelaySign>false</DelaySign>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.SharePoint.Client, Version=16.1.0.0, Culture=neutral, PublicKeyToken=71e9bce111e9429c, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.SharePointOnline.CSOM.16.1.19223.12000\lib\net45\Microsoft.SharePoint.Client.dll</HintPath>
@@ -66,13 +69,13 @@
     <Compile Include="Attributes\DependentLookupFieldAttribute.cs" />
     <Compile Include="Attributes\LookupFieldAttribute.cs" />
     <Compile Include="Attributes\RemovedFieldAttribute.cs" />
-    <Compile Include="DocumentEntity.cs" />
-    <Compile Include="EnumExtensions.cs" />
-    <Compile Include="EventEntity.cs" />
-    <Compile Include="FolderEntity.cs" />
-    <Compile Include="IDocumentEntity.cs" />
-    <Compile Include="IEventEntity.cs" />
-    <Compile Include="IFolderEntity .cs" />
+    <Compile Include="Entities\DocumentEntity.cs" />
+    <Compile Include="Extensions\EnumExtensions.cs" />
+    <Compile Include="Entities\EventEntity.cs" />
+    <Compile Include="Entities\FolderEntity.cs" />
+    <Compile Include="Entities\IDocumentEntity.cs" />
+    <Compile Include="Entities\IEventEntity.cs" />
+    <Compile Include="Entities\IFolderEntity .cs" />
     <Compile Include="Infrastructure\ICustomMapping.cs" />
     <Compile Include="Infrastructure\ISpChangeTrackable.cs" />
     <Compile Include="Infrastructure\ISpChangeTracker.cs" />
@@ -90,11 +93,11 @@
     <Compile Include="Infrastructure\SpSaveArgs.cs" />
     <Compile Include="ISpEntryDataContext.cs" />
     <Compile Include="Infrastructure\ISpRepository.cs" />
-    <Compile Include="ListItemEntityExtensions.cs" />
+    <Compile Include="Extensions\ListItemEntityExtensions.cs" />
     <Compile Include="Infrastructure\EntityState.cs" />
-    <Compile Include="IListItemEntity.cs" />
-    <Compile Include="ListItemEntity.cs" />
-    <Compile Include="QueryableExtensions.cs" />
+    <Compile Include="Entities\IListItemEntity.cs" />
+    <Compile Include="Entities\ListItemEntity.cs" />
+    <Compile Include="Extensions\QueryableExtensions.cs" />
     <Compile Include="Query\AsyncQueryProvider.cs" />
     <Compile Include="Query\Expressions\GroupByExpression.cs" />
     <Compile Include="Query\ExpressionVisitors\GroupByExpressionVisitor.cs" />

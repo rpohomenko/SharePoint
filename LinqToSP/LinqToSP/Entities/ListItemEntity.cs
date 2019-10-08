@@ -123,7 +123,7 @@ namespace SP.Client.Linq
 
         #region Methods
 
-        public bool DetectChanges(FieldAttribute field, object originalValue, ref object currentValue)
+        public bool DetectChanges(string propKey, FieldAttribute field, object originalValue, ref object currentValue)
         {
             return !Equals(originalValue, currentValue);
         }

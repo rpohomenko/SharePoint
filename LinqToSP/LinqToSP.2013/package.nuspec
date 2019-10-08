@@ -2,32 +2,30 @@
 <package>
   <metadata>
     <!--*-->
-    <id>LinqToSP.o365</id>
+    <id>LinqToSP.2013</id>
     <!--*-->
-    <version>1.0.3</version>
-    <title>Linq To SharePoint (o365) Framework</title>
+    <version>1.0.0</version>
+    <title>LinqToSP.2013</title>
     <!--*-->
     <authors>Ruslan Pakhomenka</authors>
     <owners>Ruslan Pakhomenka</owners>
     <projectUrl>https://github.com/rpohomenko/SharePoint/tree/master/LinqToSP</projectUrl>
-    <!--
-    <licenseUrl></licenseUrl>   
+      <!--
+    <licenseUrl></licenseUrl>
     <iconUrl></iconUrl>
 -->
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <!--*-->
-    <description>Linq To SharePoint (o365) Framework.</description>
+    <description>Linq To SharePoint (2013) Framework.</description>
     <!--*-->
-    <releaseNotes>-multilookup
--Count() method</releaseNotes>
+    <releaseNotes>first release</releaseNotes>
     <copyright>Copyright ©  2019</copyright>
     <tags>
-            Linq,SharePoint
-        </tags>
+    </tags>
     <dependencies>
-      <dependency id="Microsoft.SharePointOnline.CSOM" version="16.1.19223.12000" />
+      <dependency id="Microsoft.SharePoint2013.CSOM" version="15.0.5031.1001" />
       <dependency id="Remotion.Linq" version="2.2.0" />
-      <dependency id="SP.Client.o365" version="1.0.0" />
+      <dependency id="SP.Client.2013" version="1.0.0" />
     </dependencies>
   </metadata>
 </package>

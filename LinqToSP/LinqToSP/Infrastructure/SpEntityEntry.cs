@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 
 namespace SP.Client.Linq.Infrastructure
 {
@@ -32,6 +33,7 @@ namespace SP.Client.Linq.Infrastructure
             SpQueryArgs = args;
             _manager = new SpQueryManager<TEntity, TContext>(args);
             FetchOriginalValues();
+            State = EntityState.Detached;
             Attach();
         }
 
@@ -65,40 +67,57 @@ namespace SP.Client.Linq.Infrastructure
             OriginalValues = new ConcurrentDictionary<string, object>();
             foreach (var value in GetValues(Entity))
             {
-                if (!SpQueryArgs.FieldMappings.ContainsKey(value.Key)) continue;
-                var fieldMapping = SpQueryArgs.FieldMappings[value.Key];
+                if (!SpQueryArgs.FieldMappings.ContainsKey(value.Key.Name)) continue;
+                var fieldMapping = SpQueryArgs.FieldMappings[value.Key.Name];
                 if (fieldMapping.IsReadOnly) continue;
 
                 if (value.Value != null && fieldMapping.Name.ToLower() == "owshiddenversion")
                 {
                     Version = (int)value.Value;
                 }
-                if (value.Value is ISpEntityLookup)
+                else
                 {
-                    OriginalValues[value.Key] = (value.Value as ISpEntityLookup).EntityId;
-                }
-                if (value.Value is ISpEntityLookupCollection)
-                {
-                    OriginalValues[value.Key] = (value.Value as ISpEntityLookupCollection).EntityIds;
-                }
-                else if (!Equals(default, value.Value))
-                {
-                    OriginalValues[value.Key] = value.Value;
+                    if ((typeof(ISpEntityLookup).IsAssignableFrom(value.Key.GetMemberType()) || typeof(ISpEntityLookupCollection).IsAssignableFrom(value.Key.GetMemberType())
+                        || (value.Key is PropertyInfo && (value.Key as PropertyInfo).CanWrite))
+                        && !Equals(default, value.Value))
+                    {
+                        OriginalValues[value.Key.Name] = value.Value;
+                    }
                 }
             }
             State = EntityState.Unchanged;
+        }
+
+        private void Entity_PropertyChanging(object sender, PropertyChangingEventArgs e)
+        {
+
+        }
+
+        private void Entity_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            //var property = sender.GetType().GetProperty(e.PropertyName);
+            //if (property != null)
+            //{
+            //    var value = property.GetValue(sender);
+            //    //TODO:
+            //    bool isChanged = DetectChanges(e.PropertyName, value);
+            //}
         }
 
         public void Attach()
         {
             lock (_lock)
             {
-                Detach();
+                var currentState = State;
+                if (currentState != EntityState.Detached)
+                {
+                    Detach();
+                }
                 if (Context != null)
                 {
                     Context.OnBeforeSaveChanges += Context_OnOnBeforeSaveChanges;
                     Context.OnAfterSaveChanges += Context_OnAfterSaveChanges;
-                    State = EntityState.Unchanged;
+                    State = currentState == EntityState.Detached ? EntityState.Unchanged : currentState;
                 }
                 if (Entity != null)
                 {
@@ -111,28 +130,12 @@ namespace SP.Client.Linq.Infrastructure
             }
         }
 
-        private void Entity_PropertyChanging(object sender, PropertyChangingEventArgs e)
-        {
-
-        }
-
-        private void Entity_PropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            var property = sender.GetType().GetProperty(e.PropertyName);
-            if (property != null)
-            {
-                var value = property.GetValue(sender);
-                //TODO:
-                //bool isChanged = DetectChanges(e.PropertyName, value);
-            }
-        }
-
         public void Detach()
         {
             lock (_lock)
             {
                 State = EntityState.Detached;
-                CurrentValues = new ConcurrentDictionary<string, object>();
+                CurrentValues = null;
                 if (Context != null)
                 {
                     Context.OnBeforeSaveChanges -= Context_OnOnBeforeSaveChanges;
@@ -174,7 +177,7 @@ namespace SP.Client.Linq.Infrastructure
 
                     Detach();
                     EntityId = _item.Id;
-                    Entity = _manager.MapEntity(_item);
+                    Entity = _manager.ToEntity(_item);
                     FetchOriginalValues();
                     Attach();
                     OnAfterSaveChanges?.Invoke(this, _item);
@@ -207,13 +210,13 @@ namespace SP.Client.Linq.Infrastructure
             }
         }
 
-        private static Dictionary<string, object> GetValues(TEntity entity)
+        private static Dictionary<MemberInfo, object> GetValues(TEntity entity)
         {
             return AttributeHelper.GetFieldValues<TEntity, FieldAttribute>(entity)
-              .Concat(AttributeHelper.GetPropertyValues<TEntity, FieldAttribute>(entity)).ToDictionary(val => val.Key.Name, val => val.Value);
+              .Concat(AttributeHelper.GetPropertyValues<TEntity, FieldAttribute>(entity)).ToDictionary(val => val.Key, val => val.Value);
         }
 
-        private bool DetectChanges(FieldAttribute field, object originalValue, ref object currentValue)
+        private bool DetectChanges(string propKey, FieldAttribute field, object originalValue, ref object currentValue)
         {
             bool isChanged = false;
 
@@ -242,28 +245,82 @@ namespace SP.Client.Linq.Infrastructure
             {
                 if (originalValue == null)
                 {
-                    currentValue = (currentValue as ISpEntityLookupCollection).EntityIds.Where(entityId => entityId > 0).ToArray();
+                    if ((currentValue as ISpEntityLookupCollection).EntityIds == null)
+                    {
+                        currentValue = default(int[]);
+                    }
+                    else
+                    {
+                        currentValue = (currentValue as ISpEntityLookupCollection).EntityIds.Where(entityId => entityId > 0).OrderBy(entityId => entityId > 0).ToArray();
+                    }
                     isChanged = !Equals(default(int[]), currentValue);
                 }
                 else if (originalValue is ISpEntityLookupCollection && !Equals((originalValue as ISpEntityLookupCollection).EntityIds, (currentValue as ISpEntityLookupCollection).EntityIds))
                 {
-                    currentValue = (currentValue as ISpEntityLookupCollection).EntityIds.Where(entityId => entityId > 0).ToArray();
-                    isChanged = EntityId > 0 || !Equals(default(int[]), currentValue);
+                    if ((currentValue as ISpEntityLookupCollection).EntityIds == null)
+                    {
+                        currentValue = default(int[]);
+                        isChanged = EntityId > 0 && (originalValue as ISpEntityLookupCollection).EntityIds.Where(entityId => entityId > 0).OrderBy(entityId => entityId > 0).Any();
+                    }
+                    else
+                    {
+                        if ((originalValue as ISpEntityLookupCollection).EntityIds == null || !(originalValue as ISpEntityLookupCollection).EntityIds.Where(entityId => entityId > 0).OrderBy(entityId => entityId > 0)
+                            .SequenceEqual((currentValue as ISpEntityLookupCollection).EntityIds.Where(entityId => entityId > 0).OrderBy(entityId => entityId > 0)))
+                        {
+                            currentValue = (currentValue as ISpEntityLookupCollection).EntityIds.Where(entityId => entityId > 0).OrderBy(entityId => entityId > 0).ToArray();
+                            isChanged = EntityId > 0 || !Equals(default(int[]), currentValue);
+                        }
+                    }
                 }
                 else
                 {
                     if (EntityId <= 0)
                     {
-                        currentValue = (currentValue as ISpEntityLookupCollection).EntityIds.Where(entityId => entityId > 0).ToArray();
+                        if ((currentValue as ISpEntityLookupCollection).EntityIds == null)
+                        {
+                            currentValue = default(int[]);
+                        }
+                        else
+                        {
+                            currentValue = (currentValue as ISpEntityLookupCollection).EntityIds.Where(entityId => entityId > 0).ToArray();
+                        }
                         isChanged = !Equals(default(int[]), currentValue);
                     }
                 }
             }
+            else if (currentValue is IListItemEntity)
+            {
+                isChanged = originalValue == null ? true : (originalValue as IListItemEntity).Id != (currentValue as IListItemEntity).Id;
+                currentValue = (currentValue as IListItemEntity).Id;
+            }
+            else if (currentValue is ICollection<IListItemEntity>)
+            {
+                isChanged = originalValue == null ? true
+                    : (originalValue as ICollection<IListItemEntity>).Where(v => v.Id > 0).OrderBy(v => v.Id).Select(v => v.Id)
+                      .SequenceEqual((currentValue as ICollection<IListItemEntity>).Where(v => v.Id > 0).OrderBy(v => v.Id).Select(v => v.Id));
+                currentValue = (currentValue as ICollection<IListItemEntity>).Where(v => v.Id > 0).OrderBy(v => v.Id).Select(v => v.Id).ToArray();
+            }
             else
             {
+                if (field.Name.ToLower() == "owshiddenversion")
+                {
+                    if (currentValue != null)
+                    {
+                        int newVersion = Convert.ToInt32(currentValue);
+                        if (Version > 0 && newVersion > 0 && Version > newVersion)
+                        {
+                            throw new Exception($"Versions conflict: {Version}.");
+                        }
+                        if (!Equals(Version, newVersion))
+                        {
+                            Version = newVersion;
+                        }
+                    }
+                    return false;
+                }
                 if (typeof(ISpChangeTracker).IsAssignableFrom(Entity.GetType()))
                 {
-                    isChanged = (Entity as ISpChangeTracker).DetectChanges(field, originalValue, ref currentValue);
+                    isChanged = (Entity as ISpChangeTracker).DetectChanges(propKey, field, originalValue, ref currentValue);
                 }
                 else
                 {
@@ -282,19 +339,23 @@ namespace SP.Client.Linq.Infrastructure
             return isChanged;
         }
 
-        private bool DetectChanges(string propName, object value)
+        private bool DetectChanges(string propKey, object value)
         {
-            if (!SpQueryArgs.FieldMappings.ContainsKey(propName)) return false;
-            var fieldMapping = SpQueryArgs.FieldMappings[propName];
+            if (!SpQueryArgs.FieldMappings.ContainsKey(propKey)) return false;
+            var fieldMapping = SpQueryArgs.FieldMappings[propKey];
             if (fieldMapping == null) return false;
             if (fieldMapping.IsReadOnly || typeof(DependentLookupFieldAttribute).IsAssignableFrom(fieldMapping.GetType())
             || typeof(CalculatedFieldAttribute).IsAssignableFrom(fieldMapping.GetType())
             || fieldMapping.DataType == FieldType.Calculated) return false;
 
-            var originalValue = OriginalValues.ContainsKey(propName) ? OriginalValues[propName] : null;
-            bool isChanged = DetectChanges(fieldMapping, originalValue, ref value);
+            var originalValue = OriginalValues.ContainsKey(propKey) ? OriginalValues[propKey] : null;
+            bool isChanged = DetectChanges(propKey, fieldMapping, originalValue, ref value);
             if (isChanged)
             {
+                if (value is IListItemEntity)
+                {
+                    value = (value as IListItemEntity).Id;
+                }
                 if (Equals(default, value))
                 {
                     if (fieldMapping.Required)
@@ -307,9 +368,114 @@ namespace SP.Client.Linq.Infrastructure
                     }
                 }
 
-                CurrentValues[propName] = value;
+                CurrentValues[propKey] = value;
             }
             return isChanged;
+        }
+
+        private void Merge(string propKey, TEntity fromEntity, TEntity toEntity)
+        {
+            if (!string.IsNullOrEmpty(propKey) && fromEntity != null && toEntity != null)
+            {
+                var prop = typeof(TEntity).GetProperty(propKey);
+                if (prop == null)
+                {
+                    var field = typeof(TEntity).GetField(propKey);
+                    if (field == null) return;
+                    object value = field.GetValue(fromEntity);
+                    field.SetValue(toEntity, value);
+                }
+                else
+                {
+                    object value = prop.GetValue(fromEntity);
+                    if (prop.CanWrite)
+                    {
+                        prop.SetValue(toEntity, value);
+                    }
+                }
+            }
+        }
+
+        private bool UpdateLookups()
+        {
+            bool hasChanges = false;
+            foreach (var currentValue in GetValues(Entity))
+            {
+                if (currentValue.Value is ISpEntityLookup)
+                {
+                    if ((currentValue.Value as ISpEntityLookup).SpQueryArgs.Context == null)
+                    {
+                        (currentValue.Value as ISpEntityLookup).SpQueryArgs.Context = Context;
+                    }
+                    hasChanges = (currentValue.Value as ISpEntityLookup).Update() || hasChanges;
+                }
+                else if (currentValue.Value is ISpEntityLookupCollection)
+                {
+                    if ((currentValue.Value as ISpEntityLookupCollection).SpQueryArgs.Context == null)
+                    {
+                        (currentValue.Value as ISpEntityLookupCollection).SpQueryArgs.Context = Context;
+                    }
+                    hasChanges = (currentValue.Value as ISpEntityLookupCollection).Update() || hasChanges;
+                }
+            }
+            return hasChanges;
+        }
+
+        internal TEntity Reload(bool update)
+        {
+            if (EntityId > 0 && Context != null && SpQueryArgs != null)
+            {
+                lock (_lock)
+                {
+                    var entity = Context.List<TEntity>().FirstOrDefault(item => item.Id == EntityId);
+                    if (entity != null)
+                    {
+                        Detach();
+                        if (update)
+                        {
+                            // fake entry
+                            var entry = entity.GetEntry(SpQueryArgs);
+                            entry.AutoUpdateLookups = AutoUpdateLookups;
+                            entry.Entity = Entity;
+                            entry.Update();
+
+                            OriginalValues = entry.OriginalValues;
+
+                            if (entry.CurrentValues.Count > 0)
+                            {
+                                foreach (var currentValue in entry.CurrentValues)
+                                {
+                                    Merge(currentValue.Key, Entity, entity);
+                                }
+                            }
+
+                            Entity = entity;
+                            //FetchOriginalValues();
+                            Attach();
+
+                            this.State = entry.State;
+                            CurrentValues = entry.CurrentValues;
+                            entry.Detach();
+                        }
+                        else
+                        {
+                            Entity = entity;
+                            FetchOriginalValues();
+                            Attach();
+                        }
+                    }
+                    else
+                    {
+                        EntityId = 0;
+                        if (update)
+                        {
+                            Update();
+                        }
+                    }
+                    return entity;
+                }
+            }
+            return Entity;
         }
 
         public bool DetectChanges()
@@ -339,17 +505,17 @@ namespace SP.Client.Linq.Infrastructure
                         }
                     }
 
-                    bool isChanged = DetectChanges(currentValue.Key, currentValue.Value);
+                    bool isChanged = DetectChanges(currentValue.Key.Name, currentValue.Value);
                 }
                 return CurrentValues.Count > 0;
             }
         }
 
-        public bool IsValueChanged(string propertyName)
+        public bool IsValueChanged(string propKey)
         {
             if (CurrentValues != null)
             {
-                return CurrentValues.ContainsKey(propertyName);
+                return CurrentValues.ContainsKey(propKey);
             }
             return false;
         }
@@ -359,73 +525,14 @@ namespace SP.Client.Linq.Infrastructure
             return Reload(false);
         }
 
-        internal TEntity Reload(bool update)
-        {
-            if (EntityId > 0 && Context != null && SpQueryArgs != null)
-            {
-                lock (_lock)
-                {
-                    var entity = Context.List<TEntity>().FirstOrDefault(item => item.Id == EntityId);
-                    if (entity != null)
-                    {
-                        Detach();
-                        if (update)
-                        {
-                            var entry = entity.GetEntry(SpQueryArgs);
-                            entry.AutoUpdateLookups = AutoUpdateLookups;
-                            entry.Entity = Entity;
-                            entry.Update();
-
-                            Entity = entity;
-                            FetchOriginalValues();
-                            Attach();
-
-                            this.State = entry.State;
-                            CurrentValues = entry.CurrentValues;
-                            entry.Detach();
-                        }
-                        else
-                        {
-                            Entity = entity;
-                            FetchOriginalValues();
-                            Attach();
-                        }
-                    }
-                    else
-                    {
-                        EntityId = 0;
-                        if (update)
-                        {
-                            Update();
-                        }
-                    }
-                    return entity;
-                }
-            }
-            return Entity;
-        }
-
-        private bool UpdateLookups()
-        {
-            bool hasChanges = false;
-            foreach (var currentValue in GetValues(Entity))
-            {
-                if (currentValue.Value is ISpEntityLookup)
-                {
-                    hasChanges = (currentValue.Value as ISpEntityLookup).Update() || hasChanges;
-                }
-                else if (currentValue.Value is ISpEntityLookupCollection)
-                {
-                    hasChanges = (currentValue.Value as ISpEntityLookupCollection).Update() || hasChanges;
-                }
-            }
-            return hasChanges;
-        }
-
         public bool Update()
         {
             lock (_lock)
             {
+                if (State != EntityState.Detached)
+                {
+                    Attach();
+                }
                 bool hasChanges = DetectChanges();
                 if (hasChanges)
                 {
