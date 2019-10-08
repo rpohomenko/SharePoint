@@ -114,7 +114,7 @@ namespace LinqToSP.Test
                 Position = EmployeePosition.Specialist,
             };
 
-            specialist.DepartmentEntity.SetEntity(department.Entity);
+            specialist.Department.SetEntity(department.Entity);
 
             //specialist.Manager.EntityId = 1;
             specialist.Manager.SetEntity(manager.Entity);
