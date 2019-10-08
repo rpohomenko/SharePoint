@@ -13,7 +13,7 @@ namespace LinqToSP.Test.Model
 
         public Employee()
         {
-            ManagerLookups = new SpEntityLookupCollection<Employee>();
+            ManagerLookup = new SpEntityLookupCollection<Employee>();
             DepartmentLookup = new SpEntityLookup<Department>();
             //_managers = new SpEntitySet<Employee>();
         }
@@ -111,7 +111,7 @@ namespace LinqToSP.Test.Model
         }
 
         [LookupField(Name = "Emp_Manager", Title = "Manager", Order = 6, Overwrite = true, IsMultiple = true)]
-        public ISpEntityLookupCollection<Employee> ManagerLookups
+        public ISpEntityLookupCollection<Employee> ManagerLookup
         {
             get;
         }
@@ -119,11 +119,11 @@ namespace LinqToSP.Test.Model
         {
             get
             {
-                return ManagerLookups.GetEntities();
+                return ManagerLookup.GetEntities();
             }
             set
             {
-                ManagerLookups.SetEntities(value);
+                ManagerLookup.SetEntities(value);
             }
         }
 

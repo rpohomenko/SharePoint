@@ -9,9 +9,9 @@
     <!--*-->
     <authors>Ruslan Pakhomenka</authors>
     <owners>Ruslan Pakhomenka</owners>
-    <!--
+    <projectUrl>https://github.com/rpohomenko/SharePoint/tree/master/LinqToSP/SP.Client</projectUrl>
+      <!--
     <licenseUrl></licenseUrl>
-    <projectUrl></projectUrl>
     <iconUrl></iconUrl>
 -->
     <requireLicenseAcceptance>false</requireLicenseAcceptance>

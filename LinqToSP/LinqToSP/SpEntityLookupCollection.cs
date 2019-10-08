@@ -28,6 +28,8 @@ namespace SP.Client.Linq
     public sealed class SpEntityLookupCollection<TEntity> : ISpEntityLookupCollection<TEntity>
         where TEntity : class, IListItemEntity, new()
     {
+        private int[] _entityIds;
+
         public SpQueryArgs<ISpEntryDataContext> SpQueryArgs { get; }
 
         public ISpEntryDataContext Context
@@ -45,7 +47,21 @@ namespace SP.Client.Linq
             }
         }
 
-        public int[] EntityIds { get; set; }
+        public int[] EntityIds
+        {
+            get
+            {
+                return _entityIds;
+            }
+            set
+            {
+                if (_entityIds != value)
+                {
+                    _entityIds = value;
+                    Entities = null;
+                }
+            }
+        }
 
         public ICollection<TEntity> Entities { get; private set; }
 

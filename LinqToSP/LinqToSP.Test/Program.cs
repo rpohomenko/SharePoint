@@ -1,16 +1,11 @@
 ﻿using LinqToSP.Test.Model;
 using Microsoft.SharePoint.Client;
 using SP.Client.Linq;
-using SP.Client.Linq.Infrastructure;
 using System;
-using System.Collections.Generic;
 using System.Configuration;
 using System.Diagnostics;
 using System.Linq;
 using System.Security;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace LinqToSP.Test
 {
@@ -40,11 +35,15 @@ namespace LinqToSP.Test
 
                 clientContext.Credentials = new SharePointOnlineCredentials(userLogin, string.IsNullOrWhiteSpace(userPassword) ? GetPassword() : ConvertToSecureString(userPassword));
 
-                Deploy(ctx, true);
+                //Deploy(ctx, true);
 
                 ImportData(ctx, false);
 
+                //var res  = ctx.List<Employee>().Where(i => i.Id < 2).ToArray();
+
                 var departments = ctx.List<Department>().ToArray();
+
+                int count = ctx.List<Employee>().Where(i => i.Id > 0).Take(100).Count();
 
                 var employees = departments.First().Employees.ToArray();
 
@@ -93,7 +92,7 @@ namespace LinqToSP.Test
             {
                 Title = "Warner Brothers"
             }, 1);
-           
+
 
             var manager = spContext.List<Employee>().AddOrUpdate(new Employee()
             {
@@ -113,18 +112,21 @@ namespace LinqToSP.Test
                 LastName = "Smith",
                 Phone = "7-1143-222",
                 Email = "will.smith@people.com",
-                Position = EmployeePosition.Specialist,
-                AccountName = "Ruslan Pohomenko"
+                Position = EmployeePosition.Specialist
             };
 
-          
+
             specialist.DepartmentLookup.SetEntity(department.Entity);
 
-          
-            specialist.ManagerLookups.SetEntities(new[] { manager.Entity });
+            //department.Entity.Title = "test 1";
+
+            specialist.ManagerLookup.SetEntities(new[] { manager.Entity });
 
             var entry = spContext.List<Employee>().AddOrUpdate(specialist, 2, true);
-            
+
+            //department.Entity.Title = "test 2";
+            department.Update();
+
             spContext.SaveChanges();
 
         }
