@@ -95,13 +95,13 @@ namespace SP.Client.Linq.Infrastructure
 
         private void Entity_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            var property = sender.GetType().GetProperty(e.PropertyName);
-            if (property != null)
-            {
-                var value = property.GetValue(sender);
-                //TODO:
-                //bool isChanged = DetectChanges(e.PropertyName, value);
-            }
+            //var property = sender.GetType().GetProperty(e.PropertyName);
+            //if (property != null)
+            //{
+            //    var value = property.GetValue(sender);
+            //    //TODO:
+            //    bool isChanged = DetectChanges(e.PropertyName, value);
+            //}
         }
 
         public void Attach()

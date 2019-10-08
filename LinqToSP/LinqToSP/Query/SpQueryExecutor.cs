@@ -56,6 +56,19 @@ namespace SP.Client.Linq.Query
 
         public TResult ExecuteScalar<TResult>(QueryModel queryModel)
         {
+            VisitQueryModel(queryModel);
+            foreach (var resultOperator in queryModel.ResultOperators)
+            {
+                if (resultOperator is CountResultOperator || resultOperator is LongCountResultOperator)
+                {
+                    int itemCount = 0;
+                    _manager.ProcessItems(SpView, true, (items) =>
+                    {
+                        itemCount += items.Count;
+                    });
+                    return (TResult)System.Convert.ChangeType(itemCount, typeof(TResult));
+                }
+            }
             return ExecuteSingle<TResult>(queryModel, false);
         }
 
@@ -66,16 +79,6 @@ namespace SP.Client.Linq.Query
             {
                 if (resultOperator is LastResultOperator)
                     return results.LastOrDefault();
-                else if (resultOperator is CountResultOperator)
-                {
-                    int itemCount = 0;
-                    _manager.ProcessItems(SpView, true, (items) =>
-                    {
-                        itemCount += items.Count;
-                    });
-                    return (TResult)(object)itemCount;
-                    //return (TResult)(object)results.Count();
-                }
             }
             return (defaultIfEmpty) ? results.FirstOrDefault() : results.First();
         }
@@ -138,6 +141,13 @@ namespace SP.Client.Linq.Query
                     }
                 }
             }
+
+            Debug.WriteLine($"# Entity: {typeof(TEntity)}");
+            Debug.WriteLine($"# List: {this.SpQueryArgs}");
+            Debug.WriteLine($"# Folder Url: {this.SpQueryArgs.FolderUrl}");
+            Debug.WriteLine("# SP Query:");
+            Debug.Write(SpView);
+            Debug.WriteLine("");
         }
 
         public IEnumerable<TResult> ExecuteCollection<TResult>(QueryModel queryModel)
@@ -152,23 +162,17 @@ namespace SP.Client.Linq.Query
                 {
                     return Enumerable.Empty<TResult>();
                 }
-                Debug.WriteLine($"# Entity: {typeof(TEntity)}");
-                Debug.WriteLine($"# List: {this.SpQueryArgs}");
-                Debug.WriteLine($"# Folder Url: {this.SpQueryArgs.FolderUrl}");
-                Debug.WriteLine("# SP Query:");
-                Debug.Write(SpView);
-                Debug.WriteLine("");
 
-                foreach (var resultOperator in queryModel.ResultOperators)
-                {
-                    if (resultOperator is CountResultOperator)
-                    {
-                        if (typeof(int).IsAssignableFrom(typeof(TResult)))
-                        {
-                            return Enumerable.Empty<TResult>();
-                        }
-                    }
-                }
+                //foreach (var resultOperator in queryModel.ResultOperators)
+                //{
+                //    if (resultOperator is CountResultOperator)
+                //    {
+                //        if (typeof(int).IsAssignableFrom(typeof(TResult)))
+                //        {
+                //            return Enumerable.Empty<TResult>();
+                //        }
+                //    }
+                //}
 
                 var results = _manager.GetEntities(SpView);
 
@@ -234,8 +238,20 @@ namespace SP.Client.Linq.Query
 
         public async Task<TResult> ExecuteScalarAsync<TResult>(QueryModel queryModel)
         {
-            var result = await ExecuteSingleAsync<TResult>(queryModel, false);
-            return result;
+            VisitQueryModel(queryModel);
+            foreach (var resultOperator in queryModel.ResultOperators)
+            {
+                if (resultOperator is CountResultOperator || resultOperator is LongCountResultOperator)
+                {
+                    int itemCount = 0;
+                    await _manager.ProcessItemsAsync(SpView, true, (items) =>
+                     {
+                         itemCount += items.Count;
+                     });
+                    return (TResult)System.Convert.ChangeType(itemCount, typeof(TResult));
+                }
+            }
+            return await ExecuteSingleAsync<TResult>(queryModel, false);
         }
 
         public async Task<TResult> ExecuteSingleAsync<TResult>(QueryModel queryModel, bool defaultIfEmpty)
