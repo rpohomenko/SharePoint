@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<package>
+  <metadata>
+    <!--*-->
+    <id>SP.Client.2013</id>
+    <!--*-->
+    <version>1.0.0</version>
+    <title>SP.Client.SP2013</title>
+    <!--*-->
+    <authors>Ruslan Pakhomenka</authors>
+    <owners>Ruslan Pakhomenka</owners>
+    <!--
+    <licenseUrl></licenseUrl>
+    <projectUrl></projectUrl>
+    <iconUrl></iconUrl>
+-->
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <!--*-->
+    <description>.NET client-side object model (CSOM) Framework Extension.
+SharePoint 2013</description>
+    <!--*-->
+    <releaseNotes>first release</releaseNotes>
+    <copyright>Copyright ©  2019</copyright>
+    <tags>
+    </tags>
+    <dependencies>
+      <dependency id="Microsoft.SharePoint2013.CSOM" version="15.0.5031.1001" />
+    </dependencies>
+  </metadata>
+</package>

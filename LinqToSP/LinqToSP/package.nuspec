@@ -4,7 +4,7 @@
     <!--*-->
     <id>LinqToSP.o365</id>
     <!--*-->
-    <version>1.0.1</version>
+    <version>1.0.3</version>
     <title>Linq To SharePoint (o365) Framework</title>
     <!--*-->
     <authors>Ruslan Pakhomenka</authors>
@@ -18,7 +18,8 @@
     <!--*-->
     <description>Linq To SharePoint (o365) Framework.</description>
     <!--*-->
-    <releaseNotes>-new release</releaseNotes>
+    <releaseNotes>-multilookup
+-Count() method</releaseNotes>
     <copyright>Copyright ©  2019</copyright>
     <tags>
             Linq,SharePoint

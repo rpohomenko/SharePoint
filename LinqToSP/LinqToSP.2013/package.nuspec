@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<package>
+  <metadata>
+    <!--*-->
+    <id>LinqToSP.2013</id>
+    <!--*-->
+    <version>1.0.0</version>
+    <title>LinqToSP.2013</title>
+    <!--*-->
+    <authors>Ruslan Pakhomenka</authors>
+    <owners>Ruslan Pakhomenka</owners>
+    <!--
+    <licenseUrl></licenseUrl>
+    <projectUrl></projectUrl>
+    <iconUrl></iconUrl>
+-->
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <!--*-->
+    <description>Linq To SharePoint (2013) Framework.</description>
+    <!--*-->
+    <releaseNotes>first release</releaseNotes>
+    <copyright>Copyright ©  2019</copyright>
+    <tags>
+    </tags>
+    <dependencies>
+      <dependency id="Microsoft.SharePoint2013.CSOM" version="15.0.5031.1001" />
+      <dependency id="Remotion.Linq" version="2.2.0" />
+      <dependency id="SP.Client.2013" version="1.0.0" />
+    </dependencies>
+  </metadata>
+</package>
