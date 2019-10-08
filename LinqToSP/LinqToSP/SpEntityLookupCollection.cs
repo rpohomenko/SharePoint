@@ -176,7 +176,7 @@ namespace SP.Client.Linq
             {
                 if (Context == null)
                 {
-                    throw new ArgumentNullException(nameof(SpQueryArgs.Context));
+                    throw new ArgumentNullException(nameof(Context));
                 }
                 Entities = Context.List<TEntity>(SpQueryArgs).Where(entity => entity.Includes(item => item.Id, EntityIds)).ToArray();
                 return Entities;

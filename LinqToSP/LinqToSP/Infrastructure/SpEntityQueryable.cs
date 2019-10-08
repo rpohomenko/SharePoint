@@ -283,7 +283,7 @@ namespace SP.Client.Linq.Infrastructure
             return Enumerable.Empty<SpEntityEntry<TEntity, TContext>>();
         }
 
-        internal SpEntityEntry<TEntity, TContext> Entry(TEntity entity, bool reload)
+        internal SpEntityEntry<TEntity, TContext> Entry(TEntity entity)
         {
             if (entity != null)
             {
@@ -291,7 +291,6 @@ namespace SP.Client.Linq.Infrastructure
                 if (executor != null && executor.SpQueryArgs != null)
                 {
                     var entry = entity.GetEntry(executor.SpQueryArgs);
-                    if (reload) entry.Reload();
                     return entry;
                 }
             }
