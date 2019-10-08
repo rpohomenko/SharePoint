@@ -1,4 +1,4 @@
-﻿using Microsoft.SharePoint.Client;
+﻿using SP.Client.Linq.Provisioning;
 using System;
 
 namespace SP.Client.Linq.Attributes
@@ -17,6 +17,8 @@ namespace SP.Client.Linq.Attributes
     public virtual string Group { get; set; }
 
     public virtual string ParentId { get; set; }
+
+    public ProvisionBehavior Behavior { get; set; }
 
   }
 }

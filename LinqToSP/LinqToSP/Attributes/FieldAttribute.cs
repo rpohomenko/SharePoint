@@ -1,4 +1,5 @@
 ﻿using Microsoft.SharePoint.Client;
+using SP.Client.Linq.Provisioning;
 using System;
 
 namespace SP.Client.Linq.Attributes
@@ -34,7 +35,10 @@ namespace SP.Client.Linq.Attributes
 
     public int Order { get; set; }
 
+    [Obsolete("Use ProvisionBehavior.Overwrite instead.")]
     public bool Overwrite { get; set; }
+
+    public ProvisionBehavior Behavior { get; set; }
 
     public override string ToString()
     {

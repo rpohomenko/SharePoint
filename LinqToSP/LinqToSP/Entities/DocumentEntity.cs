@@ -1,5 +1,6 @@
 ﻿using Microsoft.SharePoint.Client;
 using SP.Client.Linq.Attributes;
+using SP.Client.Linq.Provisioning;
 using System;
 using System.Runtime.Serialization;
 
@@ -32,7 +33,7 @@ namespace SP.Client.Linq
             internal set;
         }
 
-        [Field(Name = "File_x0020_Size", IsReadOnly = true, DataType = FieldType.Lookup)]
+        [Field(Name = "File_x0020_Size", IsReadOnly = true, DataType = FieldType.Lookup, Behavior = ProvisionBehavior.None)]
         [DataMember]
         public int FileSize
         {
@@ -41,7 +42,7 @@ namespace SP.Client.Linq
         }
 
         [DataMember]
-        [Field(Name = "File_x0020_Type", IsReadOnly = true, DataType = FieldType.Text)]
+        [Field(Name = "File_x0020_Type", IsReadOnly = true, DataType = FieldType.Text, Behavior = ProvisionBehavior.None)]
         public string FileType
         {
             get;
@@ -49,7 +50,7 @@ namespace SP.Client.Linq
         }
 
         [DataMember]
-        [Field(Name = "ContentVersion", IsReadOnly = true, DataType = FieldType.Lookup)]
+        [Field(Name = "ContentVersion", IsReadOnly = true, DataType = FieldType.Lookup, Behavior = ProvisionBehavior.None)]
         public int ContentVersion
         {
             get;
@@ -57,7 +58,7 @@ namespace SP.Client.Linq
         }
 
         [DataMember]
-        [Field(Name = "StreamHash", IsReadOnly = true, DataType = FieldType.Text)]
+        [Field(Name = "StreamHash", IsReadOnly = true, DataType = FieldType.Text, Behavior = ProvisionBehavior.None)]
         public string StreamHash
         {
             get;

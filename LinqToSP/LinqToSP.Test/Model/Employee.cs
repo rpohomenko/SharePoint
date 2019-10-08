@@ -1,6 +1,7 @@
 ﻿using Microsoft.SharePoint.Client;
 using SP.Client.Linq;
 using SP.Client.Linq.Attributes;
+using SP.Client.Linq.Provisioning;
 using System.Collections.Generic;
 
 namespace LinqToSP.Test.Model
@@ -110,7 +111,7 @@ namespace LinqToSP.Test.Model
             set;
         }
 
-        [LookupField(Name = "Emp_Manager", Title = "Manager", Order = 6, Overwrite = true, IsMultiple = true)]
+        [LookupField(Name = "Emp_Manager", Title = "Manager", Order = 6, Overwrite = true, IsMultiple = true, Behavior = ProvisionBehavior.Overwrite)]
         public ISpEntityLookupCollection<Employee> ManagerLookup
         {
             get;

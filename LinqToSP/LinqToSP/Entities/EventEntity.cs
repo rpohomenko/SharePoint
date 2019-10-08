@@ -1,6 +1,7 @@
 ﻿using FRA.Framework.Recurrence;
 using Microsoft.SharePoint.Client;
 using SP.Client.Linq.Attributes;
+using SP.Client.Linq.Provisioning;
 using System;
 using System.Runtime.Serialization;
 
@@ -16,7 +17,7 @@ namespace SP.Client.Linq
         private bool? _recurrence;
         private string _recurrenceData;
 
-        [Field(Name = "EventDate", Required = true, DataType = FieldType.DateTime)]
+        [Field(Name = "EventDate", Required = true, DataType = FieldType.DateTime, Behavior = ProvisionBehavior.None)]
         [DataMember]
         public virtual DateTime StartTime
         {
@@ -30,6 +31,7 @@ namespace SP.Client.Linq
                 OnPropertyChanged(nameof(StartTime), value);
             }
         }
+
         [DataMember]
         public virtual DateTime? EndTime
         {
@@ -43,6 +45,7 @@ namespace SP.Client.Linq
                 OnPropertyChanged(nameof(EndTime), value);
             }
         }
+
         [DataMember]
         public virtual bool? AllDayEvent
         {
@@ -56,6 +59,7 @@ namespace SP.Client.Linq
                 OnPropertyChanged(nameof(AllDayEvent), value);
             }
         }
+
         [DataMember]
         public virtual bool? Recurrence
         {
@@ -69,6 +73,7 @@ namespace SP.Client.Linq
                 OnPropertyChanged(nameof(Recurrence), value);
             }
         }
+
         [DataMember]
         public virtual string RecurrenceData
         {
@@ -82,6 +87,7 @@ namespace SP.Client.Linq
                 OnPropertyChanged(nameof(RecurrenceData), value);
             }
         }
+
         [DataMember]
         public string RecurrenceId { get; internal set; }
 

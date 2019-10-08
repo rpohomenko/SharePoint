@@ -82,6 +82,8 @@
     <Compile Include="Provisioning\FieldProvisionHandler.cs" />
     <Compile Include="Provisioning\ListProvisionHandler.cs" />
     <Compile Include="Provisioning\ContentTypeProvisionHandler.cs" />
+    <Compile Include="Provisioning\ProvisionLevel.cs" />
+    <Compile Include="Provisioning\ProvisionBehavior.cs" />
     <Compile Include="Provisioning\SpProvisionHandler.cs" />
     <Compile Include="Provisioning\SpProvisionModel.cs" />
     <Compile Include="SpEntityLookup.cs" />

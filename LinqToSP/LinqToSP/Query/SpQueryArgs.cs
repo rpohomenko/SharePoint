@@ -22,7 +22,7 @@ namespace SP.Client.Linq.Query
         internal string FolderUrl { get; set; }
         public Action OnExecute { get; set; }
 
-        public SpQueryArgs(string listTitle, string listUrl, Guid listId, string query)
+        internal SpQueryArgs(string listTitle, string listUrl, Guid listId, string query)
         {
             ListTitle = listTitle;
             ListUrl = listUrl;

@@ -1,6 +1,7 @@
 ﻿using Microsoft.SharePoint.Client;
 using SP.Client.Linq.Attributes;
 using SP.Client.Linq.Infrastructure;
+using SP.Client.Linq.Provisioning;
 using System;
 using System.ComponentModel;
 using System.Runtime.Serialization;
@@ -24,7 +25,7 @@ namespace SP.Client.Linq
         public int Id { get; internal set; }
 
         [DataMember]
-        [Field("Title", FieldType.Text, Required = true)]
+        [Field("Title", FieldType.Text, Required = true, Behavior = ProvisionBehavior.None)]
         public virtual string Title
         {
             get { return _title; }
@@ -50,7 +51,7 @@ namespace SP.Client.Linq
         /// Version
         /// </summary>
         [DataMember]
-        [Field(Name = "owshiddenversion", DataType = FieldType.Integer, IsReadOnly = false)]
+        [Field(Name = "owshiddenversion", DataType = FieldType.Integer, IsReadOnly = false, Behavior = ProvisionBehavior.None)]
         public int? Version
         {
             get; internal set;
@@ -76,7 +77,7 @@ namespace SP.Client.Linq
         /// <summary>
         /// Author
         /// </summary>
-        [LookupField(Name = "Author", DataType = FieldType.User, IsReadOnly = true)]
+        [LookupField(Name = "Author", DataType = FieldType.User, IsReadOnly = true, Behavior = ProvisionBehavior.None)]
         [DataMember]
         public FieldLookupValue CreatedBy
         {
@@ -86,14 +87,14 @@ namespace SP.Client.Linq
         /// <summary>
         /// Created date
         /// </summary>
-        [Field(Name = "Created", DataType = FieldType.DateTime, IsReadOnly = true)]
+        [Field(Name = "Created", DataType = FieldType.DateTime, IsReadOnly = true, Behavior = ProvisionBehavior.None)]
         [DataMember]
         public DateTime? Created { get; internal set; }
 
         /// <summary>
         /// Editor
         /// </summary>
-        [LookupField(Name = "Editor", DataType = FieldType.User, IsReadOnly = true)]
+        [LookupField(Name = "Editor", DataType = FieldType.User, IsReadOnly = true, Behavior = ProvisionBehavior.None)]
         [DataMember]
         public FieldLookupValue ModifiedBy
         {
@@ -103,14 +104,14 @@ namespace SP.Client.Linq
         /// <summary>
         /// Modified date
         /// </summary>
-        [Field(Name = "Modified", DataType = FieldType.DateTime, IsReadOnly = true)]
+        [Field(Name = "Modified", DataType = FieldType.DateTime, IsReadOnly = true, Behavior = ProvisionBehavior.None)]
         [DataMember]
         public DateTime? Modified
         {
             get; internal set;
         }
 
-        [Field(Name = "FileDirRef", IsReadOnly = true, DataType = FieldType.Text)]
+        [Field(Name = "FileDirRef", IsReadOnly = true, DataType = FieldType.Text, Behavior = ProvisionBehavior.None)]
         public string ParentFolderUrl
         {
             get; internal set;

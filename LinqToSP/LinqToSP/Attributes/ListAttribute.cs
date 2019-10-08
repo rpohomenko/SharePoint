@@ -1,4 +1,5 @@
 ﻿using Microsoft.SharePoint.Client;
+using SP.Client.Linq.Provisioning;
 using System;
 
 namespace SP.Client.Linq.Attributes
@@ -25,5 +26,8 @@ namespace SP.Client.Linq.Attributes
     public virtual ListTemplateType Type { get; set; }
 
     public virtual Guid TemplateFeatureId { get; set; }
+
+    public ProvisionBehavior Behavior { get; set; }
+
   }
 }

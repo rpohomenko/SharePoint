@@ -4,21 +4,24 @@ using System;
 
 namespace SP.Client.Linq
 {
-    public interface ISpEntityLookup
-    {
-        SpQueryArgs<ISpEntryDataContext> SpQueryArgs { get; }
-        int EntityId { get; set; }
+  public interface ISpEntityLookup
+  {
+    SpQueryArgs<ISpEntryDataContext> SpQueryArgs { get; }
 
-        Type EntityType { get; }
+    ISpEntryDataContext Context { get; }
 
-        bool Update();
-    }
+    int EntityId { get; set; }
 
-    public interface ISpEntityLookup<TEntity> : ISpEntityLookup
-     where TEntity : class, IListItemEntity, new()
-    {
-        SpEntityEntry<TEntity, ISpEntryDataContext> Entry { get; }
-        TEntity GetEntity();
-        void SetEntity(TEntity entity);
-    }
+    Type EntityType { get; }
+
+    bool Update();
+  }
+
+  public interface ISpEntityLookup<TEntity> : ISpEntityLookup
+   where TEntity : class, IListItemEntity, new()
+  {
+    //SpEntityEntry<TEntity, ISpEntryDataContext> Entry { get; }
+    TEntity GetEntity();
+    void SetEntity(TEntity entity);
+  }
 }

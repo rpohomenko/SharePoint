@@ -82,6 +82,8 @@
     <Compile Include="..\LinqToSP\Provisioning\ContentTypeProvisionHandler.cs" />
     <Compile Include="..\LinqToSP\Provisioning\SpProvisionHandler.cs" />
     <Compile Include="..\LinqToSP\Provisioning\SpProvisionModel.cs" />
+    <Compile Include="..\LinqToSP\Provisioning\ProvisionBehavior.cs" />
+    <Compile Include="..\LinqToSP\Provisioning\ProvisionLevel.cs" />
     <Compile Include="..\LinqToSP\SpEntityLookup.cs" />
     <Compile Include="..\LinqToSP\ISpEntityLookup.cs" />
     <Compile Include="..\LinqToSP\SpEntityLookupCollection.cs" />
