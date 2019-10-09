@@ -9,7 +9,7 @@ namespace SP.Client.Linq.Attributes
   {
     public ListAttribute() : this(ListTemplateType.GenericList)
     {
-
+      Behavior = ProvisionBehavior.Default;
     }
 
     public ListAttribute(ListTemplateType type)

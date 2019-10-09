@@ -32,6 +32,13 @@ namespace SP.Client.Linq.Provisioning
     {
       if (ContentType != null && Model != null && Model.Context != null && Model.Context.Context != null)
       {
+        if (ContentType.Behavior == ProvisionBehavior.None) return;
+
+        if (ContentType.Level == ProvisionLevel.Default)
+        {
+          ContentType.Level = List != null ? ProvisionLevel.List : ProvisionLevel.Web;
+        }
+
         var context = Model.Context.Context;
         Web web = context.Web;
         List list = null;
@@ -86,29 +93,35 @@ namespace SP.Client.Linq.Provisioning
         string ctName = ContentType.Name;
         string ctId = ContentType.Id;
 
-        var contentTypes = list != null ? list.ContentTypes : web.ContentTypes;
+        //var contentTypes = list != null ? list.ContentTypes : web.ContentTypes;
 
         if (!string.IsNullOrEmpty(ctId))
         {
-          if (list != null)
+          if (ContentType.Level == ProvisionLevel.List && list != null)
           {
-            var listContentTypes = context.LoadQuery(contentTypes.Where(ct => ct.Id.StringValue == ctId || ct.Parent.Id.StringValue == ctId));
+            var listContentTypes = context.LoadQuery(list.ContentTypes.Where(ct => ct.Id.StringValue == ctId || ct.Parent.Id.StringValue == ctId));
             try
             {
               context.ExecuteQuery();
               listContentType = listContentTypes.FirstOrDefault();
+              if (listContentType != null)
+                ctName = listContentType.Name;
             }
-            catch { }
-
-            if (overwrite && listContentType != null)
+            catch
             {
-              listContentType.DeleteObject();
-              //try
-              //{
-              context.ExecuteQuery();
               listContentType = null;
-              //}
-              //catch { }
+            }
+
+            if ((overwrite || ContentType.Behavior == ProvisionBehavior.Overwrite) && listContentType != null)
+            {
+              if (!listContentType.Sealed)
+              {
+                OnProvisioned?.Invoke(this, listContentType);
+              }
+              return;
+              //listContentType.DeleteObject();
+              //context.ExecuteQuery();
+              //listContentType = null;
             }
           }
 
@@ -131,23 +144,30 @@ namespace SP.Client.Linq.Provisioning
         {
           if (list != null)
           {
-            var listContentTypes = context.LoadQuery(contentTypes.Where(ct => ct.Name == ctName));
+            var listContentTypes = context.LoadQuery(list.ContentTypes.Where(ct => ct.Name == ctName));
             try
             {
               context.ExecuteQuery();
               listContentType = listContentTypes.FirstOrDefault();
+              if (listContentType != null)
+                ctName = listContentType.Name;
             }
-            catch { }
-
-            if (overwrite && listContentType != null)
+            catch
             {
-              listContentType.DeleteObject();
-              //try
-              //{
-              context.ExecuteQuery();
               listContentType = null;
-              //}
-              //catch { }
+            }
+
+            if ((overwrite || ContentType.Behavior == ProvisionBehavior.Overwrite) && listContentType != null)
+            {
+              if (!listContentType.Sealed)
+              {
+                OnProvisioned?.Invoke(this, listContentType);
+              }
+              return;
+
+              //listContentType.DeleteObject();
+              //context.ExecuteQuery();
+              //listContentType = null;
             }
           }
           if (listContentType == null)
@@ -165,37 +185,39 @@ namespace SP.Client.Linq.Provisioning
           }
         }
 
-        if (list == null)
+        if (ContentType.Level == ProvisionLevel.Web)
         {
-          if (overwrite && webContentType != null && webContentType.Group == ContentType.Group)
+          if ((overwrite || ContentType.Behavior == ProvisionBehavior.Overwrite) && webContentType != null /*&& webContentType.Group == ContentType.Group*/)
           {
-            webContentType.DeleteObject();
-            //try
-            //{
-            context.ExecuteQuery();
-            webContentType = null;
-            //}
-            //catch { }
-          }
+            OnProvisioned?.Invoke(this, webContentType);
+            return;
 
-          if (webContentType == null && newContentType != null)
+            //webContentType.DeleteObject();
+            //context.ExecuteQuery();
+            //webContentType = null;
+          }
+          else if (webContentType == null && newContentType != null)
           {
-            contentType = contentTypes.Add(newContentType);
+            contentType = web.ContentTypes.Add(newContentType);
             OnProvisioning?.Invoke(this, contentType);
             contentType.Update(false);
+            webContentType = contentType;
           }
         }
-        else
+        else if (ContentType.Level == ProvisionLevel.List)
         {
-          if (webContentType != null)
+          if (list != null && List.Behavior != ProvisionBehavior.None)
           {
-            contentType = contentTypes.AddExistingContentType(webContentType);
-          }
-          else if (listContentType == null && newContentType != null)
-          {
-            contentType = contentTypes.Add(newContentType);
-            OnProvisioning?.Invoke(this, contentType);
-            contentType.Update(false);
+            if (webContentType != null)
+            {
+              contentType = list.ContentTypes.AddExistingContentType(webContentType);
+            }
+            else if (listContentType == null && newContentType != null)
+            {
+              contentType = list.ContentTypes.Add(newContentType);
+              OnProvisioning?.Invoke(this, contentType);
+              contentType.Update(false);
+            }
           }
         }
 
@@ -203,10 +225,10 @@ namespace SP.Client.Linq.Provisioning
         {
           context.Load(contentType);
           context.ExecuteQuery();
-          if (newContentType != null)
-          {
-            OnProvisioned?.Invoke(this, contentType);
-          }
+          //if (newContentType != null)
+          //{
+          OnProvisioned?.Invoke(this, contentType);
+          //}
         }
       }
     }

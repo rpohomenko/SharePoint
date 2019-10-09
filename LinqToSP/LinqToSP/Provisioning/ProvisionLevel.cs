@@ -2,8 +2,8 @@
 {
   public enum ProvisionLevel
   {
-    List,
-    Web,
-    //Site
+    Default = 0,
+    List = 1,
+    Web = 2
   }
 }

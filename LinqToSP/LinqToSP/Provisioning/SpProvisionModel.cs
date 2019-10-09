@@ -131,85 +131,132 @@ namespace SP.Client.Linq.Provisioning
       _fields.Add(field, handler);
     }
 
+    private void SetFieldLinks(ContentType contentType, IEnumerable<Field> fields, Comparison<string> comparison)
+    {
+      if (contentType.Sealed || contentType.ReadOnly) return;
+
+      var fieldLinks = contentType.FieldLinks;
+      contentType.Context.Load(fieldLinks);
+      contentType.Context.ExecuteQuery();
+
+      var newFieldLinks = new List<FieldLinkCreationInformation>();
+      foreach (Field field in fields)
+      {
+        var fieldLink = fieldLinks.FirstOrDefault(f => f.Id == field.Id);
+        if (fieldLink == null)
+        {
+          newFieldLinks.Add(new FieldLinkCreationInformation() { Field = field });
+        }
+      }
+
+      var arrFieldLinks = fieldLinks.Select(f => f.Name).ToArray();
+      var fieldLinkNames = arrFieldLinks.ToList();
+
+      foreach (var newFieldLink in newFieldLinks)
+      {
+        var fieldLink = contentType.FieldLinks.Add(newFieldLink);
+        if (!fieldLinkNames.Contains(newFieldLink.Field.InternalName))
+        {
+          fieldLinkNames.Add(newFieldLink.Field.InternalName);
+        }
+      }
+
+      contentType.Update(false);
+      contentType.Context.ExecuteQuery();
+
+      var sortedFieldNames = fieldLinkNames.ToArray();
+
+      Array.Sort(sortedFieldNames, comparison);
+
+      if (!sortedFieldNames.SequenceEqual(arrFieldLinks))
+      {
+        contentType.FieldLinks.Reorder(sortedFieldNames);
+        contentType.Update(false);
+        contentType.Context.ExecuteQuery();
+      }
+    }
+
     public virtual void Provision(bool overwrite = false)
     {
       if (ProvisionHandlers != null)
       {
         _list = null;
+        ListProvisionHandler<TContext, TEntity> listHandler = null;
         _contentTypes = new Dictionary<ContentType, ContentTypeProvisionHandler<TContext, TEntity>>();
         _fields = new Dictionary<Field, FieldProvisionHandler<TContext, TEntity>>();
+        var allFields = new Dictionary<string, int>();
 
         foreach (var provisionHandler in ProvisionHandlers)
         {
           if (provisionHandler != null)
+          {
             provisionHandler.Provision(overwrite);
-        }
-
-        var allFields = new Dictionary<string, int>();
-        foreach (var fieldHandler in ProvisionHandlers.OfType<FieldProvisionHandler<TContext, TEntity>>())
-        {
-          allFields[fieldHandler.Field.Name] = fieldHandler.Field.Order;
+            if (provisionHandler is ListProvisionHandler<TContext, TEntity>)
+            {
+              listHandler = provisionHandler as ListProvisionHandler<TContext, TEntity>;
+            }
+            else if (provisionHandler is FieldProvisionHandler<TContext, TEntity>)
+            {
+              allFields[(provisionHandler as FieldProvisionHandler<TContext, TEntity>).Field.Name]
+                = (provisionHandler as FieldProvisionHandler<TContext, TEntity>).Field.Order;
+            }
+          }
         }
 
         if (_fields.Count > 0)
         {
+          var comparison = new Comparison<string>(
+                 (f1, f2) =>
+                 {
+                   if (allFields.ContainsKey(f1) && allFields.ContainsKey(f2))
+                   {
+                     return allFields[f1].CompareTo(allFields[f2]);
+                   }
+                   else if (allFields.ContainsKey(f1))
+                   {
+                     return 1;
+                   }
+                   else if (allFields.ContainsKey(f2))
+                   {
+                     return -1;
+                   }
+                   return 0;
+                 });
           if (_contentTypes.Count > 0)
           {
-            foreach (ContentType contentType in _contentTypes.Keys)
+            foreach (var contentType in _contentTypes)
             {
-              if (contentType.Sealed || contentType.ReadOnly) continue;
+              SetFieldLinks(contentType.Key,
+                _fields.Where(f => contentType.Value.ContentType.Level == f.Value.Field.Level).Select(f => f.Key), comparison);
 
-              var fieldLinks = contentType.FieldLinks;
-              contentType.Context.Load(fieldLinks);
-              contentType.Context.ExecuteQuery();
-
-              var newFieldLinks = new List<FieldLinkCreationInformation>();
-              foreach (Field field in _fields.Keys)
+              if (contentType.Value.ContentType.Level == ProvisionLevel.Web
+                && _list != null && listHandler != null && listHandler.List.Behavior != ProvisionBehavior.None)
               {
-                var fieldLink = fieldLinks.FirstOrDefault(f => f.Id == field.Id);
-                if (fieldLink == null)
+                string ctName;
+                string ctId = contentType.Key.Id.StringValue;
+                var listContentTypes = _list.Context.LoadQuery(_list.ContentTypes.Where(ct => ct.Id.StringValue == ctId
+                                                            || ct.Parent.Id.StringValue == ctId));
+                ContentType listContentType;
+                try
                 {
-                  newFieldLinks.Add(new FieldLinkCreationInformation() { Field = field });
+                  _list.Context.ExecuteQuery();
+                  listContentType = listContentTypes.FirstOrDefault();
+                  if (listContentType != null)
+                    ctName = listContentType.Name;
+                }
+                catch
+                {
+                  listContentType = null;
+                }
+                if (listContentType == null)
+                {
+                  listContentType = _list.ContentTypes.AddExistingContentType(contentType.Key);
+                  _list.Context.Load(listContentType);
+                  _list.Context.ExecuteQuery();
+
+                  SetFieldLinks(contentType.Key, _fields.Keys, comparison);
                 }
               }
-
-              var fieldLinkNames = fieldLinks.Select(f => f.Name).ToList();
-
-              foreach (var newFieldLink in newFieldLinks)
-              {
-                var fieldLink = contentType.FieldLinks.Add(newFieldLink);
-                if (!fieldLinkNames.Contains(newFieldLink.Field.InternalName))
-                {
-                  fieldLinkNames.Add(newFieldLink.Field.InternalName);
-                }
-              }
-
-              contentType.Update(false);
-              contentType.Context.ExecuteQuery();
-
-              var sortedFieldNames = fieldLinkNames.ToArray();
-
-              Array.Sort(sortedFieldNames, new Comparison<string>(
-                  (f1, f2) =>
-                  {
-                    if (allFields.ContainsKey(f1) && allFields.ContainsKey(f2))
-                    {
-                      return allFields[f1].CompareTo(allFields[f2]);
-                    }
-                    else if (allFields.ContainsKey(f1))
-                    {
-                      return 1;
-                    }
-                    else if (allFields.ContainsKey(f2))
-                    {
-                      return -1;
-                    }
-                    return 0;
-                  }));
-
-              contentType.FieldLinks.Reorder(sortedFieldNames);
-              contentType.Update(false);
-              contentType.Context.ExecuteQuery();
             }
           }
 

@@ -8,6 +8,8 @@ namespace SP.Client.Linq.Attributes
   {
     public ContentTypeAttribute()
     {
+      Behavior = ProvisionBehavior.Default;
+      Level = ProvisionLevel.Default;
     }
 
     public virtual string Id { get; set; }
@@ -19,6 +21,7 @@ namespace SP.Client.Linq.Attributes
     public virtual string ParentId { get; set; }
 
     public ProvisionBehavior Behavior { get; set; }
+    public ProvisionLevel Level { get; set; }
 
   }
 }
