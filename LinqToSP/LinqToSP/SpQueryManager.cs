@@ -128,10 +128,16 @@ namespace SP.Client.Linq
       if (value is ISpEntityLookup || typeof(ISpEntityLookup).IsAssignableFrom(type))
       {
         var entitySet = (ISpEntityLookup)value;
-        if (entitySet != null && itemValue != null && itemValue is FieldLookupValue)
+        if (entitySet != null)
         {
-          int entityId = ((FieldLookupValue)itemValue).LookupId;
-          entitySet.EntityId = entityId;
+          if (itemValue is FieldLookupValue)
+          {
+            entitySet.EntityId = ((FieldLookupValue)itemValue).LookupId;
+          }
+          else if (itemValue is FieldLookupValue[] && (itemValue as FieldLookupValue[]).Any())
+          {
+            entitySet.EntityId = (itemValue as FieldLookupValue[]).First().LookupId;
+          }
           if (entitySet.SpQueryArgs != null)
           {
             entitySet.SpQueryArgs.Context = _args.Context;
@@ -142,9 +148,16 @@ namespace SP.Client.Linq
       else if (value is ISpEntityLookupCollection || typeof(ISpEntityLookupCollection).IsAssignableFrom(type))
       {
         var entitySets = (ISpEntityLookupCollection)value;
-        if (entitySets != null && itemValue != null && itemValue is FieldLookupValue[])
+        if (entitySets != null)
         {
-          entitySets.EntityIds = ((FieldLookupValue[])itemValue).Select(lv => lv.LookupId).ToArray();
+          if (itemValue is FieldLookupValue[])
+          {
+            entitySets.EntityIds = ((FieldLookupValue[])itemValue).Select(lv => lv.LookupId).ToArray();
+          }
+          else if (itemValue is FieldLookupValue)
+          {
+            entitySets.EntityIds = new[] { (itemValue as FieldLookupValue).LookupId };
+          }
           if (entitySets.SpQueryArgs != null)
           {
             entitySets.SpQueryArgs.Context = _args.Context;

@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace LinqToSP.Test.Model
 {
-  [ContentType(Name = "Department", Id = "0x01004BF822E9207E43869D826290F33C909C", Level = ProvisionLevel.Web, Behavior = ProvisionBehavior.Overwrite)]
+  [ContentType(Name = "Department", Id = "0x01004BF822E9207E43869D826290F33C909C", Level = ProvisionLevel.List, Behavior = ProvisionBehavior.Overwrite)]
   [List(Title = "Departments", Url = "Lists/Departments")]
   public class Department : ListItemEntity
   {

@@ -42,6 +42,17 @@ namespace SP.Client.Linq.Provisioning
         ProvisionHandlers.Add(listHandler);
       }
 
+      foreach (var contentType in contentTypes)
+      {
+        if (contentType != null && contentType.Behavior != ProvisionBehavior.None)
+        {
+          var contentTypeHandler = new ContentTypeProvisionHandler<TContext, TEntity>(contentType, list, this);
+          contentTypeHandler.OnProvisioned += ContentTypeHandler_OnProvisioned;
+          contentTypeHandler.OnProvisioning += ContentTypeHandler_OnProvisioning;
+          ProvisionHandlers.Add(contentTypeHandler);
+        }
+      }
+
       foreach (var field in fields.OrderBy(f => typeof(CalculatedFieldAttribute).IsAssignableFrom(f.Value.GetType()) ? 1 : 0))
       {
         if (field.Value.Behavior == ProvisionBehavior.None) continue;
@@ -86,17 +97,6 @@ namespace SP.Client.Linq.Provisioning
         fieldHandler.OnProvisioning += FieldHandler_OnProvisioning;
 
         ProvisionHandlers.Add(fieldHandler);
-      }
-
-      foreach (var contentType in contentTypes)
-      {
-        if (contentType != null && contentType.Behavior != ProvisionBehavior.None)
-        {
-          var contentTypeHandler = new ContentTypeProvisionHandler<TContext, TEntity>(contentType, list, this);
-          contentTypeHandler.OnProvisioned += ContentTypeHandler_OnProvisioned;
-          contentTypeHandler.OnProvisioning += ContentTypeHandler_OnProvisioning;
-          ProvisionHandlers.Add(contentTypeHandler);
-        }
       }
     }
 

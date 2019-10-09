@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using SP.Client.Extensions;
+using System.Xml.Linq;
+using SP.Client.Extensions;
 
 namespace SP.Client.Linq.Provisioning
 {
@@ -67,6 +69,18 @@ namespace SP.Client.Linq.Provisioning
       return null;
     }
 
+    private static string ChangeLookupAttributes(string schemeXml, Guid webId, Guid listId, string fieldName)
+    {
+      var scheme = XElement.Parse(schemeXml);
+      XAttribute list = scheme.Attribute("List");
+      if (list != null) list.Value = listId.ToString();
+      XAttribute web = scheme.Attribute("WebId");
+      if (web != null) web.Value = webId.ToString();
+      XAttribute field = scheme.Attribute("ShowField");
+      if (field != null) field.Value = fieldName;
+      return scheme.ToString(SaveOptions.DisableFormatting);
+    }
+
     public override void Provision(bool overwrite)
     {
       if (Field != null && Model != null && Model.Context != null && Model.Context.Context != null)
@@ -126,16 +140,9 @@ namespace SP.Client.Linq.Provisioning
         }
 
         FieldCollection fields = null;
-        if (Field.Level == ProvisionLevel.Web)
-        {
-          field = web.AvailableFields.GetByInternalNameOrTitle(Field.Name);
-          fields = web.Fields;
-        }
-        else if (Field.Level == ProvisionLevel.List && list != null)
-        {
-          field = list.Fields.GetByInternalNameOrTitle(Field.Name);
-          fields = list.Fields;
-        }
+
+        field = web.AvailableFields.GetByInternalNameOrTitle(Field.Name);
+        fields = web.Fields;
         if (field != null)
         {
           context.Load(field);
@@ -147,6 +154,28 @@ namespace SP.Client.Linq.Provisioning
           {
             field = null;
           }
+        }
+        if (Field.Level == ProvisionLevel.List && list != null)
+        {
+          Field existField = list.Fields.GetByInternalNameOrTitle(Field.Name);
+          context.Load(existField);
+          try
+          {
+            context.ExecuteQuery();
+          }
+          catch (Exception ex)
+          {
+            existField = null;
+          }
+          if (existField != null)
+          {
+            field = existField;
+          }
+          else
+          {
+            field = list.Fields.Add(field);
+          }
+          fields = list.Fields;
         }
 
         if ((!overwrite && !Field.Overwrite && Field.Behavior != ProvisionBehavior.Overwrite) && field != null)
@@ -210,9 +239,10 @@ namespace SP.Client.Linq.Provisioning
                 {
                   allowMultipleValues = (Field as LookupFieldAttribute).IsMultiple;
                 }
-
+                bool isNew = false;
                 if (field == null)
                 {
+                  isNew = true;
                   string fieldXml = allowMultipleValues
                     ? $"<Field Type='LookupMulti' Name='{Field.Name}' StaticName='{Field.Name}' DisplayName='{Field.Title ?? Field.Name}' Mult='TRUE' />"
                     : $"<Field Type='{Field.DataType}' Name='{Field.Name}' StaticName='{Field.Name}' DisplayName='{Field.Title ?? Field.Name}' />";
@@ -230,8 +260,15 @@ namespace SP.Client.Linq.Provisioning
                 var lookupList = GetLookupList(lookupEntityType);
                 if (lookupList != null)
                 {
-                  lookupField.LookupList = lookupList.Id.ToString();
-                  lookupField.LookupField = "Title";
+                  if (isNew)
+                  {
+                    lookupField.LookupList = lookupList.Id.ToString();
+                    lookupField.LookupField = "Title";
+                  }
+                  else
+                  {
+                    lookupField.SchemaXml = ChangeLookupAttributes(lookupField.SchemaXml, lookupField.LookupWebId, lookupList.Id, "Title");
+                  }
                 }
 
                 OnProvisioning?.Invoke(this, lookupField);

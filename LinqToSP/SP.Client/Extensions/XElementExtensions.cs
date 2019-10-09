@@ -5,7 +5,7 @@ using System.Xml.Linq;
 
 namespace SP.Client.Extensions
 {
-    internal static class XElementExtensions
+    public static class XElementExtensions
     {
         /// <summary>Gets the first (in document order) child element with the specified <see cref="XName" />.</summary>
         /// <param name="element">The element.</param>
