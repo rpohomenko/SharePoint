@@ -1,4 +1,5 @@
 ﻿using Microsoft.SharePoint.Client;
+using SP.Client.Linq.Provisioning;
 
 namespace SP.Client.Linq.Attributes
 {
@@ -15,15 +16,38 @@ namespace SP.Client.Linq.Attributes
         {
             DataType = FieldType.Lookup;
             Result = LookupItemResult.None;
+            Behavior = ProvisionBehavior.Overwrite;
         }
 
         public LookupFieldAttribute(string name) : base(name, FieldType.Lookup)
         {
+            DataType = FieldType.Lookup;
+            Result = LookupItemResult.None;
+            Behavior = ProvisionBehavior.Overwrite;
         }
 
-        public override FieldType DataType { get => base.DataType; set => base.DataType = value; }
+        public override FieldType DataType
+        {
+            get
+            {
+                if (base.DataType != FieldType.Lookup && base.DataType != FieldType.User)
+                {
+                    throw new System.Exception($"Field '{base.Name}' must have the lookup field type!");
+                }
+                return base.DataType;
+            }
+            set
+            {
+                if (value != FieldType.Lookup && value != FieldType.User)
+                {
+                    throw new System.Exception($"Field '{base.Name}' must have the lookup field type!");
+                }
+                base.DataType = value;
+            }
 
-        public LookupItemResult Result { get; set; }
+        }
+
+        public virtual LookupItemResult Result { get; set; }
 
         public bool IsMultiple { get; set; }
 

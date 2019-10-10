@@ -48,7 +48,7 @@ namespace LinqToSP.Test.Model
             }
         }
 
-        [CalculatedField(Name = "Emp_FullName", Title = "Full Name", Order = 0, Group = "Custom Columns", Formula = "=CONCATENATE([Emp_FirstName], \" \", [Emp_LastName])", FieldRefs = new[] { "Emp_FirstName", "Emp_LastName" })]
+        [CalculatedField(Name = "Emp_FullName", Title = "Full Name", Order = 0, Group = "Custom Columns", Formula = "=CONCATENATE([Emp_FirstName],\" \",[Emp_LastName])", FieldRefs = new[] { "Emp_FirstName", "Emp_LastName" })]
         public string FullName
         {
             get;
@@ -69,7 +69,7 @@ namespace LinqToSP.Test.Model
             set;
         }
 
-        [LookupField(Name = "Emp_Account", Title = "Account", Order = 3, Group = "Custom Columns", DataType = FieldType.User, IsMultiple = false)]
+        [LookupField("Emp_Account", Title = "Account", Order = 3, Group = "Custom Columns", DataType = FieldType.User, IsMultiple = false)]
         public FieldLookupValue Account
         {
             get;
@@ -111,7 +111,7 @@ namespace LinqToSP.Test.Model
             set;
         }
 
-        [LookupField(Name = "Emp_Manager", Title = "Manager", Order = 6, Overwrite = true, IsMultiple = true, Behavior = ProvisionBehavior.Overwrite)]
+        [LookupField(Name = "Emp_Manager", Title = "Manager", Order = 6, /*Overwrite = true,*/ IsMultiple = true, Behavior = ProvisionBehavior.Overwrite)]
         public ISpEntityLookupCollection<Employee> ManagerLookup
         {
             get;

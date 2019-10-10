@@ -35,11 +35,9 @@ namespace LinqToSP.Test
 
                 clientContext.Credentials = new SharePointOnlineCredentials(userLogin, string.IsNullOrWhiteSpace(userPassword) ? GetPassword() : ConvertToSecureString(userPassword));
 
-                //Deploy(ctx, true);
+                Deploy(ctx, false);
 
                 ImportData(ctx, false);
-
-                //var res  = ctx.List<Employee>().Where(i => i.Id < 2).ToArray();
 
                 var departments = ctx.List<Department>().ToArray();
 
@@ -67,6 +65,7 @@ namespace LinqToSP.Test
         {
             Console.WriteLine("Deploying...");
             var model = spContext.CreateModel<EmployeeProvisionModel<SpDataContext>, SpDataContext, Employee>();
+            model.UnProvision();
             model.Provision(overwrite);
             Console.ForegroundColor = ConsoleColor.Green;
             Console.WriteLine("Done!");
@@ -118,14 +117,9 @@ namespace LinqToSP.Test
 
             specialist.DepartmentLookup.SetEntity(department.Entity);
 
-            //department.Entity.Title = "test 1";
-
             specialist.ManagerLookup.SetEntities(new[] { manager.Entity });
 
             var entry = spContext.List<Employee>().AddOrUpdate(specialist, 2, true);
-
-            //department.Entity.Title = "test 2";
-            department.Update();
 
             spContext.SaveChanges();
 
