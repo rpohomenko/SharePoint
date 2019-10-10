@@ -4,13 +4,13 @@
     <!--*-->
     <id>LinqToSP.2013</id>
     <!--*-->
-    <version>1.0.0</version>
-    <title>LinqToSP.2013</title>
+    <version>1.0.1</version>
+    <title>Linq To SharePoint (2013) Framework</title>
     <!--*-->
     <authors>Ruslan Pakhomenka</authors>
     <owners>Ruslan Pakhomenka</owners>
     <projectUrl>https://github.com/rpohomenko/SharePoint/tree/master/LinqToSP</projectUrl>
-      <!--
+    <!--
     <licenseUrl></licenseUrl>
     <iconUrl></iconUrl>
 -->
@@ -18,10 +18,11 @@
     <!--*-->
     <description>Linq To SharePoint (2013) Framework.</description>
     <!--*-->
-    <releaseNotes>first release</releaseNotes>
+    <releaseNotes>provisioning improvements</releaseNotes>
     <copyright>Copyright ©  2019</copyright>
     <tags>
-    </tags>
+            Linq,SharePoint
+        </tags>
     <dependencies>
       <dependency id="Microsoft.SharePoint2013.CSOM" version="15.0.5031.1001" />
       <dependency id="Remotion.Linq" version="2.2.0" />

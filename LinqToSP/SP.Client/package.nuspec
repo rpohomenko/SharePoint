@@ -23,7 +23,7 @@
     <tags>
     </tags>
     <dependencies>
-      <dependency id="Microsoft.SharePointOnline.CSOM" version="16.1.19223.12000" />
+      <dependency id="Microsoft.SharePointOnline.CSOM" version="16.1.19404.12000" />
     </dependencies>
   </metadata>
 </package>

@@ -46,6 +46,9 @@
     <Reference Include="Remotion.Linq, Version=2.2.0.0, Culture=neutral, PublicKeyToken=fee00910d6e5f53b, processorArchitecture=MSIL">
       <HintPath>..\packages\Remotion.Linq.2.2.0\lib\net45\Remotion.Linq.dll</HintPath>
     </Reference>
+    <Reference Include="SP.Client.2013, Version=1.0.0.0, Culture=neutral, PublicKeyToken=81064c3d6d46423d, processorArchitecture=MSIL">
+      <HintPath>..\packages\SP.Client.2013.1.0.0\lib\net472\SP.Client.2013.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Runtime.Serialization" />
@@ -131,12 +134,6 @@
     <None Include="key.pfx" />
     <None Include="package.nuspec" />
     <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\SP.Client.2013\SP.Client.2013.csproj">
-      <Project>{2329c662-18e2-430c-9e2c-95df8011f4c5}</Project>
-      <Name>SP.Client.2013</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

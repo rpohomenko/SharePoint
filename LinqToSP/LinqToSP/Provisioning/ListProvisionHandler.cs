@@ -113,7 +113,9 @@ namespace SP.Client.Linq.Provisioning
                 if (list != null)
                 {
                     context.Load(list);
+#if !SP2013
                     context.Load(list, l => l.AllowDeletion);
+#endif
                     try
                     {
                         context.ExecuteQuery();
@@ -125,7 +127,9 @@ namespace SP.Client.Linq.Provisioning
                 }
                 if (list != null)
                 {
+#if !SP2013
                     if (list.AllowDeletion)
+#endif
                     {
                         if (OnUnProvisioning != null)
                         {
