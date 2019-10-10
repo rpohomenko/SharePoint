@@ -204,5 +204,32 @@ namespace SP.Client.Linq
       }
       return null;
     }
+
+
+    public static IQueryable<TEntity> Next<TEntity>(this IQueryable<TEntity> source)
+         where TEntity : class, IListItemEntity, new()
+    {
+      Check.NotNull(source, nameof(source));
+      if (source is SpEntityQueryable<TEntity, ISpEntryDataContext>)
+      {
+        var executor = (source as SpEntityQueryable<TEntity, ISpEntryDataContext>).GetExecutor();
+        if (executor != null)
+        {
+          var lastEntity = source.LastOrDefault();
+          if (lastEntity != null)
+          {
+            var args = (SpQueryArgs<ISpEntryDataContext>)executor.SpQueryArgs.Clone();
+            args.IsPaged = true;
+            args.PagingInfo = $"Paged=TRUE&p_ID={lastEntity.Id}";
+            source = new SpEntityQueryable<TEntity>(new SpEntityQueryable<TEntity>(args).Provider, source.Expression);
+          }
+        }
+      }
+      return source;
+    }
+
+    public static void Next()
+    {
+    }
   }
 }

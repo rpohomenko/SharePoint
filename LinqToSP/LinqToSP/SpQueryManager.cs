@@ -227,38 +227,51 @@ namespace SP.Client.Linq
       {
         var rowLimit = spView.Limit;
         int itemCount = 0;
-        ListItemCollectionPosition position = null;
-        do
+        int batchSize = _args.BatchSize;
+        if (countOnly)
         {
-          if (_args.BatchSize > 0)
+          _args.BatchSize = Math.Max(1000, batchSize);
+        }
+        ListItemCollectionPosition position = _args.IsPaged && !string.IsNullOrEmpty(_args.PagingInfo)
+          ? new ListItemCollectionPosition() { PagingInfo = _args.PagingInfo } : null;
+        try
+        {
+          do
           {
-            if (rowLimit > 0)
-            {
-              spView.Limit = Math.Min(rowLimit - itemCount, _args.BatchSize);
-            }
-            else
-            {
-              spView.Limit = _args.BatchSize;
-            }
-            if (spView.Limit == 0)
-            {
-              break;
-            }
-          }
-          var items = GetItems(spView, position, countOnly);
-          if (items != null)
-          {
-            items.Context.ExecuteQuery();
             if (_args.BatchSize > 0)
             {
-              position = items.ListItemCollectionPosition;
+              if (rowLimit > 0)
+              {
+                spView.Limit = Math.Min(rowLimit - itemCount, _args.BatchSize);
+              }
+              else
+              {
+                spView.Limit = _args.BatchSize;
+              }
+              if (spView.Limit == 0)
+              {
+                break;
+              }
             }
-            itemCount += items.Count;
-            action(items);
+            var items = GetItems(spView, position, countOnly);
+            if (items != null)
+            {
+              items.Context.ExecuteQuery();
+              if (_args.BatchSize > 0)
+              {
+                position = items.ListItemCollectionPosition;
+              }
+              itemCount += items.Count;
+              action(items);
+            }
           }
+          while (position != null);
         }
-        while (position != null);
-        spView.Limit = rowLimit;
+        finally
+        {
+          spView.Limit = rowLimit;
+          _args.BatchSize = batchSize;
+        }
       }
     }
 
