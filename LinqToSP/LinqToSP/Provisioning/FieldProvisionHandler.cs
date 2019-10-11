@@ -10,7 +10,7 @@ namespace SP.Client.Linq.Provisioning
 {
     public sealed class FieldProvisionHandler<TContext, TEntity> : SpProvisionHandler<TContext, TEntity>
         where TContext : class, ISpEntryDataContext
-        where TEntity : class, IListItemEntity
+        where TEntity : class, IListItemEntity, new()
     {
         private readonly Type _valueType;
 

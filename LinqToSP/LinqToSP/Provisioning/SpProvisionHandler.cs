@@ -2,7 +2,7 @@
 {
     public abstract class SpProvisionHandler<TContext, TEntity>
         where TContext : class, ISpEntryDataContext
-        where TEntity : class, IListItemEntity
+        where TEntity : class, IListItemEntity, new()
     {
         protected SpProvisionHandler(SpProvisionModel<TContext, TEntity> model)
         {

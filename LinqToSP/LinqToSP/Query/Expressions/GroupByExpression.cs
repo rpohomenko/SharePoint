@@ -6,7 +6,7 @@ using System.Linq;
 namespace SP.Client.Linq.Query.Expressions
 {
     internal class GroupByExpression<TContext> : Expression
-               where TContext : ISpDataContext
+    where TContext : class, ISpEntryDataContext
     {
         public GroupByExpression(Expression entityExpression, IEnumerable<Expression> predicates, int limit)
         {

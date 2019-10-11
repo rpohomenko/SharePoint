@@ -224,20 +224,20 @@ namespace SP.Client.Linq
         public virtual TProvisionModel CreateModel<TProvisionModel, TDataContext, TEntity>()
           where TProvisionModel : SpProvisionModel<TDataContext, TEntity>
           where TDataContext : SpDataContext
-          where TEntity : class, IListItemEntity
+          where TEntity : class, IListItemEntity, new()
         {
             return (TProvisionModel)Activator.CreateInstance(typeof(TProvisionModel), new object[] { this });
         }
 
         public virtual SpProvisionModel<TDataContext, TEntity> CreateModel<TDataContext, TEntity>()
         where TDataContext : SpDataContext
-        where TEntity : class, IListItemEntity
+        where TEntity : class, IListItemEntity, new()
         {
             return new SpProvisionModel<TDataContext, TEntity>((TDataContext)this);
         }
 
         public virtual SpProvisionModel<SpDataContext, TEntity> CreateModel<TEntity>()
-         where TEntity : class, IListItemEntity
+        where TEntity : class, IListItemEntity, new()
         {
             return new SpProvisionModel<SpDataContext, TEntity>(this);
         }

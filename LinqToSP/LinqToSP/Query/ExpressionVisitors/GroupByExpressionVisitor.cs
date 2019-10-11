@@ -4,7 +4,7 @@ using System.Linq.Expressions;
 namespace SP.Client.Linq.Query.ExpressionVisitors
 {
     internal class GroupByExpressionVisitor<TContext> : SpExpressionVisitor<TContext>
-        where TContext : ISpDataContext
+         where TContext : class, ISpEntryDataContext
     {
         public GroupByExpressionVisitor(SpQueryArgs<TContext> args) : base(args)
         {
@@ -15,15 +15,7 @@ namespace SP.Client.Linq.Query.ExpressionVisitors
 
         public override Expression Visit(Expression expression)
         {
-            if (expression is IncludeExpression<TContext>)
-            {
-                foreach (var path in (expression as IncludeExpression<TContext>).Predicates)
-                {
-                    Visit(path);
-                }
-                return expression;
-            }
-            else if (expression is GroupByExpression<TContext>)
+            if (expression is GroupByExpression<TContext>)
             {
                 Clause.Limit = (expression as GroupByExpression<TContext>).Limit > 0 ?
                     (expression as GroupByExpression<TContext>).Limit

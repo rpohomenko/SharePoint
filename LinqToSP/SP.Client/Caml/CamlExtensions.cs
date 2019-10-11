@@ -138,7 +138,7 @@ namespace SP.Client.Caml
         {
             if (firstWhere == null) throw new ArgumentNullException("firstWhere");
             if (secondWhere == null) throw new ArgumentNullException("secondWhere");
-            var logicalJoin = firstWhere.Operator as LogicalJoin;
+            //var logicalJoin = firstWhere.Operator as LogicalJoin;
             //var @where = logicalJoin != null
             //    ? new CamlWhere(logicalJoin.CombineOr(secondWhere.Operator))
             //    : new CamlWhere(firstWhere.Operator.Or(secondWhere.Operator));

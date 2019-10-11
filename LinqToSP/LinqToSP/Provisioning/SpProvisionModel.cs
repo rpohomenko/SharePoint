@@ -10,7 +10,7 @@ namespace SP.Client.Linq.Provisioning
 {
     public class SpProvisionModel<TContext, TEntity>
         where TContext : class, ISpEntryDataContext
-        where TEntity : class, IListItemEntity
+        where TEntity : class, IListItemEntity, new()
     {
         public TContext Context { get; }
 

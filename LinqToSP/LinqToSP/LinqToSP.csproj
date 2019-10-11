@@ -89,6 +89,8 @@
     <Compile Include="Provisioning\ProvisionBehavior.cs" />
     <Compile Include="Provisioning\SpProvisionHandler.cs" />
     <Compile Include="Provisioning\SpProvisionModel.cs" />
+    <Compile Include="Query\Expressions\PagedExpression.cs" />
+    <Compile Include="Query\ExpressionVisitors\PagedExpressionVisitor.cs" />
     <Compile Include="SpEntityLookup.cs" />
     <Compile Include="ISpEntityLookup.cs" />
     <Compile Include="SpEntityLookupCollection.cs" />

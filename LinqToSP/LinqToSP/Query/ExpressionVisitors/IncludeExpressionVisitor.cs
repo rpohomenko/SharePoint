@@ -1,11 +1,10 @@
-﻿using Remotion.Linq.Parsing;
-using SP.Client.Linq.Query.Expressions;
+﻿using SP.Client.Linq.Query.Expressions;
 using System.Linq.Expressions;
 
 namespace SP.Client.Linq.Query.ExpressionVisitors
 {
     internal class IncludeExpressionVisitor<TContext> : SpExpressionVisitor<TContext>
-        where TContext : ISpDataContext
+         where TContext : class, ISpEntryDataContext
     {
         public IncludeExpressionVisitor(SpQueryArgs<TContext> args) : base(args)
         {

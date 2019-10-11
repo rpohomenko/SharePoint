@@ -6,7 +6,7 @@ namespace SP.Client.Linq.Provisioning
 {
     public sealed class ListProvisionHandler<TContext, TEntity> : SpProvisionHandler<TContext, TEntity>
         where TContext : class, ISpEntryDataContext
-        where TEntity : class, IListItemEntity
+        where TEntity : class, IListItemEntity, new()
     {
         public ListAttribute List { get; }
 

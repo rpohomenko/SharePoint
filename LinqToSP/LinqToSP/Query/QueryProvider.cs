@@ -10,7 +10,7 @@ using System.Reflection;
 namespace SP.Client.Linq.Query
 {
     public class QueryProvider<TEntity, TContext> : QueryProviderBase
-    where TEntity : class, IListItemEntity
+    where TEntity : class, IListItemEntity, new()
     where TContext : ISpDataContext
     {
         /// <summary>

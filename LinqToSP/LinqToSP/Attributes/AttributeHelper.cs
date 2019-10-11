@@ -9,7 +9,7 @@ namespace SP.Client.Linq.Attributes
     {
         public static IEnumerable<TAttribute> GetCustomAttributes<TEntity, TAttribute>(bool inherit)
           where TAttribute : Attribute
-          where TEntity : class, IListItemEntity
+          where TEntity : class, IListItemEntity, new()
         {
             return GetCustomAttributes<TAttribute>(typeof(TEntity), inherit);
         }
@@ -36,7 +36,7 @@ namespace SP.Client.Linq.Attributes
 
         public static IEnumerable<KeyValuePair<MemberInfo, TAttribute>> GetFieldAttributes<TEntity, TAttribute>()
           where TAttribute : Attribute
-          where TEntity : class, IListItemEntity
+          where TEntity : class, IListItemEntity, new()
 
         {
             return GetFieldAttributes<TAttribute>(typeof(TEntity));
@@ -71,7 +71,7 @@ namespace SP.Client.Linq.Attributes
 
         public static IEnumerable<KeyValuePair<MemberInfo, TAttribute>> GetPropertyAttributes<TEntity, TAttribute>()
               where TAttribute : Attribute
-              where TEntity : class, IListItemEntity
+              where TEntity : class, IListItemEntity, new()
         {
 
             return GetPropertyAttributes<TAttribute>(typeof(TEntity));

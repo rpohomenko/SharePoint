@@ -10,7 +10,7 @@ using Remotion.Linq.Parsing.Structure;
 namespace SP.Client.Linq.Query
 {
     public class AsyncQueryProvider<TEntity, TContext> : QueryProvider<TEntity, TContext>, IAsyncQueryProvider<TEntity>
-      where TEntity : class, IListItemEntity
+      where TEntity : class, IListItemEntity, new()
       where TContext : ISpDataContext
     {
         public AsyncQueryProvider(Type queryableType, [NotNull] IQueryParser queryParser, [NotNull] IAsyncQueryExecutor executor) : base(queryableType, queryParser, executor)
