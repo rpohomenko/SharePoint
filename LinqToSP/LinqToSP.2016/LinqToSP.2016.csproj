@@ -1,0 +1,157 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{2DE231BE-DE56-46C2-9F5C-A0F8A1D6FDCE}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>SP.Client.Linq</RootNamespace>
+    <AssemblyName>LinqToSP.2016</AssemblyName>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;ONPREMISE SP2013</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE;ONPREMISE SP2013</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>key.pfx</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.Office.Client.Policy, Version=16.0.0.0, Culture=neutral, PublicKeyToken=71e9bce111e9429c, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.SharePoint2016.CSOM.16.0.4690.1000\lib\net45\Microsoft.Office.Client.Policy.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Office.Client.TranslationServices, Version=16.0.0.0, Culture=neutral, PublicKeyToken=71e9bce111e9429c, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.SharePoint2016.CSOM.16.0.4690.1000\lib\net45\Microsoft.Office.Client.TranslationServices.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Online.SharePoint.Client.Tenant, Version=16.0.0.0, Culture=neutral, PublicKeyToken=71e9bce111e9429c, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.SharePoint2016.CSOM.16.0.4690.1000\lib\net45\Microsoft.Online.SharePoint.Client.Tenant.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.SharePoint.Client, Version=16.0.0.0, Culture=neutral, PublicKeyToken=71e9bce111e9429c, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.SharePoint2016.CSOM.16.0.4690.1000\lib\net45\Microsoft.SharePoint.Client.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.SharePoint.Client.Runtime, Version=16.0.0.0, Culture=neutral, PublicKeyToken=71e9bce111e9429c, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.SharePoint2016.CSOM.16.0.4690.1000\lib\net45\Microsoft.SharePoint.Client.Runtime.dll</HintPath>
+    </Reference>
+    <Reference Include="Remotion.Linq, Version=2.2.0.0, Culture=neutral, PublicKeyToken=fee00910d6e5f53b, processorArchitecture=MSIL">
+      <HintPath>..\packages\Remotion.Linq.2.2.0\lib\net45\Remotion.Linq.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="..\LinqToSP\Attributes\AttributeHelper.cs" />
+    <Compile Include="..\LinqToSP\Attributes\ChoiceAttribute.cs" />
+    <Compile Include="..\LinqToSP\Attributes\ContentTypeAttribute.cs" />
+    <Compile Include="..\LinqToSP\Attributes\CalculatedFieldAttribute.cs" />
+    <Compile Include="..\LinqToSP\Attributes\ListAttribute.cs" />
+    <Compile Include="..\LinqToSP\Attributes\FieldAttribute.cs" />
+    <Compile Include="..\LinqToSP\Attributes\DependentLookupFieldAttribute.cs" />
+    <Compile Include="..\LinqToSP\Attributes\LookupFieldAttribute.cs" />
+    <Compile Include="..\LinqToSP\Attributes\RemovedFieldAttribute.cs" />
+    <Compile Include="..\LinqToSP\Attributes\ChoiceFieldAttribute.cs" />
+    <Compile Include="..\LinqToSP\Attributes\NoteFieldAttribute.cs" />
+    <Compile Include="..\LinqToSP\Attributes\TextFieldAttribute.cs" />
+    <Compile Include="..\LinqToSP\Entities\DocumentEntity.cs" />
+    <Compile Include="..\LinqToSP\Extensions\EnumExtensions.cs" />
+    <Compile Include="..\LinqToSP\Entities\EventEntity.cs" />
+    <Compile Include="..\LinqToSP\Entities\FolderEntity.cs" />
+    <Compile Include="..\LinqToSP\Entities\IDocumentEntity.cs" />
+    <Compile Include="..\LinqToSP\Entities\IEventEntity.cs" />
+    <Compile Include="..\LinqToSP\Entities\IFolderEntity .cs" />
+    <Compile Include="..\LinqToSP\Infrastructure\ICustomMapping.cs" />
+    <Compile Include="..\LinqToSP\Infrastructure\ISpChangeTrackable.cs" />
+    <Compile Include="..\LinqToSP\Infrastructure\ISpChangeTracker.cs" />
+    <Compile Include="..\LinqToSP\Provisioning\FieldProvisionHandler.cs" />
+    <Compile Include="..\LinqToSP\Provisioning\ListProvisionHandler.cs" />
+    <Compile Include="..\LinqToSP\Provisioning\ContentTypeProvisionHandler.cs" />
+    <Compile Include="..\LinqToSP\Provisioning\SpProvisionHandler.cs" />
+    <Compile Include="..\LinqToSP\Provisioning\SpProvisionModel.cs" />
+    <Compile Include="..\LinqToSP\Provisioning\ProvisionBehavior.cs" />
+    <Compile Include="..\LinqToSP\Provisioning\ProvisionLevel.cs" />
+    <Compile Include="..\LinqToSP\SpEntityLookup.cs" />
+    <Compile Include="..\LinqToSP\ISpEntityLookup.cs" />
+    <Compile Include="..\LinqToSP\SpEntityLookupCollection.cs" />
+    <Compile Include="..\LinqToSP\SpEntitySet.cs" />
+    <Compile Include="..\LinqToSP\Infrastructure\SpEntityEntry.cs" />
+    <Compile Include="..\LinqToSP\ISpEntitySet.cs" />
+    <Compile Include="..\LinqToSP\Infrastructure\SpSaveArgs.cs" />
+    <Compile Include="..\LinqToSP\ISpEntryDataContext.cs" />
+    <Compile Include="..\LinqToSP\Infrastructure\ISpRepository.cs" />
+    <Compile Include="..\LinqToSP\Extensions\ListItemEntityExtensions.cs" />
+    <Compile Include="..\LinqToSP\Infrastructure\EntityState.cs" />
+    <Compile Include="..\LinqToSP\Entities\IListItemEntity.cs" />
+    <Compile Include="..\LinqToSP\Entities\ListItemEntity.cs" />
+    <Compile Include="..\LinqToSP\Extensions\QueryableExtensions.cs" />
+    <Compile Include="..\LinqToSP\Query\Expressions\GroupByExpression.cs" />
+    <Compile Include="..\LinqToSP\Query\Expressions\PagedExpression.cs" />
+    <Compile Include="..\LinqToSP\Query\ExpressionVisitors\GroupByExpressionVisitor.cs" />
+    <Compile Include="..\LinqToSP\Query\ExpressionVisitors\SpIsMembershipExpressionVisitor.cs" />
+    <Compile Include="..\LinqToSP\Query\ExpressionVisitors\SpLookupNotIncludesExpressionVisitor.cs" />
+    <Compile Include="..\LinqToSP\Query\ExpressionVisitors\SpLookupIncludesExpressionVisitor.cs" />
+    <Compile Include="..\LinqToSP\Query\ExpressionVisitors\SpIncludesExpressionVisitor.cs" />
+    <Compile Include="..\LinqToSP\Query\ExpressionVisitors\SpDateRangesOverlapExpressionVisitor.cs" />
+    <Compile Include="..\LinqToSP\Query\ExpressionVisitors\SpStartsWithExpressionVisitor.cs" />
+    <Compile Include="..\LinqToSP\Query\ExpressionVisitors\SpContainsExpressionVisitor.cs" />
+    <Compile Include="..\LinqToSP\Query\QueryProvider.cs" />
+    <Compile Include="..\LinqToSP\Query\Expressions\IncludeExpression.cs" />
+    <Compile Include="..\LinqToSP\Query\ExpressionVisitors\SpComparisonExpressionVisitor.cs" />
+    <Compile Include="..\LinqToSP\Query\ExpressionVisitors\SpConditionalExpressionVisitor.cs" />
+    <Compile Include="..\LinqToSP\Query\ExpressionVisitors\SpExpressionVisitor.cs" />
+    <Compile Include="..\LinqToSP\Query\ExpressionVisitors\IncludeExpressionVisitor.cs" />
+    <Compile Include="..\LinqToSP\Query\ExpressionVisitors\PagedExpressionVisitor.cs" />
+    <Compile Include="..\LinqToSP\Query\IQueryCompiler.cs" />
+    <Compile Include="..\LinqToSP\Query\SpQueryArgs.cs" />
+    <Compile Include="..\LinqToSP\SpDataContext.cs" />
+    <Compile Include="..\LinqToSP\ISpDataContext.cs" />
+    <Compile Include="..\LinqToSP\Infrastructure\SpEntityQueryable.cs" />
+    <Compile Include="..\LinqToSP\Query\SpQueryExecutor.cs" />
+    <Compile Include="..\LinqToSP\Query\Expressions\ExpressionEqualityComparer.cs" />
+    <Compile Include="..\LinqToSP\Query\Expressions\NullConditionalExpression.cs" />
+    <Compile Include="..\LinqToSP\Query\Expressions\NullSafeEqualExpression.cs" />
+    <Compile Include="..\LinqToSP\Query\ExpressionVisitors\ExpressionVisitorBase.cs" />
+    <Compile Include="..\LinqToSP\Query\ExpressionVisitors\WhereClauseExpressionTreeVisitor.cs" />
+    <Compile Include="..\LinqToSP\Query\ExpressionVisitors\SpGeneratorQueryModelVisitor .cs" />
+    <Compile Include="..\LinqToSP\SpQueryManager.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config" />
+    <None Include="key.pfx" />
+    <None Include="package.nuspec" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SP.Client.2016\SP.Client.2016.csproj">
+      <Project>{f89da745-a48a-41c2-82c6-3c90c8520150}</Project>
+      <Name>SP.Client.2016</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

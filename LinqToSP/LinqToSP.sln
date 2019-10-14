@@ -13,6 +13,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LinqToSP.2013", "LinqToSP.2
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SP.Client.2013", "SP.Client.2013\SP.Client.2013.csproj", "{2329C662-18E2-430C-9E2C-95DF8011F4C5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LinqToSP.2016", "LinqToSP.2016\LinqToSP.2016.csproj", "{2DE231BE-DE56-46C2-9F5C-A0F8A1D6FDCE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SP.Client.2016", "SP.Client.2016\SP.Client.2016.csproj", "{F89DA745-A48A-41C2-82C6-3C90C8520150}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +43,14 @@ Global
 		{2329C662-18E2-430C-9E2C-95DF8011F4C5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2329C662-18E2-430C-9E2C-95DF8011F4C5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2329C662-18E2-430C-9E2C-95DF8011F4C5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2DE231BE-DE56-46C2-9F5C-A0F8A1D6FDCE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2DE231BE-DE56-46C2-9F5C-A0F8A1D6FDCE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2DE231BE-DE56-46C2-9F5C-A0F8A1D6FDCE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2DE231BE-DE56-46C2-9F5C-A0F8A1D6FDCE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F89DA745-A48A-41C2-82C6-3C90C8520150}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F89DA745-A48A-41C2-82C6-3C90C8520150}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F89DA745-A48A-41C2-82C6-3C90C8520150}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F89DA745-A48A-41C2-82C6-3C90C8520150}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

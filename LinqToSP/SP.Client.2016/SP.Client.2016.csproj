@@ -1,0 +1,128 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{F89DA745-A48A-41C2-82C6-3C90C8520150}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>SP.Client</RootNamespace>
+    <AssemblyName>SP.Client.2016</AssemblyName>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;ONPREMISE SP2013</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE;ONPREMISE SP2013</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>key.pfx</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.SharePoint.Client, Version=16.0.0.0, Culture=neutral, PublicKeyToken=71e9bce111e9429c, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.SharePoint2016.CSOM.16.0.4690.1000\lib\net45\Microsoft.SharePoint.Client.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.SharePoint.Client.Runtime, Version=16.0.0.0, Culture=neutral, PublicKeyToken=71e9bce111e9429c, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.SharePoint2016.CSOM.16.0.4690.1000\lib\net45\Microsoft.SharePoint.Client.Runtime.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="..\SP.Client\Extensions\Check.cs" />
+    <Compile Include="..\SP.Client\Extensions\CodeAnnotations.cs" />
+    <Compile Include="..\SP.Client\Extensions\DictionaryExtensions.cs" />
+    <Compile Include="..\SP.Client\Extensions\ExpressionExtensions.cs" />
+    <Compile Include="..\SP.Client\Extensions\LinqExtensions.cs" />
+    <Compile Include="..\SP.Client\Extensions\MemberInfoExtensions.cs" />
+    <Compile Include="..\SP.Client\Extensions\PropertyInfoExtensions.cs" />
+    <Compile Include="..\SP.Client\Extensions\SharedTypeExtensions.cs" />
+    <Compile Include="..\SP.Client\Extensions\StringBuilderExtensions.cs" />
+    <Compile Include="..\SP.Client\Extensions\WebExtensions.cs" />
+    <Compile Include="..\SP.Client\Extensions\XElementExtensions.cs" />
+    <Compile Include="..\SP.Client\Caml\CamlElement.cs" />
+    <Compile Include="..\SP.Client\Caml\CamlExtensions.cs" />
+    <Compile Include="..\SP.Client\Caml\CamlFieldRef.cs" />
+    <Compile Include="..\SP.Client\Caml\CamlProjectedField.cs" />
+    <Compile Include="..\SP.Client\Caml\CamlRowLimit.cs" />
+    <Compile Include="..\SP.Client\Caml\CamlValue.cs" />
+    <Compile Include="..\SP.Client\Caml\Clauses\CamlClause.cs" />
+    <Compile Include="..\SP.Client\Caml\Clauses\CamlGroupBy.cs" />
+    <Compile Include="..\SP.Client\Caml\Clauses\CamlOrderBy.cs" />
+    <Compile Include="..\SP.Client\Caml\Clauses\CamlWhere.cs" />
+    <Compile Include="..\SP.Client\Caml\Interfaces\ICaml.cs" />
+    <Compile Include="..\SP.Client\Caml\Interfaces\ICamlField.cs" />
+    <Compile Include="..\SP.Client\Caml\Interfaces\ICamlMultiField.cs" />
+    <Compile Include="..\SP.Client\Caml\Interfaces\ICamlMultiValue.cs" />
+    <Compile Include="..\SP.Client\Caml\Interfaces\ICamlSpecialValue.cs" />
+    <Compile Include="..\SP.Client\Caml\Interfaces\ICamlValue.cs" />
+    <Compile Include="..\SP.Client\Caml\Join.cs" />
+    <Compile Include="..\SP.Client\Caml\JoinComparison.cs" />
+    <Compile Include="..\SP.Client\Caml\JoinsCamlElement.cs" />
+    <Compile Include="..\SP.Client\Caml\Operators\And.cs" />
+    <Compile Include="..\SP.Client\Caml\Operators\BeginsWith.cs" />
+    <Compile Include="..\SP.Client\Caml\Operators\ComparisonOperator.cs" />
+    <Compile Include="..\SP.Client\Caml\Operators\Contains.cs" />
+    <Compile Include="..\SP.Client\Caml\Operators\DateRangesOverlap.cs" />
+    <Compile Include="..\SP.Client\Caml\Operators\Eq.cs" />
+    <Compile Include="..\SP.Client\Caml\Operators\FieldMultiValueOperator.cs" />
+    <Compile Include="..\SP.Client\Caml\Operators\FieldOperator.cs" />
+    <Compile Include="..\SP.Client\Caml\Operators\FieldValueOperator.cs" />
+    <Compile Include="..\SP.Client\Caml\Operators\Geq.cs" />
+    <Compile Include="..\SP.Client\Caml\Operators\Gt.cs" />
+    <Compile Include="..\SP.Client\Caml\Operators\In.cs" />
+    <Compile Include="..\SP.Client\Caml\Operators\Includes.cs" />
+    <Compile Include="..\SP.Client\Caml\Operators\IsNotNull.cs" />
+    <Compile Include="..\SP.Client\Caml\Operators\IsNull.cs" />
+    <Compile Include="..\SP.Client\Caml\Operators\Leq.cs" />
+    <Compile Include="..\SP.Client\Caml\Operators\LogicalJoin.cs" />
+    <Compile Include="..\SP.Client\Caml\Operators\Lt.cs" />
+    <Compile Include="..\SP.Client\Caml\Operators\Membership.cs" />
+    <Compile Include="..\SP.Client\Caml\Operators\MultiValueOperator.cs" />
+    <Compile Include="..\SP.Client\Caml\Operators\Neq.cs" />
+    <Compile Include="..\SP.Client\Caml\Operators\NotIncludes.cs" />
+    <Compile Include="..\SP.Client\Caml\Operators\Operator.cs" />
+    <Compile Include="..\SP.Client\Caml\Operators\Or.cs" />
+    <Compile Include="..\SP.Client\Caml\Operators\ValueMultiFieldOperator.cs" />
+    <Compile Include="..\SP.Client\Caml\Operators\ValueOperator.cs" />
+    <Compile Include="..\SP.Client\Caml\ProjectedFieldsCamlElement.cs" />
+    <Compile Include="..\SP.Client\Caml\Query.cs" />
+    <Compile Include="..\SP.Client\Caml\View.cs" />
+    <Compile Include="..\SP.Client\Caml\ViewFieldsCamlElement.cs" />
+    <Compile Include="..\SP.Client\Helpers\RecurrenceRule.cs" />
+    <Compile Include="..\SP.Client\Helpers\SpConverter.cs" />
+    <Compile Include="..\SP.Client\Helpers\SPRecurrenceHelper.cs" />
+    <Compile Include="..\SP.Client\Helpers\SPRecurrenceRuleParser.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="key.pfx" />
+    <None Include="package.nuspec" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>
