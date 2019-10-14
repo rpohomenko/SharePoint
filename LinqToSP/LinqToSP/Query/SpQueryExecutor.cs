@@ -242,7 +242,7 @@ namespace SP.Client.Linq.Query
                      {
                          itemCount += items.Count;
                      });
-                    return (TResult)System.Convert.ChangeType(itemCount, typeof(TResult));
+                    return (TResult)Convert.ChangeType(itemCount, typeof(TResult));
                 }
             }
             return await ExecuteSingleAsync<TResult>(queryModel, false);

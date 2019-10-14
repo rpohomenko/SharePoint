@@ -1,9 +1,11 @@
 ﻿using JetBrains.Annotations;
+using Microsoft.SharePoint.Client;
 using Remotion.Linq;
 using Remotion.Linq.Clauses;
 using Remotion.Linq.Clauses.Expressions;
 using Remotion.Linq.Clauses.ResultOperators;
 using SP.Client.Caml;
+using SP.Client.Linq.Attributes;
 using SP.Client.Linq.Query.Expressions;
 using System;
 using System.Collections.ObjectModel;
@@ -17,9 +19,9 @@ namespace SP.Client.Linq.Query.ExpressionVisitors
       where TEntity : class, IListItemEntity, new()
     {
         private readonly SpQueryArgs<TContext> _args;
-        private readonly View _spView;
+        private readonly Caml.View _spView;
 
-        internal SpGeneratorQueryModelVisitor([NotNull] SpQueryArgs<TContext> args, View spView)
+        internal SpGeneratorQueryModelVisitor([NotNull] SpQueryArgs<TContext> args, Caml.View spView)
         {
             _args = args;
             _spView = spView;
@@ -164,6 +166,28 @@ namespace SP.Client.Linq.Query.ExpressionVisitors
             }
             else if (resultOperator is LastResultOperator)
             {
+                if (_spView != null)
+                {
+                    if (_spView.Limit <= 0)
+                    {
+                        _spView.Limit = 1;
+                        if (_spView.Query.OrderBy != null)
+                        {
+                            foreach (CamlFieldRef orderby in _spView.Query.OrderBy)
+                            {
+                                orderby.Ascending = !orderby.Ascending;
+                            }
+                        }
+                        else
+                        {
+                            _spView.Query.OrderBy = new Caml.Clauses.CamlOrderBy();
+                        }
+                        if (!_spView.Query.OrderBy.Any())
+                        {
+                            _spView.Query.OrderBy.Add("ID", false);
+                        }
+                    }
+                }
             }
 
             //Not supported result operators
@@ -254,6 +278,12 @@ namespace SP.Client.Linq.Query.ExpressionVisitors
                                 if (_args.FieldMappings.ContainsKey(fieldName))
                                 {
                                     var fieldMap = _args.FieldMappings[fieldName];
+                                    if (fieldMap.Sortable == false || fieldMap.DataType == FieldType.MultiChoice
+                                        || (fieldMap is ChoiceFieldAttribute && (fieldMap as ChoiceFieldAttribute).IsMultiple)
+                                        || (fieldMap is LookupFieldAttribute && (fieldMap as LookupFieldAttribute).IsMultiple))
+                                    {
+                                        throw new Exception($"Field '{fieldMap.Name}' is not sortable.");
+                                    }
                                     _spView.Query.OrderBy.Add(fieldMap.Name, ordering.OrderingDirection == OrderingDirection.Asc ? (bool?)null : false);
                                 }
                             }

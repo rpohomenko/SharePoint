@@ -22,7 +22,7 @@ namespace SP.Client.Linq.Attributes
         public bool RichText { get; set; }
         public bool UnlimitedLengthInDocumentLibrary { get; set; }
 
-        public override bool Sortable { get => false; }
+        public override bool? Sortable { get => false; }
 
         public override FieldType DataType { get => FieldType.Note; }
     }

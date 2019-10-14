@@ -45,7 +45,7 @@ namespace SP.Client.Linq.Attributes
             }
         }
 
-        public override bool Sortable
+        public override bool? Sortable
         {
             get
             {

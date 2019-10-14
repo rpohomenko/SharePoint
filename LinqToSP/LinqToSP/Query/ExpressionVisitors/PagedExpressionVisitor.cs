@@ -5,12 +5,14 @@ using Remotion.Linq.Clauses;
 using Remotion.Linq.Clauses.Expressions;
 using Remotion.Linq.Clauses.ResultOperators;
 using SP.Client.Helpers;
+using SP.Client.Linq.Attributes;
 using SP.Client.Linq.Query.Expressions;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Text;
 
 namespace SP.Client.Linq.Query.ExpressionVisitors
@@ -59,9 +61,45 @@ namespace SP.Client.Linq.Query.ExpressionVisitors
                             foreach (var ordering in orderClause.Orderings)
                             {
                                 string sortFieldKey = (ordering.Expression as MemberExpression).Member.Name;
+                                Type type = (ordering.Expression as MemberExpression).Member.GetMemberType();
                                 if (_args.FieldMappings.ContainsKey(sortFieldKey))
                                 {
                                     var fieldMap = _args.FieldMappings[sortFieldKey];
+                                    if (fieldMap.Sortable == false) continue;
+
+                                    if (fieldMap.DataType == FieldType.Lookup)
+                                    {
+                                        if (fieldMap is LookupFieldAttribute)
+                                        {
+                                            if ((fieldMap as LookupFieldAttribute).IsMultiple)
+                                            {
+                                                continue;
+                                            }
+                                            else if ((fieldMap as LookupFieldAttribute).Result != LookupItemResult.Value)
+                                            {
+                                                if (!typeof(FieldLookupValue).IsAssignableFrom(type))
+                                                {
+                                                    continue;
+                                                }
+                                            }
+                                        }
+                                        else if (!typeof(FieldLookupValue).IsAssignableFrom(type))
+                                        {
+                                            continue;
+                                        }
+                                    }
+                                    else if (fieldMap.DataType == FieldType.MultiChoice)
+                                    {
+                                        continue;
+                                    }
+                                    else if (fieldMap is ChoiceFieldAttribute && (fieldMap as ChoiceFieldAttribute).IsMultiple)
+                                    {
+                                        continue;
+                                    }
+                                    else if (fieldMap is NoteFieldAttribute)
+                                    {
+                                        continue;
+                                    }
                                     object value = null;
                                     var prop = typeof(TEntity).GetProperty(sortFieldKey);
                                     if (prop != null)
@@ -87,8 +125,13 @@ namespace SP.Client.Linq.Query.ExpressionVisitors
                                     {
                                         value = (value as FieldLookupValue).LookupValue;
                                     }
+                                    else if (value is FieldLookupValue[])
+                                    {
+                                        continue;
+                                    }
                                     else
                                     {
+                                        if (type.IsArray) continue;
                                         value = SpConverter.ConvertValue(value, typeof(string));
                                     }
                                     if (sb.Length > 0)

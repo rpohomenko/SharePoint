@@ -143,6 +143,13 @@ namespace LinqToSP.Test.Model
             set { DepartmentLookup.EntityId = value; }
         }
 
+        [LookupField(Name = "Emp_Department", Result = LookupItemResult.Value)]
+        public string DepartmentTitle
+        {
+            get;
+            set;
+        }
+
         [Field(Name = "Emp_Department", Title = "Department", DataType = FieldType.Lookup, Order = 7, Overwrite = true)]
         public ISpEntityLookup<Department> DepartmentLookup
         {
@@ -167,6 +174,7 @@ namespace LinqToSP.Test.Model
     [Flags]
     public enum EmployeePosition
     {
+        None = 0,
         [Choice(Value = "Specialist", Index = 0)]
         Specialist = 1,
         [Choice(Value = "Manager", Index = 1)]

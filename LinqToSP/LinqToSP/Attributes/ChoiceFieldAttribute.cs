@@ -15,7 +15,7 @@ namespace SP.Client.Linq.Attributes
 
         public bool IsMultiple { get; set; }
 
-        public override bool Sortable
+        public override bool? Sortable
         {
             get
             {
