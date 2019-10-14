@@ -448,10 +448,12 @@ namespace SP.Client.Linq.Provisioning
                                 {
                                     noteField.RichText = (Field as NoteFieldAttribute).RichText;
                                 }
+#if !SP2013
                                 if (!noteField.IsPropertyAvailable("UnlimitedLengthInDocumentLibrary") || noteField.UnlimitedLengthInDocumentLibrary != (Field as NoteFieldAttribute).UnlimitedLengthInDocumentLibrary)
                                 {
                                     noteField.UnlimitedLengthInDocumentLibrary = (Field as NoteFieldAttribute).UnlimitedLengthInDocumentLibrary;
                                 }
+#endif
                             }
                             OnProvisioning?.Invoke(this, noteField);
 
