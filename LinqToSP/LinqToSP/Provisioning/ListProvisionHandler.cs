@@ -71,20 +71,22 @@ namespace SP.Client.Linq.Provisioning
                         return;
                     }
                 }
-
-                var newList = new ListCreationInformation()
+                else
                 {
-                    Title = List.Title,
-                    Url = List.Url,
-                    TemplateType = (int)List.Type,
-                    TemplateFeatureId = List.TemplateFeatureId
-                };
+                    var newList = new ListCreationInformation()
+                    {
+                        Title = List.Title,
+                        Url = List.Url,
+                        TemplateType = (int)List.Type,
+                        TemplateFeatureId = List.TemplateFeatureId
+                    };
 
-                list = web.Lists.Add(newList);
-                OnProvisioning?.Invoke(this, list);
-                list.Update();
-                context.Load(list);
-                context.ExecuteQuery();
+                    list = web.Lists.Add(newList);
+                    OnProvisioning?.Invoke(this, list);
+                    list.Update();
+                    context.Load(list);
+                    context.ExecuteQuery();
+                }
                 List.Id = list.Id;
                 OnProvisioned?.Invoke(this, list);
             }

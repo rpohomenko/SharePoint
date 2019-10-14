@@ -35,6 +35,10 @@ namespace SP.Client.Linq.Attributes
 
         public virtual string Group { get; set; }
 
+        public virtual bool Filterable { get; set; }
+
+        public virtual bool Sortable { get; set; }
+
         public int Order { get; set; }
 
         [Obsolete("Use ProvisionBehavior.Overwrite instead.")]
@@ -50,8 +54,8 @@ namespace SP.Client.Linq.Attributes
             }
         }
 
-        public ProvisionBehavior Behavior { get; set; }
-        public ProvisionLevel Level { get; set; }
+        public virtual ProvisionBehavior Behavior { get; set; }
+        public virtual ProvisionLevel Level { get; set; }
 
         public override string ToString()
         {

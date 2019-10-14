@@ -21,7 +21,6 @@ namespace SP.Client.Linq.Attributes
 
         public LookupFieldAttribute(string name) : base(name, FieldType.Lookup)
         {
-            DataType = FieldType.Lookup;
             Result = LookupItemResult.None;
             Behavior = ProvisionBehavior.Overwrite;
         }
@@ -44,9 +43,19 @@ namespace SP.Client.Linq.Attributes
                 }
                 base.DataType = value;
             }
-
         }
 
+        public override bool Sortable
+        {
+            get
+            {
+                if (IsMultiple)
+                {
+                    return false;
+                }
+                return base.Sortable;
+            }
+        }
         public virtual LookupItemResult Result { get; set; }
 
         public bool IsMultiple { get; set; }

@@ -2,6 +2,7 @@
 using SP.Client.Linq;
 using SP.Client.Linq.Attributes;
 using SP.Client.Linq.Provisioning;
+using System;
 using System.Collections.Generic;
 
 namespace LinqToSP.Test.Model
@@ -90,7 +91,7 @@ namespace LinqToSP.Test.Model
             set;
         }
 
-        [Field(Name = "Emp_Position", Title = "Position", Order = 3, Group = "Custom Columns", DataType = FieldType.Choice)]
+        [ChoiceField(Name = "Emp_Position", Title = "Position", Order = 3, IsMultiple = true)]
         public EmployeePosition Position
         {
             get;
@@ -147,8 +148,23 @@ namespace LinqToSP.Test.Model
         {
             get;
         }
+
+        [NoteField(Name = "Emp_Description", Title = "Description", Order = 8, RichText = true, RestrictedMode = true)]
+        public string Description
+        {
+            get;
+            set;
+        }
+
+        [DependentLookupField(LookupFieldName = "Emp_Department", ShowField = "Dep_ShortName", List = "Lists/Departments", Result = LookupItemResult.Value)]
+        public string DepartmentName
+        {
+            get;
+            set;
+        }
     }
 
+    [Flags]
     public enum EmployeePosition
     {
         [Choice(Value = "Specialist", Index = 0)]

@@ -64,6 +64,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Attributes\AttributeHelper.cs" />
+    <Compile Include="Attributes\ChoiceFieldAttribute.cs" />
+    <Compile Include="Attributes\TextFieldAttribute.cs" />
+    <Compile Include="Attributes\NoteFieldAttribute.cs" />
     <Compile Include="Attributes\ChoiceAttribute.cs" />
     <Compile Include="Attributes\ContentTypeAttribute.cs" />
     <Compile Include="Attributes\CalculatedFieldAttribute.cs" />

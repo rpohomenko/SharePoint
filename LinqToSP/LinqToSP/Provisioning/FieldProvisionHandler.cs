@@ -100,6 +100,27 @@ namespace SP.Client.Linq.Provisioning
             return fieldScheme.ToString(SaveOptions.DisableFormatting);
         }
 
+        private Field ApplyField(Field field)
+        {
+            if (!field.IsPropertyAvailable("FieldTypeKind") || field.FieldTypeKind != Field.DataType)
+            {
+                field.FieldTypeKind = Field.DataType;
+            }
+
+            if (!field.IsPropertyAvailable("ReadOnlyField") || field.ReadOnlyField != Field.IsReadOnly)
+            {
+                field.ReadOnlyField = Field.IsReadOnly;
+            }
+            if (!field.IsPropertyAvailable("Group") || field.Group != Field.Group)
+            {
+                if (!string.IsNullOrEmpty(Field.Group))
+                {
+                    field.Group = Field.Group;
+                }
+            }
+            return field;
+        }
+
         public override void Provision(bool forceOverwrite)
         {
             if (Field != null && Model != null && Model.Context != null && Model.Context.Context != null)
@@ -115,6 +136,18 @@ namespace SP.Client.Linq.Provisioning
                     if (Field.Level == ProvisionLevel.Default)
                     {
                         Field.Level = List != null ? ProvisionLevel.List : ProvisionLevel.Web;
+                    }
+                }
+
+                if (Field.Level == ProvisionLevel.List && Field.Behavior == ProvisionBehavior.Default)
+                {
+                    if (ContentType != null)
+                    {
+                        Field.Behavior = ContentType.Behavior;
+                    }
+                    if (List != null && Field.Behavior == ProvisionBehavior.Default)
+                    {
+                        Field.Behavior = List.Behavior;
                     }
                 }
 
@@ -269,24 +302,7 @@ namespace SP.Client.Linq.Provisioning
 
                                 field = fields.AddFieldAsXml(fieldXml, true, AddFieldOptions.AddFieldInternalNameHint);
                             }
-                            else
-                            {
-                                if (!field.IsPropertyAvailable("FieldTypeKind") || field.FieldTypeKind != Field.DataType)
-                                {
-                                    field.FieldTypeKind = Field.DataType;
-                                }
-                            }
-                            if (!field.IsPropertyAvailable("ReadOnlyField") || field.ReadOnlyField != Field.IsReadOnly)
-                            {
-                                field.ReadOnlyField = Field.IsReadOnly;
-                            }
-                            if (!field.IsPropertyAvailable("Group") || field.Group != Field.Group)
-                            {
-                                if (!string.IsNullOrEmpty(Field.Group))
-                                {
-                                    field.Group = Field.Group;
-                                }
-                            }
+                            field = ApplyField(field);
 
                             calculatedField = context.CastTo<FieldCalculated>(field);
                             if (!calculatedField.IsPropertyAvailable("OutputType") || calculatedField.OutputType != (Field as CalculatedFieldAttribute).ResultType)
@@ -320,24 +336,7 @@ namespace SP.Client.Linq.Provisioning
                                       : $"<Field Type='{Field.DataType}' Name='{Field.Name}' StaticName='{Field.Name}' DisplayName='{Field.Title ?? Field.Name}' />";
                                     field = fields.AddFieldAsXml(fieldXml, true, AddFieldOptions.AddFieldInternalNameHint);
                                 }
-                                else
-                                {
-                                    if (!field.IsPropertyAvailable("FieldTypeKind") || field.FieldTypeKind != Field.DataType)
-                                    {
-                                        field.FieldTypeKind = Field.DataType;
-                                    }
-                                }
-                                if (!field.IsPropertyAvailable("ReadOnlyField") || field.ReadOnlyField != Field.IsReadOnly)
-                                {
-                                    field.ReadOnlyField = Field.IsReadOnly;
-                                }
-                                if (!field.IsPropertyAvailable("Group") || field.Group != Field.Group)
-                                {
-                                    if (!string.IsNullOrEmpty(Field.Group))
-                                    {
-                                        field.Group = Field.Group;
-                                    }
-                                }
+                                field = ApplyField(field);
 
                                 var lookupField = context.CastTo<FieldLookup>(field);
                                 if (!lookupField.IsPropertyAvailable("AllowMultipleValues") || lookupField.AllowMultipleValues != allowMultipleValues)
@@ -384,34 +383,78 @@ namespace SP.Client.Linq.Provisioning
                                 string fieldXml = $"<Field Type='{Field.DataType}' Name='{Field.Name}' StaticName='{Field.Name}' DisplayName='{Field.Title ?? Field.Name}' />";
                                 field = fields.AddFieldAsXml(fieldXml, true, AddFieldOptions.AddFieldInternalNameHint);
                             }
-                            else
-                            {
-                                if (!field.IsPropertyAvailable("FieldTypeKind") || field.FieldTypeKind != Field.DataType)
-                                {
-                                    field.FieldTypeKind = Field.DataType;
-                                }
-                            }
-                            if (!field.IsPropertyAvailable("ReadOnlyField") || field.ReadOnlyField != Field.IsReadOnly)
-                            {
-                                field.ReadOnlyField = Field.IsReadOnly;
-                            }
-                            if (!field.IsPropertyAvailable("Group") || field.Group != Field.Group)
-                            {
-                                if (!string.IsNullOrEmpty(Field.Group))
-                                {
-                                    field.Group = Field.Group;
-                                }
-                            }
 
-                            var choiceField = context.CastTo<FieldChoice>(field);
+                            field = ApplyField(field);
+
                             var choices = AttributeHelper.GetFieldAttributes<ChoiceAttribute>(_valueType).Select(choice => choice.Value)
                                 .OrderBy(choice => choice.Index).Select(choice => choice.Value).ToArray();
-                            if (!choiceField.IsPropertyAvailable("Choices") || !choiceField.Choices.SequenceEqual(choices))
-                            {
-                                choiceField.Choices = choices;
-                            }
 
-                            OnProvisioning?.Invoke(this, choiceField);
+                            bool isMultiple = false;
+                            if (Field is ChoiceFieldAttribute)
+                            {
+                                if ((Field as ChoiceFieldAttribute).IsMultiple)
+                                {
+                                    isMultiple = true;
+                                    var multiChoiceField = context.CastTo<FieldMultiChoice>(field);
+                                    if (!multiChoiceField.IsPropertyAvailable("Choices") || !multiChoiceField.Choices.SequenceEqual(choices))
+                                    {
+                                        multiChoiceField.Choices = choices;
+                                    }
+                                    OnProvisioning?.Invoke(this, multiChoiceField);
+                                }
+                            }
+                            if (!isMultiple)
+                            {
+                                var choiceField = context.CastTo<FieldChoice>(field);
+                                if (!choiceField.IsPropertyAvailable("Choices") || !choiceField.Choices.SequenceEqual(choices))
+                                {
+                                    choiceField.Choices = choices;
+                                }
+                                OnProvisioning?.Invoke(this, choiceField);
+                            }
+                        }
+                        else if (Field.DataType == FieldType.Note)
+                        {
+                            if (field == null)
+                            {
+                                string fieldXml = $"<Field Type='{Field.DataType}' Name='{Field.Name}' StaticName='{Field.Name}' DisplayName='{Field.Title ?? Field.Name}' RichText='{(Field is NoteFieldAttribute && (Field as NoteFieldAttribute).RichText ? "TRUE" : "FALSE")}' RichTextMode='{(Field is NoteFieldAttribute && (Field as NoteFieldAttribute).RichText ? "FullHtml" : "Compatible")}' IsolateStyles='{(Field is NoteFieldAttribute && (Field as NoteFieldAttribute).RichText ? "TRUE" : "FALSE")}' />";
+                                field = fields.AddFieldAsXml(fieldXml, true, AddFieldOptions.AddFieldInternalNameHint);
+                            }
+                            field = ApplyField(field);
+
+                            var noteField = context.CastTo<FieldMultiLineText>(field);
+                            if (Field is NoteFieldAttribute)
+                            {
+                                if (!noteField.IsPropertyAvailable("AllowHyperlink") || noteField.AllowHyperlink != (Field as NoteFieldAttribute).AllowHyperlink)
+                                {
+                                    noteField.AllowHyperlink = (Field as NoteFieldAttribute).AllowHyperlink;
+                                }
+                                if (!noteField.IsPropertyAvailable("AppendOnly") || noteField.AppendOnly != (Field as NoteFieldAttribute).AppendOnly)
+                                {
+                                    noteField.AppendOnly = (Field as NoteFieldAttribute).AppendOnly;
+                                }
+                                if (!noteField.IsPropertyAvailable("NumberOfLines") || noteField.NumberOfLines != (Field as NoteFieldAttribute).NumberOfLines)
+                                {
+                                    if ((Field as NoteFieldAttribute).NumberOfLines > 0)
+                                    {
+                                        noteField.NumberOfLines = (Field as NoteFieldAttribute).NumberOfLines;
+                                    }
+                                }
+                                if (!noteField.IsPropertyAvailable("RestrictedMode") || noteField.RestrictedMode != (Field as NoteFieldAttribute).RestrictedMode)
+                                {
+                                    noteField.RestrictedMode = (Field as NoteFieldAttribute).RestrictedMode;
+                                }
+                                if (!noteField.IsPropertyAvailable("RichText") || noteField.RichText != (Field as NoteFieldAttribute).RichText)
+                                {
+                                    noteField.RichText = (Field as NoteFieldAttribute).RichText;
+                                }
+                                if (!noteField.IsPropertyAvailable("UnlimitedLengthInDocumentLibrary") || noteField.UnlimitedLengthInDocumentLibrary != (Field as NoteFieldAttribute).UnlimitedLengthInDocumentLibrary)
+                                {
+                                    noteField.UnlimitedLengthInDocumentLibrary = (Field as NoteFieldAttribute).UnlimitedLengthInDocumentLibrary;
+                                }
+                            }
+                            OnProvisioning?.Invoke(this, noteField);
+
                         }
                         else
                         {
@@ -420,26 +463,24 @@ namespace SP.Client.Linq.Provisioning
                                 string fieldXml = $"<Field Type='{Field.DataType}' Name='{Field.Name}' StaticName='{Field.Name}' DisplayName='{Field.Title ?? Field.Name}' />";
                                 field = fields.AddFieldAsXml(fieldXml, true, AddFieldOptions.AddFieldInternalNameHint);
                             }
+                            field = ApplyField(field);
+
+                            if (Field is TextFieldAttribute)
+                            {
+                                var textField = context.CastTo<FieldText>(field);
+                                if (!textField.IsPropertyAvailable("MaxLength") || textField.MaxLength != (Field as TextFieldAttribute).MaxLength)
+                                {
+                                    if ((Field as TextFieldAttribute).MaxLength > 0)
+                                    {
+                                        textField.MaxLength = (Field as TextFieldAttribute).MaxLength;
+                                    }
+                                }
+                                OnProvisioning?.Invoke(this, textField);
+                            }
                             else
                             {
-                                if (!field.IsPropertyAvailable("FieldTypeKind") || field.FieldTypeKind != Field.DataType)
-                                {
-                                    field.FieldTypeKind = Field.DataType;
-                                }
+                                OnProvisioning?.Invoke(this, field);
                             }
-                            if (!field.IsPropertyAvailable("ReadOnlyField") || field.ReadOnlyField != Field.IsReadOnly)
-                            {
-                                field.ReadOnlyField = Field.IsReadOnly;
-                            }
-                            if (!field.IsPropertyAvailable("Group") || field.Group != Field.Group)
-                            {
-                                if (!string.IsNullOrEmpty(Field.Group))
-                                {
-                                    field.Group = Field.Group;
-                                }
-                            }
-
-                            OnProvisioning?.Invoke(this, field);
                         }
                     }
                     if (field != null)

@@ -6,36 +6,43 @@ using System.Linq;
 
 namespace LinqToSP.Test.Model
 {
-  [ContentType(Name = "Department", Id = "0x01004BF822E9207E43869D826290F33C909C", Level = ProvisionLevel.List, Behavior = ProvisionBehavior.Overwrite)]
-  [List(Title = "Departments", Url = "Lists/Departments")]
-  public class Department : ListItemEntity
-  {
-    private SpEntitySet<Employee> _employees;
-
-    public Department()
+    [ContentType(Name = "Department", Id = "0x01004BF822E9207E43869D826290F33C909C", Level = ProvisionLevel.List, Behavior = ProvisionBehavior.Overwrite)]
+    [List(Title = "Departments", Url = "Lists/Departments")]
+    public class Department : ListItemEntity
     {
-      _employees = new SpEntitySet<Employee>();
-    }
+        private SpEntitySet<Employee> _employees;
 
-    public override string ContentTypeId
-    {
-      get
-      {
-        if (string.IsNullOrEmpty(base.ContentTypeId))
+        public Department()
         {
-          base.ContentTypeId = "0x01004BF822E9207E43869D826290F33C909C";
+            _employees = new SpEntitySet<Employee>();
         }
-        return base.ContentTypeId;
-      }
-      set => base.ContentTypeId = value;
-    }
 
-    public ISpEntitySet<Employee> Employees
-    {
-      get
-      {
-        return _employees.Where(employee => employee.DepartmentId == this.Id).ToEntitySet();
-      }
+        public override string ContentTypeId
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(base.ContentTypeId))
+                {
+                    base.ContentTypeId = "0x01004BF822E9207E43869D826290F33C909C";
+                }
+                return base.ContentTypeId;
+            }
+            set => base.ContentTypeId = value;
+        }
+
+        [TextField(Name = "Dep_ShortName", Title = "Short Name", MaxLength = 100)]
+        public string ShortName
+        {
+            get;
+            set;
+        }
+
+        public ISpEntitySet<Employee> Employees
+        {
+            get
+            {
+                return _employees.Where(employee => employee.DepartmentId == this.Id).ToEntitySet();
+            }
+        }
     }
-  }
 }
