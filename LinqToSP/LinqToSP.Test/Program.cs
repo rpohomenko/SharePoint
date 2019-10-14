@@ -35,39 +35,21 @@ namespace LinqToSP.Test
 
                 clientContext.Credentials = new SharePointOnlineCredentials(userLogin, string.IsNullOrWhiteSpace(userPassword) ? GetPassword() : ConvertToSecureString(userPassword));
 
-                //Deploy(ctx, false);
+                Deploy(ctx, false);
 
                 ImportData(ctx, false);
+                var departments = ctx.List<Department>().ToArray();
 
-                //var departments = ctx.List<Department>().ToArray();
+                int count = ctx.List<Employee>().Where(i => i.Id > 0).Take(100).Count();
 
-                //int count = ctx.List<Employee>().Where(i => i.Id > 0).Take(100).Count();
+                var employees = departments.First().Employees.ToArray();
 
-                //var employees = departments.First().Employees.ToArray();
+                if (!employees.Any())
+                {
+                    employees = ctx.List<Employee>().ToArray();
+                }
 
-                //if (!employees.Any())
-                //{
-                //    employees = ctx.List<Employee>().ToArray();
-                //}
-
-                //var managers = employees.First().Managers;
-
-                //var employees = ctx.List<Employee>().Where(i => i.Department != null).OrderBy(i => i.Department).OrderBy(i => i.Title)
-                //   .Take(1);
-                //employees.ToArray();
-
-                var employees = ctx.List<Employee>().Where(i => i.ManagerLookup != null).OrderByDescending(i => i.ManagerLookup).OrderBy(i => i.Id)
-                    .Take(1);
-
-                var employees1 = employees.ToArray();
-                employees = employees.Next();
-                var employees2 = employees.ToArray();
-
-                //employees = employees.Next().Take(1);
-                //var employees3 = employees.ToArray();
-
-                employees = employees.Previous().Take(10);
-                var employees4 = employees.ToArray();
+                var managers = employees.First().Managers;
                 Debugger.Break();
                 Console.ForegroundColor = ConsoleColor.Green;
                 //Console.WriteLine("Done!");
