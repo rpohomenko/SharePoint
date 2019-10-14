@@ -57,7 +57,7 @@ namespace SP.Client.Linq.Query.ExpressionVisitors
         Type valueType = FieldValue.GetType();
         if (valueType.IsEnum)
         {
-          FieldValue = EnumExtensions.GetChoiceValue(valueType, FieldValue);
+          FieldValue = EnumExtensions.GetChoiceValueString(valueType, FieldValue);
         }
         var value = FieldValue is CamlValue ? (CamlValue)FieldValue : new CamlValue(FieldValue, dataType);
         if (value != null && !(FieldValue is CamlValue.DateCamlValue))
@@ -159,7 +159,7 @@ namespace SP.Client.Linq.Query.ExpressionVisitors
       FieldValue = exp.Value;
       if (FieldType != null && FieldType.IsEnum)
       {
-        FieldValue = EnumExtensions.GetChoiceValue(FieldType, FieldValue);
+        FieldValue = EnumExtensions.GetChoiceValueString(FieldType, FieldValue);
       }
       return exp;
     }

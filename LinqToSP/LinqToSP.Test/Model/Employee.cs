@@ -168,8 +168,8 @@ namespace LinqToSP.Test.Model
     public enum EmployeePosition
     {
         [Choice(Value = "Specialist", Index = 0)]
-        Specialist = 0,
+        Specialist = 1,
         [Choice(Value = "Manager", Index = 1)]
-        Manager = 1
+        Manager = 2
     }
 }

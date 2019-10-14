@@ -44,7 +44,14 @@ namespace SP.Client.Linq
             {
                 if (fieldAttr.DataType == FieldType.Choice || fieldAttr.DataType == FieldType.MultiChoice)
                 {
-                    value = EnumExtensions.ParseChoiceValue(valueType, value.ToString());
+                    if (value is string[])
+                    {
+                        value = EnumExtensions.ParseChoiceValues(valueType, (string[])value);
+                    }
+                    else
+                    {
+                        value = EnumExtensions.ParseChoiceValue(valueType, (string)value);
+                    }
                 }
                 else if (fieldAttr.DataType == FieldType.Lookup && (typeof(LookupFieldAttribute).IsAssignableFrom(fieldAttr.GetType()) || fieldAttr.GetType().IsSubclassOf(typeof(LookupFieldAttribute))))
                 {
@@ -479,10 +486,15 @@ namespace SP.Client.Linq
                 {
                     if (value != null)
                     {
-                        if (fieldMapping.DataType == FieldType.Choice || fieldMapping.DataType == FieldType.MultiChoice)
+                        if (fieldMapping.DataType == FieldType.Choice)
                         {
                             Type valueType = value.GetType();
-                            value = EnumExtensions.GetChoiceValue(valueType, value);
+                            value = EnumExtensions.GetChoiceValueString(valueType, value);
+                        }
+                        if (fieldMapping.DataType == FieldType.MultiChoice)
+                        {
+                            Type valueType = value.GetType();
+                            value = EnumExtensions.GetChoiceValuesString(valueType, value).ToArray();
                         }
                         else if (fieldMapping.DataType == FieldType.Lookup)
                         {
