@@ -73,6 +73,7 @@ namespace SP.Client.Linq.Provisioning
 
     internal Field ApplyField(Field field)
     {
+      if (field == null || Field == null) return field;
       if (!field.IsPropertyAvailable("FieldTypeKind") || field.FieldTypeKind != Field.DataType)
       {
         field.FieldTypeKind = Field.DataType;
@@ -357,7 +358,7 @@ namespace SP.Client.Linq.Provisioning
         {
           context.ExecuteQuery();
         }
-        catch (Exception ex)
+        catch (Exception)
         {
           field = null;
         }
@@ -408,7 +409,6 @@ namespace SP.Client.Linq.Provisioning
 
               if (!string.IsNullOrEmpty(fieldRefs) && !string.IsNullOrEmpty(formula))
               {
-                // formula requires field.Title in List only :).
                 if (level == ProvisionLevel.List)
                 {
                   var refFields = new List<Field>();

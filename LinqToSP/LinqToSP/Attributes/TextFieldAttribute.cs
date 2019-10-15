@@ -2,7 +2,7 @@
 
 namespace SP.Client.Linq.Attributes
 {
-    public sealed class TextFieldAttribute : FieldAttribute
+    public class TextFieldAttribute : FieldAttribute
     {
         public TextFieldAttribute()
         {

@@ -4,7 +4,7 @@
     <!--*-->
     <id>LinqToSP.o365</id>
     <!--*-->
-    <version>1.0.5</version>
+    <version>1.0.6</version>
     <title>Linq To SharePoint (o365) Framework</title>
     <!--*-->
     <authors>Ruslan Pakhomenka</authors>
@@ -18,8 +18,9 @@
     <!--*-->
     <description>Linq To SharePoint (o365) Framework.</description>
     <!--*-->
-    <releaseNotes>-MultiChoice and Note fields provisioning
--Querying by page</releaseNotes>
+    <releaseNotes>-ViewScope extension
+
+-bug fixing and improvements</releaseNotes>
     <copyright>Copyright ©  2019</copyright>
     <tags>
             Linq,SharePoint
@@ -27,7 +28,7 @@
     <dependencies>
       <dependency id="Microsoft.SharePointOnline.CSOM" version="16.1.19404.12000" />
       <dependency id="Remotion.Linq" version="2.2.0" />
-      <dependency id="SP.Client.o365" version="1.0.0" />
+      <dependency id="SP.Client.o365" version="1.0.1" />
     </dependencies>
   </metadata>
 </package>

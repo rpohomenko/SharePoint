@@ -2,7 +2,7 @@
 
 namespace SP.Client.Linq.Attributes
 {
-  public sealed class ChoiceFieldAttribute : FieldAttribute
+  public class ChoiceFieldAttribute : FieldAttribute
   {
     public ChoiceFieldAttribute()
     {

@@ -4,7 +4,7 @@
     <!--*-->
     <id>SP.Client.2016</id>
     <!--*-->
-    <version>1.0.0</version>
+    <version>1.0.1</version>
     <title>SP.Client.2016</title>
     <!--*-->
     <authors>Ruslan Pakhomenka</authors>
@@ -19,7 +19,7 @@
     <description>.NET client-side object model (CSOM) Framework Extension.
 SharePoint 2016</description>
     <!--*-->
-    <releaseNotes>first release</releaseNotes>
+    <releaseNotes>field extension methods</releaseNotes>
     <copyright>Copyright ©  2019</copyright>
     <tags>
     </tags>
