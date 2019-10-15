@@ -158,7 +158,18 @@ namespace SP.Client.Linq.Infrastructure
       _item = null;
       if (HasChanges)
       {
-        Debug.WriteLine($"Saving list item: {Entity}.");
+        if (State == EntityState.Deleted)
+        {
+          Debug.WriteLine($"Deleting list item: {Entity}.");
+        }
+        else if (State == EntityState.Recycled)
+        {
+          Debug.WriteLine($"Recycling list item: {Entity}.");
+        }
+        else
+        {
+          Debug.WriteLine($"Saving list item: {Entity}.");
+        }
         _item = Save();
         if (_item != null)
         {
@@ -174,13 +185,31 @@ namespace SP.Client.Linq.Infrastructure
       {
         if (args.Items.ContainsKey(_item) && args.Items[_item])
         {
-          Debug.WriteLine($"List item saved: {Entity}.");
+          var state = State;
+          if (state == EntityState.Deleted)
+          {
+            Debug.WriteLine($"List item deleted: {Entity}.");
+          }
+          else if (state == EntityState.Recycled)
+          {
+            Debug.WriteLine($"List item recycled: {Entity}.");
+          }
+          else
+          {
+            Debug.WriteLine($"List item saved: {Entity}.");
+          }
 
           Detach();
-          EntityId = _item.Id;
-          Entity = _manager.ToEntity(_item);
-          FetchOriginalValues();
-          Attach();
+          if (state != EntityState.Deleted && state != EntityState.Recycled)
+          {
+            if (_item.IsPropertyAvailable("Id"))
+            {
+              EntityId = _item.Id;
+              Entity = _manager.ToEntity(_item);
+              FetchOriginalValues();
+              Attach();
+            }
+          }
           OnAfterSaveChanges?.Invoke(this, _item);
         }
       }

@@ -11,9 +11,9 @@
 
         public SpProvisionModel<TContext, TEntity> Model { get; }
 
-        public abstract void Provision(bool forceOverwrite);
+        public abstract void Provision(bool forceOverwrite, ProvisionLevel level);
 
-        public abstract void UnProvision();
+        public abstract void UnProvision(ProvisionLevel level);
 
     }
 }

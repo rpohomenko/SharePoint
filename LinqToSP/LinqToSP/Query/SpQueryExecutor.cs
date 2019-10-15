@@ -187,7 +187,7 @@ namespace SP.Client.Linq.Query
         #endregion
     }
 
-#if !SP2013
+#if !SP2013 && !SP2016
     internal class SpAsyncQueryExecutor<TEntity, TContext> : SpQueryExecutor<TEntity, TContext>, IAsyncQueryExecutor
           where TEntity : class, IListItemEntity, new()
           where TContext : class, ISpEntryDataContext

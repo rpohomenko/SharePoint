@@ -11,7 +11,7 @@ using SP.Client.Linq.Query;
 
 namespace SP.Client.Linq.Infrastructure
 {
-    public class SpEntityQueryable<TEntity> : SpEntityQueryable<TEntity, ISpEntryDataContext>
+  public class SpEntityQueryable<TEntity> : SpEntityQueryable<TEntity, ISpEntryDataContext>
     where TEntity : class, IListItemEntity, new()
     {
         public SpEntityQueryable(SpQueryArgs<ISpEntryDataContext> args)
@@ -21,14 +21,14 @@ namespace SP.Client.Linq.Infrastructure
         }
 
         internal SpEntityQueryable(IQueryParser queryParser,
-#if SP2013
+#if SP2013 || SP2016
           IQueryExecutor executor
 #else
          IAsyncQueryExecutor executor
 #endif
           )
             : base(
-#if SP2013
+#if SP2013 || SP2016
                 new QueryProvider<TEntity, ISpEntryDataContext>(typeof(SpEntityQueryable<>),
 #else
                 new AsyncQueryProvider<TEntity, ISpEntryDataContext>(typeof(SpEntityQueryable<>),
@@ -52,7 +52,7 @@ namespace SP.Client.Linq.Infrastructure
     }
 
     public class SpEntityQueryable<TEntity, TContext> : QueryableBase<TEntity>,
-#if SP2013
+#if SP2013 || SP2016
     IEnumerable<TEntity>,
 #else
     IAsyncEnumerable<TEntity>,
@@ -63,7 +63,7 @@ namespace SP.Client.Linq.Infrastructure
     {
         public SpEntityQueryable(SpQueryArgs<TContext> args)
             : this(QueryParser.CreateDefault(),
-#if SP2013
+#if SP2013 || SP2016
                  new SpQueryExecutor<TEntity, TContext>(args)
 #else
                 new SpAsyncQueryExecutor<TEntity, TContext>(args)
@@ -81,14 +81,14 @@ namespace SP.Client.Linq.Infrastructure
         }
 
         internal SpEntityQueryable(IQueryParser queryParser,
-#if SP2013
+#if SP2013 || SP2016
            IQueryExecutor executor
 #else
           IAsyncQueryExecutor executor
 #endif
           )
             : this(new /*DefaultQueryProvider*/
-#if SP2013
+#if SP2013 || SP2016
                QueryProvider<TEntity, ISpEntryDataContext>(typeof(SpEntityQueryable<,>),
 #else
                 AsyncQueryProvider<TEntity, ISpEntryDataContext>(typeof(SpEntityQueryable<,>),
@@ -186,7 +186,7 @@ namespace SP.Client.Linq.Infrastructure
             return base.ToString();
         }
 
-#if !SP2013
+#if !SP2013 && !SP2016
         public async Task<IEnumerator<TEntity>> GetAsyncEnumerator(CancellationToken cancellationToken = default)
         {
             var result = await (Provider as AsyncQueryProvider<TEntity, TContext>).ExecuteAsync(Expression, cancellationToken);

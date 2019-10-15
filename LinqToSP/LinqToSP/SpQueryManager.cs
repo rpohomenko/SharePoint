@@ -306,7 +306,7 @@ namespace SP.Client.Linq
             return entities;
         }
 
-#if !SP2013
+#if !SP2013 && !SP2016
 
         public async Task ProcessItemsAsync(Caml.View spView, bool countOnly, Action<ListItemCollection> action)
         {
@@ -535,7 +535,7 @@ namespace SP.Client.Linq
                 }
                 if (systemUpdate)
                 {
-#if !SP2013
+#if !SP2013 && !SP2016
                     listItem.SystemUpdate();
 #else
                     throw new NotSupportedException("ListItem.SystemUpdate()");
@@ -563,7 +563,7 @@ namespace SP.Client.Linq
                 foreach (int itemId in itemIds)
                 {
                     ListItem listItem = list.GetItemById(itemId);
-                    list.Context.Load(listItem);
+                    //list.Context.Load(listItem);
                     if (recycle)
                     {
                         listItem.Recycle();

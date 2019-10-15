@@ -49,9 +49,6 @@
     <Reference Include="Remotion.Linq, Version=2.2.0.0, Culture=neutral, PublicKeyToken=fee00910d6e5f53b, processorArchitecture=MSIL">
       <HintPath>..\packages\Remotion.Linq.2.2.0\lib\net45\Remotion.Linq.dll</HintPath>
     </Reference>
-    <Reference Include="SP.Client, Version=1.0.0.0, Culture=neutral, PublicKeyToken=81064c3d6d46423d, processorArchitecture=MSIL">
-      <HintPath>..\packages\SP.Client.o365.1.0.0\lib\net472\SP.Client.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Runtime.Serialization" />
@@ -147,6 +144,11 @@
     <None Include="package.nuspec" />
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\SP.Client\SP.Client.csproj">
+      <Project>{802ace29-f8d3-4b15-a800-9b08818f39f7}</Project>
+      <Name>SP.Client</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

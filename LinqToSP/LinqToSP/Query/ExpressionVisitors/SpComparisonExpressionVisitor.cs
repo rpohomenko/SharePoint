@@ -32,6 +32,10 @@ namespace SP.Client.Linq.Query.ExpressionVisitors
         if (SpQueryArgs.FieldMappings.ContainsKey(fieldName))
         {
           var fieldMap = SpQueryArgs.FieldMappings[fieldName];
+          if (fieldMap.Filterable == false)
+          {
+            throw new Exception($"Field '{fieldName}' is not filterable.");
+          }
           var fieldRef = new CamlFieldRef() { Name = fieldMap.Name };
           if (fieldMap is LookupFieldAttribute)
           {
