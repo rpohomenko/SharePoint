@@ -92,7 +92,7 @@ namespace LinqToSP.Test.Model
     }
 
     [ChoiceField(Name = "Emp_Position", Title = "Position", Order = 3, IsMultiple = true)]
-    public EmployeePosition Position
+    public EmployeePosition /*string[]*/ Position
     {
       get;
       set;

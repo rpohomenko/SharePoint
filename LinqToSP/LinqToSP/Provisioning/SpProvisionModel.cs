@@ -277,7 +277,7 @@ namespace SP.Client.Linq.Provisioning
           foreach (var contentType in _contentTypes)
           {
             SetFieldLinks(contentType.Value,
-              _fields.Where(f => contentType.Key.ContentType.Level == f.Key.Field.Level).Select(f => f.Value), comparison);
+              _fields.Where(f => contentType.Key.ContentType.Level == f.Key.Field.Level || f.Key.Field.Level == ProvisionLevel.Default).Select(f => f.Value), comparison);
 
             if (contentType.Key.ContentType.Level == ProvisionLevel.Web
               && _list != null && listHandler != null && listHandler.List.Behavior != ProvisionBehavior.None)
