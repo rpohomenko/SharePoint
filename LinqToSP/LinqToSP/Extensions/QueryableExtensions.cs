@@ -1,4 +1,5 @@
-﻿using SP.Client.Extensions;
+﻿using Microsoft.SharePoint.Client;
+using SP.Client.Extensions;
 using SP.Client.Linq.Infrastructure;
 using SP.Client.Linq.Query;
 using SP.Client.Linq.Query.Expressions;
@@ -64,6 +65,25 @@ namespace SP.Client.Linq
       }
       return source;
     }
+
+    public static IQueryable<TEntity> Scope<TEntity>(
+        this IQueryable<TEntity> source, ViewScope scope)
+         where TEntity : class, IListItemEntity, new()
+    {
+      Check.NotNull(source, nameof(source));
+      if (source is SpEntityQueryable<TEntity, ISpEntryDataContext>)
+      {
+        var executor = (source as SpEntityQueryable<TEntity, ISpEntryDataContext>).GetExecutor();
+        if (executor != null)
+        {
+          var args = (SpQueryArgs<ISpEntryDataContext>)executor.SpQueryArgs.Clone();
+          args.ViewScope = scope;
+          source = new SpEntityQueryable<TEntity>(new SpEntityQueryable<TEntity>(args).Provider, source.Expression);
+        }
+      }
+      return source;
+    }
+
 
     public static IEnumerable<SpEntityEntry<TEntity, ISpEntryDataContext>> GetEntries<TEntity>(this IQueryable<TEntity> source)
       where TEntity : class, IListItemEntity, new()
