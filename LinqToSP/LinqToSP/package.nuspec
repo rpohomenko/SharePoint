@@ -4,7 +4,7 @@
     <!--*-->
     <id>LinqToSP.o365</id>
     <!--*-->
-    <version>1.0.6</version>
+    <version>1.0.7</version>
     <title>Linq To SharePoint (o365) Framework</title>
     <!--*-->
     <authors>Ruslan Pakhomenka</authors>
@@ -18,9 +18,8 @@
     <!--*-->
     <description>Linq To SharePoint (o365) Framework.</description>
     <!--*-->
-    <releaseNotes>-ViewScope extension
-
--bug fixing and improvements</releaseNotes>
+    <releaseNotes>-ToListItems extension
+-new SPDataContext constructor</releaseNotes>
     <copyright>Copyright ©  2019</copyright>
     <tags>
             Linq,SharePoint
@@ -28,7 +27,7 @@
     <dependencies>
       <dependency id="Microsoft.SharePointOnline.CSOM" version="16.1.19404.12000" />
       <dependency id="Remotion.Linq" version="2.2.0" />
-      <dependency id="SP.Client.o365" version="1.0.1" />
+      <dependency id="SP.Client.o365" version="1.0.2" />
     </dependencies>
   </metadata>
 </package>

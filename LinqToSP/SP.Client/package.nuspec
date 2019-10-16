@@ -4,7 +4,7 @@
     <!--*-->
     <id>SP.Client.o365</id>
     <!--*-->
-    <version>1.0.1</version>
+    <version>1.0.2</version>
     <title>CSOM Framework Extension</title>
     <!--*-->
     <authors>Ruslan Pakhomenka</authors>
@@ -18,7 +18,7 @@
     <!--*-->
     <description>.NET client-side object model (CSOM) Framework Extension.</description>
     <!--*-->
-    <releaseNotes>field extension methods</releaseNotes>
+    <releaseNotes>bug fixing</releaseNotes>
     <copyright>Copyright ©  2019</copyright>
     <tags>
     </tags>
