@@ -12,6 +12,7 @@ using Remotion.Linq.Clauses.ResultOperators;
 using SP.Client.Linq.Attributes;
 using SP.Client.Caml;
 using System;
+using SP.Client.Extensions;
 
 namespace SP.Client.Linq.Query
 {
@@ -45,14 +46,33 @@ namespace SP.Client.Linq.Query
             ValidateArgs(args);
             SpQueryArgs = args;
             _manager = new SpQueryManager<TEntity, TContext>(args);
+
+            if (args.FieldMappings.Count == 0)
+            {
+                foreach (var att in GetFieldAttributes())
+                {
+                    if (!args.FieldMappings.ContainsKey(att.Key))
+                    {
+                        args.FieldMappings.Add(att.Key, att.Value);
+                    }
+                }
+            }
         }
 
         #endregion
 
         #region Methods
+
+        private static IEnumerable<KeyValuePair<string, FieldAttribute>> GetFieldAttributes()
+        {
+            return AttributeHelper.GetFieldAttributes<TEntity, FieldAttribute>()
+              .Concat(AttributeHelper.GetPropertyAttributes<TEntity, FieldAttribute>())
+              .Select(f => new KeyValuePair<string, FieldAttribute>(f.Key.Name, f.Value));
+        }
+
         private void ValidateArgs(SpQueryArgs<TContext> args)
         {
-
+            Check.NotNull(args, nameof(SpQueryArgs<TContext>));
         }
 
         public TResult ExecuteScalar<TResult>(QueryModel queryModel)
@@ -182,6 +202,13 @@ namespace SP.Client.Linq.Query
         public IEnumerable<ListItem> DeleteItems(IEnumerable<int> itemIds, bool recycle)
         {
             return _manager.DeleteItems(itemIds, recycle);
+        }
+
+        public IEnumerable<ListItem> GetItems(QueryModel queryModel)
+        {
+            VisitQueryModel(queryModel);
+            string pInfo;
+            return _manager.GetItems(SpView, out pInfo);
         }
 
         #endregion

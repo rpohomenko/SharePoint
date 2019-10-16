@@ -45,6 +45,8 @@ namespace SP.Client.Linq
         /// </summary>
         public ClientContext Context { get; private set; }
 
+        private bool _isDisposed;
+
         #endregion
 
         #region Constructor
@@ -58,6 +60,14 @@ namespace SP.Client.Linq
             Check.NotNull(siteUrl, nameof(siteUrl));
             SiteUrl = siteUrl;
             Context = new ClientContext(siteUrl);
+        }
+
+        public SpDataContext([NotNull]ClientContext context)
+        {
+            Check.NotNull(context, nameof(context));
+            SiteUrl = context.Url;
+            Context = context;
+            _isDisposed = true;
         }
 
         public event Action<ISpEntryDataContext, SpSaveArgs> OnBeforeSaveChanges;
@@ -205,14 +215,18 @@ namespace SP.Client.Linq
 
         protected virtual void Dispose(bool disposing)
         {
-            if (Context != null)
+            if (disposing && !_isDisposed)
             {
-                try
+                if (Context != null)
                 {
-                    Context.Dispose();
+                    try
+                    {
+                        Context.Dispose();
+                    }
+                    catch { }
+                    Context = null;
                 }
-                catch { }
-                Context = null;
+                _isDisposed = true;
             }
         }
 

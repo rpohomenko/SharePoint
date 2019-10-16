@@ -2,17 +2,17 @@
 using Remotion.Linq;
 using System.Linq.Expressions;
 using Remotion.Linq.Parsing.Structure;
-using SP.Client.Linq.Attributes;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using SP.Client.Linq.Query;
+using Microsoft.SharePoint.Client;
 
 namespace SP.Client.Linq.Infrastructure
 {
-  public class SpEntityQueryable<TEntity> : SpEntityQueryable<TEntity, ISpEntryDataContext>
-    where TEntity : class, IListItemEntity, new()
+    public class SpEntityQueryable<TEntity> : SpEntityQueryable<TEntity, ISpEntryDataContext>
+      where TEntity : class, IListItemEntity, new()
     {
         public SpEntityQueryable(SpQueryArgs<ISpEntryDataContext> args)
             : base(args)
@@ -70,14 +70,7 @@ namespace SP.Client.Linq.Infrastructure
 #endif
                 )
         {
-            if (args != null)
-                foreach (var att in GetFieldAttributes())
-                {
-                    if (!args.FieldMappings.ContainsKey(att.Key))
-                    {
-                        args.FieldMappings.Add(att.Key, att.Value);
-                    }
-                }
+
         }
 
         internal SpEntityQueryable(IQueryParser queryParser,
@@ -108,13 +101,6 @@ namespace SP.Client.Linq.Infrastructure
           : base(provider)
         {
 
-        }
-
-        private static IEnumerable<KeyValuePair<string, FieldAttribute>> GetFieldAttributes()
-        {
-            return AttributeHelper.GetFieldAttributes<TEntity, FieldAttribute>()
-              .Concat(AttributeHelper.GetPropertyAttributes<TEntity, FieldAttribute>())
-              .Select(f => new KeyValuePair<string, FieldAttribute>(f.Key.Name, f.Value));
         }
 
         public string GetQuery(bool disableFormatting)
@@ -278,7 +264,7 @@ namespace SP.Client.Linq.Infrastructure
             var executor = GetExecutor();
             if (executor != null && executor.SpQueryArgs != null)
             {
-                return this.ToList().Select(entity => new SpEntityEntry<TEntity, TContext>(entity, executor.SpQueryArgs));
+                return this.ToList().Select(entity => Entry(entity));
             }
             return Enumerable.Empty<SpEntityEntry<TEntity, TContext>>();
         }
@@ -292,6 +278,30 @@ namespace SP.Client.Linq.Infrastructure
                 {
                     var entry = entity.GetEntry(executor.SpQueryArgs);
                     return entry;
+                }
+            }
+            return null;
+        }
+
+        internal IEnumerable<ListItem> ListItems()
+        {
+            var executor = GetExecutor();
+            if (executor != null && executor.SpQueryArgs != null)
+            {
+                return this.ToList().Select(entity => ListItem(entity));
+            }
+            return Enumerable.Empty<ListItem>();
+        }
+
+        internal ListItem ListItem(TEntity entity)
+        {
+            if (entity != null)
+            {
+                var executor = GetExecutor();
+                if (executor != null && executor.SpQueryArgs != null)
+                {
+                    var item = entity.GetListItem(executor.SpQueryArgs);
+                    return item;
                 }
             }
             return null;
