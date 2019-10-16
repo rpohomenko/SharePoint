@@ -6,6 +6,7 @@ using SP.Client.Linq.Infrastructure;
 using SP.Client.Linq.Query;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -249,6 +250,15 @@ namespace SP.Client.Linq
                   ? new ListItemCollectionPosition() { PagingInfo = _args.PagingInfo } : null;
                 try
                 {
+                    Debug.WriteLine($"# Entity: {typeof(TEntity)}");
+                    Debug.WriteLine($"# List: {_args}");
+                    Debug.WriteLine($"# Folder Url: {_args.FolderUrl}");
+                    Debug.WriteLine($"# Paging Info: {_args.PagingInfo}");
+                    Debug.WriteLine($"# Previous Paging Info: {_args.PrevPagingInfo}");
+                    Debug.WriteLine("# SP Query:");
+                    Debug.Write(spView);
+                    Debug.WriteLine("");
+
                     do
                     {
                         if (_args.BatchSize > 0)

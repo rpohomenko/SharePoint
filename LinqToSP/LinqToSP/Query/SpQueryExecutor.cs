@@ -163,15 +163,6 @@ namespace SP.Client.Linq.Query
                     }
                 }
             }
-
-            Debug.WriteLine($"# Entity: {typeof(TEntity)}");
-            Debug.WriteLine($"# List: {this.SpQueryArgs}");
-            Debug.WriteLine($"# Folder Url: {this.SpQueryArgs.FolderUrl}");
-            Debug.WriteLine($"# Paging Info: {this.SpQueryArgs.PagingInfo}");
-            Debug.WriteLine($"# Previous Paging Info: {this.SpQueryArgs.PrevPagingInfo}");
-            Debug.WriteLine("# SP Query:");
-            Debug.Write(SpView);
-            Debug.WriteLine("");
         }
 
         public IEnumerable<TResult> ExecuteCollection<TResult>(QueryModel queryModel)
@@ -209,6 +200,12 @@ namespace SP.Client.Linq.Query
             VisitQueryModel(queryModel);
             string pInfo;
             return _manager.GetItems(SpView, out pInfo);
+        }
+
+        public SpView GetView(QueryModel queryModel)
+        {
+            VisitQueryModel(queryModel);
+            return SpView;
         }
 
         #endregion

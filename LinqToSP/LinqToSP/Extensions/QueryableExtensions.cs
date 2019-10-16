@@ -162,7 +162,22 @@ namespace SP.Client.Linq
             Check.NotNull(source, nameof(source));
             if (source is SpEntityQueryable<TEntity, ISpEntryDataContext>)
             {
-                return (source as SpEntityQueryable<TEntity, ISpEntryDataContext>).GenerateCaml(disableFormatting, queryOnly);
+                var executor = (source as SpEntityQueryable<TEntity, ISpEntryDataContext>).GetExecutor();
+                if (executor != null)
+                {
+                    var view = executor.GetView((source.Provider as QueryProvider<TEntity, ISpEntryDataContext>).GenerateQueryModel(source.Expression));
+                    if (view != null)
+                    {
+                        if (queryOnly)
+                        {
+                            if (view.Query != null)
+                            {
+                                return view.Query.ToString(disableFormatting);
+                            }
+                        }
+                        return view.ToString(disableFormatting);
+                    }
+                }
             }
             return null;
         }

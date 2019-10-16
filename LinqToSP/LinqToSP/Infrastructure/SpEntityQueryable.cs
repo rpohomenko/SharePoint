@@ -103,20 +103,6 @@ namespace SP.Client.Linq.Infrastructure
 
         }
 
-        public string GetQuery(bool disableFormatting)
-        {
-            var executor = GetExecutor();
-            if (executor != null)
-            {
-                var view = executor.SpView;
-                if (view != null)
-                {
-                    return view.ToString(disableFormatting);
-                }
-            }
-            return null;
-        }
-
         internal SpQueryExecutor<TEntity, TContext> GetExecutor()
         {
             var provider = (this.Provider as QueryProviderBase);
@@ -127,49 +113,9 @@ namespace SP.Client.Linq.Infrastructure
             return null;
         }
 
-        internal string GenerateCaml(bool disableFormatting = false, bool queryOnly = false)
-        {
-            var executor = GetExecutor();
-            if (executor != null && executor.SpQueryArgs != null)
-            {
-                bool skipResult = executor.SpQueryArgs.SkipResult;
-                try
-                {
-                    //fake
-                    executor.SpQueryArgs.SkipResult = true;
-                    this.ToList();
-                }
-                finally
-                {
-                    executor.SpQueryArgs.SkipResult = skipResult;
-                }
-                var view = executor.SpView;
-                if (view != null)
-                {
-                    if (queryOnly)
-                    {
-                        if (view.Query != null)
-                        {
-                            return view.Query.ToString(disableFormatting);
-                        }
-                    }
-                    else
-                    {
-                        return view.ToString(disableFormatting);
-                    }
-                }
-            }
-            return null;
-        }
-
         public override string ToString()
         {
-            string q = GetQuery(false);
-            if (q != null)
-            {
-                return q;
-            }
-            return base.ToString();
+            return this.Caml();
         }
 
 #if !SP2013 && !SP2016
