@@ -1,33 +1,33 @@
 <?xml version="1.0"?>
 <package>
-  <metadata>
-    <!--*-->
-    <id>LinqToSP.o365</id>
-    <!--*-->
-    <version>1.0.7</version>
-    <title>Linq To SharePoint (o365) Framework</title>
-    <!--*-->
-    <authors>Ruslan Pakhomenka</authors>
-    <owners>Ruslan Pakhomenka</owners>
-    <projectUrl>https://github.com/rpohomenko/SharePoint/tree/master/LinqToSP</projectUrl>
-    <!--
-    <licenseUrl></licenseUrl>
-    <iconUrl></iconUrl>
--->
-    <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <!--*-->
-    <description>Linq To SharePoint (o365) Framework.</description>
-    <!--*-->
-    <releaseNotes>-ToListItems extension
--new SPDataContext constructor</releaseNotes>
-    <copyright>Copyright ©  2019</copyright>
-    <tags>
+    <metadata>
+        <!--*-->
+        <id>LinqToSP.o365</id>
+        <!--*-->
+        <version>1.0.7</version>
+        <title>Linq To SharePoint (o365) Framework</title>
+        <!--*-->
+        <authors>Ruslan Pakhomenka</authors>
+        <owners>Ruslan Pakhomenka</owners>
+        <projectUrl>https://github.com/rpohomenko/SharePoint/tree/master/LinqToSP</projectUrl>
+        <repository type="git" url="https://github.com/rpohomenko/SharePoint.git" />
+        <license type="expression">MIT</license>
+        <requireLicenseAcceptance>false</requireLicenseAcceptance>
+        <!--*-->
+        <description>Linq To SharePoint (o365) Framework.</description>
+        <!--*-->
+        <releaseNotes>
+            -ToListItems extension
+            -new SPDataContext constructor
+        </releaseNotes>
+        <copyright>Copyright ©  2019</copyright>
+        <tags>
             Linq,SharePoint
         </tags>
-    <dependencies>
-      <dependency id="Microsoft.SharePointOnline.CSOM" version="16.1.19404.12000" />
-      <dependency id="Remotion.Linq" version="2.2.0" />
-      <dependency id="SP.Client.o365" version="1.0.2" />
-    </dependencies>
-  </metadata>
+        <dependencies>
+            <dependency id="Microsoft.SharePointOnline.CSOM" version="16.1.19404.12000" />
+            <dependency id="Remotion.Linq" version="2.2.0" />
+            <dependency id="SP.Client.o365" version="1.0.2" />
+        </dependencies>
+    </metadata>
 </package>

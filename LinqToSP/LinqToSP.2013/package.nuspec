@@ -4,23 +4,19 @@
     <!--*-->
     <id>LinqToSP.2013</id>
     <!--*-->
-    <version>1.0.3</version>
+    <version>1.0.4</version>
     <title>Linq To SharePoint (2013) Framework</title>
     <!--*-->
     <authors>Ruslan Pakhomenka</authors>
     <owners>Ruslan Pakhomenka</owners>
     <projectUrl>https://github.com/rpohomenko/SharePoint/tree/master/LinqToSP</projectUrl>
-    <!--
-    <licenseUrl></licenseUrl>
-    <iconUrl></iconUrl>
--->
+    <repository type="git" url="https://github.com/rpohomenko/SharePoint.git" />
+    <license type="expression">MIT</license>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <!--*-->
     <description>Linq To SharePoint (2013) Framework.</description>
     <!--*-->
-    <releaseNotes>-ViewScope extension
-
--bug fixing and improvements</releaseNotes>
+    <releaseNotes>more extensions</releaseNotes>
     <copyright>Copyright ©  2019</copyright>
     <tags>
             Linq,SharePoint
@@ -28,7 +24,7 @@
     <dependencies>
       <dependency id="Microsoft.SharePoint2013.CSOM" version="15.0.5031.1001" />
       <dependency id="Remotion.Linq" version="2.2.0" />
-      <dependency id="SP.Client.2013" version="1.0.1" />
+      <dependency id="SP.Client.2013" version="1.0.2" />
     </dependencies>
   </metadata>
 </package>

@@ -4,22 +4,22 @@
     <!--*-->
     <id>SP.Client.2013</id>
     <!--*-->
-    <version>1.0.1</version>
+    <version>1.0.2</version>
     <title>SP.Client.2013</title>
     <!--*-->
     <authors>Ruslan Pakhomenka</authors>
     <owners>Ruslan Pakhomenka</owners>
     <projectUrl>https://github.com/rpohomenko/SharePoint/tree/master/LinqToSP/SP.Client</projectUrl>
-    <!--
-    <licenseUrl></licenseUrl>
-    <iconUrl></iconUrl>
--->
+    <repository type="git" url="https://github.com/rpohomenko/SharePoint.git" />
+    <license type="expression">MIT</license>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <!--*-->
     <description>.NET client-side object model (CSOM) Framework Extension.
-SharePoint 2013</description>
+  
+SharePoint 2013
+        </description>
     <!--*-->
-    <releaseNotes>field extension methods</releaseNotes>
+    <releaseNotes>bug fixes</releaseNotes>
     <copyright>Copyright ©  2019</copyright>
     <tags>
     </tags>
