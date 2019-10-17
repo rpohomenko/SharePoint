@@ -2,6 +2,8 @@
 using SharePoint.Authentication.Owin.Extensions;
 using System.Threading.Tasks;
 using System.Web.Mvc;
+using SP.Client.Linq;
+using System.Linq;
 
 namespace SP.ProjectTaskWeb.Controllers
 {
@@ -28,6 +30,9 @@ namespace SP.ProjectTaskWeb.Controllers
 
                 ViewBag.SiteTitle = web.Title;
                 ViewBag.UserName = user.Title;
+
+                //var dc = new SpDataContext(context);
+                //var contacts = dc.List<ListItemEntity>("Contacts").ToArray();
             }
 
             return View();
@@ -35,6 +40,7 @@ namespace SP.ProjectTaskWeb.Controllers
 
         public ActionResult About()
         {
+            ViewBag.SiteTitle = "About";
             ViewBag.Message = "Your application description page.";
 
             return View();
@@ -42,6 +48,7 @@ namespace SP.ProjectTaskWeb.Controllers
 
         public ActionResult Contact()
         {
+            ViewBag.SiteTitle = "Contact";
             ViewBag.Message = "Your contact page.";
 
             return View();
