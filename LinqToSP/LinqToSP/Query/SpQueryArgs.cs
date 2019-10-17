@@ -37,7 +37,7 @@ namespace SP.Client.Linq.Query
             Query = query;
             FieldMappings = new Dictionary<string, FieldAttribute>();
             BatchSize = 100;
-            IncludeItemPermissions = true;
+            IncludeItemPermissions = false;
             ViewScope = ViewScope.RecursiveAll;
         }
 

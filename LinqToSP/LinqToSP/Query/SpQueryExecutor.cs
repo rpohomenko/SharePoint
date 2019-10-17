@@ -197,9 +197,8 @@ namespace SP.Client.Linq.Query
 
         public IEnumerable<ListItem> GetItems(QueryModel queryModel)
         {
-            VisitQueryModel(queryModel);
             string pInfo;
-            return _manager.GetItems(SpView, out pInfo);
+            return _manager.GetItems(GetView(queryModel), out pInfo);
         }
 
         public SpView GetView(QueryModel queryModel)

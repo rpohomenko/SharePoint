@@ -84,6 +84,57 @@ namespace SP.Client.Linq
             return source;
         }
 
+        public static IQueryable<TEntity> Batch<TEntity>(
+          this IQueryable<TEntity> source, int size)
+          where TEntity : class, IListItemEntity, new()
+        {
+            Check.NotNull(source, nameof(source));
+            if (source is SpEntityQueryable<TEntity, ISpEntryDataContext>)
+            {
+                var executor = (source as SpEntityQueryable<TEntity, ISpEntryDataContext>).GetExecutor();
+                if (executor != null)
+                {
+                    var args = (SpQueryArgs<ISpEntryDataContext>)executor.SpQueryArgs.Clone();
+                    args.BatchSize = size;
+                    source = new SpEntityQueryable<TEntity>(new SpEntityQueryable<TEntity>(args).Provider, source.Expression);
+                }
+            }
+            return source;
+        }
+
+        public static IQueryable<TEntity> WithPermissions<TEntity>(this IQueryable<TEntity> source)
+          where TEntity : class, IListItemEntity, new()
+        {
+            Check.NotNull(source, nameof(source));
+            if (source is SpEntityQueryable<TEntity, ISpEntryDataContext>)
+            {
+                var executor = (source as SpEntityQueryable<TEntity, ISpEntryDataContext>).GetExecutor();
+                if (executor != null)
+                {
+                    var args = (SpQueryArgs<ISpEntryDataContext>)executor.SpQueryArgs.Clone();
+                    args.IncludeItemPermissions = true;
+                    source = new SpEntityQueryable<TEntity>(new SpEntityQueryable<TEntity>(args).Provider, source.Expression);
+                }
+            }
+            return source;
+        }
+
+        public static IQueryable<TEntity> WithQuery<TEntity>(this IQueryable<TEntity> source, string queryXml)
+          where TEntity : class, IListItemEntity, new()
+        {
+            Check.NotNull(source, nameof(source));
+            if (source is SpEntityQueryable<TEntity, ISpEntryDataContext>)
+            {
+                var executor = (source as SpEntityQueryable<TEntity, ISpEntryDataContext>).GetExecutor();
+                if (executor != null)
+                {
+                    var args = (SpQueryArgs<ISpEntryDataContext>)executor.SpQueryArgs.Clone();
+                    args.Query = queryXml;
+                    source = new SpEntityQueryable<TEntity>(new SpEntityQueryable<TEntity>(args).Provider, source.Expression);
+                }
+            }
+            return source;
+        }
 
         public static IEnumerable<SpEntityEntry<TEntity, ISpEntryDataContext>> GetEntries<TEntity>(this IQueryable<TEntity> source)
           where TEntity : class, IListItemEntity, new()
