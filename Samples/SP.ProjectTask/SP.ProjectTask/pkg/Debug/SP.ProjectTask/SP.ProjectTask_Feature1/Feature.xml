@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Feature xmlns="http://schemas.microsoft.com/sharepoint/" Title="SP.ProjectTask Feature1" Id="11197053-93ea-43c4-94e0-bc9a039dba1c" Scope="Web" Version="1.0.0.0">
+  <ElementManifests>
+    <ElementManifest Location="Elements.xml" />
+  </ElementManifests>
+  <UpgradeActions>
+    <VersionRange>
+      <ApplyElementManifests>
+        <ElementManifest Location="Elements.xml" />
+      </ApplyElementManifests>
+    </VersionRange>
+  </UpgradeActions>
+</Feature>
