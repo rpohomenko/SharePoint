@@ -145,13 +145,10 @@ namespace SP.Client.Linq.Infrastructure
             if (itemIds != null)
             {
                 var executor = GetExecutor();
-                if (executor != null && executor.SpQueryArgs != null && executor.SpQueryArgs.FieldMappings != null)
+                if (executor != null && executor.SpQueryArgs != null && executor.SpQueryArgs.Context != null)
                 {
-                    var items = executor.DeleteItems(itemIds, false);
-                    if (executor.SpQueryArgs.Context != null)
-                    {
-                        executor.SpQueryArgs.Context.Context.ExecuteQuery();
-                    }
+                    var items = new SpQueryManager<TEntity, TContext>(executor.SpQueryArgs).DeleteItems(itemIds, false);
+                    executor.SpQueryArgs.Context.Context.ExecuteQuery();
                     return items.Count();
                 }
             }

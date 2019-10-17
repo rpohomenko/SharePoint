@@ -190,15 +190,29 @@ namespace SP.Client.Linq.Query
             }
         }
 
-        public IEnumerable<ListItem> DeleteItems(IEnumerable<int> itemIds, bool recycle)
+        public IEnumerable<ListItem> GetItems(QueryModel queryModel, bool isLast, out string pagingInfo)
         {
-            return _manager.DeleteItems(itemIds, recycle);
-        }
-
-        public IEnumerable<ListItem> GetItems(QueryModel queryModel)
-        {
-            string pInfo;
-            return _manager.GetItems(GetView(queryModel), out pInfo);
+            var spView = GetView(queryModel);
+            if (isLast && spView != null && spView.Limit <= 0)
+            {
+                spView.Limit = 1;
+                if (spView.Query.OrderBy != null)
+                {
+                    foreach (CamlFieldRef orderby in spView.Query.OrderBy)
+                    {
+                        orderby.Ascending = !orderby.Ascending;
+                    }
+                }
+                else
+                {
+                    spView.Query.OrderBy = new Caml.Clauses.CamlOrderBy();
+                }
+                if (!spView.Query.OrderBy.Any())
+                {
+                    spView.Query.OrderBy.Add("ID", false);
+                }
+            }
+            return _manager.GetItems(spView, out pagingInfo);
         }
 
         public SpView GetView(QueryModel queryModel)

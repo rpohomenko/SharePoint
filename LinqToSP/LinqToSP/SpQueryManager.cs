@@ -332,15 +332,7 @@ namespace SP.Client.Linq
             ProcessItems(spView, false, (items) =>
             {
                 listItems = listItems.Concat(items.Cast<ListItem>());
-
-                if (items.ListItemCollectionPosition != null)
-                {
-                    position = items.ListItemCollectionPosition;
-                }
-                else
-                {
-                    _args.PagingInfo = null;
-                }
+                position = items.ListItemCollectionPosition;
             });
             if (position != null)
             {

@@ -201,14 +201,39 @@ namespace SP.Client.Linq
                 var executor = (source as SpEntityQueryable<TEntity, ISpEntryDataContext>).GetExecutor();
                 if (executor != null)
                 {
-                    return executor.GetItems((source.Provider as QueryProvider<TEntity, ISpEntryDataContext>).GenerateQueryModel(source.Expression));
+                    string pagingInfo;
+                    return executor.GetItems((source.Provider as QueryProvider<TEntity, ISpEntryDataContext>).GenerateQueryModel(source.Expression), false, out pagingInfo);
                 }
             }
             return Enumerable.Empty<ListItem>();
         }
 
-        public static string Caml<TEntity>(this IQueryable<TEntity> source, bool disableFormatting = false, bool queryOnly = false)
+        public static ListItem FirstListItem<TEntity>(this IQueryable<TEntity> source)
+           where TEntity : class, IListItemEntity, new()
+        {
+            Check.NotNull(source, nameof(source));
+            return source.Take(1).ToListItems().FirstOrDefault();
+        }
+
+        public static ListItem LastListItem<TEntity>(this IQueryable<TEntity> source)
           where TEntity : class, IListItemEntity, new()
+        {
+            Check.NotNull(source, nameof(source));
+            if (source is SpEntityQueryable<TEntity, ISpEntryDataContext>)
+            {
+                var executor = (source as SpEntityQueryable<TEntity, ISpEntryDataContext>).GetExecutor();
+                if (executor != null)
+                {
+                    string pagingInfo;
+                    var items = executor.GetItems((source.Provider as QueryProvider<TEntity, ISpEntryDataContext>).GenerateQueryModel(source.Expression), true, out pagingInfo);
+                    return items.LastOrDefault();
+                }
+            }
+            return null;
+        }
+
+        public static string Caml<TEntity>(this IQueryable<TEntity> source, bool disableFormatting = false, bool queryOnly = false)
+      where TEntity : class, IListItemEntity, new()
         {
             Check.NotNull(source, nameof(source));
             if (source is SpEntityQueryable<TEntity, ISpEntryDataContext>)
