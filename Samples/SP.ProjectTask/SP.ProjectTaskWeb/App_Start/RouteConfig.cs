@@ -18,6 +18,11 @@ namespace SP.ProjectTaskWeb
                 url: "{controller}/{action}/{id}",
                 defaults: new { controller = "Home", action = "Index", id = UrlParameter.Optional }
             );
+
+            routes.MapRoute(
+                name: "ActionApi",
+                url: "api/{controller}/{action}/{id}",
+                defaults: new { id = UrlParameter.Optional });
         }
     }
 }

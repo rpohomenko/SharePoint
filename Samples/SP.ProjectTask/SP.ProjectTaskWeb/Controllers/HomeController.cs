@@ -30,9 +30,6 @@ namespace SP.ProjectTaskWeb.Controllers
 
                 ViewBag.SiteTitle = web.Title;
                 ViewBag.UserName = user.Title;
-
-                //var dc = new SpDataContext(context);
-                //var contacts = dc.List<ListItemEntity>("Contacts").ToArray();
             }
 
             return View();
