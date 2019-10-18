@@ -15,9 +15,11 @@ namespace SP.Client.Linq
         bool SaveChanges();
         IQueryable<TListItem> List<TListItem>(SpQueryArgs<ISpEntryDataContext> args) where TListItem : class, IListItemEntity, new();
 
-        TProvisionModel CreateModel<TProvisionModel, TDataContext, TEntity>()
-        where TProvisionModel : SpProvisionModel<TDataContext, TEntity>
-        where TDataContext : class, ISpEntryDataContext
+        SpProvisionModel<TDataContext, TEntity> CreateModel<TDataContext, TEntity>()
+            where TDataContext : SpDataContext
+            where TEntity : class, IListItemEntity, new();
+
+        SpProvisionModel<SpDataContext, TEntity> CreateModel<TEntity>()
         where TEntity : class, IListItemEntity, new();
     }
 }

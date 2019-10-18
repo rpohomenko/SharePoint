@@ -230,19 +230,6 @@ namespace SP.Client.Linq
             }
         }
 
-        TProvisionModel ISpEntryDataContext.CreateModel<TProvisionModel, TDataContext, TEntity>()
-        {
-            return CreateModel<SpProvisionModel<SpDataContext, ListItemEntity>, SpDataContext, ListItemEntity>() as TProvisionModel;
-        }
-
-        public virtual TProvisionModel CreateModel<TProvisionModel, TDataContext, TEntity>()
-          where TProvisionModel : SpProvisionModel<TDataContext, TEntity>
-          where TDataContext : SpDataContext
-          where TEntity : class, IListItemEntity, new()
-        {
-            return (TProvisionModel)Activator.CreateInstance(typeof(TProvisionModel), new object[] { this });
-        }
-
         public virtual SpProvisionModel<TDataContext, TEntity> CreateModel<TDataContext, TEntity>()
         where TDataContext : SpDataContext
         where TEntity : class, IListItemEntity, new()
