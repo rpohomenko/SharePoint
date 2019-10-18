@@ -201,8 +201,10 @@ namespace SP.Client.Linq
             return null;
         }
 
-        public ListItemCollection GetItems(Caml.View spView, ListItemCollectionPosition position, bool countOnly)
+        public ListItemCollection GetItems(Caml.View spView, ListItemCollectionPosition position, bool countOnly, bool fieldValuesAsText)
         {
+            if (_args == null || spView == null) return null;
+
             string folderUrl = string.IsNullOrWhiteSpace(this._args.FolderUrl)
                 ? null
                 : new Uri(string.Concat(this._args.Context.SiteUrl.TrimEnd('/'), "/", string.IsNullOrEmpty(_args.ListUrl) ? "" : $"{_args.ListUrl.Trim('/')}/", (!string.IsNullOrEmpty(_args.ListUrl) ? this._args.FolderUrl.Replace(_args.ListUrl, "") : this._args.FolderUrl).TrimStart('/'))).LocalPath;
@@ -225,15 +227,26 @@ namespace SP.Client.Linq
                 }
                 else
                 {
-                    items.Context.Load(items, item => item.Include(i => i.EffectiveBasePermissions));
-                    items.Context.Load(items, item => item.ListItemCollectionPosition);
+                    if (_args.IncludeItemPermissions)
+                    {
+                        items.Context.Load(items, item => item.Include(i => i.EffectiveBasePermissions));
+                    }
+                    if (/*fieldValuesAsText*/ false)
+                    {
+                        //BUG: NOT working!
+                        items.Context.Load(items, item => item.ListItemCollectionPosition, item => item.Include(i => i.FieldValuesAsText));
+                    }
+                    else
+                    {
+                        items.Context.Load(items, item => item.ListItemCollectionPosition);
+                    }
                     return items;
                 }
             }
             return null;
         }
 
-        public void ProcessItems(Caml.View spView, bool countOnly, Action<ListItemCollection> action)
+        public void ProcessItems(Caml.View spView, bool countOnly, bool fieldValuesAsText, Action<ListItemCollection> action)
         {
             if (_args == null || spView == null) return;
 
@@ -276,7 +289,7 @@ namespace SP.Client.Linq
                                 break;
                             }
                         }
-                        var items = GetItems(spView, position, countOnly);
+                        var items = GetItems(spView, position, countOnly, fieldValuesAsText);
                         if (items != null)
                         {
                             items.Context.ExecuteQuery();
@@ -303,7 +316,7 @@ namespace SP.Client.Linq
             var entities = Enumerable.Empty<TEntity>();
             if (_args == null || spView == null) return entities;
 
-            ProcessItems(spView, false, (items) =>
+            ProcessItems(spView, false, false, (items) =>
             {
                 entities = entities.Concat(ToEntities(items));
                 _args.PrevPagingInfo = _args.PagingInfo;
@@ -322,18 +335,18 @@ namespace SP.Client.Linq
             return entities;
         }
 
-        public IEnumerable<ListItem> GetItems(Caml.View spView, out string pagingInfo)
+        public IEnumerable<ListItem> GetItems(Caml.View spView, bool fieldValuesAsText, out string pagingInfo)
         {
             var listItems = Enumerable.Empty<ListItem>();
             pagingInfo = null;
             if (_args == null || spView == null) return listItems;
 
             ListItemCollectionPosition position = null;
-            ProcessItems(spView, false, (items) =>
-            {
-                listItems = listItems.Concat(items.Cast<ListItem>());
-                position = items.ListItemCollectionPosition;
-            });
+            ProcessItems(spView, false, fieldValuesAsText, (items) =>
+             {
+                 listItems = listItems.Concat(items.Cast<ListItem>());
+                 position = items.ListItemCollectionPosition;
+             });
             if (position != null)
             {
                 pagingInfo = position.PagingInfo;
@@ -343,7 +356,7 @@ namespace SP.Client.Linq
 
 #if !SP2013 && !SP2016
 
-        public async Task ProcessItemsAsync(Caml.View spView, bool countOnly, Action<ListItemCollection> action)
+        public async Task ProcessItemsAsync(Caml.View spView, bool countOnly, bool fieldValuesAsText, Action<ListItemCollection> action)
         {
             if (_args == null || spView == null) return;
 
@@ -369,7 +382,7 @@ namespace SP.Client.Linq
                             break;
                         }
                     }
-                    var items = GetItems(spView, position, countOnly);
+                    var items = GetItems(spView, position, countOnly, fieldValuesAsText);
                     if (items != null)
                     {
                         await items.Context.ExecuteQueryAsync();
@@ -390,7 +403,7 @@ namespace SP.Client.Linq
         {
             var entities = Enumerable.Empty<TEntity>();
             if (_args == null || spView == null) return entities;
-            await ProcessItemsAsync(spView, false, (items) => entities = entities.Concat(ToEntities(items)));
+            await ProcessItemsAsync(spView, false, false, (items) => entities = entities.Concat(ToEntities(items)));
             return entities;
         }
 #endif

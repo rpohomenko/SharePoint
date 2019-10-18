@@ -144,12 +144,16 @@ namespace SP.Client.Linq.Infrastructure
         {
             if (itemIds != null)
             {
-                var executor = GetExecutor();
-                if (executor != null && executor.SpQueryArgs != null && executor.SpQueryArgs.Context != null)
+                itemIds = itemIds.Where(itemId => itemId > 0).ToArray();
+                if (itemIds.Length > 0)
                 {
-                    var items = new SpQueryManager<TEntity, TContext>(executor.SpQueryArgs).DeleteItems(itemIds, false);
-                    executor.SpQueryArgs.Context.Context.ExecuteQuery();
-                    return items.Count();
+                    var executor = GetExecutor();
+                    if (executor != null && executor.SpQueryArgs != null && executor.SpQueryArgs.Context != null)
+                    {
+                        var items = new SpQueryManager<TEntity, TContext>(executor.SpQueryArgs).DeleteItems(itemIds, false);
+                        executor.SpQueryArgs.Context.Context.ExecuteQuery();
+                        return items.Count();
+                    }
                 }
             }
             return 0;
@@ -157,12 +161,24 @@ namespace SP.Client.Linq.Infrastructure
 
         public virtual TEntity Find(int itemId)
         {
-            return this.FirstOrDefault(i => i.Id == itemId);
+            if (itemId > 0)
+            {
+                return this.FirstOrDefault(i => i.Id == itemId);
+            }
+            return null;
         }
 
         public virtual IQueryable<TEntity> FindAll([NotNull] params int[] itemIds)
         {
-            return this.Where(i => i.Includes(x => x.Id, itemIds));
+            if (itemIds != null)
+            {
+                itemIds = itemIds.Where(itemId => itemId > 0).ToArray();
+                if (itemIds.Length > 0)
+                {
+                    return this.Where(i => i.Includes(x => x.Id, itemIds));
+                }
+            }
+            return Enumerable.Empty<TEntity>().AsQueryable();
         }
 
         public virtual IEnumerable<TEntity> AddRange(IEnumerable<TEntity> entities)

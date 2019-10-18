@@ -83,7 +83,7 @@ namespace SP.Client.Linq.Query
                 if (resultOperator is CountResultOperator || resultOperator is LongCountResultOperator)
                 {
                     int itemCount = 0;
-                    _manager.ProcessItems(SpView, true, (items) =>
+                    _manager.ProcessItems(SpView, true, false, (items) =>
                     {
                         itemCount += items.Count;
                     });
@@ -190,7 +190,7 @@ namespace SP.Client.Linq.Query
             }
         }
 
-        public IEnumerable<ListItem> GetItems(QueryModel queryModel, bool isLast, out string pagingInfo)
+        public IEnumerable<ListItem> GetItems(QueryModel queryModel, bool isLast, bool fieldValuesAsText, out string pagingInfo)
         {
             var spView = GetView(queryModel);
             if (isLast && spView != null && spView.Limit <= 0)
@@ -212,7 +212,7 @@ namespace SP.Client.Linq.Query
                     spView.Query.OrderBy.Add("ID", false);
                 }
             }
-            return _manager.GetItems(spView, out pagingInfo);
+            return _manager.GetItems(spView, fieldValuesAsText, out pagingInfo);
         }
 
         public SpView GetView(QueryModel queryModel)
@@ -275,7 +275,7 @@ namespace SP.Client.Linq.Query
                 if (resultOperator is CountResultOperator || resultOperator is LongCountResultOperator)
                 {
                     int itemCount = 0;
-                    await _manager.ProcessItemsAsync(SpView, true, (items) =>
+                    await _manager.ProcessItemsAsync(SpView, true, false, (items) =>
                      {
                          itemCount += items.Count;
                      });

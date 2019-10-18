@@ -192,7 +192,14 @@ namespace SP.Client.Linq
             return null;
         }
 
-        public static IEnumerable<ListItem> ToListItems<TEntity>(this IQueryable<TEntity> source)
+        public static IEnumerable<ListItem> ToListItems<TEntity>(this IQueryable<TEntity> source/*, bool fieldValuesAsText = false*/)
+            where TEntity : class, IListItemEntity, new()
+        {
+            string nextPagingInfo;
+            return source.ToListItems(/*fieldValuesAsText,*/ out nextPagingInfo);
+        }
+
+        public static IEnumerable<ListItem> ToListItems<TEntity>(this IQueryable<TEntity> source/*, bool fieldValuesAsText*/, out string nextPagingInfo)
             where TEntity : class, IListItemEntity, new()
         {
             Check.NotNull(source, nameof(source));
@@ -201,22 +208,36 @@ namespace SP.Client.Linq
                 var executor = (source as SpEntityQueryable<TEntity, ISpEntryDataContext>).GetExecutor();
                 if (executor != null)
                 {
-                    string pagingInfo;
-                    return executor.GetItems((source.Provider as QueryProvider<TEntity, ISpEntryDataContext>).GenerateQueryModel(source.Expression), false, out pagingInfo);
+                    return executor.GetItems((source.Provider as QueryProvider<TEntity, ISpEntryDataContext>).GenerateQueryModel(source.Expression), false, /*fieldValuesAsText*/ false, out nextPagingInfo);
                 }
             }
+            nextPagingInfo = null;
             return Enumerable.Empty<ListItem>();
         }
 
-        public static ListItem FirstListItem<TEntity>(this IQueryable<TEntity> source)
-           where TEntity : class, IListItemEntity, new()
+        public static ListItem FirstListItem<TEntity>(this IQueryable<TEntity> source/*, bool fieldValuesAsText = false*/)
+          where TEntity : class, IListItemEntity, new()
         {
-            Check.NotNull(source, nameof(source));
-            return source.Take(1).ToListItems().FirstOrDefault();
+            string nextPagingInfo;
+            return source.FirstListItem(/*fieldValuesAsText,*/ out nextPagingInfo);
         }
 
-        public static ListItem LastListItem<TEntity>(this IQueryable<TEntity> source)
-          where TEntity : class, IListItemEntity, new()
+        public static ListItem FirstListItem<TEntity>(this IQueryable<TEntity> source/*, bool fieldValuesAsText*/, out string nextPagingInfo)
+            where TEntity : class, IListItemEntity, new()
+        {
+            Check.NotNull(source, nameof(source));
+            return source.Take(1).ToListItems(/*fieldValuesAsText,*/ out nextPagingInfo).FirstOrDefault();
+        }
+
+        public static ListItem LastListItem<TEntity>(this IQueryable<TEntity> source/*, bool fieldValuesAsText = false*/)
+            where TEntity : class, IListItemEntity, new()
+        {
+            string nextPagingInfo;
+            return source.LastListItem(/*fieldValuesAsText,*/ out nextPagingInfo);
+        }
+
+        public static ListItem LastListItem<TEntity>(this IQueryable<TEntity> source/*, bool fieldValuesAsText*/, out string nextPagingInfo)
+            where TEntity : class, IListItemEntity, new()
         {
             Check.NotNull(source, nameof(source));
             if (source is SpEntityQueryable<TEntity, ISpEntryDataContext>)
@@ -224,16 +245,16 @@ namespace SP.Client.Linq
                 var executor = (source as SpEntityQueryable<TEntity, ISpEntryDataContext>).GetExecutor();
                 if (executor != null)
                 {
-                    string pagingInfo;
-                    var items = executor.GetItems((source.Provider as QueryProvider<TEntity, ISpEntryDataContext>).GenerateQueryModel(source.Expression), true, out pagingInfo);
+                    var items = executor.GetItems((source.Provider as QueryProvider<TEntity, ISpEntryDataContext>).GenerateQueryModel(source.Expression), true, /*fieldValuesAsText*/ false, out nextPagingInfo);
                     return items.LastOrDefault();
                 }
             }
+            nextPagingInfo = null;
             return null;
         }
 
         public static string Caml<TEntity>(this IQueryable<TEntity> source, bool disableFormatting = false, bool queryOnly = false)
-      where TEntity : class, IListItemEntity, new()
+            where TEntity : class, IListItemEntity, new()
         {
             Check.NotNull(source, nameof(source));
             if (source is SpEntityQueryable<TEntity, ISpEntryDataContext>)
@@ -323,8 +344,36 @@ namespace SP.Client.Linq
             return null;
         }
 
+        //public static IQueryable<TEntity> Next<TEntity>(this IQueryable<TEntity> source, int count = 0)
+        //     where TEntity : class, IListItemEntity, new()
+        //{
+        //    Check.NotNull(source, nameof(source));
+        //    if (source is SpEntityQueryable<TEntity, ISpEntryDataContext>)
+        //    {
+        //        var executor = (source as SpEntityQueryable<TEntity, ISpEntryDataContext>).GetExecutor();
+        //        if (executor != null)
+        //        {
+        //            var args = (SpQueryArgs<ISpEntryDataContext>)executor.SpQueryArgs.Clone();
+        //            var lastEntity = args.IsPaged && !args.IsPagedPrev ? source.ToArray().LastOrDefault() : source.LastOrDefault();
+        //            if (lastEntity != null)
+        //            {
+        //                args.IsPaged = true;
+        //                args.IsPagedPrev = false;
+        //                var expression = new PagedExpression<ISpEntryDataContext, TEntity>(source.Expression, args, lastEntity, false);
+        //                var provider = new SpEntityQueryable<TEntity>(args).Provider;
+        //                source = new SpEntityQueryable<TEntity>(provider, source.Expression).Concat(new SpEntityQueryable<TEntity>(provider, expression));
+        //                if (count > 0)
+        //                {
+        //                    source = source.Take(count);
+        //                }
+        //            }
+        //        }
+        //    }
+        //    return source;
+        //}
+
         public static IQueryable<TEntity> Next<TEntity>(this IQueryable<TEntity> source, int count = 0)
-             where TEntity : class, IListItemEntity, new()
+            where TEntity : class, IListItemEntity, new()
         {
             Check.NotNull(source, nameof(source));
             if (source is SpEntityQueryable<TEntity, ISpEntryDataContext>)
@@ -333,12 +382,12 @@ namespace SP.Client.Linq
                 if (executor != null)
                 {
                     var args = (SpQueryArgs<ISpEntryDataContext>)executor.SpQueryArgs.Clone();
-                    var lastEntity = args.IsPaged && !args.IsPagedPrev ? source.ToArray().LastOrDefault() : source.LastOrDefault();
-                    if (lastEntity != null)
+                    var lastItem = args.IsPaged && !args.IsPagedPrev ? source.ToListItems().LastOrDefault() : source.LastListItem();
+                    if (lastItem != null)
                     {
                         args.IsPaged = true;
                         args.IsPagedPrev = false;
-                        var expression = new PagedExpression<ISpEntryDataContext, TEntity>(source.Expression, lastEntity, false);
+                        var expression = new PagedExpression<ISpEntryDataContext>(source.Expression, args, lastItem, false);
                         var provider = new SpEntityQueryable<TEntity>(args).Provider;
                         source = new SpEntityQueryable<TEntity>(provider, source.Expression).Concat(new SpEntityQueryable<TEntity>(provider, expression));
                         if (count > 0)
@@ -350,8 +399,37 @@ namespace SP.Client.Linq
             }
             return source;
         }
+
+        //public static IQueryable<TEntity> Previous<TEntity>(this IQueryable<TEntity> source, int count = 0)
+        //   where TEntity : class, IListItemEntity, new()
+        //{
+        //    Check.NotNull(source, nameof(source));
+        //    if (source is SpEntityQueryable<TEntity, ISpEntryDataContext>)
+        //    {
+        //        var executor = (source as SpEntityQueryable<TEntity, ISpEntryDataContext>).GetExecutor();
+        //        if (executor != null)
+        //        {
+        //            var args = (SpQueryArgs<ISpEntryDataContext>)executor.SpQueryArgs.Clone();
+        //            var firstEntity = args.IsPaged && args.IsPagedPrev ? source.ToArray().FirstOrDefault() : source.FirstOrDefault();
+        //            if (firstEntity != null)
+        //            {
+        //                args.IsPaged = true;
+        //                args.IsPagedPrev = true;
+        //                var expression = new PagedExpression<ISpEntryDataContext, TEntity>(source.Expression, args, firstEntity, true);
+        //                var provider = new SpEntityQueryable<TEntity>(args).Provider;
+        //                source = new SpEntityQueryable<TEntity>(provider, source.Expression).Concat(new SpEntityQueryable<TEntity>(provider, expression));
+        //                if (count > 0)
+        //                {
+        //                    source = source.Take(count);
+        //                }
+        //            }
+        //        }
+        //    }
+        //    return source;
+        //}
+
         public static IQueryable<TEntity> Previous<TEntity>(this IQueryable<TEntity> source, int count = 0)
-           where TEntity : class, IListItemEntity, new()
+            where TEntity : class, IListItemEntity, new()
         {
             Check.NotNull(source, nameof(source));
             if (source is SpEntityQueryable<TEntity, ISpEntryDataContext>)
@@ -360,12 +438,12 @@ namespace SP.Client.Linq
                 if (executor != null)
                 {
                     var args = (SpQueryArgs<ISpEntryDataContext>)executor.SpQueryArgs.Clone();
-                    var firstEntity = args.IsPaged && args.IsPagedPrev ? source.ToArray().FirstOrDefault() : source.FirstOrDefault();
-                    if (firstEntity != null)
+                    var firstItem = args.IsPaged && args.IsPagedPrev ? source.ToListItems().FirstOrDefault() : source.FirstListItem();
+                    if (firstItem != null)
                     {
                         args.IsPaged = true;
                         args.IsPagedPrev = true;
-                        var expression = new PagedExpression<ISpEntryDataContext, TEntity>(source.Expression, firstEntity, true);
+                        var expression = new PagedExpression<ISpEntryDataContext>(source.Expression, args, firstItem, true);
                         var provider = new SpEntityQueryable<TEntity>(args).Provider;
                         source = new SpEntityQueryable<TEntity>(provider, source.Expression).Concat(new SpEntityQueryable<TEntity>(provider, expression));
                         if (count > 0)
@@ -377,6 +455,7 @@ namespace SP.Client.Linq
             }
             return source;
         }
+
         public static IQueryable<TEntity> Paged<TEntity>(this IQueryable<TEntity> source, string pagingInfo, int count = 0)
             where TEntity : class, IListItemEntity, new()
         {

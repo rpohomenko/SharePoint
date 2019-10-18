@@ -57,9 +57,9 @@ namespace SP.Client.Linq.Query.ExpressionVisitors
             {
                 VisitGroupByClause(fromClause.FromExpression as GroupByExpression<TContext>, queryModel);
             }
-            else if (fromClause.FromExpression is PagedExpression<TContext, TEntity>)
+            else if (fromClause.FromExpression is PagedExpression<TContext/*, TEntity*/>)
             {
-                VisitPagedClause(fromClause.FromExpression as PagedExpression<TContext, TEntity>, queryModel);
+                VisitPagedClause(fromClause.FromExpression as PagedExpression<TContext/*, TEntity*/>, queryModel);
             }
             else
             {
@@ -104,7 +104,7 @@ namespace SP.Client.Linq.Query.ExpressionVisitors
             }
         }
 
-        public virtual void VisitPagedClause(PagedExpression<TContext, TEntity> expression, QueryModel queryModel)
+        public virtual void VisitPagedClause(PagedExpression<TContext/*, TEntity*/> expression, QueryModel queryModel)
         {
             if (_args != null && _spView != null)
             {
@@ -228,9 +228,9 @@ namespace SP.Client.Linq.Query.ExpressionVisitors
                     {
                         this.VisitQueryModel((source as SubQueryExpression).QueryModel);
                     }
-                    else if (source is PagedExpression<TContext, TEntity>)
+                    else if (source is PagedExpression<TContext/*, TEntity*/>)
                     {
-                        VisitPagedClause(source as PagedExpression<TContext, TEntity>, queryModel);
+                        VisitPagedClause(source as PagedExpression<TContext/*, TEntity*/>, queryModel);
                     }
                     else if (source is GroupByExpression<TContext>)
                     {
