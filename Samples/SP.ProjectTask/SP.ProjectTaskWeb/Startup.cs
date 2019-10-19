@@ -10,8 +10,6 @@ using System.Web.Routing;
 using Microsoft.Owin;
 using Owin;
 using SharePoint.Authentication.Owin;
-using Unity;
-using Unity.WebApi;
 
 [assembly: OwinStartup(typeof(SP.ProjectTaskWeb.Startup))]
 
