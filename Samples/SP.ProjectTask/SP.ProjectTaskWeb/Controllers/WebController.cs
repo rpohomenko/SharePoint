@@ -10,7 +10,7 @@ using System.Linq.Dynamic.Core;
 
 namespace SP.ProjectTaskWeb.Controllers
 {
-    [System.Web.Mvc.Authorize]
+    [Authorize]
     [RoutePrefix("api/web")]
     public class WebController : ApiController
     {
