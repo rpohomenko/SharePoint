@@ -109,8 +109,6 @@ namespace SP.Client.Linq.Query
         {
             if (SpQueryArgs == null) return;
 
-            SpQueryArgs.OnExecute?.Invoke();
-
             var spView = new SpView() { Scope = SpQueryArgs.ViewScope };
             if (!string.IsNullOrEmpty(SpQueryArgs.Query))
             {
@@ -163,6 +161,8 @@ namespace SP.Client.Linq.Query
                     }
                 }
             }
+
+            SpQueryArgs.OnBeforeEvent?.Invoke(spView);
         }
 
         public IEnumerable<TResult> ExecuteCollection<TResult>(QueryModel queryModel)
@@ -171,14 +171,14 @@ namespace SP.Client.Linq.Query
             {
                 if (SpQueryArgs == null) return Enumerable.Empty<TResult>();
 
-                VisitQueryModel(queryModel);
+                var spView = GetView(queryModel);
 
                 if (SpQueryArgs.SkipResult)
                 {
                     return Enumerable.Empty<TResult>();
                 }
 
-                var results = _manager.GetEntities(SpView);
+                var results = _manager.GetEntities(spView);
 
                 foreach (var resultOperator in queryModel.ResultOperators)
                 {
@@ -211,6 +211,11 @@ namespace SP.Client.Linq.Query
                 {
                     spView.Query.OrderBy.Add("ID", false);
                 }
+            }
+            if (SpQueryArgs.SkipResult)
+            {
+                pagingInfo = null;
+                return Enumerable.Empty<ListItem>();
             }
             return _manager.GetItems(spView, fieldValuesAsText, out pagingInfo);
         }

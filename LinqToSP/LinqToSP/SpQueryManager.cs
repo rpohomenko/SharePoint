@@ -267,7 +267,7 @@ namespace SP.Client.Linq
                     Debug.WriteLine($"# List: {_args}");
                     Debug.WriteLine($"# Folder Url: {_args.FolderUrl}");
                     Debug.WriteLine($"# Paging Info: {_args.PagingInfo}");
-                    Debug.WriteLine($"# Previous Paging Info: {_args.PrevPagingInfo}");
+                    //Debug.WriteLine($"# Previous Paging Info: {_args.PrevPagingInfo}");
                     Debug.WriteLine("# SP Query:");
                     Debug.Write(spView);
                     Debug.WriteLine("");
@@ -316,22 +316,23 @@ namespace SP.Client.Linq
             var entities = Enumerable.Empty<TEntity>();
             if (_args == null || spView == null) return entities;
 
+            string pagingInfo = null;
             ProcessItems(spView, false, false, (items) =>
             {
                 entities = entities.Concat(ToEntities(items));
-                _args.PrevPagingInfo = _args.PagingInfo;
-                if (!_args.IsPaged)
+
+                if (items.ListItemCollectionPosition != null)
                 {
-                    if (items.ListItemCollectionPosition != null)
-                    {
-                        _args.PagingInfo = items.ListItemCollectionPosition.PagingInfo;
-                    }
-                    else
-                    {
-                        _args.PagingInfo = null;
-                    }
+                    pagingInfo = items.ListItemCollectionPosition.PagingInfo;
                 }
+                else
+                {
+                    pagingInfo = null;
+                }
+                //_args.PrevPagingInfo = _args.PagingInfo;
+                //_args.PagingInfo = pagingInfo;
             });
+            _args.OnAfterEvent?.Invoke(pagingInfo);
             return entities;
         }
 
@@ -351,6 +352,7 @@ namespace SP.Client.Linq
             {
                 pagingInfo = position.PagingInfo;
             }
+            _args.OnAfterEvent?.Invoke(pagingInfo);
             return listItems;
         }
 

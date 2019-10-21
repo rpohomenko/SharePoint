@@ -136,6 +136,24 @@ namespace SP.Client.Linq
             return source;
         }
 
+        public static IQueryable<TEntity> WithEvent<TEntity>(this IQueryable<TEntity> source, Action<Caml.View> onBefore, Action<string> onAfter)
+        where TEntity : class, IListItemEntity, new()
+        {
+            Check.NotNull(source, nameof(source));
+            if (source is SpEntityQueryable<TEntity, ISpEntryDataContext>)
+            {
+                var executor = (source as SpEntityQueryable<TEntity, ISpEntryDataContext>).GetExecutor();
+                if (executor != null)
+                {
+                    var args = (SpQueryArgs<ISpEntryDataContext>)executor.SpQueryArgs.Clone();
+                    args.OnBeforeEvent = onBefore;
+                    args.OnAfterEvent = onAfter;
+                    source = new SpEntityQueryable<TEntity>(new SpEntityQueryable<TEntity>(args).Provider, source.Expression);
+                }
+            }
+            return source;
+        }
+
         public static IEnumerable<SpEntityEntry<TEntity, ISpEntryDataContext>> GetEntries<TEntity>(this IQueryable<TEntity> source)
           where TEntity : class, IListItemEntity, new()
         {
@@ -428,6 +446,12 @@ namespace SP.Client.Linq
         //    return source;
         //}
 
+        public static IQueryable<TEntity> Next<TEntity>(this IQueryable<TEntity> source, int lastItemId, int count = 0)
+            where TEntity : class, IListItemEntity, new()
+        {
+            return Paged(source, lastItemId, false, count);
+        }
+
         public static IQueryable<TEntity> Previous<TEntity>(this IQueryable<TEntity> source, int count = 0)
             where TEntity : class, IListItemEntity, new()
         {
@@ -455,9 +479,46 @@ namespace SP.Client.Linq
             }
             return source;
         }
+        public static IQueryable<TEntity> Previous<TEntity>(this IQueryable<TEntity> source, int firstItemId, int count = 0)
+          where TEntity : class, IListItemEntity, new()
+        {
+            return Paged(source, firstItemId, true, count);
+        }
+
+        internal static IQueryable<TEntity> Paged<TEntity>(this IQueryable<TEntity> source, int itemId, bool isPrev, int count = 0)
+        where TEntity : class, IListItemEntity, new()
+        {
+            Check.NotNull(source, nameof(source));
+            if (source is SpEntityQueryable<TEntity, ISpEntryDataContext>)
+            {
+                var executor = (source as SpEntityQueryable<TEntity, ISpEntryDataContext>).GetExecutor();
+                if (executor != null)
+                {
+                    var args = (SpQueryArgs<ISpEntryDataContext>)executor.SpQueryArgs.Clone();
+                    var lastItem = itemId > 0 ? source.Where(item => item.Id == itemId).FirstListItem() : null;
+                    if (lastItem != null)
+                    {
+                        args.IsPaged = true;
+                        args.IsPagedPrev = isPrev;
+                        var expression = new PagedExpression<ISpEntryDataContext>(source.Expression, args, lastItem, false);
+                        var provider = new SpEntityQueryable<TEntity>(args).Provider;
+                        source = new SpEntityQueryable<TEntity>(provider, source.Expression).Concat(new SpEntityQueryable<TEntity>(provider, expression));
+                        if (count > 0)
+                        {
+                            source = source.Take(count);
+                        }
+                    }
+                    else
+                    {
+                        source = Enumerable.Empty<TEntity>().AsQueryable();
+                    }
+                }
+            }
+            return source;
+        }
 
         public static IQueryable<TEntity> Paged<TEntity>(this IQueryable<TEntity> source, string pagingInfo, int count = 0)
-            where TEntity : class, IListItemEntity, new()
+        where TEntity : class, IListItemEntity, new()
         {
             Check.NotNull(source, nameof(source));
             if (!string.IsNullOrEmpty(pagingInfo))

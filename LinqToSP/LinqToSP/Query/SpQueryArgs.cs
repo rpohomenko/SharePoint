@@ -20,12 +20,14 @@ namespace SP.Client.Linq.Query
         internal bool SkipResult { get; set; }
         internal bool IsAsync { get; set; }
         internal string FolderUrl { get; set; }
-        public Action OnExecute { get; set; }
+
+        public Action<Caml.View> OnBeforeEvent;
+        public Action<string> OnAfterEvent;
 
         internal bool IsPaged { get; set; }
         internal bool IsPagedPrev { get; set; }
 
-        internal string PrevPagingInfo { get; set; }
+        //internal string PrevPagingInfo { get; set; }
 
         internal string PagingInfo { get; set; }
 
