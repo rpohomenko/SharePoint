@@ -7,13 +7,25 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web.Http;
 using System.Linq.Dynamic.Core;
+using System.Configuration;
+using System;
 
 namespace SP.ProjectTaskWeb.Controllers
 {
+#if !DEBUG
     [Authorize]
+#endif
     [RoutePrefix("api/web")]
     public class WebController : ApiController
     {
+        private static readonly string SiteUrl = ConfigurationManager.AppSettings["auth:SPHostUrl"];
+        private static readonly bool _isDev =
+#if DEBUG
+            true;
+#else
+            false;
+#endif
+
         private readonly LowTrustTokenHelper _tokenHelper;
 
         public WebController(LowTrustTokenHelper lowTrustTokenHelper)
@@ -87,7 +99,9 @@ namespace SP.ProjectTaskWeb.Controllers
 
         private TEntity GetItem<TEntity>(int id) where TEntity : ListItemEntity, new()
         {
-            using (ClientContext context = _tokenHelper.CreateClientContext())
+            using (ClientContext context = _isDev
+                ? new Authentication.TokenHelper(_tokenHelper).GetAppOnlyClienContext(SiteUrl) ?? _tokenHelper.CreateClientContext()
+                : _tokenHelper.CreateClientContext())
             {
                 ProjectTaskContext projectTaskContext = new ProjectTaskContext(context);
                 return (id > 0) ? projectTaskContext.List<TEntity>().FirstOrDefault((TEntity item) => item.Id == id) : null;
@@ -96,7 +110,9 @@ namespace SP.ProjectTaskWeb.Controllers
 
         private IEnumerable<TEntity> GetItems<TEntity>(string where = null, int count = 0, string sortBy = null, bool sortDesc = false) where TEntity : ListItemEntity, new()
         {
-            using (ClientContext context = _tokenHelper.CreateClientContext())
+            using (ClientContext context = _isDev
+                ? new Authentication.TokenHelper(_tokenHelper).GetAppOnlyClienContext(SiteUrl) ?? _tokenHelper.CreateClientContext()
+                : _tokenHelper.CreateClientContext())
             {
                 ProjectTaskContext projectTaskContext = new ProjectTaskContext(context);
                 IQueryable<TEntity> source = projectTaskContext.List<TEntity>();

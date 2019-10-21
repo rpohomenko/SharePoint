@@ -8,7 +8,7 @@ Open **Visual Studio Code** and open the folder with **SP.ProjectTaskWeb** proje
 
 `cd scripts/sp-react`
 
-`npm install @babel/core @babel/plugin-proposal-class-properties @babel/preset-typescript @babel/preset-env @babel/preset-react babel-loader webpack webpack-cli react react-dom`
+`npm install --save-dev @babel/core @babel/plugin-proposal-class-properties @babel/preset-typescript @babel/preset-env @babel/preset-react babel-loader source-map-loader webpack webpack-cli react react-dom`
 
 `npm run build` - to pack into dist/main.bundle.js
 

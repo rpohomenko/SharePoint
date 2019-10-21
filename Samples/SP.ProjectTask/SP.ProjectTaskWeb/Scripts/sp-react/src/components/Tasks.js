@@ -7,7 +7,7 @@ export class TaskList extends React.Component {
         super(props);
     
         this._items = [];
-    
+     //debugger;
         const columns/*: IColumn[]*/ = [         
           {
             key: 'Title',
@@ -37,7 +37,10 @@ export class TaskList extends React.Component {
     
         this.state = {
           items: this._items,
-          columns: columns
+          columns: columns,
+          count: 30,
+          nextPageToken: null,
+          isLoading: false
         };
       }
 
@@ -69,6 +72,38 @@ export class TaskList extends React.Component {
         // });
       };
 
+      _loadItems(){
+        let { isLoading, count, nextPageToken } = this.state;  
+        let url = `https://localhost:44318/api/web/tasks?count=${count}}`;
+        this.setState({ isLoading: true });
+        
+        fetch(url).then(
+          response => response.json()).then(json => {
+          let items = json;
+          this.setState({ 
+            items,
+            //nextPageToken: json.data._nextPageToken,
+            isLoading: false
+          });
+           this._selection.setItems(items);
+        }, (reason) => {
+           debugger;
+        });
+       }
+       
+      _onRenderMissingItem(){ 
+
+      }
+
+      componentDidMount() {
+          this._loadItems();
+      }
+    
+      componentWillUnmount() {
+    
+      }
+    
+
       /*public*/ render() {
         const { columns, items } = this.state;
     
@@ -84,6 +119,7 @@ export class TaskList extends React.Component {
                 layoutMode={DetailsListLayoutMode.justified}
                 isHeaderVisible={true}
                 onItemInvoked={this._onItemInvoked}
+                onRenderMissingItem={ () => this._onRenderMissingItem() }
               />          
           </Fabric>
         );
