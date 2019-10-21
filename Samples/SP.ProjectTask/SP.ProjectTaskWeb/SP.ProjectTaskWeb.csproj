@@ -341,8 +341,10 @@
     <Content Include="Scripts\popper.js" />
     <Content Include="Scripts\popper.min.js" />
     <Content Include="Scripts\sp-react\dist\main.bundle.js" />
+    <Content Include="Scripts\sp-react\src\App.js" />
+    <Content Include="Scripts\sp-react\src\components\Tasks.js" />
     <Content Include="Scripts\sp-react\src\index.html" />
-    <Content Include="Scripts\sp-react\src\index.jsx" />
+    <Content Include="Scripts\sp-react\src\index.js" />
     <Content Include="Scripts\sp-react\webpack.config.js" />
     <Content Include="Scripts\spcontext.js" />
     <Content Include="Scripts\umd\popper-utils.js" />
