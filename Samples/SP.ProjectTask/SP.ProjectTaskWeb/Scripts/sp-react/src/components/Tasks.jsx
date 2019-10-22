@@ -3,12 +3,12 @@ import { Fabric } from 'office-ui-fabric-react/lib/Fabric';
 import { DetailsList, DetailsListLayoutMode, Selection, SelectionMode, IColumn } from 'office-ui-fabric-react/lib/DetailsList';
 
 export class TaskList extends React.Component {
-    constructor(props/*: {}*/) {
+    constructor(props) {
         super(props);
     
         this._items = [];
-     //debugger;
-        const columns/*: IColumn[]*/ = [         
+     
+        const columns = [         
           {
             key: 'Title',
             name: 'Title',
@@ -44,19 +44,19 @@ export class TaskList extends React.Component {
         };
       }
 
-      /*private*/ _getKey(item/*: any*/, index/*?: number*/)/*: string*/ {
+      _getKey(item, index) {
         return item.key;
       }
 
-      /*private*/ _onItemInvoked(item/*: any*/)/*: void*/ {
+      _onItemInvoked(item) {
         alert(`Item invoked: ${item.name}`);
       }
 
-      /*private*/ _onColumnClick = (ev/*: React.MouseEvent<HTMLElement>*/, column/*: IColumn*/)/*: void*/ => {
+      _onColumnClick = (ev, column) => {
         const { columns, items } = this.state;
-        const newColumns/*: IColumn[]*/ = columns.slice();
-        const currColumn/*: IColumn*/ = newColumns.filter(currCol => column.key === currCol.key)[0];
-        newColumns.forEach((newCol/*: IColumn*/) => {
+        const newColumns = columns.slice();
+        const currColumn = newColumns.filter(currCol => column.key === currCol.key)[0];
+        newColumns.forEach((newCol) => {
           if (newCol === currColumn) {
             currColumn.isSortedDescending = !currColumn.isSortedDescending;
             currColumn.isSorted = true;           

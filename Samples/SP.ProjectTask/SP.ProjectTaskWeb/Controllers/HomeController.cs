@@ -1,5 +1,7 @@
-﻿using SharePoint.Authentication;
+﻿using Microsoft.SharePoint.Client;
+using SharePoint.Authentication;
 using SharePoint.Authentication.Owin.Extensions;
+using SP.ProjectTaskWeb.Models;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 
@@ -16,19 +18,23 @@ namespace SP.ProjectTaskWeb.Controllers
 
     public async Task<ActionResult> Index()
     {
-      using (var context = _lowTrustTokenHelper.CreateClientContext())
+      using (ClientContext context = new Authentication.LowTrustTokenHelper(_lowTrustTokenHelper).GetUserClientContext())
       {
         var web = context.Web;
         var user = context.Web.CurrentUser;
-
-        context.Load(web, w => w.Title, w => w.Url);
-        context.Load(user, u => u.Title);
-
+        Site site = context.Site;
+        context.Load(site);
+        context.Load(web);
+        context.Load(user);
+        context.Load(web, w => w.EffectiveBasePermissions);
+        context.Load(web.RegionalSettings);
+        context.Load(web.RegionalSettings.TimeZone);
         await context.ExecuteQueryAsync();
 
-        ViewBag.SPSiteName = web.Title;
-        ViewBag.UserName = user.Title;
-        ViewBag.SPHostUrl = web.Url;
+        ViewBag.User = new SPUserInformation(user);
+        ViewBag.FormDigest = context.GetFormDigestDirect().DigestValue;
+        SPPageContextInfo pageContextInfo = new SPPageContextInfo(site, web, false);
+        ViewBag.PageContextInfo = pageContextInfo;
       }
 
       return View();

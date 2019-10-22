@@ -27,6 +27,8 @@ namespace SP.ProjectTaskWeb
 
       bundles.Add(new ScriptBundle("~/bundles/main").Include(
                         "~/Scripts/sp-react/dist/main.bundle.js"));
+      bundles.Add(new ScriptBundle("~/bundles/vendor").Include(
+                       "~/Scripts/sp-react/dist/vendor.bundle.js"));
 
       bundles.Add(new StyleBundle("~/Content/css").Include(
                       "~/Content/bootstrap.css",

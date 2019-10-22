@@ -5,11 +5,19 @@
     "tasks": [
       {
         "type": "npm",
-        "label": "webpack: dev server",
+        "label": "run start webpack",
         "script": "start", 
         "options": {
             "cwd": "${workspaceFolder}/scripts/sp-react"
-    },    
+        },    
+      },
+      {
+        "type": "npm",
+        "label": "run build webpack",
+        "script": "build", 
+        "options": {
+            "cwd": "${workspaceFolder}/scripts/sp-react"
+        },    
       }
     ]
   }

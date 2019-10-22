@@ -8,12 +8,18 @@
     @Scripts.Render("~/bundles/modernizr")
 </head>
 <body>
-
+    @if (ViewBag.PageContextInfo != null)
+    {
+        <script type="text/javascript">
+                window._spPageContextInfo = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.PageContextInfo));
+        </script>
+    }
     @RenderBody()
 
     @Scripts.Render("~/bundles/jquery")
     @Scripts.Render("~/bundles/bootstrap")
     @Scripts.Render("~/bundles/spcontext")
+    @Scripts.Render("~/bundles/vendor")
     @Scripts.Render("~/bundles/main")
     @RenderSection("scripts", required: false)
 </body>
