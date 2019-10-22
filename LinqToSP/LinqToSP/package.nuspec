@@ -4,7 +4,7 @@
     <!--*-->
     <id>LinqToSP.o365</id>
     <!--*-->
-    <version>1.0.8</version>
+    <version>1.0.9</version>
     <title>Linq To SharePoint (o365) Framework</title>
     <!--*-->
     <authors>Ruslan Pakhomenka</authors>
@@ -16,7 +16,7 @@
     <!--*-->
     <description>Linq To SharePoint (o365) Framework.</description>
     <!--*-->
-    <releaseNotes>-bug fixes</releaseNotes>
+    <releaseNotes>-paging</releaseNotes>
     <copyright>Copyright ©  2019</copyright>
     <tags>
             Linq,SharePoint

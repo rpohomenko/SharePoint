@@ -13,5 +13,6 @@ Open **Visual Studio Code** and open the folder with **SP.ProjectTaskWeb** proje
 `npm install react react-dom office-ui-fabric-react`
 
 `npm run build` - to pack into ./dist
+`npm run build:min` - to minimize into ./dist
 
 `npm start` - run dev server

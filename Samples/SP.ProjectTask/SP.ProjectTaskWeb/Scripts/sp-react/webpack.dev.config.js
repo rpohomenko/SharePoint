@@ -7,7 +7,7 @@ module.exports = {
         react: ['react', 'react-dom', 'office-ui-fabric-react'],
     },
     output: {
-        filename: '[name].bundle.js',
+        filename: '[name].js',
     },
     module: {
         rules: [{
@@ -25,11 +25,11 @@ module.exports = {
         })
     ],
     watch: true,
-    //devtool: 'source-map',
-    devtool: 'cheap-source-map',
+    devtool: 'source-map',
+    //devtool: 'cheap-source-map',
     devServer: {
         historyApiFallback: true,
         port: 3000,
-        hot: true,
+        hot: true
     }
 };

@@ -8,7 +8,7 @@ module.exports = {
         main: [path.resolve(__dirname, 'src/index.jsx')],
     },
     output: {
-        filename: '[name].bundle.js',
+        filename: '[name].bundle.min.js',
     },
     module: {
         rules: [{
@@ -22,10 +22,12 @@ module.exports = {
     plugins: [
         new webpack.ProgressPlugin(),
         new HtmlWebPackPlugin({
-            template: path.resolve(__dirname, './src/index.html')
+            template: path.resolve(__dirname, './src/index.html'),
+            filename: "index.min.html"
         })
     ],
-    devtool: 'source-map',
+    //devtool: 'source-map',
+    devtool: false,
     optimization: {
         splitChunks: {
             cacheGroups: {
@@ -36,6 +38,19 @@ module.exports = {
                 }
             }
         },
-        minimize: false
+        minimizer: [
+            new TerserPlugin({
+                include: /\.min\.js$/,
+                cache: true,
+                parallel: true,
+                sourceMap: true,
+                terserOptions: {
+                    output: {
+                        comments: false,
+                        ie8: false
+                    }
+                }
+            }),
+        ],
     }
 };

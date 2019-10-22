@@ -12,7 +12,7 @@ namespace SP.ProjectTaskWeb
 
             config.Formatters.JsonFormatter.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
             config.Formatters.JsonFormatter.SerializerSettings.Converters.Add(new StringEnumConverter() { NamingStrategy = new CamelCaseNamingStrategy() });
-            config.Formatters.JsonFormatter.UseDataContractJsonSerializer = false;
+            config.Formatters.JsonFormatter.UseDataContractJsonSerializer = true;
 
 #if DEBUG
             config.IncludeErrorDetailPolicy = IncludeErrorDetailPolicy.Always;
