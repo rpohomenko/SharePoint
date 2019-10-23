@@ -8,11 +8,14 @@
           "name": "Run",
             "type": "chrome",
             "request": "launch",         
-          "webRoot": "${workspaceRoot}/scripts/sp-react",        
+          "webRoot": "${workspaceFolder}/scripts/sp-react",
+          "url":"http://localhost:3000",         
+          "preLaunchTask": "run start webpack",         
           "sourceMaps": true,
-          "url":"http://localhost:3000",
-          "port":9222,
-          "preLaunchTask": "run start webpack"          
+          "smartStep": true,
+          "sourceMapPathOverrides": {
+            "webpack:///*": "${webRoot}/*"
+          }
         }              
       ]
     }

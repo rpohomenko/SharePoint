@@ -35,25 +35,20 @@ namespace LinqToSP.Test
 
                 using (var ctx = new SpDataContext(clientContext))
                 {
-                    //Deploy(ctx, true);
+                    Deploy(ctx, true);
 
-                    //ImportData(ctx, false);
+                    ImportData(ctx, false);
 
                     var departments = ctx.List<Department>().Where(i => i.Id > 0).ToArray();
 
-                    var departments1 = ctx.List<Department>().Where(i => i.Id > 0).ToListItems();
-                    var employees = ctx.List<Employee>().Where(i => i.Id < 10);
-                    var employees1 = employees.FirstListItem();
-                    var employees2 = employees.Take(2).LastListItem();
+                    var employees = departments.First().Employees.ToArray();
 
-                    //var employees = departments.First().Employees.ToArray();
+                    if (!employees.Any())
+                    {
+                        employees = ctx.List<Employee>().ToArray();
+                    }
 
-                    //if (!employees.Any())
-                    //{
-                    //    employees = ctx.List<Employee>().ToArray();
-                    //}
-
-                    //var managers = employees.First().Managers;
+                    var managers = employees.First().Managers;
 
                     Debugger.Break();
                     Console.ForegroundColor = ConsoleColor.Green;
@@ -68,7 +63,7 @@ namespace LinqToSP.Test
         private static void Deploy(SpDataContext spContext, bool overwrite)
         {
             Console.WriteLine("Deploying...");
-            var model = spContext.CreateModel<EmployeeProvisionModel<SpDataContext>, SpDataContext, Employee>();
+            var model = new EmployeeProvisionModel<SpDataContext>(spContext);
             //if (overwrite)
             {
                 model.UnProvision(false, ProvisionLevel.Web);
@@ -128,6 +123,20 @@ namespace LinqToSP.Test
             var entry = spContext.List<Employee>().AddOrUpdate(specialist, 2, true);
 
             spContext.SaveChanges();
+
+            //for (var i = 100; i < 200; i++)
+            //{
+            //    spContext.List<Employee>().AddOrUpdate(new Employee()
+            //    {
+            //        FirstName = "Emma" + i,
+            //        LastName = "Stone" + i,
+            //        Phone = "8-1111-999-" + i,
+            //        Email = "emma.stone@people.com",
+            //        Position = EmployeePosition.Specialist | EmployeePosition.Manager
+            //    });
+            //}
+            //spContext.SaveChanges();
+
         }
 
         private static SecureString GetPassword()

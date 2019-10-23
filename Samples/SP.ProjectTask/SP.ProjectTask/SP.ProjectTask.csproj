@@ -71,6 +71,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="app.config" />
     <None Include="Features\Feature1\Feature1.feature">
       <FeatureId>{47c6a1fe-2a33-4808-98ee-4d2bfac50ac6}</FeatureId>
     </None>
