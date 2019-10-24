@@ -1,2 +1,56 @@
-
 @import "office-ui-fabric-react/dist/sass/Fabric.scss";
+.app {
+    min-height: 100vh;
+}
+
+.app {
+    display: flex;
+    flex-direction: column;
+}
+
+.app.body {
+    display: flex;
+    flex-direction: row;
+}
+
+.body .sidebar {
+    order: -1;
+    max-width: 12em;
+    flex-grow: 0;
+    /* Defined the ability to groe */
+    flex-shrink: 0;
+    /* Defines the ability to shrink */
+    flex-basis: 12em;
+    /* Default value of the element before distribuing the remaing space */
+}
+
+.app.header,
+.app.footer {
+    height: 4em;
+}
+
+.navBar {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    padding: 0 0.5em;
+    color: white;
+    background-color: #141127;
+    justify-content: space-between;
+    .searchbox {
+        width: 20em;
+        .ms-SearchBox {
+            margin-bottom: 0;
+            background-color: white;
+        }
+    }
+}
+
+.body .container {
+    padding: 1em;
+}
+
+.body .ms-Breadcrumb {
+    margin-top: 0;
+    margin-bottom: 1em;
+}

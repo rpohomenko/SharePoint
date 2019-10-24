@@ -41,6 +41,7 @@ export class TaskList extends React.Component {
     });
 
     this._onRenderMissingItem = this._onRenderMissingItem.bind(this)
+    this.__onNewItem = this._onNewItem.bind(this);
 
     this.state = {
       items: [],
@@ -87,7 +88,7 @@ export class TaskList extends React.Component {
       const { columns, items } = this.state;
       const newColumns = columns.slice();
       const currColumn = newColumns.filter(currCol => column.key === currCol.key)[0];
-        newColumns.forEach((newCol) => {
+      newColumns.forEach((newCol) => {
         if (newCol === currColumn) {
           currColumn.isSortedDescending = column.isSortedDescending;
           currColumn.isSorted = true;
@@ -130,42 +131,42 @@ export class TaskList extends React.Component {
       nextPageToken: nextPageToken
     });
     let controller = new AbortController();
-    const promise = this._service.getTasks(count, nextPageToken, sortBy, sortDesc, filter,{signal: controller.signal});
-    
+    const promise = this._service.getTasks(count, nextPageToken, sortBy, sortDesc, filter, { signal: controller.signal });
+
     this._controllers.push({ controller: controller, promise: promise });
     promise.then(response => response.json())
       .catch((error) => {
-        if(error.code !== 20){ //aborted
-        alert(error);
+        if (error.code !== 20) { //aborted
+          alert(error);
         }
       })
       .then((json) => {
         let { nextPageToken, items } = this.state;
-        if(json){
-        let newItems = json.items;
-        if (items && items.length > 0 && nextPageToken) {
-          newItems = items.slice(0, items.length - 1).concat(newItems);
+        if (json) {
+          let newItems = json.items;
+          if (items && items.length > 0 && nextPageToken) {
+            newItems = items.slice(0, items.length - 1).concat(newItems);
+          }
+          if (newItems && json._nextPageToken) {
+            newItems.push(null);
+          }
+          if (this._aborted === true) return;
+          if (this._controllers.filter(c => c.controller == controller) === 0) return;
+          if (!newItems) {
+            newItems = [];
+          }
+          this.setState({
+            items: newItems,
+            nextPageToken: json._nextPageToken,
+            isLoading: false
+          });
+          this._selection.setItems(newItems);
         }
-        if (newItems && json._nextPageToken) {
-          newItems.push(null);
-        }
-        if (this._aborted === true) return;
-        if (this._controllers.filter(c => c.controller == controller) === 0) return;
-        if (!newItems) {
-          newItems = [];
-        }
-        this.setState({
-          items: newItems,
-          nextPageToken: json._nextPageToken,
-          isLoading: false
-        });
-        this._selection.setItems(newItems);
-        }
-        this._controllers = this._controllers.filter(c => c.controller !== controller);    
+        this._controllers = this._controllers.filter(c => c.controller !== controller);
       })
       .catch((error) => {
         alert(error);
-      });   
+      });
   }
 
   _onRenderMissingItem = (index) => {
@@ -231,12 +232,31 @@ export class TaskList extends React.Component {
 
   }
 
+  _onNewItem = (sender, e) => {
+ alert('new item clicked!');
+  }
+
+  _getCommandItems = () => {
+    return [
+      {
+        key: 'newItem',
+        name: 'New',
+        onClick: (e, sender)=> this._onNewItem(sender, e),
+        iconProps: {
+          iconName: 'Add'
+        },
+        ariaLabel: 'New'
+      }]
+  }
 
   render() {
     const { columns, items, contextualMenuProps } = this.state;
 
     return (
-      <Fabric>
+      <div>
+        <CommandBar       
+          items={this._getCommandItems()}
+        />
         <DetailsList
           items={items}
           compact={false}
@@ -250,13 +270,13 @@ export class TaskList extends React.Component {
           onRenderMissingItem={this._onRenderMissingItem}
         />
         {contextualMenuProps && <ContextualMenu {...contextualMenuProps} />}
-      </Fabric>
+      </div>
     );
   }
 }
 
-const Tasks = () => {
-  return (<TaskList></TaskList>);
+const Tasks = (props) => {
+  return (<TaskList service={props.service}></TaskList>);
 };
 
 export default Tasks;
