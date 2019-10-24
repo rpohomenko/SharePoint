@@ -33,13 +33,15 @@ namespace SP.ProjectTaskWeb
                   "~/Scripts/spcontext.js"));
 
       bundles.Add(new ScriptBundle("~/bundles/main").Include(
-                        $"~/Scripts/sp-react/dist/main.bundle{min}.js"));
+                        $"~/Scripts/sp-react/dist/js/main.bundle{min}.js"));
       bundles.Add(new ScriptBundle("~/bundles/vendor").Include(
-                       $"~/Scripts/sp-react/dist/vendor.bundle{min}.js"));
+                       $"~/Scripts/sp-react/dist/js/vendor.bundle{min}.js"));
 
       bundles.Add(new StyleBundle("~/Content/css").Include(
                       $"~/Content/bootstrap{min}.css",
+                      $"~/Scripts/sp-react/dist/css/main{min}.css",
                       "~/Content/site.css"));
+     
     }
   }
 }

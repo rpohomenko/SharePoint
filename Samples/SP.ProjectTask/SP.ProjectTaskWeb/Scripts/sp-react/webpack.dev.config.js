@@ -1,19 +1,19 @@
+const webpack = require("webpack");
+const path = require('path');
+
 const HtmlWebPackPlugin = require("html-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 
-const webpack = require("webpack");
-const path = require('path');
 module.exports = {
     entry: {
         main: [path.resolve(__dirname, 'src/index.jsx')],
-        react: ['react', 'react-dom', 'office-ui-fabric-react']       
+        react: ['react', 'react-dom', 'office-ui-fabric-react']
     },
     output: {
         filename: '[name].js',
     },
     module: {
-        rules: [
-            {
+        rules: [{
                 test: /\.(js|jsx)$/,
                 exclude: /node_modules/,
                 use: {
@@ -21,9 +21,13 @@ module.exports = {
                 }
             },
             {
+                test: /\.css$/,
+                include: /node_modules/,
+                use: ['style-loader', 'css-loader']
+            },
+            {
                 test: /\.(sa|sc|c)ss$/,
-                use: [
-                    {
+                use: [{
                         loader: MiniCssExtractPlugin.loader,
                         options: {
                             hmr: process.env.NODE_ENV === 'development',

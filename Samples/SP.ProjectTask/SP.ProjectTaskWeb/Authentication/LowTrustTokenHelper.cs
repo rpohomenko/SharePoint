@@ -8,7 +8,7 @@ namespace SP.ProjectTaskWeb.Authentication
   internal class LowTrustTokenHelper
   {
     private readonly SharePoint.Authentication.LowTrustTokenHelper _tokenHelper;
-    private static readonly string SPHostUrl = ConfigurationManager.AppSettings["auth:SPHostUrl"];
+    private static readonly string SPHostUrl = ConfigurationManager.AppSettings["app:SPHostUrl"];
 
     public LowTrustTokenHelper(SharePoint.Authentication.LowTrustTokenHelper tokenHelper)
     {

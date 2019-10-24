@@ -1,49 +1,53 @@
 const HtmlWebPackPlugin = require("html-webpack-plugin");
-const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 //const CleanWebpackPlugin = require("clean-webpack-plugin");
 const TerserPlugin = require('terser-webpack-plugin');
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const webpack = require("webpack");
 const path = require('path');
 module.exports = {
     entry: {
-        main: [path.resolve(__dirname, 'src/index.jsx')]      
+        main: [path.resolve(__dirname, 'src/index.jsx')]
     },
     output: {
-        filename: '[name].bundle.min.js',
+        filename: 'js/[name].bundle.min.js',
     },
     module: {
         rules: [{
-            test: /\.(js|jsx)$/,
-            exclude: /node_modules/,
-            use: {
-                loader: "babel-loader"
-            }
-        },
-        {
-            test: /\.(sa|sc|c)ss$/,
-            use: [
-                {
-                    loader: MiniCssExtractPlugin.loader,
-                    options: {
-                        hmr: process.env.NODE_ENV === 'development',
+                test: /\.(js|jsx)$/,
+                exclude: /node_modules/,
+                use: {
+                    loader: "babel-loader"
+                }
+            },
+            {
+                test: /\.css$/,
+                include: /node_modules/,
+                use: ['style-loader', 'css-loader']
+            },
+            {
+                test: /\.(sa|sc|c)ss$/,
+                use: [{
+                        loader: MiniCssExtractPlugin.loader,
+                        options: {
+                            hmr: process.env.NODE_ENV === 'development',
+                        },
                     },
-                },
-                'css-loader',
-                'postcss-loader',
-                'sass-loader',
-            ],
-        }
+                    'css-loader',
+                    //'postcss-loader',
+                    'sass-loader',
+                ],
+            }
         ]
     },
     plugins: [
         new webpack.ProgressPlugin(),
         new MiniCssExtractPlugin({
-            filename: "main.min.css",
-            chunkFilename: "main.[id].min.css"
+            filename: "css/main.min.css",
+            chunkFilename: "css/main.[id].min.css"
         }),
         new HtmlWebPackPlugin({
             template: path.resolve(__dirname, './src/index.html'),
-            filename: "index.min.html"
+            filename: "index.html"
         })
     ],
     //devtool: 'source-map',

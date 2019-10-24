@@ -6,15 +6,13 @@ const webpack = require("webpack");
 const path = require('path');
 module.exports = {
     entry: {
-        main: [path.resolve(__dirname, 'src/index.jsx')],
-        //"main.css": path.resolve(__dirname,'./src/assets/scss/main.scss') //styles
+        main: [path.resolve(__dirname, 'src/index.jsx')]
     },
     output: {
-        filename: '[name].bundle.js',
+        filename: 'js/[name].bundle.js',
     },
     module: {
-        rules: [
-            {
+        rules: [{
                 test: /\.(js|jsx)$/,
                 exclude: /node_modules/,
                 use: {
@@ -22,9 +20,13 @@ module.exports = {
                 }
             },
             {
+                test: /\.css$/,
+                include: /node_modules/,
+                use: ['style-loader', 'css-loader']
+            },
+            {
                 test: /\.(sa|sc|c)ss$/,
-                use: [
-                    {
+                use: [{
                         loader: MiniCssExtractPlugin.loader,
                         options: {
                             hmr: process.env.NODE_ENV === 'development',
@@ -32,7 +34,12 @@ module.exports = {
                     },
                     'css-loader',
                     //'postcss-loader',
-                    'sass-loader',
+                    {
+                        loader: "sass-loader",
+                        options: {
+                            sourceMap: true
+                        }
+                    }
                 ],
             }
         ]
@@ -43,12 +50,13 @@ module.exports = {
     plugins: [
         new webpack.ProgressPlugin(),
         new MiniCssExtractPlugin({
-        
+
             filename: "css/main.css",
             chunkFilename: "css/main.[id].css"
         }),
         new HtmlWebPackPlugin({
-            template: path.resolve(__dirname, './src/index.html')
+            template: path.resolve(__dirname, './src/index.html'),
+            filename: "test.html"
         })
     ],
     devtool: 'source-map',

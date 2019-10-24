@@ -2,7 +2,9 @@ import React from "react";
 import ReactDOM from "react-dom";
 import App from './App.jsx';
 
-import "office-ui-fabric-react/dist/sass/Fabric.scss";
+import "./assets/scss/main.scss";
+import { initializeIcons } from '@uifabric/icons';
+
+initializeIcons(undefined, { disableWarnings: true });
 
 ReactDOM.render(<App />, document.querySelector("#app-container"));
-//module.hot.accept();

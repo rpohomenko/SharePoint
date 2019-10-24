@@ -354,10 +354,12 @@
     <Content Include="Scripts\popper-utils.min.js" />
     <Content Include="Scripts\popper.js" />
     <Content Include="Scripts\popper.min.js" />
-    <Content Include="Scripts\sp-react\dist\main.bundle.js" />
-    <Content Include="Scripts\sp-react\dist\main.bundle.min.js" />
-    <Content Include="Scripts\sp-react\dist\vendor.bundle.js" />
-    <Content Include="Scripts\sp-react\dist\vendor.bundle.min.js" />
+    <Content Include="Scripts\sp-react\dist\css\main.css" />
+    <Content Include="Scripts\sp-react\dist\css\main.min.css" />
+    <Content Include="Scripts\sp-react\dist\js\main.bundle.js" />
+    <Content Include="Scripts\sp-react\dist\js\main.bundle.min.js" />
+    <Content Include="Scripts\sp-react\dist\js\vendor.bundle.js" />
+    <Content Include="Scripts\sp-react\dist\js\vendor.bundle.min.js" />
     <Content Include="Scripts\sp-react\src\App.jsx" />
     <Content Include="Scripts\sp-react\src\components\Tasks.jsx" />
     <Content Include="Scripts\sp-react\src\Constants.js" />
@@ -395,8 +397,9 @@
     <Content Include="Scripts\popper.js.map" />
     <Content Include="Scripts\popper-utils.min.js.map" />
     <Content Include="Scripts\popper-utils.js.map" />
-    <Content Include="Scripts\sp-react\dist\main.bundle.js.map" />
-    <Content Include="Scripts\sp-react\dist\vendor.bundle.js.map" />
+    <Content Include="Scripts\sp-react\dist\css\main.css.map" />
+    <Content Include="Scripts\sp-react\dist\js\main.bundle.js.map" />
+    <Content Include="Scripts\sp-react\dist\js\vendor.bundle.js.map" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

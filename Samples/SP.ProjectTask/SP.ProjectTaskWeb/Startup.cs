@@ -51,8 +51,8 @@ namespace SP.ProjectTaskWeb
             var sharePointAuthenticationOptions = new SharePointAuthenticationOptions()
             {
                 DependencyResolver = dependencyResolver,
-                TokenCacheDurationInMinutes = ConfigurationManager.AppSettings["auth:TokenCacheDurationInMinutes"] == null
-                ? 10 : Convert.ToInt32(ConfigurationManager.AppSettings["auth:TokenCacheDurationInMinutes"]),
+                TokenCacheDurationInMinutes = ConfigurationManager.AppSettings["app:TokenCacheDurationInMinutes"] == null
+                ? 10 : Convert.ToInt32(ConfigurationManager.AppSettings["app:TokenCacheDurationInMinutes"]),
                 AllowNonBrowserRequests = false,
                 InjectCredentialsForHighTrust = true,
                 ValidateIssuer = true,

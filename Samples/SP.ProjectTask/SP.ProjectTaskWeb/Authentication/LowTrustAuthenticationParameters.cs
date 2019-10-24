@@ -13,10 +13,10 @@ namespace SP.ProjectTaskWeb.Authentication
 
     public LowTrustAuthenticationParameters()
     {
-      ClientId = ConfigurationManager.AppSettings["auth:LowTrustClientId"];
-      ClientSecret = ConfigurationManager.AppSettings["auth:LowTrustClientSecret"];
-      CacheSessionDurationInMinutes = ConfigurationManager.AppSettings["auth:TokenCacheDurationInMinutes"] == null ? 10
-        : Convert.ToInt32(ConfigurationManager.AppSettings["auth:CacheSessionDurationInMinutes"]);
+      ClientId = ConfigurationManager.AppSettings["app:LowTrustClientId"];
+      ClientSecret = ConfigurationManager.AppSettings["app:LowTrustClientSecret"];
+      CacheSessionDurationInMinutes = ConfigurationManager.AppSettings["app:TokenCacheDurationInMinutes"] == null ? 10
+        : Convert.ToInt32(ConfigurationManager.AppSettings["app:CacheSessionDurationInMinutes"]);
     }
   }
 }
