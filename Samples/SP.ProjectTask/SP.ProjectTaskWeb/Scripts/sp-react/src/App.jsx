@@ -1,8 +1,10 @@
 import React from "react";
-import Tasks from './components/Tasks.jsx';
+import {TaskList} from './components/Tasks.jsx';
+import { AppService } from "./services/AppService";
 
 const App = () => {
-    return <div><Tasks></Tasks></div > ;
+    const service = new AppService();
+    return <div><TaskList service={service}></TaskList></div > ;
 };
 
 export default App;

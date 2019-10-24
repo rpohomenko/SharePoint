@@ -12,7 +12,7 @@ export class TaskList extends React.Component {
 
   constructor(props) {
     super(props);
-
+    this._service = props.service;
     const columns = [
       {
         key: 'Title',
@@ -28,7 +28,7 @@ export class TaskList extends React.Component {
         sortDescendingAriaLabel: 'Z to A',
         onColumnClick: this._onColumnClick,
         data: 'string',
-        //isPadded: true
+        isPadded: true
       }
     ];
 
@@ -125,13 +125,13 @@ export class TaskList extends React.Component {
       nextPageToken = pageToken
     }
 
-    let url = `${Constants.API_PATH}/web/tasks?count=${count}&pagingToken=${encodeURIComponent(nextPageToken || "")}&where=${encodeURIComponent(filter || "")}&sortBy=${encodeURIComponent(sortBy || "")}&sortDesc=${sortDesc || false}`;
     this.setState({
       isLoading: true,
       nextPageToken: nextPageToken
     });
     let controller = new AbortController();
-    const promise = this._getResponse(url, controller);
+    const promise = this._service.getTasks(count, nextPageToken, sortBy, sortDesc, filter,{signal: controller.signal});
+    
     this._controllers.push({ controller: controller, promise: promise });
     promise.then(response => response.json())
       .catch((error) => {
@@ -167,13 +167,6 @@ export class TaskList extends React.Component {
         alert(error);
       });   
   }
-
-  _getResponse = async (url, controller) => {
-    return await fetch(url, {
-      method: 'get',
-      signal: controller.signal
-    });
-  };
 
   _onRenderMissingItem = (index) => {
     let { nextPageToken } = this.state;

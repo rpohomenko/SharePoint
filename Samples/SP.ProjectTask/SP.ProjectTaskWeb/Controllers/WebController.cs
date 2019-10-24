@@ -37,8 +37,7 @@ namespace SP.ProjectTaskWeb.Controllers
     [HttpGet]
     public IHttpActionResult GetProjectTask(int id)
     {
-      ProjectTask item = GetItem<ProjectTask>(id);
-      return Json(item);
+      return GetItemResult<ProjectTask>(id);
     }
 
     [Route("tasks")]
@@ -52,8 +51,7 @@ namespace SP.ProjectTaskWeb.Controllers
     [HttpGet]
     public IHttpActionResult GetProject(int id)
     {
-      Project item = GetItem<Project>(id);
-      return Json(item);
+      return GetItemResult<Project>(id);
     }
 
     [Route("projects")]
@@ -67,8 +65,7 @@ namespace SP.ProjectTaskWeb.Controllers
     [HttpGet]
     public IHttpActionResult GetEmployee(int id)
     {
-      Employee item = GetItem<Employee>(id);
-      return Json(item);
+      return GetItemResult<Employee>(id);
     }
 
     [Route("employees")]
@@ -82,8 +79,7 @@ namespace SP.ProjectTaskWeb.Controllers
     [HttpGet]
     public IHttpActionResult GetDepartment(int id)
     {
-      Department item = GetItem<Department>(id);
-      return Json(item);
+      return GetItemResult<Department>(id);
     }
 
     [Route("departments")]
@@ -93,12 +89,19 @@ namespace SP.ProjectTaskWeb.Controllers
       return GetDataResult<Department>(where, count, sortBy, sortDesc, pagingToken);
     }
 
-    private TEntity GetItem<TEntity>(int id) where TEntity : ListItemEntity, new()
+    private IHttpActionResult GetItemResult<TEntity>(int id) where TEntity : ListItemEntity, new()
     {
-      using (ClientContext context = new Authentication.LowTrustTokenHelper(_tokenHelper).GetUserClientContext())
+      try
       {
-        ProjectTaskContext projectTaskContext = new ProjectTaskContext(context);
-        return (id > 0) ? projectTaskContext.List<TEntity>().FirstOrDefault((TEntity item) => item.Id == id) : null;
+        using (ClientContext context = new Authentication.LowTrustTokenHelper(_tokenHelper).GetUserClientContext())
+        {
+          ProjectTaskContext projectTaskContext = new ProjectTaskContext(context);
+          return Json((id > 0) ? projectTaskContext.List<TEntity>().FirstOrDefault((TEntity item) => item.Id == id) : null);
+        }
+      }
+      catch (Exception ex)
+      {
+        return new JsonErrorResult(ex);
       }
     }
 
@@ -118,7 +121,6 @@ namespace SP.ProjectTaskWeb.Controllers
       {
         return new JsonErrorResult(ex);
       }
-
     }
 
     [Route("deploy")]
