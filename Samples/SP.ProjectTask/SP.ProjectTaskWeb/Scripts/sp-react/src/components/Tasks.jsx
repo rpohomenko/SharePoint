@@ -3,15 +3,12 @@ import { Fabric } from 'office-ui-fabric-react/lib/Fabric';
 import { DetailsList, DetailsListLayoutMode, Selection, SelectionMode, ColumnActionsMode, IColumn } from 'office-ui-fabric-react/lib/DetailsList';
 import { CommandBar } from 'office-ui-fabric-react/lib/CommandBar';
 import { IContextualMenuProps, IContextualMenuItem, DirectionalHint, ContextualMenu } from 'office-ui-fabric-react/lib/ContextualMenu';
-require('../Constants.js');
-
-const SORT_COLUMN_DELAY = 1000;
+import Constants from '../Constants';
 
 export class TaskList extends React.Component {
 
   _controllers = [];
   _timeout;
-
 
   constructor(props) {
     super(props);
@@ -31,7 +28,7 @@ export class TaskList extends React.Component {
         sortDescendingAriaLabel: 'Z to A',
         onColumnClick: this._onColumnClick,
         data: 'string',
-        isPadded: true
+        //isPadded: true
       }
     ];
 
@@ -87,33 +84,33 @@ export class TaskList extends React.Component {
       this._timeout = null;
     }
     this._timeout = setTimeout(() => {
-    const { columns, items } = this.state;
-    const newColumns = columns.slice();
-    const currColumn = newColumns.filter(currCol => column.key === currCol.key)[0];
-    newColumns.forEach((newCol) => {
-      if (newCol === currColumn) {
-        currColumn.isSortedDescending = !currColumn.isSortedDescending;
-        currColumn.isSorted = true;
-      } else {
-        newCol.isSorted = false;
-        newCol.isSortedDescending = true;
-      }
-    });
-
-    this._abort();
-    let _this = this;
-    this._waitAll().then(() => {
-      _this._aborted = false;
-      _this.setState({
-        columns: newColumns,
-        items: [],
-        nextPageToken: null,
-        sortBy: column.name,
-        sortDesc: column.isSortedDescending
+      const { columns, items } = this.state;
+      const newColumns = columns.slice();
+      const currColumn = newColumns.filter(currCol => column.key === currCol.key)[0];
+        newColumns.forEach((newCol) => {
+        if (newCol === currColumn) {
+          currColumn.isSortedDescending = column.isSortedDescending;
+          currColumn.isSorted = true;
+        } else {
+          newCol.isSorted = false;
+          newCol.isSortedDescending = true;
+        }
       });
-      _this._loadItems(column, null);
-    });   
-    }, SORT_COLUMN_DELAY);
+
+      this._abort();
+      let _this = this;
+      this._waitAll().then(() => {
+        _this._aborted = false;
+        _this.setState({
+          columns: newColumns,
+          items: [],
+          nextPageToken: null,
+          sortBy: column.name,
+          sortDesc: column.isSortedDescending
+        });
+        _this._loadItems(column, null);
+      });
+    }, Constants.SORT_COLUMN_DELAY);
   }
 
   _loadItems = (sortColumn = null, pageToken = null) => {
@@ -128,43 +125,55 @@ export class TaskList extends React.Component {
       nextPageToken = pageToken
     }
 
-    let url = `${_apiPath}/web/tasks?count=${count}&pagingToken=${encodeURIComponent(nextPageToken || "")}&where=${encodeURIComponent(filter || "")}&sortBy=${encodeURIComponent(sortBy || "")}&sortDesc=${sortDesc || false}`;
+    let url = `${Constants.API_PATH}/web/tasks?count=${count}&pagingToken=${encodeURIComponent(nextPageToken || "")}&where=${encodeURIComponent(filter || "")}&sortBy=${encodeURIComponent(sortBy || "")}&sortDesc=${sortDesc || false}`;
     this.setState({
       isLoading: true,
       nextPageToken: nextPageToken
     });
     let controller = new AbortController();
-    let _this = this;
-    this._controllers.push({
-      controller: controller, promise: fetch(url, {
-        method: 'get',
-        signal: controller.signal
-      }).then(
-        response => response.json()).then(json => {
-          let { nextPageToken, items } = _this.state;
-          let newItems = json.items;
-          if (items && items.length > 0 && nextPageToken) {
-            newItems = items.slice(0, items.length - 1).concat(newItems);
-          }
-          if (newItems && json._nextPageToken) {
-            newItems.push(null);
-          }
-          if (_this._aborted === true) return;
-          if (_this._controllers.filter(c => c.controller == controller) === 0) return;
-
-          _this.setState({
-            items: newItems,
-            nextPageToken: json._nextPageToken,
-            isLoading: false
-          });
-          this._selection.setItems(newItems);
-        }, (reason) => {
-         
-        }).then(() => {
-          _this._controllers = _this._controllers.filter(c => c.controller !== controller);
-        })
-    });
+    const promise = this._getResponse(url, controller);
+    this._controllers.push({ controller: controller, promise: promise });
+    promise.then(response => response.json())
+      .catch((error) => {
+        if(error.code !== 20){ //aborted
+        alert(error);
+        }
+      })
+      .then((json) => {
+        let { nextPageToken, items } = this.state;
+        if(json){
+        let newItems = json.items;
+        if (items && items.length > 0 && nextPageToken) {
+          newItems = items.slice(0, items.length - 1).concat(newItems);
+        }
+        if (newItems && json._nextPageToken) {
+          newItems.push(null);
+        }
+        if (this._aborted === true) return;
+        if (this._controllers.filter(c => c.controller == controller) === 0) return;
+        if (!newItems) {
+          newItems = [];
+        }
+        this.setState({
+          items: newItems,
+          nextPageToken: json._nextPageToken,
+          isLoading: false
+        });
+        this._selection.setItems(newItems);
+        }
+        this._controllers = this._controllers.filter(c => c.controller !== controller);    
+      })
+      .catch((error) => {
+        alert(error);
+      });   
   }
+
+  _getResponse = async (url, controller) => {
+    return await fetch(url, {
+      method: 'get',
+      signal: controller.signal
+    });
+  };
 
   _onRenderMissingItem = (index) => {
     let { nextPageToken } = this.state;
@@ -173,17 +182,17 @@ export class TaskList extends React.Component {
       this._waitAll().then(() => {
         let { isLoading, nextPageToken } = this.state;
         if (isLoading || !nextPageToken) return;
-        _this._loadItems(null, nextPageToken);
+        this._loadItems(null, nextPageToken);
       });
     }
   }
 
-  _waitAll = () => {
+  _waitAll = async () => {
     let promises = [];
     this._controllers.forEach(c => {
       promises.push(c.promise);
     });
-    return Promise.all(promises);
+    return await Promise.all(promises);
   }
 
   _getContextualMenuProps = (ev, column) => {

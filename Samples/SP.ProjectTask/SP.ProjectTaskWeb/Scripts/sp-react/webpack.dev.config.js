@@ -1,12 +1,12 @@
 const webpack = require("webpack");
 const path = require('path');
-
+require("babel-polyfill");
 const HtmlWebPackPlugin = require("html-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 
 module.exports = {
     entry: {
-        main: [path.resolve(__dirname, 'src/index.jsx')],
+        main: ["babel-polyfill", path.resolve(__dirname, 'src/index.jsx')],
         react: ['react', 'react-dom', 'office-ui-fabric-react']
     },
     output: {

@@ -8,6 +8,14 @@ using System.Linq;
 using System.Web.Http;
 using System.Linq.Dynamic.Core;
 using System.Runtime.Serialization;
+using System;
+using System.Net;
+using System.Web.Http.Results;
+using System.Net.Http;
+using System.Threading.Tasks;
+using System.Threading;
+using System.Text;
+using Newtonsoft.Json;
 
 namespace SP.ProjectTaskWeb.Controllers
 {
@@ -37,9 +45,7 @@ namespace SP.ProjectTaskWeb.Controllers
     [HttpGet]
     public IHttpActionResult GetProjectTasks([FromUri] string where = null, [FromUri] int count = 0, [FromUri] string sortBy = null, [FromUri] bool sortDesc = false, [FromUri] string pagingToken = null)
     {
-      string nextToken;
-      var items = GetItems<ProjectTask>(out nextToken, where, count, sortBy, sortDesc, pagingToken);
-      return Json(new DataResult<ProjectTask>() { Items = items, NextToken = nextToken });
+      return GetDataResult<ProjectTask>(where, count, sortBy, sortDesc, pagingToken);
     }
 
     [Route("projects/{id}")]
@@ -54,9 +60,7 @@ namespace SP.ProjectTaskWeb.Controllers
     [HttpGet]
     public IHttpActionResult GetProjects([FromUri] string where = null, [FromUri] int count = 0, [FromUri] string sortBy = null, [FromUri] bool sortDesc = false, [FromUri] string pagingToken = null)
     {
-      string nextToken;
-      var items = GetItems<Project>(out nextToken, where, count, sortBy, sortDesc, pagingToken);
-      return Json(new DataResult<Project>() { Items = items, NextToken = nextToken });
+      return GetDataResult<Project>(where, count, sortBy, sortDesc, pagingToken);
     }
 
     [Route("employees/{id}")]
@@ -71,10 +75,7 @@ namespace SP.ProjectTaskWeb.Controllers
     [HttpGet]
     public IHttpActionResult GetEmployees([FromUri] string where = null, [FromUri] int count = 0, [FromUri] string sortBy = null, [FromUri] bool sortDesc = false, [FromUri] string pagingToken = null)
     {
-      string nextToken;
-      var items = GetItems<Employee>(out nextToken, where, count, sortBy, sortDesc, pagingToken);
-      return Json(new DataResult<Employee>() { Items = items, NextToken = nextToken });
-
+      return GetDataResult<Employee>(where, count, sortBy, sortDesc, pagingToken);
     }
 
     [Route("departments/{id}")]
@@ -89,9 +90,7 @@ namespace SP.ProjectTaskWeb.Controllers
     [HttpGet]
     public IHttpActionResult GetDepartments([FromUri] string where = null, [FromUri] int count = 0, [FromUri] string sortBy = null, [FromUri] bool sortDesc = false, [FromUri] string pagingToken = null)
     {
-      string nextToken;
-      var items = GetItems<Department>(out nextToken, where, count, sortBy, sortDesc, pagingToken);
-      return Json(new DataResult<Department>() { Items = items, NextToken = nextToken });
+      return GetDataResult<Department>(where, count, sortBy, sortDesc, pagingToken);
     }
 
     private TEntity GetItem<TEntity>(int id) where TEntity : ListItemEntity, new()
@@ -103,9 +102,48 @@ namespace SP.ProjectTaskWeb.Controllers
       }
     }
 
-    private TEntity[] GetItems<TEntity>(out string nextPageToken, string where = null, int count = 0, string sortBy = null, bool sortDesc = false, string pagingToken = null) where TEntity : ListItemEntity, new()
+    private IHttpActionResult GetDataResult<TEntity>(string where, int count, string sortBy, bool sortDesc, string pagingToken)
+      where TEntity : ListItemEntity, new()
     {
-      using (ClientContext context = new Authentication.LowTrustTokenHelper(_tokenHelper).GetUserClientContext())
+      try
+      {
+        using (ClientContext context = new Authentication.LowTrustTokenHelper(_tokenHelper).GetUserClientContext())
+        {
+          var result = new DataResult<TEntity>();
+          result.Load(context, where, count, sortBy, sortDesc, pagingToken);
+          return Json(result);
+        }
+      }
+      catch (Exception ex)
+      {
+        return new JsonErrorResult(ex);
+      }
+
+    }
+
+    [Route("deploy")]
+    [HttpPost]
+    public void Deploy()
+    {
+      using (ClientContext context = _tokenHelper.CreateClientContext())
+      {
+        ProjectTaskContext projectTaskContext = new ProjectTaskContext(context);
+        ProjectTaskProvisionModel<SpDataContext> projectTaskProvisionModel = projectTaskContext.CreateModel();
+        projectTaskProvisionModel.UnProvision();
+        projectTaskProvisionModel.Provision();
+      }
+    }
+
+    [DataContract(Name = "data")]
+    internal class DataResult<TEntity>
+      where TEntity : ListItemEntity, new()
+    {
+      [DataMember(Name = "items")]
+      public ICollection<TEntity> Items { get; set; }
+      [DataMember(Name = "_nextPageToken")]
+      public string NextToken { get; set; }
+
+      private TEntity[] GetItems(ClientContext context, string where, int count, string sortBy, bool sortDesc, string pagingToken, out string nextPageToken)
       {
         ProjectTaskContext projectTaskContext = new ProjectTaskContext(context);
         IQueryable<TEntity> source = projectTaskContext.List<TEntity>();
@@ -133,37 +171,41 @@ namespace SP.ProjectTaskWeb.Controllers
 
         string pageToken = null;
         source = source.WithEvent(null, nextToken =>
-         {
-           pageToken = nextToken;
-         });
+        {
+          pageToken = nextToken;
+        });
 
         var result = source.ToArray();
         nextPageToken = pageToken;
         return result;
       }
-    }
 
-    [Route("deploy")]
-    [HttpPost]
-    public void Deploy()
-    {
-      using (ClientContext context = _tokenHelper.CreateClientContext())
+      public void Load(ClientContext context, string where = null, int count = 0, string sortBy = null, bool sortDesc = false, string pagingToken = null)
       {
-        ProjectTaskContext projectTaskContext = new ProjectTaskContext(context);
-        ProjectTaskProvisionModel<SpDataContext> projectTaskProvisionModel = projectTaskContext.CreateModel();
-        projectTaskProvisionModel.UnProvision();
-        projectTaskProvisionModel.Provision();
+        string nextToken;
+        Items = GetItems(context, where, count, sortBy, sortDesc, pagingToken, out nextToken);
+        NextToken = nextToken;
       }
     }
+  }
 
-    [DataContract(Name = "data")]
-    internal class DataResult<TEntity>
-      where TEntity : ListItemEntity, new()
+  public class JsonErrorResult : IHttpActionResult
+  {
+    private Exception _exception;
+
+    public JsonErrorResult(Exception exception)
     {
-      [DataMember(Name = "items")]
-      public ICollection<TEntity> Items { get; set; }
-      [DataMember(Name = "_nextPageToken")]
-      public string NextToken { get; set; }
+      this._exception = exception;
+    }
+
+    public Task<HttpResponseMessage> ExecuteAsync(CancellationToken cancellationToken)
+    {
+      var response = new HttpResponseMessage(HttpStatusCode.BadRequest);
+      var content = new StringContent(JsonConvert.SerializeObject(
+        new { message = _exception.Message, stackTrace = _exception.StackTrace }),
+        Encoding.UTF8, "application/json");
+      response.Content = content;
+      return Task.FromResult(response);
     }
   }
 }
