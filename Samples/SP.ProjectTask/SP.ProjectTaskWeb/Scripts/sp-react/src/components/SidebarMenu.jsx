@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {Nav, INavLinkGroup} from 'office-ui-fabric-react/lib/Nav'
 
 const SidebarMenu = ({groups, expanded, collapsed}) => (
-  <div className='sidebarMenu'>
+  <div className='sidebar-menu'>
     <Nav groups={groups}
       expandedStateText={expanded}
       collapsedStateText={collapsed}

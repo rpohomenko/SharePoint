@@ -8,6 +8,6 @@ export class AppService extends ApiService {
     }
 
     getTasks = async(count, nextPageToken, sortBy, sortDesc, filter, options) => {
-        return await this.get(`api/web/tasks?count=${count}&pagingToken=${encodeURIComponent(nextPageToken || "")}&where=${encodeURIComponent(filter || "")}&sortBy=${encodeURIComponent(sortBy || "")}&sortDesc=${sortDesc || false}`, options);
+        return await this.get(`/api/web/tasks?count=${count}&pagingToken=${encodeURIComponent(nextPageToken || "")}&where=${encodeURIComponent(filter || "")}&sortBy=${encodeURIComponent(sortBy || "")}&sortDesc=${sortDesc || false}`, options);
     }
 }

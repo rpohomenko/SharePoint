@@ -20,7 +20,7 @@ class Content extends React.Component {
         const { breadcrumbs, maxBreadcrumbs } = this.props;
 
         return (
-            <div className="container">
+            <div>
                 <Breadcrumb className="breadcrumbs" items={breadcrumbs}
                     maxDisplayedItems={maxBreadcrumbs}
                 />
