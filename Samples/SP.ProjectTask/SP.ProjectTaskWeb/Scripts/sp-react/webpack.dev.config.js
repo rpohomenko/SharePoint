@@ -7,7 +7,7 @@ const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 module.exports = {
     entry: {
         main: [path.resolve(__dirname, 'src/index.jsx')],
-        react: ['react', 'react-dom', 'office-ui-fabric-react']
+        react: ['react', 'react-dom', 'office-ui-fabric-react', 'reactstrap']
     },
     output: {
         filename: '[name].js',

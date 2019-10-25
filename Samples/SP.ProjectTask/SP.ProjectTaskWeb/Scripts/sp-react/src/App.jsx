@@ -12,12 +12,12 @@ const App = () => {
         </nav>
         <div className="container-fluid">
             <div className="row">
-                <nav className="col-md-2 d-none d-md-block bg-light sidebar">
-                    <SidebarMenu className="col-md-2 d-none d-md-block bg-light sidebar" />
-                </nav>
-                <main role="main" className="col-md-9 ml-sm-auto col-md-10 px-4">
+                <div className="col-md-2 d-md-block bg-light sidebar">
+                    { <SidebarMenu className="col-md-2 d-none d-md-block bg-light sidebar" /> }
+                </div>
+                <div role="main" className="col-md-9 ml-sm-auto col-md-10 px-4">
                     <Content />
-                </main>                
+                </div>                
             </div>
         </div>
     </Fabric>);

@@ -2,6 +2,8 @@ import React from "react";
 import ReactDOM from "react-dom";
 import App from './App.jsx';
 
+//require("bootstrap")
+
 import "./assets/scss/main.scss";
 import { initializeIcons } from '@uifabric/icons';
 
