@@ -229,7 +229,7 @@ export class TaskList extends React.Component {
   }
 
   componentWillUnmount() {
-
+    this._abort();
   }
 
   _onNewItem = (sender, e) => {

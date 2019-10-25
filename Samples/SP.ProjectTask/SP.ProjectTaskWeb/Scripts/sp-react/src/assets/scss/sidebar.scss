@@ -3,7 +3,7 @@
     bottom: 0;
     left: 0;
     z-index: 100;
-    padding: 48px 0 0;
+    padding: 34px 0 0 7px;
     box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
 
     @media (min-width: 768px) {
@@ -13,13 +13,17 @@
         }
       }
     }
-}
 
-.sidebar-menu {
+    .navbar {
+        padding: 0 0;
+    }
+}
+    .sidebar-menu {
     position: relative;
     top: 0;
-    height: calc(100vh - 48px);
+    height: calc(100vh - 34px);
     padding-top: .5rem;
     overflow-x: hidden;
     overflow-y: auto;
 }
+

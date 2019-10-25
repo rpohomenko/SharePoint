@@ -9,10 +9,11 @@ export class SidebarMenu extends React.Component {
     super(props);
 
     this.state = {
-      isOpen: true
+      isOpen: false
     };
 
     this._toggle = this._toggle.bind(this);
+    this._onLinkClick = this._onLinkClick.bind(this);
   }
 
   _toggle = (e) => {
@@ -20,21 +21,27 @@ export class SidebarMenu extends React.Component {
     this.setState({ isOpen: !isOpen });
   }
 
+  _onLinkClick = (e, o) => {
+    this.props.onRoute(o.key);    
+  }
+
   render() {
-    const { title, groups, expanded, collapsed } = this.props;
+    const { title, groups, expanded, collapsed, selectedKey } = this.props;
     const { isOpen } = this.state;
     return (<Navbar color="faded" light>
       <NavbarBrand>{title}</NavbarBrand>
-      <NavbarToggler onClick={this._toggle} className="mr-2 d-block d-xs-none d-md-none"/>
+      <NavbarToggler onClick={this._toggle} className="mr-2 d-block d-xs-none d-md-none" />
       <Collapse isOpen={isOpen} navbar={true}>
         <div className="ml-auto" >
-          <Nav className='sidebar-menu' groups={groups}
+          <Nav ref={ref => this._nav = ref} className='sidebar-menu' groups={groups}
             expandedStateText={expanded}
-            collapsedStateText={collapsed} />
+            collapsedStateText={collapsed}
+            onLinkClick={this._onLinkClick}
+            selectedKey ={selectedKey}
+            />
         </div>
       </Collapse>
     </Navbar>);
-
   }
 }
 
@@ -43,18 +50,22 @@ SidebarMenu.props = {
   groups: INavLinkGroup,
   expanded: PropTypes.string,
   collapsed: PropTypes.string,
+  selectedKey: PropTypes.string,
+  onRoute: PropTypes.func
 }
 
 SidebarMenu.defaultProps = {
   title: "Home",
   groups: [{
-    links: [{
-      name: 'Home',
-      isExpanded: true,
-    }, {
-      name: 'Tasks',
-      isExpanded: true,
-    }]
+    links: [
+      {
+        key: "0",
+        name: 'Tasks',
+        isExpanded: true,
+        /*onClick: () => {
+          this.props.onRoute(0);
+        }*/
+      }]
   }],
   expanded: 'expanded',
   collapsed: 'collapsed',
