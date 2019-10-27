@@ -41,3 +41,6 @@
 /Samples/SP.ProjectTask/SP.ProjectTaskWeb/bin
 /Samples/SP.ProjectTask/SP.ProjectTaskWeb/obj/Debug
 /Samples/SP.ProjectTask/SP.ProjectTaskWeb/obj/Release
+/Samples/SP.ProjectTask/SP.ProjectTask/obj/Release
+/Samples/SP.ProjectTask/SP.ProjectTask/bin/Release
+/Samples/SP.ProjectTask/SP.ProjectTask/pkgobj/Release

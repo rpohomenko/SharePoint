@@ -28,7 +28,7 @@ export class TaskList extends React.Component {
         sortDescendingAriaLabel: 'Z to A',
         onColumnClick: this._onColumnClick,
         data: 'string',
-        isPadded: true
+        isPadded: false
       }
     ];
 
@@ -130,10 +130,16 @@ export class TaskList extends React.Component {
       isLoading: true,
       nextPageToken: nextPageToken
     });
-    let controller = new AbortController();
-    const promise = this._service.getTasks(count, nextPageToken, sortBy, sortDesc, filter, { signal: controller.signal });
-
-    this._controllers.push({ controller: controller, promise: promise });
+    let controller;
+    try {
+      controller = new AbortController();
+    }
+    catch{
+      controller = null;
+    }
+    const promise = this._service.getTasks(count, nextPageToken, sortBy, sortDesc, filter, { signal: controller ? controller.signal: null });
+    if (controller)
+      this._controllers.push({ controller: controller, promise: promise });
     promise.then(response => response.json())
       .catch((error) => {
         if (error.code !== 20) { //aborted
@@ -151,7 +157,7 @@ export class TaskList extends React.Component {
             newItems.push(null);
           }
           if (this._aborted === true) return;
-          if (this._controllers.filter(c => c.controller == controller) === 0) return;
+          if (controller && this._controllers.filter(c => c.controller == controller) === 0) return;
           if (!newItems) {
             newItems = [];
           }
@@ -233,7 +239,7 @@ export class TaskList extends React.Component {
   }
 
   _onNewItem = (sender, e) => {
- alert('new item clicked!');
+    alert('new item clicked!');
   }
 
   _getCommandItems = () => {
@@ -241,7 +247,7 @@ export class TaskList extends React.Component {
       {
         key: 'newItem',
         name: 'New',
-        onClick: (e, sender)=> this._onNewItem(sender, e),
+        onClick: (e, sender) => this._onNewItem(sender, e),
         iconProps: {
           iconName: 'Add'
         },
@@ -254,7 +260,7 @@ export class TaskList extends React.Component {
 
     return (
       <div>
-        <CommandBar       
+        <CommandBar
           items={this._getCommandItems()}
         />
         <DetailsList

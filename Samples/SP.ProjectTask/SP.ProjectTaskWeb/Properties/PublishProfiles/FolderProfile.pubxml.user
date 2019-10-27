@@ -262,10 +262,10 @@ by editing this MSBuild file. In order to learn more about this please visit htt
       <publishTime>10/18/2019 12:13:44</publishTime>
     </File>
     <File Include="bin/SP.ProjectTaskWeb.dll">
-      <publishTime>10/24/2019 16:05:43</publishTime>
+      <publishTime>10/26/2019 14:30:53</publishTime>
     </File>
     <File Include="bin/SP.ProjectTaskWeb.pdb">
-      <publishTime>10/24/2019 16:05:43</publishTime>
+      <publishTime>10/26/2019 14:30:53</publishTime>
     </File>
     <File Include="bin/System.IdentityModel.Tokens.Jwt.dll">
       <publishTime>06/24/2019 19:49:42</publishTime>
@@ -388,7 +388,7 @@ by editing this MSBuild file. In order to learn more about this please visit htt
       <publishTime>10/20/2019 17:57:33</publishTime>
     </File>
     <File Include="Content/Site.css">
-      <publishTime>10/19/2019 09:30:15</publishTime>
+      <publishTime>10/26/2019 12:47:51</publishTime>
     </File>
     <File Include="favicon.ico">
       <publishTime>10/19/2019 09:30:16</publishTime>
@@ -397,7 +397,7 @@ by editing this MSBuild file. In order to learn more about this please visit htt
       <publishTime>10/19/2019 09:30:16</publishTime>
     </File>
     <File Include="README.md">
-      <publishTime>10/24/2019 13:04:58</publishTime>
+      <publishTime>10/26/2019 12:47:51</publishTime>
     </File>
     <File Include="Scripts/bootstrap.bundle.js">
       <publishTime>10/20/2019 17:57:33</publishTime>
@@ -508,64 +508,64 @@ by editing this MSBuild file. In order to learn more about this please visit htt
       <publishTime>10/20/2019 18:00:30</publishTime>
     </File>
     <File Include="Scripts/sp-react/.babelrc">
-      <publishTime>10/24/2019 12:29:41</publishTime>
+      <publishTime>10/26/2019 12:47:51</publishTime>
     </File>
     <File Include="Scripts/sp-react/dist/css/main.css">
-      <publishTime>10/24/2019 15:56:05</publishTime>
+      <publishTime>10/26/2019 12:59:07</publishTime>
     </File>
     <File Include="Scripts/sp-react/dist/css/main.css.map">
-      <publishTime>10/24/2019 15:56:05</publishTime>
+      <publishTime>10/26/2019 12:59:07</publishTime>
     </File>
     <File Include="Scripts/sp-react/dist/css/main.min.css">
-      <publishTime>10/24/2019 13:04:30</publishTime>
+      <publishTime>10/26/2019 13:05:35</publishTime>
     </File>
     <File Include="Scripts/sp-react/dist/js/main.bundle.js">
-      <publishTime>10/24/2019 15:56:05</publishTime>
+      <publishTime>10/26/2019 12:59:07</publishTime>
     </File>
     <File Include="Scripts/sp-react/dist/js/main.bundle.js.map">
-      <publishTime>10/24/2019 15:56:05</publishTime>
+      <publishTime>10/26/2019 12:59:07</publishTime>
     </File>
     <File Include="Scripts/sp-react/dist/js/main.bundle.min.js">
-      <publishTime>10/24/2019 13:04:30</publishTime>
+      <publishTime>10/26/2019 13:05:35</publishTime>
     </File>
     <File Include="Scripts/sp-react/dist/js/vendor.bundle.js">
-      <publishTime>10/24/2019 15:56:05</publishTime>
+      <publishTime>10/26/2019 12:59:07</publishTime>
     </File>
     <File Include="Scripts/sp-react/dist/js/vendor.bundle.js.map">
-      <publishTime>10/24/2019 15:56:05</publishTime>
+      <publishTime>10/26/2019 12:59:07</publishTime>
     </File>
     <File Include="Scripts/sp-react/dist/js/vendor.bundle.min.js">
-      <publishTime>10/24/2019 13:04:30</publishTime>
+      <publishTime>10/26/2019 13:05:35</publishTime>
     </File>
     <File Include="Scripts/sp-react/package-lock.json">
-      <publishTime>10/24/2019 12:20:43</publishTime>
+      <publishTime>10/26/2019 12:57:35</publishTime>
     </File>
     <File Include="Scripts/sp-react/package.json">
-      <publishTime>10/24/2019 12:30:42</publishTime>
+      <publishTime>10/26/2019 12:57:35</publishTime>
     </File>
     <File Include="Scripts/sp-react/src/App.jsx">
-      <publishTime>10/24/2019 15:26:05</publishTime>
+      <publishTime>10/26/2019 12:47:51</publishTime>
     </File>
     <File Include="Scripts/sp-react/src/components/Tasks.jsx">
-      <publishTime>10/24/2019 15:50:41</publishTime>
+      <publishTime>10/26/2019 13:02:09</publishTime>
     </File>
     <File Include="Scripts/sp-react/src/Constants.js">
       <publishTime>10/24/2019 15:49:45</publishTime>
     </File>
     <File Include="Scripts/sp-react/src/index.html">
-      <publishTime>10/22/2019 09:20:21</publishTime>
+      <publishTime>10/26/2019 12:47:51</publishTime>
     </File>
     <File Include="Scripts/sp-react/src/index.jsx">
-      <publishTime>10/24/2019 10:09:04</publishTime>
+      <publishTime>10/26/2019 12:47:51</publishTime>
     </File>
     <File Include="Scripts/sp-react/webpack.dev.config.js">
-      <publishTime>10/24/2019 12:18:15</publishTime>
+      <publishTime>10/26/2019 12:47:51</publishTime>
     </File>
     <File Include="Scripts/sp-react/webpack.prod.config.js">
-      <publishTime>10/24/2019 13:03:20</publishTime>
+      <publishTime>10/26/2019 12:47:51</publishTime>
     </File>
     <File Include="Scripts/sp-react/webpack.prod.min.config.js">
-      <publishTime>10/24/2019 13:03:25</publishTime>
+      <publishTime>10/26/2019 12:47:51</publishTime>
     </File>
     <File Include="Scripts/spcontext.js">
       <publishTime>10/19/2019 09:30:16</publishTime>
@@ -595,7 +595,7 @@ by editing this MSBuild file. In order to learn more about this please visit htt
       <publishTime>10/20/2019 18:00:29</publishTime>
     </File>
     <File Include="Views/Home/Index.cshtml">
-      <publishTime>10/22/2019 12:39:42</publishTime>
+      <publishTime>10/26/2019 12:47:51</publishTime>
     </File>
     <File Include="Views/Shared/Error.cshtml">
       <publishTime>10/19/2019 09:30:16</publishTime>
@@ -610,7 +610,7 @@ by editing this MSBuild file. In order to learn more about this please visit htt
       <publishTime>10/19/2019 09:30:16</publishTime>
     </File>
     <File Include="Web.config">
-      <publishTime>10/24/2019 16:05:44</publishTime>
+      <publishTime>10/26/2019 14:29:20</publishTime>
     </File>
   </ItemGroup>
 </Project>
