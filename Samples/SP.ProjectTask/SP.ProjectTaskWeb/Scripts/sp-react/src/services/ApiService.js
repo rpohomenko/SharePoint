@@ -5,16 +5,16 @@ export class ApiService {
 
     get = async(url, options) => {
         options = options || {};
-        options.method = 'get';
-        return await fetch(this._baseUrl ? new URL(url, this._baseUrl).href : url, options);
+        options.method = 'GET';
+        return await fetch(this._baseUrl ? new URL(url, this._baseUrl) : url, options);
     }
 
     post = async(url, options, data) => {
         options = options || {};
-        options.method = 'post';
+        options.method = 'POST';
         if (data) {
             options.body = JSON.stringify(data);
         }
-        return await fetch(this._baseUrl ? new URL(url, this._baseUrl).href : url, options);
+        return await fetch(this._baseUrl ? new URL(url, this._baseUrl) : url, options);
     }
 }

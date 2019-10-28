@@ -5,6 +5,11 @@ import SidebarMenu from './components/SidebarMenu.jsx'
 import Content from './components/Content.jsx'
 import Footer from './components/Footer.jsx'
 
+import "./assets/scss/main.scss";
+import { initializeIcons } from '@uifabric/icons';
+
+initializeIcons(undefined, { disableWarnings: true });
+
 export class App extends React.Component {
     constructor(props) {
         super(props);
@@ -17,6 +22,7 @@ export class App extends React.Component {
     }
 
     render() {
+        const {service} = this.props;
         const { contentId, selectedKey } = this.state;
         const onRoute =(key) => {
             this.setState({ contentId: Number(key || -1), selectedKey:key });
@@ -31,7 +37,7 @@ export class App extends React.Component {
                         {<SidebarMenu className="col-md-2 d-none d-md-block bg-light sidebar" selectedKey={selectedKey} onRoute={onRoute} />}
                     </div>
                     <div role="main" className="col-md-9 ml-sm-auto col-md-10 px-4">
-                        <Content contentId={contentId} onRoute={onRoute}/>
+                        <Content service={service} contentId={contentId} onRoute={onRoute}/>
                     </div>
                 </div>
             </div>

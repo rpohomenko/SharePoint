@@ -1,7 +1,6 @@
 import React from 'react'
 import PropTypes from 'prop-types';
 import { Breadcrumb, IBreadcrumbItem } from 'office-ui-fabric-react/lib/Breadcrumb'
-import { AppService } from "../services/AppService";
 import Tasks from './Tasks.jsx';
 import { Pivot, PivotItem } from 'office-ui-fabric-react/lib/Pivot';
 
@@ -23,9 +22,8 @@ class Content extends React.Component {
         });
     };
 
-    render() {
-        const service = new AppService();
-        const { contentId, maxBreadcrumbs } = this.props;
+    render() {       
+        const { contentId, maxBreadcrumbs, service } = this.props;
         const { selectedKey } = this.state;
 
         let breadcrumbs = [];

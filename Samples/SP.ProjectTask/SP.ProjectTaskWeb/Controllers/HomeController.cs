@@ -1,13 +1,12 @@
 ﻿using Microsoft.SharePoint.Client;
 using SharePoint.Authentication;
-using SharePoint.Authentication.Owin.Extensions;
 using SP.ProjectTaskWeb.Models;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 
 namespace SP.ProjectTaskWeb.Controllers
 {
-  [Authorize]
+    [Authorize]
   public class HomeController : Controller
   {
     private readonly LowTrustTokenHelper _lowTrustTokenHelper;
