@@ -1,7 +1,7 @@
 import React from 'react'
 import PropTypes from 'prop-types';
 import { Breadcrumb, IBreadcrumbItem } from 'office-ui-fabric-react/lib/Breadcrumb'
-import Tasks from './Tasks.jsx';
+import Tasks from './lists/Tasks.jsx';
 import { Pivot, PivotItem } from 'office-ui-fabric-react/lib/Pivot';
 
 class Content extends React.Component {

@@ -1,6 +1,8 @@
 import React from "react";
 import BaseListView from "./BaseListView";
 import { CommandBar } from 'office-ui-fabric-react/lib/CommandBar';
+import ListFormPanel from "../form/ListFormPanel";
+import TaskForm from "../form/TaskForm";
 
 export class TaskList extends BaseListView {
 
@@ -8,9 +10,12 @@ export class TaskList extends BaseListView {
     super(props);
     this._service = props.service;
     this._onNewItem = this._onNewItem.bind(this);
+    this.state = {
+      ...this.state     
+    };   
   }
 
-  getColumns = () => {
+  _getColumns = () => {
     const columns = [
       {
         key: 'Title',
@@ -32,16 +37,17 @@ export class TaskList extends BaseListView {
     return columns;
   }
 
-  fetchData = (count, nextPageToken, sortBy, sortDesc, filter, options) => {
+  _fetchData = (count, nextPageToken, sortBy, sortDesc, filter, options) => {
     return this._service.getTasks(count, nextPageToken, sortBy, sortDesc, filter, options);
   }
 
-  fetchDataAsync = async (count, nextPageToken, sortBy, sortDesc, filter, options) => {
-    return await this.fetchData(count, nextPageToken, sortBy, sortDesc, filter, options);
+  _fetchDataAsync = async (count, nextPageToken, sortBy, sortDesc, filter, options) => {
+    return await this._fetchData(count, nextPageToken, sortBy, sortDesc, filter, options);
   }
 
   _onNewItem = (sender, e) => {
-    alert('new item clicked!');
+    const listForm = <TaskForm mode={2} />
+    this._listform.setState({listForm: listForm, showPanel: true});
   }
 
   _getCommandItems = () => {
@@ -58,13 +64,14 @@ export class TaskList extends BaseListView {
   }
 
   render() {
-
+    const { listForm } = this.state;    
     return (
       <div>
         <CommandBar
           items={this._getCommandItems()}
         />
         {super.render()}
+        <ListFormPanel ref={ref=>this._listform = ref} listForm={listForm} />
       </div>
     );
   }

@@ -2,7 +2,6 @@ import React from "react";
 import PropTypes from 'prop-types';
 import { DetailsList, DetailsListLayoutMode, Selection, SelectionMode, ColumnActionsMode, IColumn } from 'office-ui-fabric-react/lib/DetailsList';
 import { IContextualMenuProps, IContextualMenuItem, DirectionalHint, ContextualMenu } from 'office-ui-fabric-react/lib/ContextualMenu';
-import Constants from '../Constants';
 
 export class BaseListView extends React.Component {
 
@@ -31,8 +30,41 @@ export class BaseListView extends React.Component {
         };
     }
 
-    getColumns = () => {
-        throw "Not implemented getColumns method!";
+    async componentDidMount() {
+        if (!this.state.columns) {
+            this.setState({ columns: this._getColumns() });
+        }
+        await this.loadItemsAsync();
+    }
+
+    componentWillUnmount() {
+        this._abort();
+    }
+
+    render() {
+        const { columns, items, contextualMenuProps } = this.state;
+
+        return (
+            <div>
+                <DetailsList
+                    items={items}
+                    compact={false}
+                    columns={columns}
+                    selectionMode={SelectionMode.none}
+                    getKey={this._getKey}
+                    setKey="none"
+                    layoutMode={DetailsListLayoutMode.justified}
+                    isHeaderVisible={true}
+                    onItemInvoked={this._onItemInvoked}
+                    onRenderMissingItem={this._onRenderMissingItem}
+                />
+                {contextualMenuProps && <ContextualMenu {...contextualMenuProps} />}
+            </div>
+        );
+    }
+
+    _getColumns = () => {
+        throw "Method _getColumns is not yet implemented!";
     }
 
     _abort() {
@@ -82,93 +114,27 @@ export class BaseListView extends React.Component {
             });
 
             this._abort();
-            let _this = this;
+         
             this._waitAll().then(() => {
-                _this._aborted = false;
-                _this.setState({
+                this._aborted = false;
+                this.setState({
                     columns: newColumns,
                     items: [],
                     nextPageToken: null,
                     sortBy: column.name,
                     sortDesc: column.isSortedDescending
                 });
-                _this._loadItems(column, null);
+                this.loadItems(column, null);
             });
-        }, Constants.SORT_COLUMN_DELAY);
-    }
-
-    fetchData = (count, nextPageToken, sortBy, sortDesc, filter, options) => {
-        throw "Not implemented fetchData method!";
-    }
-
-    fetchDataAsync = async (count, nextPageToken, sortBy, sortDesc, filter, options) => {
-        throw "Not implemented fetchDataAsync method!";
-    }
-
-    _loadItems = (sortColumn = null, pageToken = null) => {
-        let { isLoading, count, filter, sortBy, sortDesc, nextPageToken, items } = this.state;
-        if (this._aborted === true) return;
-
-        if (sortColumn) {
-            sortBy = sortColumn.name;
-            sortDesc = sortColumn.isSortedDescending;
-        }
-        if (pageToken) {
-            nextPageToken = pageToken
-        }
-
-        this.setState({
-            isLoading: true,
-            nextPageToken: nextPageToken
-        });
-        let controller = new AbortController();
-        const promise = this.fetchData(count, nextPageToken, sortBy, sortDesc, filter, { signal: controller ? controller.signal : null });
-        if (controller)
-            this._controllers.push({ controller: controller, promise: promise });
-        promise.then(response => response.json())
-            .catch((error) => {
-                if (error.code !== 20 && error.name !== 'AbortError') { //aborted
-                    alert(error);
-                }
-            })
-            .then((json) => {
-                let { nextPageToken, items } = this.state;
-                if (json) {
-                    let newItems = json.items;
-                    if (items && items.length > 0 && nextPageToken) {
-                        newItems = items.slice(0, items.length - 1).concat(newItems);
-                    }
-                    if (newItems && json._nextPageToken) {
-                        newItems.push(null);
-                    }
-                    if (this._aborted === true) return;
-                    if (controller && this._controllers.filter(c => c.controller == controller) === 0) return;
-                    if (!newItems) {
-                        newItems = [];
-                    }
-                    this.setState({
-                        items: newItems,
-                        nextPageToken: json._nextPageToken,
-                        isLoading: false
-                    });
-                    this._selection.setItems(newItems);
-                }
-                this._controllers = this._controllers.filter(c => c.controller !== controller);
-            })
-            .catch((error) => {
-                if (error.code !== 20 && error.name !== 'AbortError') { //aborted
-                    alert(error);
-                }
-            });
-    }
-
+        }, this.props.SORT_COLUMN_DELAY);
+    } 
     _onRenderMissingItem = (index) => {
         let { nextPageToken } = this.state;
         if (nextPageToken) {
             this._waitAll().then(() => {
                 let { isLoading, nextPageToken } = this.state;
                 if (isLoading || !nextPageToken) return;
-                this._loadItems(null, nextPageToken);
+                this.loadItems(null, nextPageToken);
             });
         }
     }
@@ -216,46 +182,84 @@ export class BaseListView extends React.Component {
         });
     };
 
-    componentDidMount() {
-        if (!this.state.columns) {
-            this.setState({ columns: this.getColumns() });
+    _fetchData = (count, nextPageToken, sortBy, sortDesc, filter, options) => {
+        throw "Method _fetchData is not yet implemented!";
+    }
+
+    _fetchDataAsync = async (count, nextPageToken, sortBy, sortDesc, filter, options) => {
+        throw "Method _fetchDataAsync is not yet implemented!";
+    }
+
+    loadItemsAsync = async (sortColumn = null, pageToken = null) => {
+        await this.loadItems(sortColumn, pageToken);
+    }
+
+    loadItems = (sortColumn = null, pageToken = null) => {
+        let { isLoading, count, filter, sortBy, sortDesc, nextPageToken, items } = this.state;
+        if (this._aborted === true) return;
+
+        if (sortColumn) {
+            sortBy = sortColumn.name;
+            sortDesc = sortColumn.isSortedDescending;
         }
-        this._loadItems();
-    }
+        if (pageToken) {
+            nextPageToken = pageToken
+        }
 
-    componentWillUnmount() {
-        this._abort();
-    }
-
-    render() {
-        const { columns, items, contextualMenuProps } = this.state;
-
-        return (
-            <div>
-                <DetailsList
-                    items={items}
-                    compact={false}
-                    columns={columns}
-                    selectionMode={SelectionMode.none}
-                    getKey={this._getKey}
-                    setKey="none"
-                    layoutMode={DetailsListLayoutMode.justified}
-                    isHeaderVisible={true}
-                    onItemInvoked={this._onItemInvoked}
-                    onRenderMissingItem={this._onRenderMissingItem}
-                />
-                {contextualMenuProps && <ContextualMenu {...contextualMenuProps} />}
-            </div>
-        );
-    }
+        this.setState({
+            isLoading: true,
+            nextPageToken: nextPageToken
+        });
+        let controller = new AbortController();
+        const promise = this._fetchData(count, nextPageToken, sortBy, sortDesc, filter, { signal: controller ? controller.signal : null });
+        if (controller)
+            this._controllers.push({ controller: controller, promise: promise });
+        return promise.then(response => response.json())
+            .catch((error) => {
+                if (error.code !== 20 && error.name !== 'AbortError') { //aborted
+                    alert(error);
+                }
+            })
+            .then((json) => {
+                let { nextPageToken, items } = this.state;
+                if (json) {
+                    let newItems = json.items;
+                    if (items && items.length > 0 && nextPageToken) {
+                        newItems = items.slice(0, items.length - 1).concat(newItems);
+                    }
+                    if (newItems && json._nextPageToken) {
+                        newItems.push(null);
+                    }
+                    if (this._aborted === true) return;
+                    if (controller && this._controllers.filter(c => c.controller == controller) === 0) return;
+                    if (!newItems) {
+                        newItems = [];
+                    }
+                    this.setState({
+                        items: newItems,
+                        nextPageToken: json._nextPageToken,
+                        isLoading: false
+                    });
+                    this._selection.setItems(newItems);
+                }
+                this._controllers = this._controllers.filter(c => c.controller !== controller);
+            })
+            .catch((error) => {
+                if (error.code !== 20 && error.name !== 'AbortError') { //aborted
+                    alert(error);
+                }
+            });
+    }    
 }
 
 BaseListView.propTypes = {
-    pageSize: PropTypes.number  
+    pageSize: PropTypes.number,
+    SORT_COLUMN_DELAY: PropTypes.number
 }
 
 BaseListView.defaultProps = {
-    pageSize: 30
+    pageSize: 30,
+    SORT_COLUMN_DELAY: 700
 }
 
 export default BaseListView;

@@ -1,6 +1,5 @@
 import { ApiService } from "./ApiService";
 import Constants from '../Constants';
-import {get } from "https";
 
 export class AppService extends ApiService {
     constructor() {
