@@ -3,11 +3,12 @@ import ReactDOM from "react-dom";
 import App from './App.jsx';
 import { AppService } from "./services/AppService";
 
-/* IE */
+/* IE -- start */
 import 'promise-polyfill/src/polyfill'; 
 import 'whatwg-fetch';
 import 'url-polyfill';
-/* IE */
+import 'abortcontroller-polyfill/dist/polyfill-patch-fetch';
+/* IE -- end */
 //require("bootstrap");
 
 const service = new AppService();

@@ -9,7 +9,7 @@ export class SidebarMenu extends React.Component {
     super(props);
 
     this.state = {
-      isOpen: false
+      isOpen: props.isOpen
     };
 
     this._toggle = this._toggle.bind(this);
@@ -61,10 +61,7 @@ SidebarMenu.defaultProps = {
       {
         key: "0",
         name: 'Tasks',
-        isExpanded: true,
-        /*onClick: () => {
-          this.props.onRoute(0);
-        }*/
+        isExpanded: true       
       }]
   }],
   expanded: 'expanded',
