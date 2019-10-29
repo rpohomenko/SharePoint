@@ -63,46 +63,16 @@ export class FormField extends React.Component {
         this.setState({ isCalloutVisible: !this.state.isCalloutVisible });
     };
 
-    _onDismiss() {
+    _onDismiss = () => {
         this.setState({ isCalloutVisible: false });
     }
-
 
     _setFieldRenderer = (type) => {
         const { fieldProps, mode } = this.props;
         let field;
-        if (type === 'Text') {
-            field = <TextFieldRenderer key={fieldProps.internalName} fieldProps={fieldProps} mode={mode} />;
-
-        } /*else if (type.match(/choice/gi)) {
-            return import('./ChoiceFieldRenderer')
-                .then(module => this._registerFieldRenderer(module.ChoiceFieldRenderer)).catch(e => this._catchImportField(e, type));
-        } else if (type.match(/lookup/gi)) {
-            return import('./LookupFieldRenderer')
-                .then(module => this._registerFieldRenderer(module.LookupFieldRenderer)).catch(e => this._catchImportField(e, type));
-        } else if (type === 'Note') {
-            return import('./MultilineTextFieldRenderer')
-                .then(module => this._registerFieldRenderer(module.MultilineTextFieldRenderer)).catch(e => this._catchImportField(e, type));
-        } else if (type === 'Boolean') {
-            return import('./BooleanFieldRenderer')
-                .then(module => this._registerFieldRenderer(module.BooleanFieldRenderer)).catch(e => this._catchImportField(e, type));
-        } else if (type === 'Number') {
-            return import('./NumberFieldRenderer')
-                .then(module => this._registerFieldRenderer(module.NumberFieldRenderer)).catch(e => this._catchImportField(e, type));
-        } else if (type === 'Currency') {
-            return import('./CurrencyFieldRenderer')
-                .then(module => this._registerFieldRenderer(module.CurrencyFieldRenderer)).catch(e => this._catchImportField(e, type));
-        } else if (type === 'URL') {
-            return import('./UrlFieldRenderer')
-                .then(module => this._registerFieldRenderer(module.UrlFieldRenderer)).catch(e => this._catchImportField(e, type));
-        } else if (type === 'DateTime') {
-            return import('./DateTimeFieldRenderer')
-                .then(module => this._registerFieldRenderer(module.DateTimeFieldRenderer)).catch(e => this._catchImportField(e, type));
-        } else if (type.match(/user/gi)) {
-            return import('./UserFieldRenderer')
-                .then(module => this._registerFieldRenderer(module.UserFieldRenderer)).catch(e => this._catchImportField(e, type));
-        }*/
-
+        if (type === 'text') {
+            field = <TextFieldRenderer key={fieldProps.internalName} fieldProps={fieldProps} mode={mode} />;       
+        }
         if (field) {
             this.setState({
                 field: field

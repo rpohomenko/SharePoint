@@ -5,6 +5,7 @@ import { DirectionalHint, ContextualMenu } from 'office-ui-fabric-react/lib/Cont
 import { Spinner, SpinnerSize } from 'office-ui-fabric-react/lib/Spinner';
 import { Stack } from 'office-ui-fabric-react/lib/Stack';
 import { MarqueeSelection } from 'office-ui-fabric-react/lib/MarqueeSelection';
+import { ContextualMenuItemType } from 'office-ui-fabric-react/lib/ContextualMenu';
 
 export class BaseListView extends React.Component {
 
@@ -15,12 +16,11 @@ export class BaseListView extends React.Component {
         super(props);
 
         this._selection = new Selection({
-            onSelectionChanged: () => /*this.setState({ selectionItems: this._getSelectionItems() })*/ {
-                if (typeof props.onSelectionChanged === "function") props.onSelectionChanged(this._getSelectionItems());
-            }
+            onSelectionChanged: () => this._onSelectionChanged(this._getSelectionItems())
         });
 
         this._onRenderMissingItem = this._onRenderMissingItem.bind(this);
+        this._onSelectionChanged = this._onSelectionChanged.bind(this);
 
         this.state = {
             items: [],
@@ -46,7 +46,7 @@ export class BaseListView extends React.Component {
         const { columns, items, contextualMenuProps, isLoading } = this.state;
 
         return (
-            <div>
+            <div className="list-view-container">
                 <MarqueeSelection selection={this._selection}>
                     <DetailsList
                         items={items}
@@ -59,6 +59,7 @@ export class BaseListView extends React.Component {
                         layoutMode={DetailsListLayoutMode.justified}
                         isHeaderVisible={true}
                         onItemInvoked={this._onItemInvoked}
+                        onItemContextMenu={this._onItemContextMenu}
                         onRenderMissingItem={this._onRenderMissingItem}
                     />
                 </MarqueeSelection>
@@ -72,8 +73,12 @@ export class BaseListView extends React.Component {
         throw "Method _getColumns is not yet implemented!";
     }
 
-    _getSelectionItems() {
+    _getSelectionItems = () => {
         return this._selection.getSelection();
+    }
+
+    _onSelectionChanged = (selectionItems) => {
+        this.setState({ selection: selectionItems });
     }
 
     async _abort() {
@@ -105,8 +110,67 @@ export class BaseListView extends React.Component {
     }
 
     _onItemInvoked = (item) => {
-        alert(`Item : ${item.Title}`);
+        throw "Method _onItemInvoked is not yet implemented!";
     }
+
+    _onEditItem (item) {
+        throw "Method _onEditItem is not yet implemented!";
+    }
+
+    _onDeleteItem (item) {
+        throw "Method _onDeleteItem is not yet implemented!";
+    }
+
+    _onItemContextMenu = (item, index, ev) => {
+        const contextualMenuProps = {
+            target: ev.target,
+            items: [
+                {
+                    key: 'viewItem',
+                    icon: 'View',
+                    name: 'View',
+                    onClick: (e, sender) => this._onItemInvoked(item),
+                    iconProps: {
+                        iconName: 'View'
+                    },
+                    ariaLabel: 'View'
+                },
+                {
+                    key: 'editItem',
+                    icon: 'Edit',
+                    name: 'Edit',
+                    onClick: (e, sender) => this._onEditItem(item),
+                    iconProps: {
+                        iconName: 'Edit'
+                    },
+                    ariaLabel: 'Edit'
+                },
+                {
+                    key: 'deleteItem',
+                    icon: 'Delete',
+                    name: 'Delete',
+                    onClick: (e, sender) => this._onDeleteItem(item),
+                    iconProps: {
+                        iconName: 'Delete'
+                    },
+                    ariaLabel: 'Delete'
+                }
+            ],
+            onDismiss: () => {
+                this.setState({
+                    contextualMenuProps: undefined
+                });
+            }
+        };
+
+        if (index > -1) {
+            this.setState({
+                contextualMenuProps: contextualMenuProps
+            });
+        }
+
+        return false;
+    };
 
     _onColumnClick = (ev, column) => {
         if (column.columnActionsMode !== ColumnActionsMode.disabled) {
@@ -148,6 +212,7 @@ export class BaseListView extends React.Component {
             });
         }, this.props.SORT_COLUMN_DELAY);
     }
+
     _onRenderMissingItem = (index) => {
         let { nextPageToken } = this.state;
         if (nextPageToken) {
@@ -206,7 +271,7 @@ export class BaseListView extends React.Component {
         await this.loadItems(sortColumn, pageToken);
     }
 
-    loadItems = (sortColumn = null, pageToken = null) => {
+    loadItems(sortColumn = null, pageToken = null) {
         let { count, filter, sortBy, sortDesc, nextPageToken } = this.state;
         if (this._aborted === true) return;
 

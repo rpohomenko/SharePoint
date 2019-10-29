@@ -43,25 +43,26 @@ export class ListFormPanel extends React.Component {
                     type={PanelType.medium}>
                     {listForm}
                 </Panel>
-                <Dialog
-                    hidden={hideDialog}
-                    onDismiss={this._closeDialog}
-                    dialogContentProps={{
-                        type: DialogType.normal,
-                        title: 'Are you sure you want to close the form?'
-                    }}
-                    modalProps={{
-                        titleAriaId: 'myLabelId',
-                        subtitleAriaId: 'mySubTextId',
-                        isBlocking: true,
-                        styles: { main: { maxWidth: 450 } }
-                    }}
-                >
-                    <DialogFooter>
-                        <PrimaryButton onClick={this._closeDialogAndHidePanel} text="Yes" />
-                        <DefaultButton onClick={this._closeDialog} text="No" />
-                    </DialogFooter>
-                </Dialog>
+                {listForm.props.mode > 0 &&
+                    (<Dialog
+                        hidden={hideDialog}
+                        onDismiss={this._closeDialog}
+                        dialogContentProps={{
+                            type: DialogType.normal,
+                            title: 'Are you sure you want to close the form without saving?'
+                        }}
+                        modalProps={{
+                            titleAriaId: 'myLabelId',
+                            subtitleAriaId: 'mySubTextId',
+                            isBlocking: true,
+                            styles: { main: { maxWidth: 450 } }
+                        }}
+                    >
+                        <DialogFooter>
+                            <PrimaryButton onClick={this._closeDialogAndHidePanel} text="Yes" />
+                            <DefaultButton onClick={this._closeDialog} text="No" />
+                        </DialogFooter>
+                    </Dialog>)}
             </div>)
             : null;
     }
@@ -71,13 +72,20 @@ export class ListFormPanel extends React.Component {
     };
 
     _hidePanel = () => {
-        if (this.state.hideDialog) {
+        const { showPanel, hideDialog, listForm } = this.state;
+        if (showPanel && (hideDialog || (listForm && listForm.props.mode === 0))) {
             this.setState({ showPanel: false });
         }
     };
 
     _showDialog = () => {
-        this.setState({ hideDialog: false });
+        const { listForm } = this.state;
+        if (listForm && listForm.props.mode > 0) {
+            this.setState({ hideDialog: false });
+        }
+        else {
+            this._hidePanel();
+        }
     };
 
     _closeDialog = () => {
@@ -87,7 +95,7 @@ export class ListFormPanel extends React.Component {
     _closeDialogAndHidePanel = () => {
         this.setState({ showPanel: false });
         this._closeDialog();
-    };   
+    };
 }
 
 export default ListFormPanel;

@@ -1,17 +1,13 @@
 import React from "react";
 import BaseListView from "./BaseListView";
-import { CommandBar } from 'office-ui-fabric-react/lib/CommandBar';
-import ListFormPanel from "../form/ListFormPanel";
-import TaskForm from "../form/TaskForm";
-import { OverflowSet } from 'office-ui-fabric-react/lib/OverflowSet';
-import { CommandBarButton } from 'office-ui-fabric-react/lib/Button';
+//import { CommandBar } from 'office-ui-fabric-react/lib/CommandBar';
+import TaskCommand from "../commands/TaskCommand";
 
 export class TaskList extends BaseListView {
 
   constructor(props) {
     super(props);
     this._service = props.service;
-    this._onNewItem = this._onNewItem.bind(this);
     this.state = {
       ...this.state
     };
@@ -47,60 +43,28 @@ export class TaskList extends BaseListView {
     return await this._fetchData(count, nextPageToken, sortBy, sortDesc, filter, options);
   }
 
-  _onNewItem = (sender, e) => {
-    const listForm = <TaskForm mode={2} />
-    this._listform.setState({ listForm: listForm, showPanel: true });
+  _onSelectionChanged = (selectionItems) => {
+    this._command.setState({ selection: selectionItems });
   }
 
-  _getCommandItems = () => {
-    return [
-      {
-        key: 'newItem',
-        icon: 'Add',
-        name: 'New',
-        onClick: (e, sender) => this._onNewItem(sender, e),
-        iconProps: {
-          iconName: 'Add'
-        },
-        ariaLabel: 'New'
-      }]
+  _onItemInvoked = (item) => {
+    this._command.viewItem(item);
   }
 
-  _onRenderItem = (item) => {
-    return (
-      <CommandBarButton
-        role="menuitem"
-        aria-label={item.name}
-        styles={{ root: { padding: '10px' } }}
-        iconProps={{ iconName: item.icon }}
-        onClick={item.onClick}
-      />
-    );
-  };
+  _onEditItem (item) {
+    this._command.editItem(item);
+  }
 
-  _onRenderOverflowButton = (overflowItems) => {
-    return (
-      <CommandBarButton
-        role="menuitem"
-        title="More items"
-        styles={{ root: { padding: 10 }}}
-        menuIconProps={{ iconName: 'More' }}
-        menuProps={{ items: overflowItems }}
-      />
-    );
-  };
+  _onDeleteItem (item) {
+    this._command.deleteItem(item);
+  }
 
   render() {
-    const { listForm } = this.state;
+    const { selection } = this.state;
     return (
-      <div>
-        <OverflowSet styles={{ root: { paddingTop: 10 }, menuIcon: { fontSize: '16px' } }}
-          items={this._getCommandItems()}
-          onRenderOverflowButton={this._onRenderOverflowButton}
-          onRenderItem={this._onRenderItem}
-        />
+      <div className="tasks-container">
+        <TaskCommand ref={ref => this._command = ref} selection={selection} />
         {super.render()}
-        <ListFormPanel ref={ref => this._listform = ref} listForm={listForm} />
       </div>
     );
   }

@@ -18,11 +18,11 @@ export class BaseFieldRenderer extends React.Component {
         throw (`Method _renderNewForm is not yet implemented, field type: ${this.props.type}.`);
     }
 
-    _renderEditForm = () => {
+    _renderEditForm(){
         throw (`Method _renderEditForm is not yet implemented, field type: ${this.props.type}.`);
     }
 
-    _renderDispForm = () => {
+    _renderDispForm() {
         throw (`Method _renderDispForm is not yet implemented, field type: ${this.props.type}.`);
     }
 
@@ -68,7 +68,7 @@ export class BaseFieldRenderer extends React.Component {
                 <ErrorBoundary>
                     {mode === /*FormMode.New*/2 ? this._renderNewForm() : null}
                     {mode === /*FormMode.Edit*/ 1 ? this._renderEditForm() : null}
-                    {mode === /*FormMode.Display*/ 0 ? this_.renderDispForm() : null}
+                    {mode === /*FormMode.Display*/ 0 ? this._renderDispForm() : null}
                 </ErrorBoundary>
                 {!isValid ? this._renderValidationErrors(validationErrors) : null}
             </React.Fragment>
