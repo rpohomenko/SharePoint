@@ -317,7 +317,7 @@ export class BaseListView extends React.Component {
                         nextPageToken: json._nextPageToken,
                         isLoading: false
                     });
-                    this._selection.setItems(newItems);
+                    //this._selection.setItems(newItems);
                 }
                 this._controllers = this._controllers.filter(c => c.controller !== controller);
             })
