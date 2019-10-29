@@ -14,6 +14,8 @@ Open **SP.ProjectTaskWeb** folder with **Visual Studio Code**.
 
 `npm install @babel/plugin-transform-runtime react react-dom office-ui-fabric-react reactstrap`
 
+`npm install url-polyfill whatwg-fetch abortcontroller-polyfill promise-polyfill` - for IE browser
+
 `npm run build` - to pack into ./dist
 
 `npm run build:min` - to minimize into ./dist
