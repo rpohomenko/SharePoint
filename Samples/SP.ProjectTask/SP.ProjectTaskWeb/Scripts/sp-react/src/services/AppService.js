@@ -1,9 +1,11 @@
 import { ApiService } from "./ApiService";
-import Constants from '../Constants';
+
+const BASE_PATH = (window._spPageContextInfo == undefined ? "https://localhost:44318" : "");
 
 export class AppService extends ApiService {
-    constructor() {
-        super(Constants.BASE_PATH);
+  
+    constructor() {       
+        super(BASE_PATH);
     }
 
     getTasks = async(count, nextPageToken, sortBy, sortDesc, filter, options) => {

@@ -15,7 +15,9 @@ export class TaskForm extends ListForm {
         return [{
             key: 'Title',
             internalName: 'Title',
-            type: 'Text'
+            type: 'Text',
+            title: 'Title',
+            required: true
         }];
     }
 

@@ -1,8 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Nav, INavLinkGroup } from 'office-ui-fabric-react/lib/Nav'
+import { Nav } from 'office-ui-fabric-react/lib/Nav'
 import { Collapse, Navbar, NavbarToggler, NavbarBrand } from 'reactstrap';
-
 
 export class SidebarMenu extends React.Component {
   constructor(props) {
@@ -38,6 +37,13 @@ export class SidebarMenu extends React.Component {
             collapsedStateText={collapsed}
             onLinkClick={this._onLinkClick}
             selectedKey ={selectedKey}
+            styles={{
+              root: {              
+                boxSizing: 'border-box',
+                border: '1px solid #eee',
+                overflowY: 'auto'
+              }
+            }}
             />
         </div>
       </Collapse>
@@ -47,7 +53,7 @@ export class SidebarMenu extends React.Component {
 
 SidebarMenu.props = {
   title: PropTypes.string,
-  groups: INavLinkGroup,
+  groups: PropTypes.array,
   expanded: PropTypes.string,
   collapsed: PropTypes.string,
   selectedKey: PropTypes.string,

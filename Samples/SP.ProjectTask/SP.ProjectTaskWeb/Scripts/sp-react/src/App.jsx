@@ -1,9 +1,9 @@
 import React from "react";
 import { Fabric } from 'office-ui-fabric-react/lib/Fabric';
-import NavBar from './components/NavBar.jsx'
-import SidebarMenu from './components/SidebarMenu.jsx'
-import Content from './components/Content.jsx'
-import Footer from './components/Footer.jsx'
+import NavBar from './components/NavBar'
+import SidebarMenu from './components/SidebarMenu'
+import Content from './components/Content'
+import Footer from './components/Footer'
 
 import "./assets/scss/main.scss";
 import { initializeIcons } from '@uifabric/icons';

@@ -1,8 +1,4 @@
 import * as React from 'react';
-import { Spinner } from 'office-ui-fabric-react/lib/Spinner';
-import { CommandBar } from 'office-ui-fabric-react/lib/CommandBar';
-
-import { Label } from 'office-ui-fabric-react/lib/Label';
 import { FormField } from './FormField';
 
 

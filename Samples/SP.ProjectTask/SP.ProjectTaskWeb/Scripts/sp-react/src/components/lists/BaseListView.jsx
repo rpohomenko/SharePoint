@@ -1,7 +1,10 @@
 import React from "react";
 import PropTypes from 'prop-types';
-import { DetailsList, DetailsListLayoutMode, Selection, SelectionMode, ColumnActionsMode, IColumn } from 'office-ui-fabric-react/lib/DetailsList';
-import { IContextualMenuProps, IContextualMenuItem, DirectionalHint, ContextualMenu } from 'office-ui-fabric-react/lib/ContextualMenu';
+import { DetailsList, DetailsListLayoutMode, Selection, SelectionMode, ColumnActionsMode } from 'office-ui-fabric-react/lib/DetailsList';
+import { DirectionalHint, ContextualMenu } from 'office-ui-fabric-react/lib/ContextualMenu';
+import { Spinner, SpinnerSize } from 'office-ui-fabric-react/lib/Spinner';
+import { Stack } from 'office-ui-fabric-react/lib/Stack';
+import { MarqueeSelection } from 'office-ui-fabric-react/lib/MarqueeSelection';
 
 export class BaseListView extends React.Component {
 
@@ -12,10 +15,8 @@ export class BaseListView extends React.Component {
         super(props);
 
         this._selection = new Selection({
-            onSelectionChanged: () => {
-                /*this.setState({
-                  
-                });*/
+            onSelectionChanged: () => /*this.setState({ selectionItems: this._getSelectionItems() })*/ {
+                if (typeof props.onSelectionChanged === "function") props.onSelectionChanged(this._getSelectionItems());
             }
         });
 
@@ -37,28 +38,32 @@ export class BaseListView extends React.Component {
         await this.loadItemsAsync();
     }
 
-    componentWillUnmount() {
-        this._abort();
+    async componentWillUnmount() {
+        await this._abort();
     }
 
     render() {
-        const { columns, items, contextualMenuProps } = this.state;
+        const { columns, items, contextualMenuProps, isLoading } = this.state;
 
         return (
             <div>
-                <DetailsList
-                    items={items}
-                    compact={false}
-                    columns={columns}
-                    selectionMode={SelectionMode.none}
-                    getKey={this._getKey}
-                    setKey="none"
-                    layoutMode={DetailsListLayoutMode.justified}
-                    isHeaderVisible={true}
-                    onItemInvoked={this._onItemInvoked}
-                    onRenderMissingItem={this._onRenderMissingItem}
-                />
+                <MarqueeSelection selection={this._selection}>
+                    <DetailsList
+                        items={items}
+                        compact={false}
+                        columns={columns}
+                        selection={this._selection}
+                        selectionPreservedOnEmptyClick={true}
+                        getKey={this._getKey}
+                        setKey="none"
+                        layoutMode={DetailsListLayoutMode.justified}
+                        isHeaderVisible={true}
+                        onItemInvoked={this._onItemInvoked}
+                        onRenderMissingItem={this._onRenderMissingItem}
+                    />
+                </MarqueeSelection>
                 {contextualMenuProps && <ContextualMenu {...contextualMenuProps} />}
+                {isLoading && (<Stack horizontalAlign="start" styles={{ root: { padding: 10 } }}><Spinner size={SpinnerSize.medium} /></Stack>)}
             </div>
         );
     }
@@ -67,15 +72,32 @@ export class BaseListView extends React.Component {
         throw "Method _getColumns is not yet implemented!";
     }
 
-    _abort() {
+    _getSelectionItems() {
+        return this._selection.getSelection();
+    }
+
+    async _abort() {
         if (this._controllers != null) {
             this._controllers.forEach(c => {
                 c.controller.abort();
             });
-
+            try {
+                await this._waitAll()
+            }
+            catch{ }
             this._controllers = [];
+            this._aborted = true;
         }
-        this._aborted = true;
+    }
+
+    _waitAll = async () => {
+        let promises = [];
+        this._controllers.forEach(c => {
+            promises.push(c.promise);
+        });
+        if (promises.length > 0) {
+            return await Promise.all(promises);
+        }
     }
 
     _getKey = (item, index) => {
@@ -113,9 +135,7 @@ export class BaseListView extends React.Component {
                 }
             });
 
-            this._abort();
-         
-            this._waitAll().then(() => {
+            this._abort().then(() => {
                 this._aborted = false;
                 this.setState({
                     columns: newColumns,
@@ -127,7 +147,7 @@ export class BaseListView extends React.Component {
                 this.loadItems(column, null);
             });
         }, this.props.SORT_COLUMN_DELAY);
-    } 
+    }
     _onRenderMissingItem = (index) => {
         let { nextPageToken } = this.state;
         if (nextPageToken) {
@@ -137,14 +157,6 @@ export class BaseListView extends React.Component {
                 this.loadItems(null, nextPageToken);
             });
         }
-    }
-
-    _waitAll = async () => {
-        let promises = [];
-        this._controllers.forEach(c => {
-            promises.push(c.promise);
-        });
-        return await Promise.all(promises);
     }
 
     _getContextualMenuProps = (ev, column) => {
@@ -195,7 +207,7 @@ export class BaseListView extends React.Component {
     }
 
     loadItems = (sortColumn = null, pageToken = null) => {
-        let { isLoading, count, filter, sortBy, sortDesc, nextPageToken, items } = this.state;
+        let { count, filter, sortBy, sortDesc, nextPageToken } = this.state;
         if (this._aborted === true) return;
 
         if (sortColumn) {
@@ -211,9 +223,9 @@ export class BaseListView extends React.Component {
             nextPageToken: nextPageToken
         });
         let controller = new AbortController();
-        const promise = this._fetchData(count, nextPageToken, sortBy, sortDesc, filter, { signal: controller ? controller.signal : null });
-        if (controller)
-            this._controllers.push({ controller: controller, promise: promise });
+        const promise = this._fetchDataAsync(count, nextPageToken, sortBy, sortDesc, filter, { signal: controller ? controller.signal : null });
+        this._controllers.push({ controller: controller, promise: promise });
+
         return promise.then(response => response.json())
             .catch((error) => {
                 if (error.code !== 20 && error.name !== 'AbortError') { //aborted
@@ -231,7 +243,7 @@ export class BaseListView extends React.Component {
                         newItems.push(null);
                     }
                     if (this._aborted === true) return;
-                    if (controller && this._controllers.filter(c => c.controller == controller) === 0) return;
+                    if (this._controllers.filter(c => c.controller == controller) === 0) return;
                     if (!newItems) {
                         newItems = [];
                     }
@@ -249,7 +261,7 @@ export class BaseListView extends React.Component {
                     alert(error);
                 }
             });
-    }    
+    }
 }
 
 BaseListView.propTypes = {

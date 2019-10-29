@@ -7,7 +7,7 @@ export class TextFieldRenderer extends BaseFieldRenderer {
     constructor(props) {
         super(props);
         this.state = {
-            //...this.state,
+            ...this.state,
             currentValue: props.value
         };
     }
@@ -25,8 +25,9 @@ export class TextFieldRenderer extends BaseFieldRenderer {
     }
 
     _renderNewOrEditForm() {
+        const {fieldProps} = this.props;
         const { value } = this.state;
-        return (<TextField
+        return (<TextField underlined required={/*fieldProps.required*/false}
             onChange={(ev, newValue) => {
                 this.setValue(newValue);
             }}

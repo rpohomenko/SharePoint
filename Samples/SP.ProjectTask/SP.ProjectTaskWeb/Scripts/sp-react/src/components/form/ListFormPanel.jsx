@@ -1,7 +1,7 @@
+import * as React from 'react';
 import { DefaultButton, PrimaryButton } from 'office-ui-fabric-react/lib/Button';
 import { Dialog, DialogFooter, DialogType } from 'office-ui-fabric-react/lib/Dialog';
-import { Panel } from 'office-ui-fabric-react/lib/Panel';
-import * as React from 'react';
+import { Panel, PanelType } from 'office-ui-fabric-react/lib/Panel';
 
 export class ListFormPanel extends React.Component {
 
@@ -15,18 +15,19 @@ export class ListFormPanel extends React.Component {
     }
 
     render() {
+        const { newItemHeader, editItemHeader, viewItemHeader } = this.props;
         const { showPanel, hideDialog, listForm } = this.state;
         let headerText;
         if (listForm) {
             switch (listForm.props.mode) {
                 case 0:
-                    headerText = "View"
+                    headerText = viewItemHeader
                     break;
                 case 1:
-                    headerText = "Edit"
+                    headerText = editItemHeader
                     break;
                 case 2:
-                    headerText = "New"
+                    headerText = newItemHeader
                     break;
             }
         }
@@ -39,7 +40,7 @@ export class ListFormPanel extends React.Component {
                     onDismiss={this._hidePanel}
                     onLightDismissClick={this._showDialog}
                     closeButtonAriaLabel="Close"
-                >
+                    type={PanelType.medium}>
                     {listForm}
                 </Panel>
                 <Dialog
