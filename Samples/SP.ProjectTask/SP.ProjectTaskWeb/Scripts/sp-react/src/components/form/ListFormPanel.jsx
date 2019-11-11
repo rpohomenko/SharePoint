@@ -12,6 +12,9 @@ export class ListFormPanel extends React.Component {
             ...props,
             hideDialog: true
         };
+
+        this._onSaveClick = this._onSaveClick.bind(this);
+        this._onSaveClickAsync = this._onSaveClickAsync.bind(this);
     }
 
     render() {
@@ -40,7 +43,9 @@ export class ListFormPanel extends React.Component {
                     onDismiss={this._hidePanel}
                     onLightDismissClick={this._showDialog}
                     closeButtonAriaLabel="Close"
-                    type={PanelType.medium}>
+                    type={PanelType.medium}
+                    onRenderFooterContent={this._onRenderFooterContent}
+                    isFooterAtBottom={true}>
                     {listForm}
                 </Panel>
                 {listForm.props.mode > 0 &&
@@ -65,6 +70,33 @@ export class ListFormPanel extends React.Component {
                     </Dialog>)}
             </div>)
             : null;
+    }
+
+    _onSaveClick = () => {
+        if (this._listForm) {
+            return this._listForm.saveItem();
+        }
+    }
+
+    _onSaveClickAsync = async () => {
+        if (this._listForm) {
+            const result = await this._listForm.saveItemAsync();         
+            if (result === 0) {//OK
+                this._hidePanel();
+            }
+        }
+    }
+
+    _onRenderFooterContent = () => {
+        const { listForm } = this.state;      
+        if (listForm && listForm.props.mode > 0) {
+            return (
+                <div>
+                    <PrimaryButton onClick={this._onSaveClickAsync}>Save</PrimaryButton>
+                    <DefaultButton onClick={this._hidePanel}>Cancel</DefaultButton>
+                </div>);
+        }
+        return null;
     }
 
     _showPanel = () => {

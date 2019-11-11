@@ -43,7 +43,7 @@ namespace SP.Client.Linq.Infrastructure
     public TContext Context { get { return SpQueryArgs.Context; } internal set { SpQueryArgs.Context = value; } }
     public SpQueryArgs<TContext> SpQueryArgs { get; }
     public TEntity Entity { get; private set; }
-    public int EntityId { get; private set; }
+    public int EntityId { get; internal set; }
 
     private ConcurrentDictionary<string, object> CurrentValues { get; set; }
 

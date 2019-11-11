@@ -5,9 +5,9 @@ export class BaseFieldRenderer extends React.Component {
     constructor(props) {
         super(props);
 
-        this.state = {           
+        this.state = {
             currentValue: props.value,
-            value: null,
+            value:  props.value,
             isValid: false,
             validationErrors: [],
             validators: []
@@ -15,11 +15,26 @@ export class BaseFieldRenderer extends React.Component {
 
     }
 
+    render() {
+        const { mode } = this.props;
+        const { isValid, validationErrors } = this.state;
+        return (
+            <React.Fragment>
+                <ErrorBoundary>
+                    {mode === /*FormMode.New*/2 ? this._renderNewForm() : null}
+                    {mode === /*FormMode.Edit*/ 1 ? this._renderEditForm() : null}
+                    {mode === /*FormMode.Display*/ 0 ? this._renderDispForm() : null}
+                </ErrorBoundary>
+                {!isValid ? this._renderValidationErrors(validationErrors) : null}
+            </React.Fragment>
+        );
+    }
+
     _renderNewForm() {
         throw (`Method _renderNewForm is not yet implemented, field type: ${this.props.type}.`);
     }
 
-    _renderEditForm(){
+    _renderEditForm() {
         throw (`Method _renderEditForm is not yet implemented, field type: ${this.props.type}.`);
     }
 
@@ -42,8 +57,12 @@ export class BaseFieldRenderer extends React.Component {
         );
     }
 
+    _validate = () => {
+        throw (`Method _validate is not yet implemented, field type: ${this.props.type}.`);
+    }
+
     validate() {
-        let isValid, validationErrors;
+        const { isValid, validationErrors } = this._validate();
         this.setState({
             isValid: isValid,
             validationErrors: validationErrors
@@ -55,26 +74,17 @@ export class BaseFieldRenderer extends React.Component {
         return this.state.value;
     }
 
-    setValue(newValue) {
+    setValue(newValue) {       
         this.setState({ value: newValue }, () => {
-            this.validate();
+            if (this.validate()) {              
+            }
         });
     }
 
-    render() {
-        const { mode } = this.props;
-        const { isValid, validationErrors } = this.state;
-        return (
-            <React.Fragment>
-                <ErrorBoundary>
-                    {mode === /*FormMode.New*/2 ? this._renderNewForm() : null}
-                    {mode === /*FormMode.Edit*/ 1 ? this._renderEditForm() : null}
-                    {mode === /*FormMode.Display*/ 0 ? this._renderDispForm() : null}
-                </ErrorBoundary>
-                {!isValid ? this._renderValidationErrors(validationErrors) : null}
-            </React.Fragment>
-        );
-    }
+    isDirty() {
+        const { value, currentValue } = this.state;
+        return value !== currentValue;
+    }   
 }
 
 export default BaseFieldRenderer;

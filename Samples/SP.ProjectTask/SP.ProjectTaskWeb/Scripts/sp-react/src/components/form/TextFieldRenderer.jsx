@@ -5,7 +5,7 @@ import { BaseFieldRenderer } from './BaseFieldRenderer';
 
 export class TextFieldRenderer extends BaseFieldRenderer {
     constructor(props) {
-        super(props);        
+        super(props);
     }
 
     _renderNewForm() {
@@ -21,14 +21,20 @@ export class TextFieldRenderer extends BaseFieldRenderer {
     }
 
     _renderNewOrEditForm() {
-        const {fieldProps} = this.props;
-        const { value } = this.state;
-        return (<TextField underlined required={/*fieldProps.required*/false}
+        const { fieldProps } = this.props;
+        const { currentValue, item } = this.state;
+        return (<TextField ref={ref=>this._textField = ref} required={/*fieldProps.required*/false}
             onChange={(ev, newValue) => {
                 this.setValue(newValue);
             }}
-            defaultValue ={ value }       
+            defaultValue={currentValue}
         />);
+    }
+
+    _validate = () => {        
+        let { isValid, validationErrors } = {};
+        isValid = true;
+        return {isValid: isValid, validationErrors: validationErrors };
     }
 }
 

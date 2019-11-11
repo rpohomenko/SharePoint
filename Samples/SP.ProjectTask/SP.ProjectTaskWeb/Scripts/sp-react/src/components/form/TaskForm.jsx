@@ -9,14 +9,22 @@ export class TaskForm extends ListForm {
         this.state = {
             ...props
         };
-    }  
-    
-    _fetchData = (itemId,options)=>{
-        return this._service.getTask(itemId,options);        
     }
 
-    _fetchDataAsync = async(itemId,options)=>{
-        return await this._fetchData(itemId,options);        
+    _fetchData = (itemId, options) => {
+        return this._service.getTask(itemId, options);
+    }
+
+    _fetchDataAsync = async (itemId, options) => {
+        return await this._fetchData(itemId, options);
+    }
+
+    _saveData = (item, options) => {
+        return this._service.saveTask(item, options);
+    }
+
+    _saveDataAsync = async (item, options) => {
+        return await this._saveData(item, options);
     }
 
     render() {

@@ -15,4 +15,11 @@ export class AppService extends ApiService {
     getTask = async(id, options) => {
         return await this.get(`/api/web/tasks/${id}`, options);
     }
+
+    saveTask = async(item, options) => {      
+        if(item && item.Id > 0){
+            return await this.put(`/api/web/tasks`, options, item);
+        }
+        return await this.post(`/api/web/tasks`, options,  item);
+    }
 }

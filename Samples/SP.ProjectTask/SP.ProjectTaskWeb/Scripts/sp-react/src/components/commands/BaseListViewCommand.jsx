@@ -19,6 +19,19 @@ export class BaseListViewCommand extends React.Component {
         };
     }
 
+    render() {       
+        return (
+            <div className="command-container">
+                <OverflowSet styles={{ root: { paddingTop: 10 }, menuIcon: { fontSize: '16px' } }}
+                    items={this._getItems()}
+                    onRenderOverflowButton={this._onRenderOverflowButton}
+                    onRenderItem={this._onRenderItem}
+                />
+                <ListFormPanel ref={ref => this._panel = ref} />
+            </div>
+        );
+    }
+
     _onNewItem = () => {
         throw "Method _onNewItem is not yet implemented!";
     }
@@ -125,21 +138,7 @@ export class BaseListViewCommand extends React.Component {
                 menuProps={{ items: overflowItems }}
             />
         );
-    };
-
-    render() {
-        const { listForm } = this.state;
-        return (
-            <div className="command-container">
-                <OverflowSet styles={{ root: { paddingTop: 10 }, menuIcon: { fontSize: '16px' } }}
-                    items={this._getItems()}
-                    onRenderOverflowButton={this._onRenderOverflowButton}
-                    onRenderItem={this._onRenderItem}
-                />
-                <ListFormPanel ref={ref => this._listform = ref} listForm={listForm} />
-            </div>
-        );
-    }
+    }; 
 }
 
 export default BaseListViewCommand;

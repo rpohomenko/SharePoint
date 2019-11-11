@@ -21,6 +21,17 @@ export class FormField extends React.Component {
         this._onDismiss = this._onDismiss.bind(this);
     }
 
+    componentDidMount() {
+        const { fieldProps } = this.props;
+        if (fieldProps) {
+            this._setFieldRenderer(fieldProps.type);
+        }
+    }
+
+    render() {
+        return this._renderField();
+    }
+
     _onRenderDescription = (fieldProps) => {
         return (
             <Text variant="small">
@@ -73,7 +84,7 @@ export class FormField extends React.Component {
         let currentValue = item ? item[fieldProps.name] : undefined;
         let field;
         if (type === 'text') {
-            field = <TextFieldRenderer key={fieldProps.name} value={currentValue} item={item} fieldProps={fieldProps} mode={mode} />;
+            field = <TextFieldRenderer ref={(ref) => this._field = ref} key={fieldProps.name} value={currentValue} item={item} fieldProps={fieldProps} mode={mode} />;
         }
         if (field) {
             this.setState({
@@ -85,16 +96,11 @@ export class FormField extends React.Component {
         }
     }
 
-    componentDidMount() {
-        const { fieldProps } = this.props;
-        if (fieldProps) {
-            this._setFieldRenderer(fieldProps.type);
+    getFieldValue() {
+        if (this._field) {
+            return this._field.getValue();
         }
-    }
-
-    render() {
-        return this._renderField();
-    }
+    }   
 }
 
 export default FormField;

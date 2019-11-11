@@ -310,6 +310,7 @@ namespace SP.Client.Linq
             if (existEntity == null)
             {
                 var entry = GetEntry(source, entity);
+                entry.EntityId = 0;
                 entry.AutoUpdateLookups = autoUpdateLookups;
                 entry.Update();
                 return entry;
