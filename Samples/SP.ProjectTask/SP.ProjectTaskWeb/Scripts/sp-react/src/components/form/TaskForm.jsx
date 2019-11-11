@@ -7,22 +7,30 @@ export class TaskForm extends ListForm {
         super(props);
 
         this.state = {
-           ...props
+            ...props
         };
+    }  
+    
+    _fetchData = (itemId,options)=>{
+        return this._service.getTask(itemId,options);        
+    }
+
+    _fetchDataAsync = async(itemId,options)=>{
+        return await this._fetchData(itemId,options);        
+    }
+
+    render() {
+        return super.render();
     }
 
     _getFields = () => {
         return [{
             key: 'Title',
-            internalName: 'Title',
+            name: 'Title',
             type: 'text',
             title: 'Title',
             required: true
         }];
-    }
-
-    render() {
-      return super.render();
     }
 }
 

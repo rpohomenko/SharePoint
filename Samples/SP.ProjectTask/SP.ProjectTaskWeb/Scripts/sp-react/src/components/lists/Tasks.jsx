@@ -13,6 +13,16 @@ export class TaskList extends BaseListView {
     };
   }
 
+  render() {
+    const { selection } = this.state;
+    return (
+      <div className="tasks-container">
+        <TaskCommand ref={ref => this._command = ref} service={this._service} selection={selection} />
+        {super.render()}
+      </div>
+    );
+  }
+
   _getColumns = () => {
     const columns = [
       {
@@ -51,22 +61,12 @@ export class TaskList extends BaseListView {
     this._command.viewItem(item);
   }
 
-  _onEditItem (item) {
+  _onEditItem(item) {
     this._command.editItem(item);
   }
 
-  _onDeleteItem (item) {
+  _onDeleteItem(item) {
     this._command.deleteItem(item);
-  }
-
-  render() {
-    const { selection } = this.state;
-    return (
-      <div className="tasks-container">
-        <TaskCommand ref={ref => this._command = ref} selection={selection} />
-        {super.render()}
-      </div>
-    );
   }
 }
 

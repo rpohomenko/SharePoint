@@ -5,7 +5,6 @@ import { DirectionalHint, ContextualMenu } from 'office-ui-fabric-react/lib/Cont
 import { Spinner, SpinnerSize } from 'office-ui-fabric-react/lib/Spinner';
 import { Stack } from 'office-ui-fabric-react/lib/Stack';
 import { MarqueeSelection } from 'office-ui-fabric-react/lib/MarqueeSelection';
-import { ContextualMenuItemType } from 'office-ui-fabric-react/lib/ContextualMenu';
 
 export class BaseListView extends React.Component {
 

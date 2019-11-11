@@ -12,12 +12,12 @@ export class TaskCommand extends BaseListViewCommand {
     }
 
     _onNewItem = () => {
-        const listForm = <TaskForm mode={2} />
+        const listForm = <TaskForm service={this.props.service} mode={2} />
         this._listform.setState({ listForm: listForm, showPanel: true });
     }
 
     _onEditItem = (item) => {
-        const listForm = <TaskForm mode={1} itemId={item.Id} />
+        const listForm = <TaskForm service={this.props.service} mode={1} itemId={item.Id} />
         this._listform.setState({ listForm: listForm, showPanel: true });
     }
 
@@ -26,7 +26,7 @@ export class TaskCommand extends BaseListViewCommand {
     }
 
     _onViewItem = (item) => {
-        const listForm = <TaskForm mode={0} itemId={item.Id} />
+        const listForm = <TaskForm service={this.props.service} mode={0} itemId={item.Id} />
         this._listform.setState({ listForm: listForm, showPanel: true });
     }
 

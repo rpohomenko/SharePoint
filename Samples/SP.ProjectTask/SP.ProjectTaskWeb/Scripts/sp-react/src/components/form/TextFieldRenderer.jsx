@@ -5,11 +5,7 @@ import { BaseFieldRenderer } from './BaseFieldRenderer';
 
 export class TextFieldRenderer extends BaseFieldRenderer {
     constructor(props) {
-        super(props);
-        this.state = {
-            ...this.state,
-            currentValue: props.value
-        };
+        super(props);        
     }
 
     _renderNewForm() {

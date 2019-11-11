@@ -5,7 +5,8 @@ export class BaseFieldRenderer extends React.Component {
     constructor(props) {
         super(props);
 
-        this.state = {
+        this.state = {           
+            currentValue: props.value,
             value: null,
             isValid: false,
             validationErrors: [],

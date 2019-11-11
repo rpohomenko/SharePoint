@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { TextFieldRenderer } from './TextFieldRenderer';
 import { Label } from 'office-ui-fabric-react/lib/Label';
-import { DefaultButton, IconButton } from 'office-ui-fabric-react/lib/Button';
+import { IconButton } from 'office-ui-fabric-react/lib/Button';
 import { Callout } from 'office-ui-fabric-react/lib/Callout';
 import { Stack } from 'office-ui-fabric-react/lib/Stack';
 import { Text } from 'office-ui-fabric-react/lib/Text';
@@ -14,6 +14,7 @@ export class FormField extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
+            ...props,
             field: null
         };
 
@@ -68,10 +69,11 @@ export class FormField extends React.Component {
     }
 
     _setFieldRenderer = (type) => {
-        const { fieldProps, mode } = this.props;
+        const { fieldProps, mode, item } = this.props;
+        let currentValue = item ? item[fieldProps.name] : undefined;
         let field;
         if (type === 'text') {
-            field = <TextFieldRenderer key={fieldProps.internalName} fieldProps={fieldProps} mode={mode} />;       
+            field = <TextFieldRenderer key={fieldProps.name} value={currentValue} item={item} fieldProps={fieldProps} mode={mode} />;
         }
         if (field) {
             this.setState({
