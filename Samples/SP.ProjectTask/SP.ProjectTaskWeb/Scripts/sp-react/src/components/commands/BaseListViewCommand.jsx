@@ -1,5 +1,5 @@
 import React from "react";
-//import { CommandBar } from 'office-ui-fabric-react/lib/CommandBar';
+import { CommandBar } from 'office-ui-fabric-react/lib/CommandBar';
 import { OverflowSet } from 'office-ui-fabric-react/lib/OverflowSet';
 import { CommandBarButton } from 'office-ui-fabric-react/lib/Button';
 import ListFormPanel from "../form/ListFormPanel";
@@ -25,8 +25,18 @@ export class BaseListViewCommand extends React.Component {
         const { itemsToDelete } = this.state;
         return (
             <div className="command-container">
-                <OverflowSet styles={{ root: { paddingTop: 10 }, menuIcon: { fontSize: '16px' } }}
+                <CommandBar styles={{ root: { paddingTop: 10 }, menuIcon: { fontSize: '16px' } }}
                     items={this._getItems()}
+                    farItems={[{
+                        key: 'refresh',
+                        icon: 'Refresh',
+                        text: '',
+                        onClick: (e, sender) => this.refresh(),
+                        iconProps: {
+                            iconName: 'Refresh'
+                        },
+                        ariaLabel: 'Refresh'
+                    }]}
                     onRenderOverflowButton={this._onRenderOverflowButton}
                     onRenderItem={this._onRenderItem} />
                 <Dialog
@@ -34,7 +44,8 @@ export class BaseListViewCommand extends React.Component {
                     onDismiss={this._closeDialog}
                     dialogContentProps={{
                         type: DialogType.normal,
-                        title: 'Are you sure you want to delete the item(s)?'
+                        title: 'Delete?',
+                        subText: 'Are you sure you want to delete the item(s)?'
                     }}
                     modalProps={{
                         isBlocking: true,
@@ -93,7 +104,7 @@ export class BaseListViewCommand extends React.Component {
             {
                 key: 'newItem',
                 icon: 'Add',
-                name: 'New',
+                text: '',
                 onClick: (e, sender) => this._onNewItem(),
                 iconProps: {
                     iconName: 'Add'
@@ -106,7 +117,7 @@ export class BaseListViewCommand extends React.Component {
                     {
                         key: 'viewItem',
                         icon: 'View',
-                        name: 'View',
+                        text: '',
                         onClick: (e, sender) => this._onViewItem(selection[0]),
                         iconProps: {
                             iconName: 'View'
@@ -117,7 +128,7 @@ export class BaseListViewCommand extends React.Component {
                     {
                         key: 'editItem',
                         icon: 'Edit',
-                        name: 'Edit',
+                        text: '',
                         onClick: (e, sender) => this._onEditItem(selection[0]),
                         iconProps: {
                             iconName: 'Edit'
@@ -130,7 +141,7 @@ export class BaseListViewCommand extends React.Component {
                     {
                         key: 'deleteItem',
                         icon: 'Delete',
-                        name: 'Delete',
+                        text: '',
                         onClick: (e, sender) => this.deleteItem(selection),
                         iconProps: {
                             iconName: 'Delete'
@@ -138,18 +149,7 @@ export class BaseListViewCommand extends React.Component {
                         ariaLabel: 'Delete'
                     });
             }
-        }
-        items.push(
-            {
-                key: 'refresh',
-                icon: 'Refresh',
-                name: 'Refresh',
-                onClick: (e, sender) => this.refresh(),
-                iconProps: {
-                    iconName: 'Refresh'
-                },
-                ariaLabel: 'Refresh'
-            });
+        }        
         return items;
     }
 

@@ -31,9 +31,9 @@ export class TaskList extends BaseListView {
         fieldName: 'Title',
         minWidth: 210,
         maxWidth: 350,
-        isRowHeader: true,
-        isResizable: true,
-        isSorted: true,
+        isRowHeader: false,
+        isResizable: false,
+        isSorted: false,
         isSortedDescending: false,
         sortAscendingAriaLabel: 'A to Z',
         sortDescendingAriaLabel: 'Z to A',
@@ -66,12 +66,12 @@ export class TaskList extends BaseListView {
   }
 
   _onDeleteItem(item) {
-    this._command.deleteItem(item);
+    this._command.deleteItem([item]);
   }
 }
 
 const Tasks = (props) => {
-  return (<TaskList service={props.service} pageSize={30}></TaskList>);
+  return (<TaskList service={props.service} pageSize={30} emptyMessage="There are no tasks." />);
 };
 
 export default Tasks;

@@ -1,29 +1,31 @@
-.sidebar {    
+.sidebar {
     top: 0;
     bottom: 0;
     left: 0;
     z-index: 100;
     padding: 34px 0 0 7px;
     box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
-
     @media (min-width: 768px) {
-    .collapse {
-        &:not(.show) {
-          display: block;
+        .collapse {
+            &:not(.show) {
+                display: block;
+            }
         }
-      }
+        .sidebar-menu {
+            height: calc(100vh - 34px);
+        }
     }
-
     .navbar {
         padding: 0 0;
     }
 }
-    .sidebar-menu {
+
+.sidebar-menu {
     position: relative;
     top: 0;
-    height: calc(100vh - 34px);
+    height: calc(50vh - 34px);
+    margin-right: .5rem;
     padding-top: .5rem;
     overflow-x: hidden;
     overflow-y: auto;
 }
-

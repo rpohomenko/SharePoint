@@ -1,7 +1,8 @@
 import * as React from 'react';
 import { FormField } from './FormField';
-import { Spinner, SpinnerSize } from 'office-ui-fabric-react/lib/Spinner';
+//import { Spinner, SpinnerSize } from 'office-ui-fabric-react/lib/Spinner';
 import { Stack } from 'office-ui-fabric-react/lib/Stack';
+import { ProgressIndicator } from 'office-ui-fabric-react/lib/ProgressIndicator';
 
 export class ListForm extends React.Component {
 
@@ -29,17 +30,23 @@ export class ListForm extends React.Component {
     }
 
     render() {
-        const { isLoading, mode, item, fields } = this.state;
+        const { isLoading, isSaving, mode, item, fields } = this.state;
         this._formFields = [];
         if (fields) {
             return (
                 <div className='form-container'>
                     {
                         isLoading
-                            ? (<Stack horizontalAlign="start" styles={{ root: { padding: 10 } }}><Spinner size={SpinnerSize.large} /></Stack>)
-                            : (fields.map((field, i) =>
-                                (<FormField ref={ref => this._formFields.push(ref)} key={field.name} item={item} fieldProps={field} mode={mode} onValidate={this._onValidate} />)
-                            ))}
+                            ? (<Stack horizontalAlign="start" styles={{ root: { padding: 10 } }}>
+                                <ProgressIndicator label={"Loading..."} />
+                            </Stack>)
+                            : (<div>
+                                {isSaving && (<Stack horizontalAlign="start" styles={{ root: { padding: 10 } }}><ProgressIndicator label={"Saving..."} /> </Stack>)}
+                                {fields.map((field, i) =>
+                                    (<FormField ref={ref => this._formFields.push(ref)} key={field.name} item={item} fieldProps={field} mode={mode} onValidate={this._onValidate} />))}
+                            </div>)
+
+                    }
                 </div>
             );
         }
@@ -74,19 +81,19 @@ export class ListForm extends React.Component {
         const { onValidate } = this.props;
         if (typeof onValidate === "function") {
             let isDirty = fieldControl.isDirty();
-            if(!isDirty && this._formFields){
+            if (!isDirty && this._formFields) {
                 for (let i = 0; i < this._formFields.length; i++) {
-                    if(this._formFields[i].getControl() === fieldControl) continue;
-                    if(this._formFields[i].isDirty()){
+                    if (this._formFields[i].getControl() === fieldControl) continue;
+                    if (this._formFields[i].isDirty()) {
                         isDirty = true;
                         break;
                     }
                 }
-            } 
-            if(!isValid && this._formFields){
+            }
+            if (!isValid && this._formFields) {
                 for (let i = 0; i < this._formFields.length; i++) {
-                    if(this._formFields[i].getControl() === fieldControl) continue;
-                    if(this._formFields[i].isValid()){
+                    if (this._formFields[i].getControl() === fieldControl) continue;
+                    if (this._formFields[i].isValid()) {
                         isValid = true;
                         break;
                     }
@@ -140,7 +147,7 @@ export class ListForm extends React.Component {
         if (!isLoading && mode > 0) {
             let newItem = {};
             this.setState({
-                isLoading: true
+                isSaving: true
             });
 
             if (this._formFields) {
@@ -159,7 +166,7 @@ export class ListForm extends React.Component {
                     return response.json().then((error) => {
                         alert(error.message);
                         this.setState({
-                            isLoading: false
+                            isSaving: false
                         });
                         return 0; //error
                     });
@@ -168,7 +175,7 @@ export class ListForm extends React.Component {
                     if (item) {
                         this.setState({
                             item: item,
-                            isLoading: false
+                            isSaving: false
                         });
                     }
                     return 1; // OK

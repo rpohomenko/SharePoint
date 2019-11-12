@@ -1,7 +1,9 @@
 import React from "react";
 import TaskForm from "../form/TaskForm";
 import BaseListViewCommand from "./BaseListViewCommand";
-import { getItemClassNames } from "office-ui-fabric-react/lib/components/ContextualMenu/ContextualMenu.classNames";
+//import { getItemClassNames } from "office-ui-fabric-react/lib/components/ContextualMenu/ContextualMenu.classNames";
+import { ProgressIndicator } from 'office-ui-fabric-react/lib/ProgressIndicator';
+import { Stack } from 'office-ui-fabric-react/lib/Stack';
 
 export class TaskCommand extends BaseListViewCommand {
 
@@ -10,6 +12,16 @@ export class TaskCommand extends BaseListViewCommand {
         this.state = {
             ...this.state
         };
+    }
+
+    render() {
+        const { isDeleting } = this.state;
+        return (<div>
+            {super.render()}
+            {isDeleting && (<Stack horizontalAlign="start" styles={{ root: { padding: 10 } }}>
+                <ProgressIndicator label={"Deleting..."} />
+            </Stack>)}
+        </div>);
     }
 
     _onNewItem = () => {
@@ -29,7 +41,8 @@ export class TaskCommand extends BaseListViewCommand {
     }
 
     _onDelete = (items) => {
-        let ids = [];
+        this.setState({ isDeleting: true });
+        let ids = [];        
         if (items) {
             for (let i = 0; i < items.length; i++) {
                 ids.push(items[i].Id);
@@ -46,7 +59,7 @@ export class TaskCommand extends BaseListViewCommand {
             return response.json().then((result) => {
                 if (result) {
                     this.refresh();
-                    this.setState({itemsToDelete: null});
+                    this.setState({ itemsToDelete: null, isDeleting: false });
                 }
                 return 1; // OK
             });
@@ -61,10 +74,6 @@ export class TaskCommand extends BaseListViewCommand {
     _getItems() {
         let commands = super._getItems();
         return commands;
-    }
-
-    render() {
-        return super.render();
     }
 }
 

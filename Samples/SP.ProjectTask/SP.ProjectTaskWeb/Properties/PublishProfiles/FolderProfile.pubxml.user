@@ -262,10 +262,10 @@ by editing this MSBuild file. In order to learn more about this please visit htt
       <publishTime>10/18/2019 12:13:44</publishTime>
     </File>
     <File Include="bin/SP.ProjectTaskWeb.dll">
-      <publishTime>10/26/2019 14:30:53</publishTime>
+      <publishTime>11/11/2019 21:49:44</publishTime>
     </File>
     <File Include="bin/SP.ProjectTaskWeb.pdb">
-      <publishTime>10/26/2019 14:30:53</publishTime>
+      <publishTime>11/11/2019 21:49:44</publishTime>
     </File>
     <File Include="bin/System.IdentityModel.Tokens.Jwt.dll">
       <publishTime>06/24/2019 19:49:42</publishTime>
@@ -397,7 +397,7 @@ by editing this MSBuild file. In order to learn more about this please visit htt
       <publishTime>10/19/2019 09:30:16</publishTime>
     </File>
     <File Include="README.md">
-      <publishTime>10/26/2019 12:47:51</publishTime>
+      <publishTime>10/30/2019 09:15:58</publishTime>
     </File>
     <File Include="Scripts/bootstrap.bundle.js">
       <publishTime>10/20/2019 17:57:33</publishTime>
@@ -511,28 +511,28 @@ by editing this MSBuild file. In order to learn more about this please visit htt
       <publishTime>10/26/2019 12:47:51</publishTime>
     </File>
     <File Include="Scripts/sp-react/dist/css/main.css">
-      <publishTime>10/26/2019 12:59:07</publishTime>
+      <publishTime>11/11/2019 21:49:01</publishTime>
     </File>
     <File Include="Scripts/sp-react/dist/css/main.css.map">
-      <publishTime>10/26/2019 12:59:07</publishTime>
+      <publishTime>11/11/2019 21:49:01</publishTime>
     </File>
     <File Include="Scripts/sp-react/dist/css/main.min.css">
       <publishTime>10/26/2019 13:05:35</publishTime>
     </File>
     <File Include="Scripts/sp-react/dist/js/main.bundle.js">
-      <publishTime>10/26/2019 12:59:07</publishTime>
+      <publishTime>11/11/2019 21:49:01</publishTime>
     </File>
     <File Include="Scripts/sp-react/dist/js/main.bundle.js.map">
-      <publishTime>10/26/2019 12:59:07</publishTime>
+      <publishTime>11/11/2019 21:49:01</publishTime>
     </File>
     <File Include="Scripts/sp-react/dist/js/main.bundle.min.js">
       <publishTime>10/26/2019 13:05:35</publishTime>
     </File>
     <File Include="Scripts/sp-react/dist/js/vendor.bundle.js">
-      <publishTime>10/26/2019 12:59:07</publishTime>
+      <publishTime>11/11/2019 21:49:01</publishTime>
     </File>
     <File Include="Scripts/sp-react/dist/js/vendor.bundle.js.map">
-      <publishTime>10/26/2019 12:59:07</publishTime>
+      <publishTime>11/11/2019 21:49:01</publishTime>
     </File>
     <File Include="Scripts/sp-react/dist/js/vendor.bundle.min.js">
       <publishTime>10/26/2019 13:05:35</publishTime>
@@ -595,7 +595,7 @@ by editing this MSBuild file. In order to learn more about this please visit htt
       <publishTime>10/20/2019 18:00:29</publishTime>
     </File>
     <File Include="Views/Home/Index.cshtml">
-      <publishTime>10/26/2019 12:47:51</publishTime>
+      <publishTime>10/30/2019 09:15:59</publishTime>
     </File>
     <File Include="Views/Shared/Error.cshtml">
       <publishTime>10/19/2019 09:30:16</publishTime>

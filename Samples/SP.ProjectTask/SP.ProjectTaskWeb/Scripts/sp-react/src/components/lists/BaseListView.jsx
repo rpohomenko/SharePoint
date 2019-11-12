@@ -42,6 +42,7 @@ export class BaseListView extends React.Component {
     }
 
     render() {
+        const { emptyMessage } = this.props;
         const { columns, items, contextualMenuProps, isLoading } = this.state;
 
         return (
@@ -62,6 +63,7 @@ export class BaseListView extends React.Component {
                         onRenderMissingItem={this._onRenderMissingItem}
                     />
                 </MarqueeSelection>
+                {items && items.length === 0 && (<span>{emptyMessage}</span>)}
                 {contextualMenuProps && <ContextualMenu {...contextualMenuProps} />}
                 {isLoading && (<Stack horizontalAlign="start" styles={{ root: { padding: 10 } }}><Spinner size={SpinnerSize.medium} /></Stack>)}
             </div>
@@ -337,12 +339,14 @@ export class BaseListView extends React.Component {
 
 BaseListView.propTypes = {
     pageSize: PropTypes.number,
-    SORT_COLUMN_DELAY: PropTypes.number
+    SORT_COLUMN_DELAY: PropTypes.number,
+    emptyMessage : PropTypes.string
 }
 
 BaseListView.defaultProps = {
     pageSize: 30,
-    SORT_COLUMN_DELAY: 700
+    SORT_COLUMN_DELAY: 700,
+    emptyMessage: "There are no items."
 }
 
 export default BaseListView;

@@ -13,13 +13,12 @@ export class ListFormPanel extends React.Component {
             hideDialog: true
         };
 
-        this._onSaveClick = this._onSaveClick.bind(this);
-        this._onSaveClickAsync = this._onSaveClickAsync.bind(this);
+        this._onSaveClick = this._onSaveClick.bind(this);      
     }
 
     render() {
         const { newItemHeader, editItemHeader, viewItemHeader } = this.props;
-        const { showPanel, hideDialog, listForm } = this.state;
+        const { showPanel, hideDialog, listForm, isDirty } = this.state;
         let headerText;
         if (listForm) {
             switch (listForm.props.mode) {
@@ -48,13 +47,14 @@ export class ListFormPanel extends React.Component {
                     isFooterAtBottom={true}>
                     {listForm}
                 </Panel>
-                {listForm.props.mode > 0 &&
+                {listForm.props.mode > 0 && isDirty &&
                     (<Dialog
                         hidden={hideDialog}
                         onDismiss={this._closeDialog}
                         dialogContentProps={{
                             type: DialogType.normal,
-                            title: 'Are you sure you want to close the form without saving?'
+                            title: 'Close?',
+                            subText: 'Are you sure you want to close the form without saving?'
                         }}
                         modalProps={{                           
                             isBlocking: true,
@@ -68,18 +68,12 @@ export class ListFormPanel extends React.Component {
                     </Dialog>)}
             </div>)
             : null;
-    }
+    }   
 
-    _onSaveClick = () => {
+    _onSaveClick = async () => {
         const { isValid, isDirty } = this.state;
         if (this._listForm && isValid && isDirty) {
-            return this._listForm.saveItem();
-        }
-    }
-
-    _onSaveClickAsync = async () => {
-        const { isValid, isDirty } = this.state;
-        if (this._listForm && isValid && isDirty) {
+            this.setState({isValid: false, isDirty: false});
             const result = await this._listForm.saveItemAsync();
             if (result === 1) {//OK
                 this._hidePanel(result);
@@ -92,7 +86,7 @@ export class ListFormPanel extends React.Component {
         if (listForm && listForm.props.mode > 0) {
             return (
                 <div>
-                    <PrimaryButton onClick={this._onSaveClickAsync} disabled={!isDirty || !isValid}>Save</PrimaryButton>
+                    <PrimaryButton onClick={this._onSaveClick} disabled={!isDirty || !isValid} style={{marginRight: 7}}>Save</PrimaryButton>
                     <DefaultButton onClick={this._hidePanel}>Cancel</DefaultButton>
                 </div>);
         }
@@ -105,9 +99,9 @@ export class ListFormPanel extends React.Component {
 
     _hidePanel = (result) => {
         const { onClose } = this.props;
-        const { showPanel, hideDialog, listForm } = this.state;
-        if (showPanel && (hideDialog || (listForm && listForm.props.mode === 0))) {
-            this.setState({ showPanel: false });
+        const { showPanel, hideDialog, listForm, isDirty } = this.state;
+        if (showPanel && (hideDialog || !isDirty || (listForm && listForm.props.mode === 0))) {
+            this.setState({ showPanel: false, isDirty: false, isValid: false });
             if (typeof onClose === "function") {
                 onClose(this, result);
             }
@@ -115,8 +109,8 @@ export class ListFormPanel extends React.Component {
     };
 
     _showDialog = () => {
-        const { listForm } = this.state;
-        if (listForm && listForm.props.mode > 0) {
+        const { listForm, isDirty } = this.state;
+        if (isDirty && listForm && listForm.props.mode > 0) {
             this.setState({ hideDialog: false });
         }
         else {
@@ -129,7 +123,7 @@ export class ListFormPanel extends React.Component {
     };
 
     _closeDialogAndHidePanel = () => {
-        this.setState({ showPanel: false });
+        this.setState({ showPanel: false, isDirty: false, isValid: false });
         this._closeDialog();
     };
 }
