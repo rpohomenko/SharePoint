@@ -21,7 +21,7 @@ export class ListForm extends React.Component {
         }
         if (!item && mode < 2 && itemId > 0) {
             await this.loadItemAsync(itemId);
-        }      
+        }
     }
 
     async componentWillUnmount() {
@@ -30,23 +30,16 @@ export class ListForm extends React.Component {
 
     render() {
         const { isLoading, mode, item, fields } = this.state;
-        this._saveHandlers = [];
+        this._formFields = [];
         if (fields) {
             return (
                 <div className='form-container'>
                     {
                         isLoading
                             ? (<Stack horizontalAlign="start" styles={{ root: { padding: 10 } }}><Spinner size={SpinnerSize.large} /></Stack>)
-                            : (fields.map((field, i) => {
-                                let formField;
-                                let output = (<FormField ref={ref => formField = ref} key={field.name} item={item} fieldProps={field} mode={mode} />);
-                                const saveHandler = (newItem) => {
-                                    this._onSaveHandler(newItem, field, formField);
-                                }
-                                this._saveHandlers.push(saveHandler);
-                                return output;
-                            })
-                            )}
+                            : (fields.map((field, i) =>
+                                (<FormField ref={ref => this._formFields.push(ref)} key={field.name} item={item} fieldProps={field} mode={mode} onValidate={this._onValidate} />)
+                            ))}
                 </div>
             );
         }
@@ -55,10 +48,10 @@ export class ListForm extends React.Component {
 
     async _abort() {
         if (this._controllers != null) {
-            this._controllers.forEach(c => {
-                c.controller.abort();
-            });
             try {
+                this._controllers.forEach(c => {
+                    c.controller.abort();
+                });
                 await this._waitAll()
             }
             catch{ }
@@ -74,6 +67,32 @@ export class ListForm extends React.Component {
         });
         if (promises.length > 0) {
             return await Promise.all(promises);
+        }
+    }
+
+    _onValidate = (fieldControl, isValid, errors) => {
+        const { onValidate } = this.props;
+        if (typeof onValidate === "function") {
+            let isDirty = fieldControl.isDirty();
+            if(!isDirty && this._formFields){
+                for (let i = 0; i < this._formFields.length; i++) {
+                    if(this._formFields[i].getControl() === fieldControl) continue;
+                    if(this._formFields[i].isDirty()){
+                        isDirty = true;
+                        break;
+                    }
+                }
+            } 
+            if(!isValid && this._formFields){
+                for (let i = 0; i < this._formFields.length; i++) {
+                    if(this._formFields[i].getControl() === fieldControl) continue;
+                    if(this._formFields[i].isValid()){
+                        isValid = true;
+                        break;
+                    }
+                }
+            }
+            onValidate(this, isValid, isDirty);
         }
     }
 
@@ -101,7 +120,7 @@ export class ListForm extends React.Component {
                     this.setState({
                         isLoading: false
                     });
-                    return 1; //error
+                    return 0; //error
                 });
             }
             return response.json().then((item) => {
@@ -111,7 +130,7 @@ export class ListForm extends React.Component {
                         isLoading: false
                     });
                 }
-                return 0; // OK
+                return 1; // OK
             });
         });
     }
@@ -119,16 +138,18 @@ export class ListForm extends React.Component {
     saveItem() {
         const { isLoading, mode, item } = this.state;
         if (!isLoading && mode > 0) {
-            let newItem = {};          
+            let newItem = {};
             this.setState({
                 isLoading: true
             });
 
-            for (let i = 0; i < this._saveHandlers.length; i++) {
-                this._saveHandlers[i](newItem);
+            if (this._formFields) {
+                for (let i = 0; i < this._formFields.length; i++) {
+                    this._formFields[i].onSaveHandler(newItem);
+                }
             }
-           
-            if(item && mode === 1){
+
+            if (item && mode === 1) {
                 newItem.Id = item.Id;
                 newItem.Version = item.Version;
             }
@@ -140,7 +161,7 @@ export class ListForm extends React.Component {
                         this.setState({
                             isLoading: false
                         });
-                        return 1; //error
+                        return 0; //error
                     });
                 }
                 return response.json().then((item) => {
@@ -150,7 +171,7 @@ export class ListForm extends React.Component {
                             isLoading: false
                         });
                     }
-                    return 0; // OK
+                    return 1; // OK
                 });
             });
         }
@@ -212,13 +233,6 @@ export class ListForm extends React.Component {
                         }
                     }
                 };
-        }
-    }
-
-    _onSaveHandler = (newItem, field, formField) => {     
-        const fieldValue = formField.getFieldValue();
-        if (newItem) {
-            newItem[field.name] = fieldValue;
         }
     }
 }

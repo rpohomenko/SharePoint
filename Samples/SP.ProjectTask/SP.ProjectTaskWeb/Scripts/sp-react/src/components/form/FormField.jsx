@@ -80,11 +80,11 @@ export class FormField extends React.Component {
     }
 
     _setFieldRenderer = (type) => {
-        const { fieldProps, mode, item } = this.props;
+        const { fieldProps, mode, item, onValidate } = this.props;
         let currentValue = item ? item[fieldProps.name] : undefined;
         let field;
         if (type === 'text') {
-            field = <TextFieldRenderer ref={(ref) => this._field = ref} key={fieldProps.name} value={currentValue} item={item} fieldProps={fieldProps} mode={mode} />;
+            field = <TextFieldRenderer ref={(ref) => this._fieldControl = ref} key={fieldProps.name} value={currentValue} item={item} fieldProps={fieldProps} mode={mode} onValidate={onValidate} />;
         }
         if (field) {
             this.setState({
@@ -97,10 +97,33 @@ export class FormField extends React.Component {
     }
 
     getFieldValue() {
-        if (this._field) {
-            return this._field.getValue();
+        if (this._fieldControl) {
+            return this._fieldControl.getValue();
         }
-    }   
+    }
+
+    isDirty() {
+        if (this._fieldControl) {
+            return this._fieldControl.isDirty();
+        }
+    }
+
+    isValid() {
+        if (this._fieldControl) {
+            return this._fieldControl.validate();
+        }
+    }
+
+    getControl() {      
+        return this._fieldControl;        
+    }
+    
+    onSaveHandler = (newItem) => {        
+        if (newItem) {
+            const { fieldProps } = this.props;
+            newItem[fieldProps.name] = this.getFieldValue();
+        }
+    }
 }
 
 export default FormField;

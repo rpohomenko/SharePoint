@@ -103,6 +103,14 @@ namespace SP.ProjectTaskWeb.Controllers
             return UpdateEntity(task);
         }
 
+        [Route("tasks")]
+        [HttpDelete]
+        public IHttpActionResult DeleteTask([FromUri] string ids)
+        {
+            var itemIds = ids.Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries).Select(id => Convert.ToInt32(id));
+            return Delete<ProjectTask>(itemIds);
+        }
+
         private IHttpActionResult GetItemResult<TEntity>(int id) where TEntity : ListItemEntity, new()
         {
             try
@@ -189,6 +197,31 @@ namespace SP.ProjectTaskWeb.Controllers
                 return new JsonErrorResult(ex);
             }
         }
+
+        private IHttpActionResult Delete<TEntity>(IEnumerable<int> itemIds)
+            where TEntity : ListItemEntity, new()
+        {
+            try
+            {
+                if (itemIds == null)
+                {
+                    throw new ArgumentNullException(nameof(itemIds));
+                }
+                using (ClientContext context = new Authentication.LowTrustTokenHelper(_tokenHelper).GetUserClientContext())
+                {
+                    var projectTaskContext = new ProjectTaskContext(context);
+                    bool result = projectTaskContext.List<TEntity>().Delete(itemIds.ToArray());
+                    projectTaskContext.SaveChanges();
+                    return Json(result);
+                }
+            }
+            catch (Exception ex)
+            {
+                return new JsonErrorResult(ex);
+            }
+        }
+
+
 
         [Route("deploy")]
         [HttpPost]

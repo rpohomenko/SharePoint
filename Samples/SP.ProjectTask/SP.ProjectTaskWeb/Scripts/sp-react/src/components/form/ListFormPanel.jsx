@@ -56,9 +56,7 @@ export class ListFormPanel extends React.Component {
                             type: DialogType.normal,
                             title: 'Are you sure you want to close the form without saving?'
                         }}
-                        modalProps={{
-                            titleAriaId: 'myLabelId',
-                            subtitleAriaId: 'mySubTextId',
+                        modalProps={{                           
                             isBlocking: true,
                             styles: { main: { maxWidth: 450 } }
                         }}
@@ -73,26 +71,28 @@ export class ListFormPanel extends React.Component {
     }
 
     _onSaveClick = () => {
-        if (this._listForm) {
+        const { isValid, isDirty } = this.state;
+        if (this._listForm && isValid && isDirty) {
             return this._listForm.saveItem();
         }
     }
 
     _onSaveClickAsync = async () => {
-        if (this._listForm) {
-            const result = await this._listForm.saveItemAsync();         
-            if (result === 0) {//OK
-                this._hidePanel();
+        const { isValid, isDirty } = this.state;
+        if (this._listForm && isValid && isDirty) {
+            const result = await this._listForm.saveItemAsync();
+            if (result === 1) {//OK
+                this._hidePanel(result);
             }
         }
     }
 
     _onRenderFooterContent = () => {
-        const { listForm } = this.state;      
+        const { listForm, isValid, isDirty } = this.state;
         if (listForm && listForm.props.mode > 0) {
             return (
                 <div>
-                    <PrimaryButton onClick={this._onSaveClickAsync}>Save</PrimaryButton>
+                    <PrimaryButton onClick={this._onSaveClickAsync} disabled={!isDirty || !isValid}>Save</PrimaryButton>
                     <DefaultButton onClick={this._hidePanel}>Cancel</DefaultButton>
                 </div>);
         }
@@ -103,10 +103,14 @@ export class ListFormPanel extends React.Component {
         this.setState({ showPanel: true });
     };
 
-    _hidePanel = () => {
+    _hidePanel = (result) => {
+        const { onClose } = this.props;
         const { showPanel, hideDialog, listForm } = this.state;
         if (showPanel && (hideDialog || (listForm && listForm.props.mode === 0))) {
             this.setState({ showPanel: false });
+            if (typeof onClose === "function") {
+                onClose(this, result);
+            }
         }
     };
 

@@ -17,7 +17,7 @@ export class TaskList extends BaseListView {
     const { selection } = this.state;
     return (
       <div className="tasks-container">
-        <TaskCommand ref={ref => this._command = ref} service={this._service} selection={selection} />
+        <TaskCommand ref={ref => this._command = ref} service={this._service} selection={selection} onRefresh={ this.loadItemsAsync } />
         {super.render()}
       </div>
     );
@@ -71,7 +71,7 @@ export class TaskList extends BaseListView {
 }
 
 const Tasks = (props) => {
-  return (<TaskList service={props.service} pageSize={1}></TaskList>);
+  return (<TaskList service={props.service} pageSize={30}></TaskList>);
 };
 
 export default Tasks;

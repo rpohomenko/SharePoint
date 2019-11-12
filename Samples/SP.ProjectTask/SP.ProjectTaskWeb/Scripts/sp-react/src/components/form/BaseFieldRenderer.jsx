@@ -7,7 +7,7 @@ export class BaseFieldRenderer extends React.Component {
 
         this.state = {
             currentValue: props.value,
-            value:  props.value,
+            value: props.value,
             isValid: false,
             validationErrors: [],
             validators: []
@@ -61,12 +61,29 @@ export class BaseFieldRenderer extends React.Component {
         throw (`Method _validate is not yet implemented, field type: ${this.props.type}.`);
     }
 
+    hasValue = () => {
+        throw (`Method hasValue is not yet implemented, field type: ${this.props.type}.`);
+    }
+
     validate() {
-        const { isValid, validationErrors } = this._validate();
+        const { fieldProps, onValidate } = this.props;
+        let { isValid, validationErrors } = this._validate();
+        if(!validationErrors){
+            validationErrors = [];
+        }
+        if (fieldProps.required) {
+            if (!this.hasValue()) {
+                isValid = false;
+                validationErrors.push(`Field "${fieldProps.title}" is required.`);
+            }
+        }
         this.setState({
             isValid: isValid,
             validationErrors: validationErrors
         });
+        if (typeof onValidate === "function") {
+            onValidate(this, isValid, validationErrors);
+        }
         return isValid;
     }
 
@@ -74,9 +91,9 @@ export class BaseFieldRenderer extends React.Component {
         return this.state.value;
     }
 
-    setValue(newValue) {       
+    setValue(newValue) {
         this.setState({ value: newValue }, () => {
-            if (this.validate()) {              
+            if (this.validate()) {
             }
         });
     }
@@ -84,7 +101,7 @@ export class BaseFieldRenderer extends React.Component {
     isDirty() {
         const { value, currentValue } = this.state;
         return value !== currentValue;
-    }   
+    }
 }
 
 export default BaseFieldRenderer;

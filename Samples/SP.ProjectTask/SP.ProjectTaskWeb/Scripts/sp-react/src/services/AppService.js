@@ -22,4 +22,8 @@ export class AppService extends ApiService {
         }
         return await this.post(`/api/web/tasks`, options,  item);
     }
+
+    deleteTask = async(ids, options) => {
+        return await this.delete(`/api/web/tasks?ids=${ids.join(',')}`, options);
+    }
 }

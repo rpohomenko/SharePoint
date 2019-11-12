@@ -82,10 +82,10 @@ export class BaseListView extends React.Component {
 
     async _abort() {
         if (this._controllers != null) {
-            this._controllers.forEach(c => {
-                c.controller.abort();
-            });
             try {
+                this._controllers.forEach(c => {
+                    c.controller.abort();
+                });
                 await this._waitAll()
             }
             catch{ }
@@ -112,11 +112,11 @@ export class BaseListView extends React.Component {
         throw "Method _onItemInvoked is not yet implemented!";
     }
 
-    _onEditItem (item) {
+    _onEditItem(item) {
         throw "Method _onEditItem is not yet implemented!";
     }
 
-    _onDeleteItem (item) {
+    _onDeleteItem(item) {
         throw "Method _onDeleteItem is not yet implemented!";
     }
 
@@ -284,19 +284,24 @@ export class BaseListView extends React.Component {
 
         this.setState({
             isLoading: true,
-            nextPageToken: nextPageToken
+            nextPageToken: nextPageToken,
+            items: []
         });
         let controller = new AbortController();
         const promise = this._fetchDataAsync(count, nextPageToken, sortBy, sortDesc, filter, { signal: controller ? controller.signal : null });
         this._controllers.push({ controller: controller, promise: promise });
 
-        return promise.then(response => response.json())
-            .catch((error) => {
-                if (error.code !== 20 && error.name !== 'AbortError') { //aborted
-                    alert(error);
-                }
-            })
-            .then((json) => {
+        return promise.then(response => {
+            if (response.status === 400) {
+                return response.json().then((error) => {
+                    alert(error.message);
+                    this.setState({
+                        isLoading: false
+                    });
+                    return 0; //error
+                });
+            }
+            return response.json().then((json) => {
                 let { nextPageToken, items } = this.state;
                 if (json) {
                     let newItems = json.items;
@@ -319,7 +324,9 @@ export class BaseListView extends React.Component {
                     //this._selection.setItems(newItems);
                 }
                 this._controllers = this._controllers.filter(c => c.controller !== controller);
-            })
+                return 1; // OK
+            });
+        })
             .catch((error) => {
                 if (error.code !== 20 && error.name !== 'AbortError') { //aborted
                     alert(error);

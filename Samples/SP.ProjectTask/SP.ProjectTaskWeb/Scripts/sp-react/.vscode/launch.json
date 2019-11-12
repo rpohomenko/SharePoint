@@ -3,19 +3,19 @@
     // Hover to view descriptions of existing attributes.
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
-    "configurations": [      
+    "configurations": [
         {
-          "name": "Run",
+            "name": "Run",
             "type": "chrome",
-            "request": "launch",         
-          "webRoot": "${workspaceFolder}",
-          "url":"http://localhost:3000",         
-          "preLaunchTask": "run start webpack",         
-          "sourceMaps": true,
-          "smartStep": true,
-          "sourceMapPathOverrides": {
-            "webpack:///*": "${webRoot}/*"
-          }
-        }              
-      ]
-    }
+            "request": "launch",
+            "webRoot": "${workspaceFolder}",
+            "url": "http://localhost:3000",
+            "preLaunchTask": "run start webpack",
+            "sourceMaps": true,
+            "smartStep": true,
+            "sourceMapPathOverrides": {
+                "webpack:///*": "${webRoot}/*"
+            }
+        }
+    ]
+}
