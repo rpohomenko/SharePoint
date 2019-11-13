@@ -14,7 +14,7 @@ export class ListFormPanel extends React.Component {
         };
 
         this._onSaveClick = this._onSaveClick.bind(this);      
-    }
+    }    
 
     render() {
         const { newItemHeader, editItemHeader, viewItemHeader } = this.props;
@@ -72,7 +72,7 @@ export class ListFormPanel extends React.Component {
 
     _onSaveClick = async () => {
         const { isValid, isDirty } = this.state;
-        if (this._listForm && isValid && isDirty) {
+        if (this._listForm /*&& isValid*/ && isDirty) {
             this.setState({isValid: false, isDirty: false});
             const result = await this._listForm.saveItemAsync();
             if (result === 1) {//OK

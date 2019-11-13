@@ -1,5 +1,6 @@
 import * as React from 'react';
 import ErrorBoundary from '../../ErrorBoundary';
+import { underline } from 'ansi-colors';
 
 export class BaseFieldRenderer extends React.Component {
     constructor(props) {
@@ -61,8 +62,8 @@ export class BaseFieldRenderer extends React.Component {
         throw (`Method _validate is not yet implemented, field type: ${this.props.type}.`);
     }
 
-    hasValue = () => {
-        throw (`Method hasValue is not yet implemented, field type: ${this.props.type}.`);
+    hasValue(){
+       return this.getValue() !== null && this.getValue() !== undefined;
     }
 
     validate() {
@@ -99,8 +100,8 @@ export class BaseFieldRenderer extends React.Component {
     }
 
     isDirty() {
-        const { value, currentValue } = this.state;
-        return value !== currentValue;
+        const { value, currentValue, mode } = this.state;
+        return mode === 2 ? this.hasValue() : value !== currentValue;
     }
 }
 

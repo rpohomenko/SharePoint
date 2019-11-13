@@ -103,23 +103,31 @@ export class FormField extends React.Component {
     }
 
     isDirty() {
+        const { mode } = this.props;
         if (this._fieldControl) {
             return this._fieldControl.isDirty();
+        }
+        else {
+            if (mode === 2) return true;
         }
     }
 
     isValid() {
+        const { mode } = this.props;
         if (this._fieldControl) {
             return this._fieldControl.validate();
         }
+        else {
+            if (mode === 2) return true;
+        }
     }
 
-    getControl() {      
-        return this._fieldControl;        
+    getControl() {
+        return this._fieldControl;
     }
-    
-    onSaveHandler = (newItem) => {        
-        if (newItem) {
+
+    onSaveHandler = (newItem) => {
+        if (newItem && this.isDirty()) {
             const { fieldProps } = this.props;
             newItem[fieldProps.name] = this.getFieldValue();
         }

@@ -9,7 +9,15 @@
         "script": "start", 
         "options": {
             "cwd": "${workspaceFolder}"
-        },    
+        }    
+      },
+      {
+        "type": "npm",
+        "label": "run build webpack",
+        "script": "build", 
+        "options": {
+            "cwd": "${workspaceFolder}"
+        }    
       }     
     ]
   }

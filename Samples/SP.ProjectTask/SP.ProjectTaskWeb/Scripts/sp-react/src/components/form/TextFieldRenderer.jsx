@@ -37,8 +37,8 @@ export class TextFieldRenderer extends BaseFieldRenderer {
         return {isValid: isValid, validationErrors: validationErrors };
     }
 
-    hasValue = () => {
-       return this.getValue() !== "";
+    hasValue() {
+       return this.getValue() !== "" && super.hasValue();
     }
 }
 

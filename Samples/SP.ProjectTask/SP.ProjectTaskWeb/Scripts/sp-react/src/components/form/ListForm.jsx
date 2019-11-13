@@ -25,6 +25,16 @@ export class ListForm extends React.Component {
         }
     }
 
+    componentDidUpdate() {
+        const { mode } = this.state;
+        if (mode === 2) {
+            const { onValidate } = this.props;
+            if (typeof onValidate === "function") {
+                onValidate(this, this.isValid(), this.isDirty());
+            }
+        }
+    }
+
     async componentWillUnmount() {
         await this._abort();
     }
@@ -43,7 +53,13 @@ export class ListForm extends React.Component {
                             : (<div>
                                 {isSaving && (<Stack horizontalAlign="start" styles={{ root: { padding: 10 } }}><ProgressIndicator label={"Saving..."} /> </Stack>)}
                                 {fields.map((field, i) =>
-                                    (<FormField ref={ref => this._formFields.push(ref)} key={field.name} item={item} fieldProps={field} mode={mode} onValidate={this._onValidate} />))}
+                                    (<FormField ref={ref => {
+                                        if (ref != null) {
+                                            this._formFields.push(ref
+                                            );
+                                        }
+                                    }
+                                    } key={field.name} item={item} fieldProps={field} mode={mode} onValidate={this._onValidate} />))}
                             </div>)
 
                     }
@@ -142,19 +158,49 @@ export class ListForm extends React.Component {
         });
     }
 
+    isValid() {
+        let isValid = true;
+        if (this._formFields) {
+            for (let i = 0; i < this._formFields.length; i++) {
+                if (!this._formFields[i].isValid()) {
+                    isValid = false;
+                }
+            }
+        }
+        return isValid;
+    }
+
+    isDirty() {
+        let isDirty = false;
+        if (this._formFields) {
+            for (let i = 0; i < this._formFields.length; i++) {
+                isDirty = this._formFields[i].isDirty();
+                if (isDirty) break;
+            }
+        }
+        return isDirty;
+    }
+
     saveItem() {
+        const { onValidate } = this.props;
         const { isLoading, mode, item } = this.state;
         if (!isLoading && mode > 0) {
             let newItem = {};
-            this.setState({
-                isSaving: true
-            });
+
+            if (!this.isValid()) {
+                onValidate(this, false, this.isDirty());
+                return;
+            }
 
             if (this._formFields) {
                 for (let i = 0; i < this._formFields.length; i++) {
                     this._formFields[i].onSaveHandler(newItem);
                 }
             }
+
+            this.setState({
+                isSaving: true
+            });
 
             if (item && mode === 1) {
                 newItem.Id = item.Id;

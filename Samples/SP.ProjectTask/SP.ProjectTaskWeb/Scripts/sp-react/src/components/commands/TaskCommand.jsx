@@ -26,7 +26,7 @@ export class TaskCommand extends BaseListViewCommand {
 
     _onNewItem = () => {
         let panel = this._panel;
-        const listForm = <TaskForm ref={(ref) => this._panel._listForm = ref} service={this.props.service} mode={2} onValidate={(form, isValid, isDirty) => {
+        const listForm = <TaskForm ref={(ref) => {if (this._panel){ this._panel._listForm = ref}}} service={this.props.service} mode={2} onValidate={(form, isValid, isDirty) => {
             panel.setState({ isValid: isValid, isDirty: isDirty });
         }} />
         panel.setState({ listForm: listForm, showPanel: true });
@@ -34,7 +34,7 @@ export class TaskCommand extends BaseListViewCommand {
 
     _onEditItem = (item) => {
         let panel = this._panel;
-        const listForm = <TaskForm ref={(ref) => this._panel._listForm = ref} service={this.props.service} mode={1} itemId={item.Id} onValidate={(form, isValid, isDirty) => {
+        const listForm = <TaskForm ref={(ref) => {if (this._panel){ this._panel._listForm = ref}}} service={this.props.service} mode={1} itemId={item.Id} onValidate={(form, isValid, isDirty) => {
             panel.setState({ isValid: isValid, isDirty: isDirty });
         }} />
         panel.setState({ listForm: listForm, showPanel: true });
