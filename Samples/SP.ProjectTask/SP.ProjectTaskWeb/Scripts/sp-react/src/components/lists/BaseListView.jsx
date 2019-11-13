@@ -5,6 +5,7 @@ import { DirectionalHint, ContextualMenu } from 'office-ui-fabric-react/lib/Cont
 import { Spinner, SpinnerSize } from 'office-ui-fabric-react/lib/Spinner';
 import { Stack } from 'office-ui-fabric-react/lib/Stack';
 import { MarqueeSelection } from 'office-ui-fabric-react/lib/MarqueeSelection';
+import { MessageBar, MessageBarType } from 'office-ui-fabric-react';
 
 export class BaseListView extends React.Component {
 
@@ -43,7 +44,7 @@ export class BaseListView extends React.Component {
 
     render() {
         const { emptyMessage } = this.props;
-        const { columns, items, contextualMenuProps, isLoading } = this.state;
+        const { columns, items, contextualMenuProps, isLoading, error } = this.state;
 
         return (
             <div className="list-view-container">
@@ -63,7 +64,15 @@ export class BaseListView extends React.Component {
                         onRenderMissingItem={this._onRenderMissingItem}
                     />
                 </MarqueeSelection>
-                {items && items.length === 0 && (<span>{emptyMessage}</span>)}
+                {items && items.length === 0 && !isLoading && !error && (<span>{emptyMessage}</span>)}
+                {
+                    error &&
+                    (<MessageBar messageBarType={MessageBarType.error} isMultiline={false} onDismiss={() => {
+                        this.setState({ error: undefined });
+                    }} dismissButtonAriaLabel="Close">
+                        {error.message}
+                    </MessageBar>)
+                }
                 {contextualMenuProps && <ContextualMenu {...contextualMenuProps} />}
                 {isLoading && (<Stack horizontalAlign="start" styles={{ root: { padding: 10 } }}><Spinner size={SpinnerSize.medium} /></Stack>)}
             </div>
@@ -287,60 +296,75 @@ export class BaseListView extends React.Component {
         this.setState({
             isLoading: true,
             nextPageToken: nextPageToken,
-            items: []
+            items: [],
+            error: undefined
         });
         let controller = new AbortController();
         const promise = this._fetchDataAsync(count, nextPageToken, sortBy, sortDesc, filter, { signal: controller ? controller.signal : null });
         this._controllers.push({ controller: controller, promise: promise });
 
         return promise.then(response => {
-            if (response.status === 400) {
+            if (response.ok) {
+                return response.json().then((json) => {
+                    let { nextPageToken, items } = this.state;
+                    if (json) {
+                        let newItems = json.items;
+                        if (items && items.length > 0 && nextPageToken) {
+                            newItems = items.slice(0, items.length - 1).concat(newItems);
+                        }
+                        if (newItems && json._nextPageToken) {
+                            newItems.push(null);
+                        }
+                        if (this._aborted === true) return;
+                        if (this._controllers.filter(c => c.controller == controller) === 0) return;
+                        if (!newItems) {
+                            newItems = [];
+                        }
+                        this.setState({
+                            items: newItems,
+                            nextPageToken: json._nextPageToken,
+                            isLoading: false
+                        });
+                        //this._selection.setItems(newItems);
+                    }
+                    this._controllers = this._controllers.filter(c => c.controller !== controller);
+                    return 1; // OK
+                });
+            }
+            else {
                 return response.json().then((error) => {
-                    alert(error.message);
+                    if (!error || !error.message) {
+                        error = { message: `${response.statusText} (${response.status})` };
+                    }
                     this.setState({
+                        error: error,
+                        isLoading: false
+                    });
+                    return 0; //error
+                }).catch(() => {
+                    let error = { message: `${response.statusText} (${response.status})` };
+                    this.setState({
+                        error: error,
                         isLoading: false
                     });
                     return 0; //error
                 });
             }
-            return response.json().then((json) => {
-                let { nextPageToken, items } = this.state;
-                if (json) {
-                    let newItems = json.items;
-                    if (items && items.length > 0 && nextPageToken) {
-                        newItems = items.slice(0, items.length - 1).concat(newItems);
-                    }
-                    if (newItems && json._nextPageToken) {
-                        newItems.push(null);
-                    }
-                    if (this._aborted === true) return;
-                    if (this._controllers.filter(c => c.controller == controller) === 0) return;
-                    if (!newItems) {
-                        newItems = [];
-                    }
-                    this.setState({
-                        items: newItems,
-                        nextPageToken: json._nextPageToken,
-                        isLoading: false
-                    });
-                    //this._selection.setItems(newItems);
-                }
-                this._controllers = this._controllers.filter(c => c.controller !== controller);
-                return 1; // OK
-            });
-        })
-            .catch((error) => {
-                if (error.code !== 20 && error.name !== 'AbortError') { //aborted
-                    alert(error);
-                }
-            });
+        }).catch((error) => {
+            if (error.code !== 20 && error.name !== 'AbortError') { //aborted
+                this.setState({
+                    error: error,
+                    isLoading: false
+                });
+            }
+        });
     }
 }
 
 BaseListView.propTypes = {
     pageSize: PropTypes.number,
     SORT_COLUMN_DELAY: PropTypes.number,
-    emptyMessage : PropTypes.string
+    emptyMessage: PropTypes.string
 }
 
 BaseListView.defaultProps = {

@@ -2,6 +2,8 @@ import * as React from 'react';
 import { DefaultButton, PrimaryButton } from 'office-ui-fabric-react/lib/Button';
 import { Dialog, DialogFooter, DialogType } from 'office-ui-fabric-react/lib/Dialog';
 import { Panel, PanelType } from 'office-ui-fabric-react/lib/Panel';
+import { CommandBar } from 'office-ui-fabric-react/lib/CommandBar';
+import { CommandBarButton } from 'office-ui-fabric-react/lib/Button';
 
 export class ListFormPanel extends React.Component {
 
@@ -10,18 +12,19 @@ export class ListFormPanel extends React.Component {
 
         this.state = {
             ...props,
-            hideDialog: true
+            hideDialog: true,
+            mode: props.listForm ? props.listForm.props.mode : undefined
         };
 
-        this._onSaveClick = this._onSaveClick.bind(this);      
-    }    
+        this._onSaveClick = this._onSaveClick.bind(this);
+    }
 
     render() {
         const { newItemHeader, editItemHeader, viewItemHeader } = this.props;
-        const { showPanel, hideDialog, listForm, isDirty } = this.state;
+        const { showPanel, hideDialog, listForm, isDirty, mode } = this.state;
         let headerText;
         if (listForm) {
-            switch (listForm.props.mode) {
+            switch (mode) {
                 case 0:
                     headerText = viewItemHeader
                     break;
@@ -45,9 +48,12 @@ export class ListFormPanel extends React.Component {
                     type={PanelType.medium}
                     onRenderFooterContent={this._onRenderFooterContent}
                     isFooterAtBottom={true}>
+                    <CommandBar ref={ref => this._commandBar = ref} styles={{ root: { paddingTop: 10 }, menuIcon: { fontSize: '16px' } }}
+                        items={this._getCommandItems()}
+                        onRenderItem={this._onRenderCommandItem} />
                     {listForm}
                 </Panel>
-                {listForm.props.mode > 0 && isDirty &&
+                {mode > 0 && isDirty &&
                     (<Dialog
                         hidden={hideDialog}
                         onDismiss={this._closeDialog}
@@ -56,7 +62,7 @@ export class ListFormPanel extends React.Component {
                             title: 'Close?',
                             subText: 'Are you sure you want to close the form without saving?'
                         }}
-                        modalProps={{                           
+                        modalProps={{
                             isBlocking: true,
                             styles: { main: { maxWidth: 450 } }
                         }}
@@ -68,12 +74,55 @@ export class ListFormPanel extends React.Component {
                     </Dialog>)}
             </div>)
             : null;
-    }   
+    }
+
+    _getCommandItems() {
+        const { listForm, mode } = this.state;
+        let items = [];
+        if (listForm && mode === 0) {
+            items.push(
+                {
+                    key: 'editItem',
+                    icon: 'Edit',
+                    text: 'Edit',
+                    onClick: (e, sender) => this._changeMode(1),
+                    iconProps: {
+                        iconName: 'Edit'
+                    },
+                    ariaLabel: 'Edit'
+                });
+
+            items.push(
+                {
+                    key: 'deleteItem',
+                    icon: 'Delete',
+                    text: '',
+                    onClick: (e, sender) => this.deleteItem(selection),
+                    iconProps: {
+                        iconName: 'Delete'
+                    },
+                    ariaLabel: 'Delete'
+                });
+        }
+        return items;
+    }
+
+    _onRenderCommandItem = (item) => {
+        return (
+            <CommandBarButton
+                role="menuitem"
+                aria-label={item.name}
+                styles={{ root: { padding: '10px' } }}
+                iconProps={{ iconName: item.icon }}
+                onClick={item.onClick}
+            />
+        );
+    };
 
     _onSaveClick = async () => {
         const { isValid, isDirty } = this.state;
         if (this._listForm /*&& isValid*/ && isDirty) {
-            this.setState({isValid: false, isDirty: false});
+            this.setState({ isValid: false, isDirty: false });
             const result = await this._listForm.saveItemAsync();
             if (result === 1) {//OK
                 this._hidePanel(result);
@@ -82,11 +131,11 @@ export class ListFormPanel extends React.Component {
     }
 
     _onRenderFooterContent = () => {
-        const { listForm, isValid, isDirty } = this.state;
-        if (listForm && listForm.props.mode > 0) {
+        const { listForm, isValid, isDirty, mode } = this.state;
+        if (listForm && mode > 0) {
             return (
                 <div>
-                    <PrimaryButton onClick={this._onSaveClick} disabled={!isDirty || !isValid} style={{marginRight: 7}}>Save</PrimaryButton>
+                    <PrimaryButton onClick={this._onSaveClick} disabled={!isDirty || !isValid} style={{ marginRight: 7 }}>Save</PrimaryButton>
                     <DefaultButton onClick={this._hidePanel}>Cancel</DefaultButton>
                 </div>);
         }
@@ -99,8 +148,9 @@ export class ListFormPanel extends React.Component {
 
     _hidePanel = (result) => {
         const { onClose } = this.props;
-        const { showPanel, hideDialog, listForm, isDirty } = this.state;
-        if (showPanel && (hideDialog || !isDirty || (listForm && listForm.props.mode === 0))) {
+        const { showPanel, hideDialog, listForm, isDirty, mode } = this.state;
+
+        if (showPanel && (hideDialog || !isDirty || (listForm && mode === 0))) {
             this.setState({ showPanel: false, isDirty: false, isValid: false });
             if (typeof onClose === "function") {
                 onClose(this, result);
@@ -109,8 +159,9 @@ export class ListFormPanel extends React.Component {
     };
 
     _showDialog = () => {
-        const { listForm, isDirty } = this.state;
-        if (isDirty && listForm && listForm.props.mode > 0) {
+        const { listForm, isDirty, mode } = this.state;
+
+        if (isDirty && listForm && mode > 0) {
             this.setState({ hideDialog: false });
         }
         else {
@@ -126,6 +177,14 @@ export class ListFormPanel extends React.Component {
         this.setState({ showPanel: false, isDirty: false, isValid: false });
         this._closeDialog();
     };
+
+    _changeMode = (mode) => {
+        if (this._listForm) {
+            this._listForm.changeMode(mode);
+        }
+        debugger;
+        this.setState({ mode: mode });
+    }
 }
 
 export default ListFormPanel;

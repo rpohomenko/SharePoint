@@ -5,6 +5,7 @@ import { CommandBarButton } from 'office-ui-fabric-react/lib/Button';
 import ListFormPanel from "../form/ListFormPanel";
 import { DefaultButton, PrimaryButton } from 'office-ui-fabric-react/lib/Button';
 import { Dialog, DialogFooter, DialogType } from 'office-ui-fabric-react/lib/Dialog';
+import { MessageBar, MessageBarType } from 'office-ui-fabric-react';
 
 export class BaseListViewCommand extends React.Component {
 
@@ -17,15 +18,17 @@ export class BaseListViewCommand extends React.Component {
         this._getItems = this._getItems.bind(this);
 
         this.state = {
-            ...this.state           
+            ...this.state
         };
+
+        this._container = React.createRef();
     }
 
     render() {
-        const { itemsToDelete } = this.state;
+        const { itemsToDelete, status } = this.state;
         return (
-            <div className="command-container">
-                <CommandBar styles={{ root: { paddingTop: 10 }, menuIcon: { fontSize: '16px' } }}
+            <div className="command-container" ref={this._container}>
+                <CommandBar ref={ref => this._commandBar = ref} styles={{ root: { paddingTop: 10 }, menuIcon: { fontSize: '16px' } }}
                     items={this._getItems()}
                     farItems={[{
                         key: 'refresh',
@@ -63,8 +66,17 @@ export class BaseListViewCommand extends React.Component {
                 <ListFormPanel ref={ref => this._panel = ref} onClose={(panel, result, item) => {
                     if (result === 1) { //saved
                         this.refresh();
+                        this.setState({ status: {content: "Saved successfully.", type: MessageBarType.success }});
                     }
                 }} />
+                {
+                    status &&
+                    (<MessageBar messageBarType={status.type} isMultiline={false} onDismiss={() => {
+                        this.setState({ status: undefined });
+                    }} dismissButtonAriaLabel="Close">
+                        {status.content}
+                    </MessageBar>)
+                }
             </div>
         );
     }
@@ -149,10 +161,9 @@ export class BaseListViewCommand extends React.Component {
                         ariaLabel: 'Delete'
                     });
             }
-        }        
+        }
         return items;
     }
-
 
     _onNewItem = () => {
         throw "Method _onNewItem is not yet implemented!";

@@ -13,8 +13,7 @@ export class FormField extends React.Component {
 
     constructor(props) {
         super(props);
-        this.state = {
-            ...props,
+        this.state = {            
             field: null
         };
 
@@ -24,7 +23,7 @@ export class FormField extends React.Component {
     componentDidMount() {
         const { fieldProps } = this.props;
         if (fieldProps) {
-            this._setFieldRenderer(fieldProps.type);
+            //this._setFieldRenderer(fieldProps.type);
         }
     }
 
@@ -42,7 +41,8 @@ export class FormField extends React.Component {
 
     _renderField = () => {
         const { fieldProps } = this.props;
-        const { field } = this.state;
+        //const { field } = this.state;
+        const field = this._getFieldRenderer(fieldProps.type);
         return (
             <div className="form-field">
                 <Stack horizontal verticalAlign="center" styles={{ root: { padding: 2 } }}>
@@ -90,6 +90,21 @@ export class FormField extends React.Component {
             this.setState({
                 field: field
             });
+        }
+        else {
+            throw `Field Type "${type}" is not supported.`;
+        }
+    }
+
+    _getFieldRenderer = (type) => {
+        const { fieldProps, mode, item, onValidate } = this.props;
+        let currentValue = item ? item[fieldProps.name] : undefined;
+        let field;
+        if (type === 'text') {
+            field = <TextFieldRenderer ref={(ref) => this._fieldControl = ref} key={fieldProps.name} value={currentValue} item={item} fieldProps={fieldProps} mode={mode} onValidate={onValidate} />;
+        }
+        if (field) {
+           return field;
         }
         else {
             throw `Field Type "${type}" is not supported.`;

@@ -100,7 +100,8 @@ export class BaseFieldRenderer extends React.Component {
     }
 
     isDirty() {
-        const { value, currentValue, mode } = this.state;
+        const { mode } = this.props;
+        const { currentValue, value } = this.state;
         return mode === 2 ? this.hasValue() : value !== currentValue;
     }
 }
