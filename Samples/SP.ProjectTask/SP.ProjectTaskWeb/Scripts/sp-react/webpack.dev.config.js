@@ -56,6 +56,7 @@ module.exports = {
     watch: true,
     //devtool: 'source-map',
     devtool: 'eval-source-map',
+    //devtool: "cheap-eval-source-map",
     devServer: {
         historyApiFallback: true,
         port: 3000,

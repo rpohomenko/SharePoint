@@ -1,7 +1,6 @@
 import React from "react";
 import TaskForm from "../form/TaskForm";
 import BaseListViewCommand from "./BaseListViewCommand";
-//import { getItemClassNames } from "office-ui-fabric-react/lib/components/ContextualMenu/ContextualMenu.classNames";
 import { ProgressIndicator } from 'office-ui-fabric-react/lib/ProgressIndicator';
 import { Stack } from 'office-ui-fabric-react/lib/Stack';
 import { Callout } from 'office-ui-fabric-react';
@@ -13,17 +12,17 @@ export class TaskCommand extends BaseListViewCommand {
         super(props);
         this.state = {
             ...this.state
-        };       
+        };
     }
 
     render() {
         const { isDeleting } = this.state;
-        return (<div>            
-            {super.render()}           
+        return (<div>
+            {super.render()}
             {isDeleting && (
                 <Callout
-                  target={this._container.current}                
-                  setInitialFocus={true}>
+                    target={this._container.current}
+                    setInitialFocus={true}>
                     <Stack horizontalAlign="start" styles={{ root: { padding: 10 } }}>
                         <ProgressIndicator label={"Deleting..."} />
                     </Stack>
@@ -31,27 +30,17 @@ export class TaskCommand extends BaseListViewCommand {
         </div>);
     }
 
-    _onNewItem = () => {
-        let panel = this._panel;
-        const listForm = <TaskForm ref={(ref) => {if (this._panel){ this._panel._listForm = ref}}} service={this.props.service} mode={2} onValidate={(form, isValid, isDirty) => {
-            panel.setState({ isValid: isValid, isDirty: isDirty });
-        }} />
-        panel.setState({ listForm: listForm, showPanel: true, mode: 2 });
-        this.setState({ status: undefined });
-    }
-
-    _onEditItem = (item) => {
-        let panel = this._panel;
-        const listForm = <TaskForm ref={(ref) => {if (this._panel){ this._panel._listForm = ref}}} service={this.props.service} mode={1} itemId={item.Id} onValidate={(form, isValid, isDirty) => {
-            panel.setState({ isValid: isValid, isDirty: isDirty });
-        }} />
-        panel.setState({ listForm: listForm, showPanel: true, mode: 1 });
-        this.setState({ status: undefined });
-    }
+    _getForm = (mode) => {
+        const { selection } = this.state;
+        let item = selection && selection.length > 0 ? selection[0] : undefined;
+        return (<TaskForm ref={(ref) => { if (this._panel) { this._panel._listForm = ref } }} service={this.props.service} mode={mode} itemId={item ? item.Id : undefined}
+        onValidate={(sender, isValid, isDirty) => this._validate(isValid, isDirty)} onChangeMode={(sender, mode) => this._changeMode(mode)} onClose={(sender) => this._closeForm(0)}
+        onItemDeleted={(sender) => this._closeForm(1, "Deleted successfully.")} onItemSaved = {(sender) => this._closeForm(1,"Saved successfully.")} />);
+    }   
 
     _onDelete = (items) => {
         this.setState({ isDeleting: true, status: undefined });
-        let ids = [];        
+        let ids = [];
         if (items) {
             for (let i = 0; i < items.length; i++) {
                 ids.push(items[i].Id);
@@ -59,25 +48,40 @@ export class TaskCommand extends BaseListViewCommand {
         }
         let promise = this.props.service.deleteTask(ids);
         return promise.then(response => {
-            if (response.status === 400) {
+            if (response.ok) {
+                return response.json().then((result) => {
+                    if (result) {
+                        this.refresh();
+                        this.setState({ itemsToDelete: null, isDeleting: false, status: { content: "Deleted successfully.", type: MessageBarType.success } });
+                    }
+                    return 1; // OK
+                });
+            }
+            else {
                 return response.json().then((error) => {
-                    alert(error.message);
+                    if (!error || !error.message) {
+                        error = { message: `${response.statusText} (${response.status})` };
+                    }
+                    this.setState({
+                        error: error,
+                        isDeleting: false
+                    });
+                    return 0; //error
+                }).catch(() => {
+                    let error = { message: `${response.statusText} (${response.status})` };
+                    this.setState({
+                        error: error,
+                        isDeleting: false
+                    });
                     return 0; //error
                 });
             }
-            return response.json().then((result) => {
-                if (result) {
-                    this.refresh();
-                    this.setState({ itemsToDelete: null, isDeleting: false, status: {content: "Deleted successfully.", type: MessageBarType.success }});
-                }
-                return 1; // OK
+        }).catch((error) => {
+            this.setState({
+                error: error,
+                isDeleting: false
             });
         });
-    }
-
-    _onViewItem = (item) => {
-        const listForm = <TaskForm ref={(ref) => this._panel._listForm = ref} service={this.props.service} mode={0} itemId={item.Id} />
-        this._panel.setState({ listForm: listForm, showPanel: true, mode: 0  });
     }
 
     _getItems() {

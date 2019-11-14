@@ -27,6 +27,14 @@ export class TaskForm extends ListForm {
         return await this._saveData(item, options);
     }
 
+    _deleteItem =(item, options)=>{
+        return this._service.deleteTask([item.Id], options);
+    }
+
+    _deleteItemAsync = async (item, options) => {
+        return await this._deleteItem(item, options);
+    }
+
     render() {
         return super.render();
     }

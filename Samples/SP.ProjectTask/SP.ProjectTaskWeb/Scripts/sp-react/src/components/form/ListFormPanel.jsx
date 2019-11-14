@@ -2,8 +2,6 @@ import * as React from 'react';
 import { DefaultButton, PrimaryButton } from 'office-ui-fabric-react/lib/Button';
 import { Dialog, DialogFooter, DialogType } from 'office-ui-fabric-react/lib/Dialog';
 import { Panel, PanelType } from 'office-ui-fabric-react/lib/Panel';
-import { CommandBar } from 'office-ui-fabric-react/lib/CommandBar';
-import { CommandBarButton } from 'office-ui-fabric-react/lib/Button';
 
 export class ListFormPanel extends React.Component {
 
@@ -20,8 +18,11 @@ export class ListFormPanel extends React.Component {
     }
 
     render() {
-        const { newItemHeader, editItemHeader, viewItemHeader } = this.props;
-        const { showPanel, hideDialog, listForm, isDirty, mode } = this.state;
+        let { newItemHeader, editItemHeader, viewItemHeader, listForm, listFormGetter } = this.props;
+        const { showPanel, hideDialog, isDirty, mode } = this.state;
+        if (!listForm && typeof (listFormGetter) === "function") {
+            listForm = listFormGetter(mode);
+        }
         let headerText;
         if (listForm) {
             switch (mode) {
@@ -48,9 +49,6 @@ export class ListFormPanel extends React.Component {
                     type={PanelType.medium}
                     onRenderFooterContent={this._onRenderFooterContent}
                     isFooterAtBottom={true}>
-                    <CommandBar ref={ref => this._commandBar = ref} styles={{ root: { paddingTop: 10 }, menuIcon: { fontSize: '16px' } }}
-                        items={this._getCommandItems()}
-                        onRenderItem={this._onRenderCommandItem} />
                     {listForm}
                 </Panel>
                 {mode > 0 && isDirty &&
@@ -76,63 +74,22 @@ export class ListFormPanel extends React.Component {
             : null;
     }
 
-    _getCommandItems() {
-        const { listForm, mode } = this.state;
-        let items = [];
-        if (listForm && mode === 0) {
-            items.push(
-                {
-                    key: 'editItem',
-                    icon: 'Edit',
-                    text: 'Edit',
-                    onClick: (e, sender) => this._changeMode(1),
-                    iconProps: {
-                        iconName: 'Edit'
-                    },
-                    ariaLabel: 'Edit'
-                });
-
-            items.push(
-                {
-                    key: 'deleteItem',
-                    icon: 'Delete',
-                    text: '',
-                    onClick: (e, sender) => this.deleteItem(selection),
-                    iconProps: {
-                        iconName: 'Delete'
-                    },
-                    ariaLabel: 'Delete'
-                });
-        }
-        return items;
-    }
-
-    _onRenderCommandItem = (item) => {
-        return (
-            <CommandBarButton
-                role="menuitem"
-                aria-label={item.name}
-                styles={{ root: { padding: '10px' } }}
-                iconProps={{ iconName: item.icon }}
-                onClick={item.onClick}
-            />
-        );
-    };
-
-    _onSaveClick = async () => {
+    _onSaveClick = () => {
         const { isValid, isDirty } = this.state;
-        if (this._listForm /*&& isValid*/ && isDirty) {
-            this.setState({ isValid: false, isDirty: false });
-            const result = await this._listForm.saveItemAsync();
-            if (result === 1) {//OK
-                this._hidePanel(result);
-            }
+        if (this._listForm && isValid && isDirty) {
+            this.setState({ isDirty: false });
+            (async () => {
+                const result = await this._listForm.saveItemAsync();
+                if (result === 1) {//OK
+                    this._hidePanel(result);
+                }
+            })();
         }
     }
 
     _onRenderFooterContent = () => {
-        const { listForm, isValid, isDirty, mode } = this.state;
-        if (listForm && mode > 0) {
+        const { isValid, isDirty, mode } = this.state;
+        if (mode > 0) {
             return (
                 <div>
                     <PrimaryButton onClick={this._onSaveClick} disabled={!isDirty || !isValid} style={{ marginRight: 7 }}>Save</PrimaryButton>
@@ -177,14 +134,6 @@ export class ListFormPanel extends React.Component {
         this.setState({ showPanel: false, isDirty: false, isValid: false });
         this._closeDialog();
     };
-
-    _changeMode = (mode) => {
-        if (this._listForm) {
-            this._listForm.changeMode(mode);
-        }
-        debugger;
-        this.setState({ mode: mode });
-    }
 }
 
 export default ListFormPanel;

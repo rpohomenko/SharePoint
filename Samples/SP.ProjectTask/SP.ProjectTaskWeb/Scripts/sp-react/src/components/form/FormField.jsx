@@ -130,7 +130,7 @@ export class FormField extends React.Component {
     isValid() {
         const { mode } = this.props;
         if (this._fieldControl) {
-            return this._fieldControl.validate();
+            return this._fieldControl.isValid();
         }
         else {
             if (mode === 2) return true;
@@ -142,7 +142,7 @@ export class FormField extends React.Component {
     }
 
     onSaveHandler = (newItem) => {
-        if (newItem && this.isDirty()) {
+        if (newItem && this.isDirty() && this.isValid()) {
             const { fieldProps } = this.props;
             newItem[fieldProps.name] = this.getFieldValue();
         }

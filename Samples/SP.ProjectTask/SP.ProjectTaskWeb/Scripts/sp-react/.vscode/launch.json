@@ -10,10 +10,10 @@
             "name": "Launch Chrome against localhost",
             "url": "http://localhost:3000",
             "webRoot": "${workspaceFolder}",
-            "preLaunchTask": "run start webpack",           
+            //"preLaunchTask": "run start webpack",           
             "sourceMaps": true, 
             "breakOnLoad": true,
-            "trace": true,     
+            "trace": true,
             "sourceMapPathOverrides": {
                 "webpack:///*": "${webRoot}/*"
             }
@@ -24,6 +24,7 @@
             "name": "Attach to Chrome",          
             "url": "http://localhost:3000",
             "webRoot": "${workspaceFolder}",
+            "port": 9222,
             "preLaunchTask": "run start webpack",
             "sourceMaps": true,
             "sourceMapPathOverrides": {
@@ -42,10 +43,14 @@
             "type": "firefox",
             "request": "launch",
             "reAttach": true,
-            "name": "Launch Firefox against localhost",
-            "url": "http://localhost:3000",
+            "name": "Launch Firefox against localhost",           
             "webRoot": "${workspaceFolder}",
-            "preLaunchTask": "run start webpack"            
+            "preLaunchTask": "run start webpack",
+            "url": "http://localhost:3000/index.html",
+            "pathMappings": [{
+                "url": "http://localhost:3000",
+                "path": "${workspaceFolder}"
+            }]      
         },
         {
             "type": "firefox",

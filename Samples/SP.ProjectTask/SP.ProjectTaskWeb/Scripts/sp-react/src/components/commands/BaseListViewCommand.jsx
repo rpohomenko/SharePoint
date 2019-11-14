@@ -25,7 +25,7 @@ export class BaseListViewCommand extends React.Component {
     }
 
     render() {
-        const { itemsToDelete, status } = this.state;
+        const { itemsToDelete, status, showForm, mode } = this.state;
         return (
             <div className="command-container" ref={this._container}>
                 <CommandBar ref={ref => this._commandBar = ref} styles={{ root: { paddingTop: 10 }, menuIcon: { fontSize: '16px' } }}
@@ -63,12 +63,7 @@ export class BaseListViewCommand extends React.Component {
                         <DefaultButton onClick={this._closeDialog} text="No" />
                     </DialogFooter>
                 </Dialog>
-                <ListFormPanel ref={ref => this._panel = ref} onClose={(panel, result, item) => {
-                    if (result === 1) { //saved
-                        this.refresh();
-                        this.setState({ status: {content: "Saved successfully.", type: MessageBarType.success }});
-                    }
-                }} />
+                {<ListFormPanel ref={ref => this._panel = ref} showPanel={showForm} mode={mode} listFormGetter={(mode) => this._getForm(mode)} />}
                 {
                     status &&
                     (<MessageBar messageBarType={status.type} isMultiline={false} onDismiss={() => {
@@ -166,19 +161,46 @@ export class BaseListViewCommand extends React.Component {
     }
 
     _onNewItem = () => {
-        throw "Method _onNewItem is not yet implemented!";
+        this._changeMode(2);
     }
 
     _onEditItem = (item) => {
-        throw "Method _onEditItem is not yet implemented!";
+        this._changeMode(1);
+    }
+
+    _onViewItem = (item) => {
+        this._changeMode(0);
+    }
+
+    _changeMode = (mode) => {
+        this.setState({ showForm: true, mode: mode, status: undefined });
+        let panel = this._panel;
+        if (panel) {
+            panel.setState({ showPanel: true, mode: mode });
+        }
+    }
+
+    _validate = (isValid, isDirty) => {
+        let panel = this._panel;
+        if (panel) {
+            panel.setState({ isValid: isValid, isDirty: isDirty });
+        }
+    }
+
+    _closeForm = (result, message) => {
+        let panel = this._panel;
+        if (panel) {
+            panel._hidePanel(result);
+        }
+        if (result === 1) {
+            this.refresh();
+            this.setState({ status: { content: message, type: MessageBarType.success } });
+        }
+
     }
 
     _onDelete = (items) => {
         throw "Method _onDelete is not yet implemented!";
-    }
-
-    _onViewItem = (item) => {
-        throw "Method _onViewItem is not yet implemented!";
     }
 
     viewItem(item) {

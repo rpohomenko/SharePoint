@@ -1,6 +1,7 @@
 import React from "react";
 import PropTypes from 'prop-types';
 import { DetailsList, DetailsListLayoutMode, Selection, SelectionMode, ColumnActionsMode } from 'office-ui-fabric-react/lib/DetailsList';
+import { ShimmeredDetailsList } from 'office-ui-fabric-react/lib/ShimmeredDetailsList';
 import { DirectionalHint, ContextualMenu } from 'office-ui-fabric-react/lib/ContextualMenu';
 import { Spinner, SpinnerSize } from 'office-ui-fabric-react/lib/Spinner';
 import { Stack } from 'office-ui-fabric-react/lib/Stack';
@@ -47,21 +48,19 @@ export class BaseListView extends React.Component {
         const { columns, items, contextualMenuProps, isLoading, error } = this.state;
 
         return (
-            <div className="list-view-container">
-                <MarqueeSelection selection={this._selection}>
+            <div className="list-view-container">                             
+                <MarqueeSelection selection={this._selection}>                
                     <DetailsList
                         items={items}
                         compact={false}
                         columns={columns}
-                        selection={this._selection}
-                        selectionPreservedOnEmptyClick={true}
-                        getKey={this._getKey}
-                        setKey="none"
-                        layoutMode={DetailsListLayoutMode.justified}
-                        isHeaderVisible={true}
+                        selection={this._selection}                                           
+                        setKey=''
                         onItemInvoked={this._onItemInvoked}
                         onItemContextMenu={this._onItemContextMenu}
                         onRenderMissingItem={this._onRenderMissingItem}
+                        onRenderCustomPlaceholder={this._onRenderCustomPlaceholder}
+                        enableShimmer={false}
                     />
                 </MarqueeSelection>
                 {items && items.length === 0 && !isLoading && !error && (<span>{emptyMessage}</span>)}
@@ -115,9 +114,9 @@ export class BaseListView extends React.Component {
         }
     }
 
-    _getKey = (item, index) => {
+    /*_getKey = (item, index) => {
         return item ? item.key : null;
-    }
+    }*/
 
     _onItemInvoked = (item) => {
         throw "Method _onItemInvoked is not yet implemented!";
@@ -223,15 +222,22 @@ export class BaseListView extends React.Component {
         }, this.props.SORT_COLUMN_DELAY);
     }
 
-    _onRenderMissingItem = (index) => {
-        let { nextPageToken } = this.state;
+    _onRenderMissingItem = (index, rowProps) => {
+        let { nextPageToken, items } = this.state;
         if (nextPageToken) {
-            this._waitAll().then(() => {
-                let { isLoading, nextPageToken } = this.state;
-                if (isLoading || !nextPageToken) return;
-                this.loadItems(null, nextPageToken);
-            });
+            if (index >= items.length - 1) {
+                this._waitAll().then(() => {
+                    let { isLoading, nextPageToken } = this.state;
+                    if (isLoading || !nextPageToken) return;
+                    this.loadItems(null, nextPageToken);
+                });
+            }
         }
+    }
+
+    _onRenderCustomPlaceholder = (rowProps, index, renderShimmerPlaceholder) => {
+        renderShimmerPlaceholder(rowProps);
+        this._onRenderMissingItem(index, rowProps);
     }
 
     _getContextualMenuProps = (ev, column) => {
@@ -277,6 +283,12 @@ export class BaseListView extends React.Component {
         throw "Method _fetchDataAsync is not yet implemented!";
     }
 
+    refresh = async () => {
+        await this.setState({ items: [], nextPageToken: undefined }, () => {
+            return this.loadItemsAsync(null, null);
+        });
+    }
+
     loadItemsAsync = async (sortColumn = null, pageToken = null) => {
         await this.loadItems(sortColumn, pageToken);
     }
@@ -296,9 +308,13 @@ export class BaseListView extends React.Component {
         this.setState({
             isLoading: true,
             nextPageToken: nextPageToken,
-            items: [],
             error: undefined
         });
+        if (!nextPageToken) {
+            this.setState({
+                items: []
+            });
+        }
         let controller = new AbortController();
         const promise = this._fetchDataAsync(count, nextPageToken, sortBy, sortDesc, filter, { signal: controller ? controller.signal : null });
         this._controllers.push({ controller: controller, promise: promise });

@@ -62,14 +62,14 @@ export class BaseFieldRenderer extends React.Component {
         throw (`Method _validate is not yet implemented, field type: ${this.props.type}.`);
     }
 
-    hasValue(){
-       return this.getValue() !== null && this.getValue() !== undefined;
+    hasValue() {
+        return this.getValue() !== null && this.getValue() !== undefined;
     }
 
     validate() {
         const { fieldProps, onValidate } = this.props;
         let { isValid, validationErrors } = this._validate();
-        if(!validationErrors){
+        if (!validationErrors) {
             validationErrors = [];
         }
         if (fieldProps.required) {
@@ -81,10 +81,11 @@ export class BaseFieldRenderer extends React.Component {
         this.setState({
             isValid: isValid,
             validationErrors: validationErrors
+        }, () => {
+            if (typeof onValidate === "function") {
+                onValidate(this, isValid, this.isDirty(), validationErrors);
+            }
         });
-        if (typeof onValidate === "function") {
-            onValidate(this, isValid, validationErrors);
-        }
         return isValid;
     }
 
@@ -97,6 +98,11 @@ export class BaseFieldRenderer extends React.Component {
             if (this.validate()) {
             }
         });
+    }
+
+    isValid() {
+        const { isValid } = this.state;
+        return isValid;
     }
 
     isDirty() {

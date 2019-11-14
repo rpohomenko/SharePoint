@@ -4,6 +4,9 @@ import { FormField } from './FormField';
 import { Stack } from 'office-ui-fabric-react/lib/Stack';
 import { ProgressIndicator } from 'office-ui-fabric-react/lib/ProgressIndicator';
 import { MessageBar, MessageBarType } from 'office-ui-fabric-react';
+import { CommandBar } from 'office-ui-fabric-react/lib/CommandBar';
+import { CommandBarButton } from 'office-ui-fabric-react/lib/Button';
+import { type } from 'os';
 
 export class ListForm extends React.Component {
 
@@ -31,7 +34,7 @@ export class ListForm extends React.Component {
         if (mode === 2) {
             const { onValidate } = this.props;
             if (typeof onValidate === "function") {
-                onValidate(this, this.isValid(), this.isDirty());
+                //onValidate(this, this.isValid(), this.isDirty());
             }
         }
     }
@@ -41,11 +44,14 @@ export class ListForm extends React.Component {
     }
 
     render() {
-        const { isLoading, isSaving, mode, item, fields, error } = this.state;
+        const { isLoading, isSaving, isDeleting, mode, item, fields, error } = this.state;
         this._formFields = [];
         if (fields) {
             return (
                 <div className='form-container'>
+                    <CommandBar ref={ref => this._commandBar = ref} styles={{ root: { paddingTop: 10 }, menuIcon: { fontSize: '16px' } }}
+                        items={this._getCommandItems()}
+                        onRenderItem={this._onRenderCommandItem} />
                     {
                         error &&
                         (<MessageBar messageBarType={MessageBarType.error} isMultiline={false} onDismiss={() => {
@@ -60,7 +66,8 @@ export class ListForm extends React.Component {
                                 <ProgressIndicator label={"Loading..."} />
                             </Stack>)
                             : (<div>
-                                {isSaving && (<Stack horizontalAlign="start" styles={{ root: { padding: 10 } }}><ProgressIndicator label={"Saving..."} /> </Stack>)}
+                                {isSaving && (<Stack horizontalAlign="start" styles={{ root: { padding: 10 } }}><ProgressIndicator label={"Saving..."} /></Stack>)}
+                                {isDeleting && (<Stack horizontalAlign="start" styles={{ root: { padding: 10 } }}><ProgressIndicator label={"Deleting..."} /></Stack>)}
                                 {fields.map((field, i) =>
                                     (<FormField ref={ref => {
                                         if (ref != null) {
@@ -100,30 +107,52 @@ export class ListForm extends React.Component {
         }
     }
 
-    _onValidate = (fieldControl, isValid, errors) => {
-        const { onValidate } = this.props;
-        if (typeof onValidate === "function") {
-            let isDirty = fieldControl.isDirty();
-            if (!isDirty && this._formFields) {
-                for (let i = 0; i < this._formFields.length; i++) {
-                    if (this._formFields[i].getControl() === fieldControl) continue;
-                    if (this._formFields[i].isDirty()) {
-                        isDirty = true;
-                        break;
-                    }
-                }
-            }
-            if (!isValid && this._formFields) {
-                for (let i = 0; i < this._formFields.length; i++) {
-                    if (this._formFields[i].getControl() === fieldControl) continue;
-                    if (this._formFields[i].isValid()) {
-                        isValid = true;
-                        break;
-                    }
-                }
-            }
-            onValidate(this, isValid, isDirty);
+    _getCommandItems() {
+        const { mode, item } = this.state;
+        let items = [];
+        if (mode === 0 && item) {
+            items.push(
+                {
+                    key: 'editItem',
+                    icon: 'Edit',
+                    text: '',
+                    onClick: (e, sender) => this.changeMode(1),
+                    iconProps: {
+                        iconName: 'Edit'
+                    },
+                    ariaLabel: 'Edit'
+                });
+            items.push(
+                {
+                    key: 'deleteItem',
+                    icon: 'Delete',
+                    text: '',
+                    onClick: (e, sender) => {
+                        this.deleteItemAsync();
+                    },
+                    iconProps: {
+                        iconName: 'Delete'
+                    },
+                    ariaLabel: 'Delete'
+                });
         }
+        return items;
+    }
+
+    _onRenderCommandItem = (item) => {
+        return (
+            <CommandBarButton
+                role="menuitem"
+                aria-label={item.name}
+                styles={{ root: { padding: '10px' } }}
+                iconProps={{ iconName: item.icon }}
+                onClick={item.onClick}
+            />
+        );
+    };
+
+    _onValidate = (fieldControl, isValid, isDirty) => {
+        this._validate();
     }
 
     async loadItemAsync(itemId) {
@@ -184,13 +213,11 @@ export class ListForm extends React.Component {
     }
 
     saveItem() {
-        const { onValidate } = this.props;
-        const { isLoading, mode, item } = this.state;
+        const { isLoading, mode, item, isValid, isDirty } = this.state;
         if (!isLoading && mode > 0) {
             let newItem = {};
-
-            if (!this.isValid()) {
-                onValidate(this, false, this.isDirty());
+            if (!isValid || !isDirty) {
+                onValidate(this, isValid, isDirty);
                 return;
             }
 
@@ -252,7 +279,82 @@ export class ListForm extends React.Component {
     }
 
     async saveItemAsync() {
-        return await this.saveItem();
+        let result = await this.saveItem();
+        const { onItemSaved } = this.props;
+        if (result === 1 && typeof (onItemSaved) === "function") {
+            onItemSaved();
+        }
+        return result;
+    }
+
+    async deleteItemAsync() {
+        let result = await this.deleteItem();
+        const { onItemDeleted } = this.props;
+        if (result === 1 && typeof (onItemDeleted) === "function") {
+            onItemDeleted();
+        }
+        return result;
+    }
+
+    deleteItem() {
+        const { isLoading, isDeleting, item } = this.state;
+        if (!isLoading && !isDeleting && item) {
+            this.setState({
+                isDeleting: true,
+                error: undefined
+            });
+
+            let promise = this._deleteItemAsync(item, null);
+
+            return promise.then(response => {
+                if (response.ok) {
+                    return response.json().then((result) => {
+                        this.setState({
+                            isDeleting: false
+                        });
+                        return result ? 1 : 0;
+                    });
+                }
+                else {
+                    return response.json().then((error) => {
+                        if (!error || !error.message) {
+                            error = { message: `${response.statusText} (${response.status})` };
+                        }
+                        this.setState({
+                            error: error,
+                            isDeleting: false
+                        });
+                        return 0; //error
+                    }).catch(() => {
+                        let error = { message: `${response.statusText} (${response.status})` };
+                        this.setState({
+                            error: error,
+                            isDeleting: false
+                        });
+                        return 0; //error
+                    });
+                }
+            }).catch((error) => {
+                this.setState({
+                    error: error,
+                    isDeleting: false
+                });
+            });
+        }
+    }
+
+    _validate = () => {
+        const { onValidate } = this.props;
+        const isDirty = this.isDirty();
+        const isValid = this.isValid();
+
+        this.setState({ isValid: isValid, isDirty: isDirty });
+
+        if (typeof onValidate === "function") {
+            onValidate(this, isValid, isDirty);
+        }
+
+        return isValid && isDirty;
     }
 
     isValid() {
@@ -278,63 +380,32 @@ export class ListForm extends React.Component {
         return isDirty;
     }
 
-    _fetchData = async (itemId, options) => {
-        throw (`Method _fetchData is not yet implemented!`);
-    }
-
     _fetchDataAsync = async (itemId, options) => {
         throw (`Method _fetchDataAsync is not yet implemented!`);
-    }
-
-    _saveData = async (item, options) => {
-        throw (`Method _saveData is not yet implemented!`);
     }
 
     _saveDataAsync = async (item, options) => {
         throw (`Method _saveDataAsync is not yet implemented!`);
     }
 
+    _deleteItemAsync = async (item, options) => {
+        throw (`Method _deleteItemAsync is not yet implemented!`);
+    }
+
     _getFields = () => {
         throw "Method _getFields is not yet implemented!";
     }
 
-    _getCommandBar(mode) {
-        switch (mode) {
-            case 1:
-                return {
-                    className: 'ms-bgColor-neutral',
-                    key: 'edit',
-                    name: 'Edit',
-                    iconProps: {
-                        iconName: 'Edit'
-                    },
-                    onClick: (ev) => {
-                        ev.preventDefault();
-                    }
-                };
-            case 2:
-                return {
-                    className: 'ms-bgColor-neutral',
-                    key: 'save',
-                    name: 'Save',
-                    iconProps: {
-                        iconName: 'Save'
-                    },
-                    onClick: (ev) => {
-                        ev.preventDefault();
-                        const isValid = false;
-                        if (isValid) {
-
-                        } else {
-
-                        }
-                    }
-                };
+    changeMode(mode) {
+        const { onChangeMode } = this.props;
+        this.setState({ mode: mode }, () => {
+            if (typeof onChangeMode === "function") {
+                onChangeMode(this, mode);
+            }
+        });
+        if (mode > 0) {
+            //this._validate();
         }
-    }
-
-    changeMode(mode){
-       this.setState({mode: mode});
     }
 }
 
