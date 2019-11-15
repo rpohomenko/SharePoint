@@ -52,7 +52,7 @@ export class TaskCommand extends BaseListViewCommand {
                 return response.json().then((result) => {
                     if (result) {
                         this.refresh();
-                        this.setState({ itemsToDelete: null, isDeleting: false, status: { content: "Deleted successfully.", type: MessageBarType.success } });
+                        this.setState({ isDeleting: false, status: { content: "Deleted successfully.", type: MessageBarType.success } });
                     }
                     return 1; // OK
                 });

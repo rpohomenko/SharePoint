@@ -13,11 +13,26 @@ export class TaskList extends BaseListView {
     };
   }
 
+  async componentDidMount() {
+    await super.componentDidMount();
+    if (this._command) {
+      const { isLoading, isLoaded } = this.state;
+      let newItemEnabled = isLoaded;
+      if (newItemEnabled !== this._command.state.newItemEnabled) {
+        this._command.setState({ newItemEnabled: newItemEnabled });
+      }
+      let refreshEnabed = !isLoading;
+      if (refreshEnabed !== this._command.state.refreshEnabed) {
+        this._command.setState({ refreshEnabed: refreshEnabed });
+      }
+    }
+  }
+
   render() {
     const { selection } = this.state;
     return (
       <div className="tasks-container">
-        <TaskCommand ref={ref => this._command = ref} service={this._service} selection={selection} onRefresh={() => this.refresh(true) } />
+        <TaskCommand ref={ref => this._command = ref} service={this._service} selection={selection} onRefresh={() => this.refresh(true)} />
         {super.render()}
       </div>
     );
@@ -67,6 +82,16 @@ export class TaskList extends BaseListView {
 
   _onDeleteItem(item) {
     this._command.deleteItem([item]);
+  }
+
+  refresh = async (resetSorting, resetFiltering) => {
+    if (this._command) {
+      this._command.setState({ refreshEnabed: false });
+    }
+    await this.refresh(resetSorting, resetFiltering);
+    if (this._command) {
+      this._command.setState({ refreshEnabed: true });
+    }
   }
 }
 

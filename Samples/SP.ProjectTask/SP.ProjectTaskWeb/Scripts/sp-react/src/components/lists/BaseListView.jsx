@@ -4,7 +4,7 @@ import { DetailsList, DetailsListLayoutMode, Selection, SelectionMode, ColumnAct
 import { ShimmeredDetailsList } from 'office-ui-fabric-react/lib/ShimmeredDetailsList';
 import { DirectionalHint, ContextualMenu } from 'office-ui-fabric-react/lib/ContextualMenu';
 //import { Spinner, SpinnerSize } from 'office-ui-fabric-react/lib/Spinner';
-//import { Stack } from 'office-ui-fabric-react/lib/Stack';
+import { Stack } from 'office-ui-fabric-react/lib/Stack';
 import { MarqueeSelection } from 'office-ui-fabric-react/lib/MarqueeSelection';
 import { MessageBar, MessageBarType } from 'office-ui-fabric-react';
 import { ActionButton, IIconProps } from 'office-ui-fabric-react';
@@ -55,7 +55,6 @@ export class BaseListView extends React.Component {
 
         return (
             <div className="list-view-container">
-                {items && items.length === 0 && !isLoading && !error && (<span>{emptyMessage}</span>)}
                 {
                     error &&
                     (<MessageBar messageBarType={MessageBarType.error} isMultiline={false} onDismiss={() => {
@@ -78,6 +77,7 @@ export class BaseListView extends React.Component {
                         enableShimmer={(!isLoaded && items.length === 0)}
                     />
                 </MarqueeSelection>
+                {isLoaded && items.length === 0 && !isLoading && !error && (<Stack horizontalAlign="center" styles={{ root: { padding: 10 } }}>{emptyMessage}</Stack>)}
                 {contextualMenuProps && <ContextualMenu {...contextualMenuProps} />}
                 {isLoaded && nextPageToken && (<TooltipHost
                     content={`Next ${count} item(s)`}
@@ -87,7 +87,7 @@ export class BaseListView extends React.Component {
                     <ActionButton iconProps={{ iconName: 'Next' }} aria-describedby={this._nextActionHostId} onClick={() =>
                         this._waitAll().then(() => this.loadItemsAsync())} />
                 </TooltipHost>)
-                /*isLoading && (<Stack horizontalAlign="center" styles={{ root: { padding: 10 } }}><Spinner size={SpinnerSize.medium} /></Stack>)*/}
+                  /*isLoading && (<Stack horizontalAlign="center" styles={{ root: { padding: 10 } }}><Spinner size={SpinnerSize.medium} /></Stack>)*/}
             </div>
         );
     }
@@ -295,6 +295,8 @@ export class BaseListView extends React.Component {
     }
 
     refresh = async (resetSorting, resetFiltering) => {
+        await this._abort();
+        this._aborted = false;
         let { columns, sortBy, sortDesc } = this.state;
         if (resetSorting) {
             columns = columns.slice();
@@ -305,15 +307,14 @@ export class BaseListView extends React.Component {
             sortBy = undefined;
             sortDesc = undefined;
         }
-        await this.setState({
+        this.setState({
             items: [],
             nextPageToken: undefined,
             sortBy: sortBy,
             sortDesc: sortDesc,
             columns: columns
-        }, () => {
-            return this.loadItemsAsync(null, null);
         });
+        await this.loadItemsAsync(null, null);
     }
 
     loadItemsAsync = async (sortColumn = null, pageToken = null) => {
@@ -358,9 +359,7 @@ export class BaseListView extends React.Component {
                     let { items } = this.state;
                     if (json) {
                         let itemsCopy = (nextPageToken ? items.splice(0, items.length - count) : items.splice(0, items.length)).concat(json.items);
-                        //if (itemsCopy.length > 0 && json._nextPageToken) {
-                        // itemsCopy.push(null);
-                        //}
+
                         if (this._aborted === true) return;
                         if (this._controllers.filter(c => c.controller == controller) === 0) return;
                         this.setState({
@@ -370,6 +369,12 @@ export class BaseListView extends React.Component {
                             isLoaded: true
                         });
                         //this._selection.setItems(itemsCopy);
+                    }
+                    else {
+                        this.setState({
+                            isLoading: false,
+                            isLoaded: true
+                        });
                     }
                     this._controllers = this._controllers.filter(c => c.controller !== controller);
                     return 1; // OK
