@@ -32,7 +32,7 @@ namespace SP.ProjectTaskWeb
       bundles.Add(new ScriptBundle("~/bundles/spcontext").Include(
                   "~/Scripts/spcontext.js"));
 
-      bundles.Add(new ScriptBundle("~/bundles/main").Include(
+      bundles.Add(new /*Script*/Bundle("~/bundles/main").Include(
                         $"~/Scripts/sp-react/dist/js/main.bundle{min}.js"));
       bundles.Add(new ScriptBundle("~/bundles/vendor").Include(
                        $"~/Scripts/sp-react/dist/js/vendor.bundle{min}.js"));

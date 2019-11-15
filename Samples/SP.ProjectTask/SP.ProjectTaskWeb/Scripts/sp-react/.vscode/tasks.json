@@ -18,6 +18,14 @@
         "options": {
             "cwd": "${workspaceFolder}"
         }    
-      }     
+      },
+      {
+        "label": "end serve",
+        "type": "process",
+        "command":[
+          "${command:workbench.action.tasks.terminate}",
+          "${command:workbench.action.acceptSelectedQuickOpenItem}",
+       ],
+     }, 
     ]
   }

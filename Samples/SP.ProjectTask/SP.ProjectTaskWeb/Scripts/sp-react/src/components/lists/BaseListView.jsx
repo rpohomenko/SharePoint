@@ -3,10 +3,13 @@ import PropTypes from 'prop-types';
 import { DetailsList, DetailsListLayoutMode, Selection, SelectionMode, ColumnActionsMode } from 'office-ui-fabric-react/lib/DetailsList';
 import { ShimmeredDetailsList } from 'office-ui-fabric-react/lib/ShimmeredDetailsList';
 import { DirectionalHint, ContextualMenu } from 'office-ui-fabric-react/lib/ContextualMenu';
-import { Spinner, SpinnerSize } from 'office-ui-fabric-react/lib/Spinner';
-import { Stack } from 'office-ui-fabric-react/lib/Stack';
+//import { Spinner, SpinnerSize } from 'office-ui-fabric-react/lib/Spinner';
+//import { Stack } from 'office-ui-fabric-react/lib/Stack';
 import { MarqueeSelection } from 'office-ui-fabric-react/lib/MarqueeSelection';
 import { MessageBar, MessageBarType } from 'office-ui-fabric-react';
+import { ActionButton, IIconProps } from 'office-ui-fabric-react';
+import { TooltipHost } from 'office-ui-fabric-react/lib/Tooltip';
+import { getId } from 'office-ui-fabric-react/lib/Utilities';
 
 export class BaseListView extends React.Component {
 
@@ -21,6 +24,7 @@ export class BaseListView extends React.Component {
         });
 
         this._onRenderMissingItem = this._onRenderMissingItem.bind(this);
+        this._onRenderCustomPlaceholder = this._onRenderCustomPlaceholder.bind(this);
         this._onSelectionChanged = this._onSelectionChanged.bind(this);
 
         this.state = {
@@ -30,6 +34,8 @@ export class BaseListView extends React.Component {
             nextPageToken: null,
             isLoading: false
         };
+
+        this._nextActionHostId = getId('nextActionHost');
     }
 
     async componentDidMount() {
@@ -44,25 +50,11 @@ export class BaseListView extends React.Component {
     }
 
     render() {
-        const { emptyMessage } = this.props;
-        const { columns, items, contextualMenuProps, isLoading, error } = this.state;
+        let { emptyMessage } = this.props;
+        let { columns, items, contextualMenuProps, nextPageToken, isLoading, isLoaded, error, count } = this.state;
 
         return (
-            <div className="list-view-container">                             
-                <MarqueeSelection selection={this._selection}>                
-                    <DetailsList
-                        items={items}
-                        compact={false}
-                        columns={columns}
-                        selection={this._selection}                                           
-                        setKey=''
-                        onItemInvoked={this._onItemInvoked}
-                        onItemContextMenu={this._onItemContextMenu}
-                        onRenderMissingItem={this._onRenderMissingItem}
-                        onRenderCustomPlaceholder={this._onRenderCustomPlaceholder}
-                        enableShimmer={false}
-                    />
-                </MarqueeSelection>
+            <div className="list-view-container">
                 {items && items.length === 0 && !isLoading && !error && (<span>{emptyMessage}</span>)}
                 {
                     error &&
@@ -72,8 +64,30 @@ export class BaseListView extends React.Component {
                         {error.message}
                     </MessageBar>)
                 }
+                <MarqueeSelection selection={this._selection}>
+                    <ShimmeredDetailsList
+                        ref={ref => this._list = ref}
+                        items={items}
+                        compact={false}
+                        columns={columns}
+                        selection={this._selection}
+                        onItemInvoked={this._onItemInvoked}
+                        onItemContextMenu={this._onItemContextMenu}
+                        onRenderMissingItem={this._onRenderMissingItem}
+                        onRenderCustomPlaceholder={this._onRenderCustomPlaceholder}
+                        enableShimmer={(!isLoaded && items.length === 0)}
+                    />
+                </MarqueeSelection>
                 {contextualMenuProps && <ContextualMenu {...contextualMenuProps} />}
-                {isLoading && (<Stack horizontalAlign="start" styles={{ root: { padding: 10 } }}><Spinner size={SpinnerSize.medium} /></Stack>)}
+                {isLoaded && nextPageToken && (<TooltipHost
+                    content={`Next ${count} item(s)`}
+                    id={this._nextActionHostId}
+                    calloutProps={{ gapSpace: 0 }}
+                    styles={{ root: { display: 'inline-block' } }}>
+                    <ActionButton iconProps={{ iconName: 'Next' }} aria-describedby={this._nextActionHostId} onClick={() =>
+                        this._waitAll().then(() => this.loadItemsAsync())} />
+                </TooltipHost>)
+                /*isLoading && (<Stack horizontalAlign="center" styles={{ root: { padding: 10 } }}><Spinner size={SpinnerSize.medium} /></Stack>)*/}
             </div>
         );
     }
@@ -223,21 +237,18 @@ export class BaseListView extends React.Component {
     }
 
     _onRenderMissingItem = (index, rowProps) => {
-        let { nextPageToken, items } = this.state;
-        if (nextPageToken) {
-            if (index >= items.length - 1) {
-                this._waitAll().then(() => {
-                    let { isLoading, nextPageToken } = this.state;
-                    if (isLoading || !nextPageToken) return;
-                    this.loadItems(null, nextPageToken);
-                });
-            }
-        }
+        /*let { items, isLoading, isLoaded, nextPageToken } = this.state;
+        if (nextPageToken && index >= items.length - 1) {
+            if (isLoading || !isLoaded || this._controllers.length > 0) return null;           
+            this.loadItemsAsync(null, nextPageToken);
+
+        }*/
+        return null;
     }
 
     _onRenderCustomPlaceholder = (rowProps, index, renderShimmerPlaceholder) => {
         renderShimmerPlaceholder(rowProps);
-        this._onRenderMissingItem(index, rowProps);
+        //return this._onRenderMissingItem(index, rowProps);
     }
 
     _getContextualMenuProps = (ev, column) => {
@@ -283,8 +294,24 @@ export class BaseListView extends React.Component {
         throw "Method _fetchDataAsync is not yet implemented!";
     }
 
-    refresh = async () => {
-        await this.setState({ items: [], nextPageToken: undefined }, () => {
+    refresh = async (resetSorting, resetFiltering) => {
+        let { columns, sortBy, sortDesc } = this.state;
+        if (resetSorting) {
+            columns = columns.slice();
+            columns.forEach((newCol) => {
+                newCol.isSorted = false;
+                newCol.isSortedDescending = false;
+            });
+            sortBy = undefined;
+            sortDesc = undefined;
+        }
+        await this.setState({
+            items: [],
+            nextPageToken: undefined,
+            sortBy: sortBy,
+            sortDesc: sortDesc,
+            columns: columns
+        }, () => {
             return this.loadItemsAsync(null, null);
         });
     }
@@ -294,7 +321,7 @@ export class BaseListView extends React.Component {
     }
 
     loadItems(sortColumn = null, pageToken = null) {
-        let { count, filter, sortBy, sortDesc, nextPageToken } = this.state;
+        let { count, filter, sortBy, sortDesc, nextPageToken, items } = this.state;
         if (this._aborted === true) return;
 
         if (sortColumn) {
@@ -307,12 +334,18 @@ export class BaseListView extends React.Component {
 
         this.setState({
             isLoading: true,
+            isLoaded: false,
             nextPageToken: nextPageToken,
             error: undefined
         });
         if (!nextPageToken) {
             this.setState({
                 items: []
+            });
+        }
+        else {
+            this.setState({
+                items: items.concat(new Array(count))
             });
         }
         let controller = new AbortController();
@@ -322,26 +355,21 @@ export class BaseListView extends React.Component {
         return promise.then(response => {
             if (response.ok) {
                 return response.json().then((json) => {
-                    let { nextPageToken, items } = this.state;
+                    let { items } = this.state;
                     if (json) {
-                        let newItems = json.items;
-                        if (items && items.length > 0 && nextPageToken) {
-                            newItems = items.slice(0, items.length - 1).concat(newItems);
-                        }
-                        if (newItems && json._nextPageToken) {
-                            newItems.push(null);
-                        }
+                        let itemsCopy = (nextPageToken ? items.splice(0, items.length - count) : items.splice(0, items.length)).concat(json.items);
+                        //if (itemsCopy.length > 0 && json._nextPageToken) {
+                        // itemsCopy.push(null);
+                        //}
                         if (this._aborted === true) return;
                         if (this._controllers.filter(c => c.controller == controller) === 0) return;
-                        if (!newItems) {
-                            newItems = [];
-                        }
                         this.setState({
-                            items: newItems,
+                            items: itemsCopy,
                             nextPageToken: json._nextPageToken,
-                            isLoading: false
+                            isLoading: false,
+                            isLoaded: true
                         });
-                        //this._selection.setItems(newItems);
+                        //this._selection.setItems(itemsCopy);
                     }
                     this._controllers = this._controllers.filter(c => c.controller !== controller);
                     return 1; // OK
