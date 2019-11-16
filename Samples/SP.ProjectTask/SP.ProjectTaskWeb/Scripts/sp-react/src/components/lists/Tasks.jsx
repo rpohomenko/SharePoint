@@ -68,16 +68,23 @@ export class TaskList extends BaseListView {
     return columns;
   }
 
-  _fetchData = (count, nextPageToken, sortBy, sortDesc, filter, options) => {
-    return this._service.getTasks(count, nextPageToken, sortBy, sortDesc, filter, options);
-  }
+  _fetchData = async (count, nextPageToken, sortBy, sortDesc, filter, options) => {
+    return await this._service.getTasks(count, nextPageToken, sortBy, sortDesc, filter, options);
+  }  
 
-  _fetchDataAsync = async (count, nextPageToken, sortBy, sortDesc, filter, options) => {
-    return await this._fetchData(count, nextPageToken, sortBy, sortDesc, filter, options);
-  }
-
-  _onSelectionChanged = (selectionItems) => {
+  _onSelectionChanged (selectionItems) {
+    super._onSelectionChanged(selectionItems);
     this._command.setState({ selection: selectionItems });
+  }
+
+  _getItemContextualMenu(item){
+    let items =  super._getItemContextualMenu();
+    return items;
+  }
+
+  _getHeaderContextualMenu (column) {
+    let items =  super._getHeaderContextualMenu(column);
+    return items;
   }
 
   _onItemInvoked = (item) => {

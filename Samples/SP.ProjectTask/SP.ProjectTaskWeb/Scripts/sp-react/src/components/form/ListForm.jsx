@@ -25,22 +25,12 @@ export class ListForm extends React.Component {
             this.setState({ fields: this._getFields() });
         }
         if (!item && mode < 2 && itemId > 0) {
-            await this.loadItemAsync(itemId);
+           return await this.loadItemAsync(itemId);
         }
-    }
-
-    componentDidUpdate() {
-        const { mode } = this.state;
-        if (mode === 2) {
-            const { onValidate } = this.props;
-            if (typeof onValidate === "function") {
-                //onValidate(this, this.isValid(), this.isDirty());
-            }
-        }
-    }
+    }   
 
     async componentWillUnmount() {
-        await this._abort();
+        return await this._abort();
     }
 
     render() {

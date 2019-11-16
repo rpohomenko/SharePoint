@@ -221,7 +221,7 @@ export class BaseListViewCommand extends React.Component {
     async refresh() {
         const { onRefresh } = this.props;
         if (typeof onRefresh === "function") {
-            await onRefresh();
+            return await onRefresh();
         }
     }
 }

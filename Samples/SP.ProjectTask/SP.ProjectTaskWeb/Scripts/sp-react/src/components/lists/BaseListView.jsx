@@ -21,12 +21,13 @@ export class BaseListView extends React.Component {
         super(props);
 
         this._selection = new Selection({
-            onSelectionChanged: () => this._onSelectionChanged(this._getSelectionItems())
+            onSelectionChanged: () => this._onSelectionChanged(this.getSelection())
         });
 
-        this._onRenderMissingItem = this._onRenderMissingItem.bind(this);
-        this._onRenderCustomPlaceholder = this._onRenderCustomPlaceholder.bind(this);
+       
         this._onSelectionChanged = this._onSelectionChanged.bind(this);
+        this._getItemContextualMenu = this._getItemContextualMenu.bind(this);
+        this._getHeaderContextualMenu = this._getHeaderContextualMenu.bind(this);
 
         this.state = {
             items: [],
@@ -43,11 +44,11 @@ export class BaseListView extends React.Component {
         if (!this.state.columns) {
             this.setState({ columns: this._getColumns() });
         }
-        await this.loadItems();
+        return await this.loadItems();
     }
 
     async componentWillUnmount() {
-        await this._abort();
+        return await this._abort();
     }
 
     render() {
@@ -76,7 +77,7 @@ export class BaseListView extends React.Component {
                         onRenderMissingItem={this._onRenderMissingItem}
                         onRenderCustomPlaceholder={this._onRenderCustomPlaceholder}
                         enableShimmer={(!isLoaded && items.length === 0)}
-                        onRenderDetailsHeader = {this._onRenderDetailsHeader}
+                        onRenderDetailsHeader={this._onRenderDetailsHeader}
                     />
                 </MarqueeSelection>
                 {isLoaded && items.length === 0 && !isLoading && !error && (<Stack horizontalAlign="center" styles={{ root: { padding: 10 } }}>{emptyMessage}</Stack>)}
@@ -94,28 +95,6 @@ export class BaseListView extends React.Component {
         );
     }
 
-    _onRenderDetailsHeader = (props, defaultRender) =>{
-        return (
-            <Sticky stickyPosition={StickyPositionType.Header} isScrollSynced={true}>
-              {defaultRender({
-                  ...props 
-                  })}
-            </Sticky>
-          );
-    }
-
-    _getColumns = () => {
-        throw "Method _getColumns is not yet implemented!";
-    }
-
-    _getSelectionItems = () => {
-        return this._selection.getSelection();
-    }
-
-    _onSelectionChanged = (selectionItems) => {
-        this.setState({ selection: selectionItems });
-    }
-
     async _abort() {
         if (this._controllers != null) {
             try {
@@ -126,191 +105,24 @@ export class BaseListView extends React.Component {
             }
             catch{ }
             this._controllers = [];
-            this._aborted = true;
+            //this._aborted = true;
         }
     }
 
-    _waitAll = async () => {
-        let promises = [];
-        this._controllers.forEach(c => {
-            promises.push(c.promise);
-        });
-        if (promises.length > 0) {
-            return await Promise.all(promises);
+    async sortColumn(column, isSortedDescending) {
+        this._clearTimeout();
+        if (column) {
+            column.isSortedDescending = isSortedDescending;
+            return await this._setTimeoutAsync(() => this._onSortColumn(column), this.props.SORT_COLUMN_DELAY);
         }
     }
 
-    /*_getKey = (item, index) => {
-        return item ? item.key : null;
-    }*/
-
-    _onItemInvoked = (item) => {
-        throw "Method _onItemInvoked is not yet implemented!";
-    }
-
-    _onEditItem(item) {
-        throw "Method _onEditItem is not yet implemented!";
-    }
-
-    _onDeleteItem(item) {
-        throw "Method _onDeleteItem is not yet implemented!";
-    }
-
-    _onItemContextMenu = (item, index, ev) => {
-        const contextualMenuProps = {
-            target: ev.target,
-            items: [
-                {
-                    key: 'viewItem',
-                    icon: 'View',
-                    name: 'View',
-                    onClick: (e, sender) => this._onItemInvoked(item),
-                    iconProps: {
-                        iconName: 'View'
-                    },
-                    ariaLabel: 'View'
-                },
-                {
-                    key: 'editItem',
-                    icon: 'Edit',
-                    name: 'Edit',
-                    onClick: (e, sender) => this._onEditItem(item),
-                    iconProps: {
-                        iconName: 'Edit'
-                    },
-                    ariaLabel: 'Edit'
-                },
-                {
-                    key: 'deleteItem',
-                    icon: 'Delete',
-                    name: 'Delete',
-                    onClick: (e, sender) => this._onDeleteItem(item),
-                    iconProps: {
-                        iconName: 'Delete'
-                    },
-                    ariaLabel: 'Delete'
-                }
-            ],
-            onDismiss: () => {
-                this.setState({
-                    contextualMenuProps: undefined
-                });
-            }
-        };
-
-        if (index > -1) {
-            this.setState({
-                contextualMenuProps: contextualMenuProps
-            });
-        }
-
-        return false;
-    };
-
-    _onColumnClick = (ev, column) => {
-        if (column.columnActionsMode !== ColumnActionsMode.disabled) {
-            this.setState({
-                contextualMenuProps: this._getContextualMenuProps(ev, column)
-            });
-        }
-    };
-
-    _onSortColumn = (column) => {
-        if (this._timeout) {
-            clearTimeout(this._timeout);
-            this._timeout = null;
-        }
-        this._timeout = setTimeout(() => {
-            const { columns, items } = this.state;
-            const newColumns = columns.slice();
-            const currColumn = newColumns.filter(currCol => column.key === currCol.key)[0];
-            newColumns.forEach((newCol) => {
-                if (newCol === currColumn) {
-                    currColumn.isSortedDescending = column.isSortedDescending;
-                    currColumn.isSorted = true;
-                } else {
-                    newCol.isSorted = false;
-                    newCol.isSortedDescending = true;
-                }
-            });
-
-            this._abort().then(() => {
-                this._aborted = false;
-                this.setState({
-                    columns: newColumns,
-                    items: [],
-                    nextPageToken: null,
-                    sortBy: column.name,
-                    sortDesc: column.isSortedDescending
-                });
-                this.loadItems(column, null);
-            });
-        }, this.props.SORT_COLUMN_DELAY);
-    }
-
-    _onRenderMissingItem = (index, rowProps) => {
-        /*let { items, isLoading, isLoaded, nextPageToken } = this.state;
-        if (nextPageToken && index >= items.length - 1) {
-            if (isLoading || !isLoaded || this._controllers.length > 0) return null;           
-            this.loadItems(null, nextPageToken);
-
-        }*/
-        return null;
-    }
-
-    _onRenderCustomPlaceholder = (rowProps, index, renderShimmerPlaceholder) => {
-        renderShimmerPlaceholder(rowProps);
-        return this._onRenderMissingItem(index, rowProps);
-    }
-
-    _getContextualMenuProps = (ev, column) => {
-        const items = [
-            {
-                key: 'aToZ',
-                name: column.sortAscendingAriaLabel,
-                iconProps: { iconName: 'SortUp' },
-                canCheck: true,
-                checked: column.isSorted && !column.isSortedDescending,
-                onClick: () => { column.isSortedDescending = false; this._onSortColumn(column) }
-            },
-            {
-                key: 'zToA',
-                name: column.sortDescendingAriaLabel,
-                iconProps: { iconName: 'SortDown' },
-                canCheck: true,
-                checked: column.isSorted && column.isSortedDescending,
-                onClick: () => { column.isSortedDescending = true; this._onSortColumn(column) }
-            }
-        ];
-        return {
-            items: items,
-            target: ev.currentTarget,
-            directionalHint: DirectionalHint.bottomLeftEdge,
-            gapSpace: 10,
-            isBeakVisible: true,
-            onDismiss: this._onContextualMenuDismissed
-        };
-    }
-
-    _onContextualMenuDismissed = () => {
-        this.setState({
-            contextualMenuProps: undefined
-        });
-    };
-
-    _fetchData = (count, nextPageToken, sortBy, sortDesc, filter, options) => {
-        throw "Method _fetchData is not yet implemented!";
-    }
-
-    _fetchDataAsync = async (count, nextPageToken, sortBy, sortDesc, filter, options) => {
-        throw "Method _fetchDataAsync is not yet implemented!";
-    }
-
-    async refresh (resetSorting, resetFiltering) {
+    async refresh(resetSorting, resetFiltering) {
+        this._clearTimeout();
         await this._abort();
-        this._aborted = false;
-        const { isLoading} = this.state;
-        if(isLoading) return;
+        //his._aborted = false;
+        const { isLoading } = this.state;
+        if (isLoading) return;
         let { columns, sortBy, sortDesc } = this.state;
         if (resetSorting) {
             columns = columns.slice();
@@ -328,16 +140,50 @@ export class BaseListView extends React.Component {
             sortDesc: sortDesc,
             columns: columns
         });
-        await this.loadItems(null, null);
+        return await this.loadItems(null, null);
     }
 
-    async loadItems (sortColumn = null, pageToken = null) {
-        await this._loadItems(sortColumn, pageToken);
+    async loadItems(sortColumn = null, pageToken = null) {
+       return await this._loadItems(sortColumn, pageToken);
+    }
+
+    getSelection() {
+        return this._selection.getSelection();
+    }
+
+    _onRenderDetailsHeader = (props, defaultRender) => {
+        return (
+            <Sticky stickyPosition={StickyPositionType.Header} isScrollSynced={true}>
+                {defaultRender({
+                    ...props
+                })}
+            </Sticky>
+        );
+    }
+
+    _getColumns = () => {
+        throw "Method _getColumns is not yet implemented!";
+    }
+
+    _onItemInvoked = (item) => {
+        throw "Method _onItemInvoked is not yet implemented!";
+    }
+
+    _onEditItem(item) {
+        throw "Method _onEditItem is not yet implemented!";
+    }
+
+    _onDeleteItem(item) {
+        throw "Method _onDeleteItem is not yet implemented!";
+    }
+
+    _fetchData = async (count, nextPageToken, sortBy, sortDesc, filter, options) => {
+        throw "Method _fetchDataAsync is not yet implemented!";
     }
 
     _loadItems = (sortColumn = null, pageToken = null) => {
         let { count, filter, sortBy, sortDesc, nextPageToken, items } = this.state;
-        if (this._aborted === true) return;
+        //if (this._aborted === true) return;
 
         if (sortColumn) {
             sortBy = sortColumn.name;
@@ -364,7 +210,7 @@ export class BaseListView extends React.Component {
             });
         }
         let controller = new AbortController();
-        const promise = this._fetchDataAsync(count, nextPageToken, sortBy, sortDesc, filter, { signal: controller ? controller.signal : null });
+        const promise = this._fetchData(count, nextPageToken, sortBy, sortDesc, filter, { signal: controller ? controller.signal : null });
         this._controllers.push({ controller: controller, promise: promise });
 
         return promise.then(response => {
@@ -374,7 +220,7 @@ export class BaseListView extends React.Component {
                     if (json) {
                         let itemsCopy = (nextPageToken ? items.splice(0, items.length - count) : items.splice(0, items.length)).concat(json.items);
 
-                        if (this._aborted === true) return;
+                        //if (this._aborted === true) return;
                         if (this._controllers.filter(c => c.controller == controller) === 0) return;
                         this.setState({
                             items: itemsCopy,
@@ -421,6 +267,184 @@ export class BaseListView extends React.Component {
                 });
             }
         });
+    }
+
+    _getItemContextualMenu(item) {
+        return [
+            {
+                key: 'viewItem',
+                icon: 'View',
+                name: 'View',
+                onClick: (e, sender) => this._onItemInvoked(item),
+                iconProps: {
+                    iconName: 'View'
+                },
+                ariaLabel: 'View'
+            },
+            {
+                key: 'editItem',
+                icon: 'Edit',
+                name: 'Edit',
+                onClick: (e, sender) => this._onEditItem(item),
+                iconProps: {
+                    iconName: 'Edit'
+                },
+                ariaLabel: 'Edit'
+            },
+            {
+                key: 'deleteItem',
+                icon: 'Delete',
+                name: 'Delete',
+                onClick: (e, sender) => this._onDeleteItem(item),
+                iconProps: {
+                    iconName: 'Delete'
+                },
+                ariaLabel: 'Delete'
+            }
+        ]
+    }
+
+    _getHeaderContextualMenu (column) {
+        return [
+            {
+                key: 'aToZ',
+                name: column.sortAscendingAriaLabel,
+                iconProps: { iconName: 'SortUp' },
+                canCheck: true,
+                checked: column.isSorted && !column.isSortedDescending,
+                onClick: () => this.sortColumn(column, false)
+            },
+            {
+                key: 'zToA',
+                name: column.sortDescendingAriaLabel,
+                iconProps: { iconName: 'SortDown' },
+                canCheck: true,
+                checked: column.isSorted && column.isSortedDescending,
+                onClick: () => this.sortColumn(column, true)
+            }
+        ];
+    }
+
+    _onItemContextMenu = (item, index, ev) => {
+        const contextualMenuProps = {
+            target: ev.target,
+            items: this._getItemContextualMenu(item),
+            onDismiss: () => {
+                this.setState({
+                    contextualMenuProps: undefined
+                });
+            }
+        };
+
+        if (index > -1) {
+            this.setState({
+                contextualMenuProps: contextualMenuProps
+            });
+        }
+
+        return false;
+    }
+
+    _onSelectionChanged (selectionItems) {
+        this.setState({ selection: selectionItems });
+    }
+
+    /*_getKey = (item, index) => {
+        return item ? item.key : null;
+    }*/
+
+    _onColumnClick = (ev, column) => {
+        if (column.columnActionsMode !== ColumnActionsMode.disabled) {
+            let contextualMenuProps = {
+                items: this._getHeaderContextualMenu(column),
+                target: ev.currentTarget,
+                directionalHint: DirectionalHint.bottomLeftEdge,
+                gapSpace: 10,
+                isBeakVisible: true,
+                onDismiss: this._onContextualMenuDismissed
+            };
+            this.setState({
+                contextualMenuProps: contextualMenuProps
+            });
+        }
+    };
+
+    _onSortColumn = (column) => {
+        //this._timeout = setTimeout(() => {
+        const { columns, items } = this.state;
+        const newColumns = columns.slice();
+        const currColumn = newColumns.filter(currCol => column.key === currCol.key)[0];
+        newColumns.forEach((newCol) => {
+            if (newCol === currColumn) {
+                currColumn.isSortedDescending = column.isSortedDescending;
+                currColumn.isSorted = true;
+            } else {
+                newCol.isSorted = false;
+                newCol.isSortedDescending = true;
+            }
+        });
+
+        return this._abort().then(() => {
+            //this._aborted = false;
+            this.setState({
+                columns: newColumns,
+                items: [],
+                nextPageToken: null,
+                sortBy: column.name,
+                sortDesc: column.isSortedDescending
+            });
+            return this.loadItems(column, null);
+        });
+        //}, this.props.SORT_COLUMN_DELAY);
+    }
+
+    _onRenderMissingItem = (index, rowProps) => {
+        /*let { items, isLoading, isLoaded, nextPageToken } = this.state;
+        if (nextPageToken && index >= items.length - 1) {
+            if (isLoading || !isLoaded || this._controllers.length > 0) return null;           
+            this.loadItems(null, nextPageToken);
+
+        }*/
+        return null;
+    }
+
+    _onRenderCustomPlaceholder = (rowProps, index, renderShimmerPlaceholder) => {
+        renderShimmerPlaceholder(rowProps);
+        return this._onRenderMissingItem(index, rowProps);
+    }
+
+    _onContextualMenuDismissed = () => {
+        this.setState({
+            contextualMenuProps: undefined
+        });
+    };
+
+    _waitAll = async () => {
+        let promises = [];
+        this._controllers.forEach(c => {
+            promises.push(c.promise);
+        });
+        if (promises.length > 0) {
+            return await Promise.all(promises);
+        }
+    }
+
+    _setTimeout = (func, timeout) => {
+        this._timeout = setTimeout(func, timeout);
+    }
+
+    _setTimeoutAsync = async (func, timeout = 0) => await new Promise(resolve => {
+        this._setTimeout(() => {
+            func();
+            resolve();
+        }, timeout);
+    });
+
+    _clearTimeout = () => {
+        if (this._timeout) {
+            clearTimeout(this._timeout);
+            this._timeout = null;
+        }
     }
 }
 
