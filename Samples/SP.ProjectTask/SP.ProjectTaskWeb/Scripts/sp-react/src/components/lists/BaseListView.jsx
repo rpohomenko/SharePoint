@@ -10,6 +10,7 @@ import { MessageBar, MessageBarType } from 'office-ui-fabric-react';
 import { ActionButton, IIconProps } from 'office-ui-fabric-react';
 import { TooltipHost } from 'office-ui-fabric-react/lib/Tooltip';
 import { getId } from 'office-ui-fabric-react/lib/Utilities';
+import { Sticky, StickyPositionType } from 'office-ui-fabric-react/lib/Sticky';
 
 export class BaseListView extends React.Component {
 
@@ -42,7 +43,7 @@ export class BaseListView extends React.Component {
         if (!this.state.columns) {
             this.setState({ columns: this._getColumns() });
         }
-        await this.loadItemsAsync();
+        await this.loadItems();
     }
 
     async componentWillUnmount() {
@@ -75,6 +76,7 @@ export class BaseListView extends React.Component {
                         onRenderMissingItem={this._onRenderMissingItem}
                         onRenderCustomPlaceholder={this._onRenderCustomPlaceholder}
                         enableShimmer={(!isLoaded && items.length === 0)}
+                        onRenderDetailsHeader = {this._onRenderDetailsHeader}
                     />
                 </MarqueeSelection>
                 {isLoaded && items.length === 0 && !isLoading && !error && (<Stack horizontalAlign="center" styles={{ root: { padding: 10 } }}>{emptyMessage}</Stack>)}
@@ -85,11 +87,21 @@ export class BaseListView extends React.Component {
                     calloutProps={{ gapSpace: 0 }}
                     styles={{ root: { display: 'inline-block' } }}>
                     <ActionButton iconProps={{ iconName: 'Next' }} aria-describedby={this._nextActionHostId} onClick={() =>
-                        this._waitAll().then(() => this.loadItemsAsync())} />
+                        this._waitAll().then(() => this.loadItems())} />
                 </TooltipHost>)
                   /*isLoading && (<Stack horizontalAlign="center" styles={{ root: { padding: 10 } }}><Spinner size={SpinnerSize.medium} /></Stack>)*/}
             </div>
         );
+    }
+
+    _onRenderDetailsHeader = (props, defaultRender) =>{
+        return (
+            <Sticky stickyPosition={StickyPositionType.Header} isScrollSynced={true}>
+              {defaultRender({
+                  ...props 
+                  })}
+            </Sticky>
+          );
     }
 
     _getColumns = () => {
@@ -240,7 +252,7 @@ export class BaseListView extends React.Component {
         /*let { items, isLoading, isLoaded, nextPageToken } = this.state;
         if (nextPageToken && index >= items.length - 1) {
             if (isLoading || !isLoaded || this._controllers.length > 0) return null;           
-            this.loadItemsAsync(null, nextPageToken);
+            this.loadItems(null, nextPageToken);
 
         }*/
         return null;
@@ -248,7 +260,7 @@ export class BaseListView extends React.Component {
 
     _onRenderCustomPlaceholder = (rowProps, index, renderShimmerPlaceholder) => {
         renderShimmerPlaceholder(rowProps);
-        //return this._onRenderMissingItem(index, rowProps);
+        return this._onRenderMissingItem(index, rowProps);
     }
 
     _getContextualMenuProps = (ev, column) => {
@@ -294,9 +306,11 @@ export class BaseListView extends React.Component {
         throw "Method _fetchDataAsync is not yet implemented!";
     }
 
-    refresh = async (resetSorting, resetFiltering) => {
+    async refresh (resetSorting, resetFiltering) {
         await this._abort();
         this._aborted = false;
+        const { isLoading} = this.state;
+        if(isLoading) return;
         let { columns, sortBy, sortDesc } = this.state;
         if (resetSorting) {
             columns = columns.slice();
@@ -314,14 +328,14 @@ export class BaseListView extends React.Component {
             sortDesc: sortDesc,
             columns: columns
         });
-        await this.loadItemsAsync(null, null);
+        await this.loadItems(null, null);
     }
 
-    loadItemsAsync = async (sortColumn = null, pageToken = null) => {
-        await this.loadItems(sortColumn, pageToken);
+    async loadItems (sortColumn = null, pageToken = null) {
+        await this._loadItems(sortColumn, pageToken);
     }
 
-    loadItems(sortColumn = null, pageToken = null) {
+    _loadItems = (sortColumn = null, pageToken = null) => {
         let { count, filter, sortBy, sortDesc, nextPageToken, items } = this.state;
         if (this._aborted === true) return;
 

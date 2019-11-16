@@ -33,22 +33,22 @@ namespace LinqToSP.Test
         }
         clientContext.Credentials = new SharePointOnlineCredentials(userLogin, string.IsNullOrWhiteSpace(userPassword) ? GetPassword() : ConvertToSecureString(userPassword));
 
-                using (var ctx = new SpDataContext(clientContext))
-                {
-                    Deploy(ctx, true);
+        using (var ctx = new SpDataContext(clientContext))
+        {
+          //Deploy(ctx, true);
 
-                    ImportData(ctx, false);
+          ImportData(ctx, false);
 
           var departments = ctx.List<Department>().Where(i => i.Id > 0).ToArray();
 
-                    var employees = departments.First().Employees.ToArray();
+          var employees = departments.First().Employees.ToArray();
 
-                    if (!employees.Any())
-                    {
-                        employees = ctx.List<Employee>().ToArray();
-                    }
+          if (!employees.Any())
+          {
+            employees = ctx.List<Employee>().ToArray();
+          }
 
-                    var managers = employees.First().Managers;
+          var managers = employees.First().Managers;
 
           Debugger.Break();
           Console.ForegroundColor = ConsoleColor.Green;
@@ -60,19 +60,19 @@ namespace LinqToSP.Test
       Console.ReadKey();
     }
 
-        private static void Deploy(SpDataContext spContext, bool overwrite)
-        {
-            Console.WriteLine("Deploying...");
-            var model = new EmployeeProvisionModel<SpDataContext>(spContext);
-            //if (overwrite)
-            {
-                model.UnProvision(false, ProvisionLevel.Web);
-            }
-            model.Provision(overwrite, ProvisionLevel.Web);
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine("Done!");
-            Console.ResetColor();
-        }
+    private static void Deploy(SpDataContext spContext, bool overwrite)
+    {
+      Console.WriteLine("Deploying...");
+      var model = new EmployeeProvisionModel<SpDataContext>(spContext);
+      //if (overwrite)
+      {
+        model.UnProvision(true, ProvisionLevel.Web);
+      }
+      model.Provision(overwrite, ProvisionLevel.Web);
+      Console.ForegroundColor = ConsoleColor.Green;
+      Console.WriteLine("Done!");
+      Console.ResetColor();
+    }
 
     private static void ImportData(SpDataContext spContext, bool clear)
     {
@@ -89,11 +89,20 @@ namespace LinqToSP.Test
         }
       }
 
+
+      //var dep = spContext.List<Department>().GetEntries().First().Entity;
+      //dep.Title = "Warner Brothers";
+
       var department = spContext.List<Department>().AddOrUpdate(new Department()
       {
-        Title = "Warner Brothers",
+        Title = "Warner Brothers 1",
         ShortName = "WB"
       }, 1);
+
+      spContext.SaveChanges();
+
+      //department = spContext.List<Department>().AddOrUpdate(dep);
+      //spContext.SaveChanges();
 
       var manager = spContext.List<Employee>().AddOrUpdate(new Employee()
       {

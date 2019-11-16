@@ -235,6 +235,7 @@ export class ListForm extends React.Component {
             if (item && mode === 1) {
                 newItem.Id = item.Id;
                 newItem.Version = item.Version;
+                newItem.ContentTypeId = item.ContentTypeId
             }
             let promise = this._saveDataAsync(newItem, null);
 

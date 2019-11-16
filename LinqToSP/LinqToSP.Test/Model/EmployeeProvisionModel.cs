@@ -15,7 +15,7 @@ namespace LinqToSP.Test.Model
 
         public override void Provision(bool forceOverwrite = false, ProvisionLevel level = ProvisionLevel.Default)
         {
-            var model = (Context as SpDataContext).CreateModel<Department>();
+            var model = Context.CreateModel<Department>();
             model.Provision(forceOverwrite, level);
 
             base.Provision(forceOverwrite, level);
@@ -25,7 +25,7 @@ namespace LinqToSP.Test.Model
         {
             base.UnProvision(ignoreErrors, level);
 
-            var model = (Context as SpDataContext).CreateModel<Department>();
+            var model = Context.CreateModel<Department>();
             model.UnProvision(ignoreErrors, level);
         }
 

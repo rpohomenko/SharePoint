@@ -403,8 +403,32 @@ namespace SP.Client.Linq.Infrastructure
       return isChanged;
     }
 
-    private void Merge(string propKey, TEntity fromEntity, TEntity toEntity)
+    public void Merge(TEntity entity)
     {
+      if (entity != null)
+      {
+        SpEntityEntry<TEntity, TContext> spEntityEntry = new SpEntityEntry<TEntity, TContext>(entity, this.SpQueryArgs);
+        this.Merge(entity, spEntityEntry.OriginalValues.Keys.ToArray<string>());
+        this.Version = spEntityEntry.Version;
+      }
+    }
+
+    private void Merge(TEntity entity, params string[] propKeys)
+    {
+      if (propKeys != null)
+      {
+        for (int i = 0; i < propKeys.Length; i++)
+        {
+          string propKey = propKeys[i];
+          this.Merge(propKey, entity);
+        }
+      }
+    }
+
+    private void Merge(string propKey, TEntity fromEntity)
+    {
+
+      TEntity toEntity = Entity;
       if (!string.IsNullOrEmpty(propKey) && fromEntity != null && toEntity != null)
       {
         var prop = typeof(TEntity).GetProperty(propKey);
@@ -425,7 +449,6 @@ namespace SP.Client.Linq.Infrastructure
         }
       }
     }
-
     private bool UpdateLookups()
     {
       bool hasChanges = false;
@@ -563,15 +586,8 @@ namespace SP.Client.Linq.Infrastructure
               Entity = originalEntity;
             }
 
-            var currentValues = CurrentValues;
-            if (currentValues != null)
-            {
-              foreach (var currentValue in currentValues)
-              {
-                Merge(currentValue.Key, entity, Entity);
-              }
-            }
-
+            var currentValues = this.CurrentValues;
+            Merge(entity, currentValues.Keys.ToArray());
             Attach();
             CurrentValues = currentValues;
             return result;

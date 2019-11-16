@@ -2,6 +2,8 @@ import React from "react";
 import BaseListView from "./BaseListView";
 //import { CommandBar } from 'office-ui-fabric-react/lib/CommandBar';
 import TaskCommand from "../commands/TaskCommand";
+import { ScrollablePane, ScrollbarVisibility } from 'office-ui-fabric-react/lib/ScrollablePane';
+import { Sticky, StickyPositionType } from 'office-ui-fabric-react/lib/Sticky';
 
 export class TaskList extends BaseListView {
 
@@ -31,9 +33,15 @@ export class TaskList extends BaseListView {
   render() {
     const { selection } = this.state;
     return (
-      <div className="tasks-container">
-        <TaskCommand ref={ref => this._command = ref} service={this._service} selection={selection} onRefresh={() => this.refresh(true)} />
-        {super.render()}
+      <div className="tasks-container" style={{
+        height: '80vh',
+        position: 'relative'
+      }}>
+        <ScrollablePane scrollbarVisibility={ScrollbarVisibility.auto}>
+          <Sticky stickyPosition={StickyPositionType.Header}>
+            <TaskCommand ref={ref => this._command = ref} service={this._service} selection={selection} onRefresh={() => this.refresh(true)} />
+          </Sticky>{super.render()}
+        </ScrollablePane>
       </div>
     );
   }
@@ -84,14 +92,14 @@ export class TaskList extends BaseListView {
     this._command.deleteItem([item]);
   }
 
-  refresh = async (resetSorting, resetFiltering) => {
+  async refresh(resetSorting, resetFiltering) {
     if (this._command) {
       this._command.setState({ refreshEnabed: false });
     }
-    await this.refresh(resetSorting, resetFiltering);
-    if (this._command) {
-      this._command.setState({ refreshEnabed: true });
-    }
+    await super.refresh(resetSorting, resetFiltering);
+      if (this._command) {
+        this._command.setState({ refreshEnabed: true });
+      }  
   }
 }
 
