@@ -3,10 +3,12 @@ import { FormField } from './FormField';
 //import { Spinner, SpinnerSize } from 'office-ui-fabric-react/lib/Spinner';
 import { Stack } from 'office-ui-fabric-react/lib/Stack';
 import { ProgressIndicator } from 'office-ui-fabric-react/lib/ProgressIndicator';
-import { MessageBar, MessageBarType } from 'office-ui-fabric-react';
 import { CommandBar } from 'office-ui-fabric-react/lib/CommandBar';
 import { CommandBarButton } from 'office-ui-fabric-react/lib/Button';
-import { type } from 'os';
+import { StatusBar } from '../StatusBar';
+import { ScrollablePane, ScrollbarVisibility } from 'office-ui-fabric-react/lib/ScrollablePane';
+import { Sticky, StickyPositionType } from 'office-ui-fabric-react/lib/Sticky';
+import { Callout } from 'office-ui-fabric-react';
 
 export class ListForm extends React.Component {
 
@@ -17,6 +19,10 @@ export class ListForm extends React.Component {
         this.state = {
             ...props
         };
+
+        this._container = React.createRef();
+        this._commandBar = React.createRef();
+        this._status = React.createRef();
     }
 
     async componentDidMount() {
@@ -25,17 +31,10 @@ export class ListForm extends React.Component {
             this.setState({ fields: this._getFields() });
         }
         if (!item && mode < 2 && itemId > 0) {
-            await this.loadItemAsync(itemId);
+            await this.loadItem(itemId);
         }
-    }
-
-    componentDidUpdate() {
-        const { mode } = this.state;
         if (mode === 2) {
-            const { onValidate } = this.props;
-            if (typeof onValidate === "function") {
-                //onValidate(this, this.isValid(), this.isDirty());
-            }
+            this._validate();
         }
     }
 
@@ -44,30 +43,21 @@ export class ListForm extends React.Component {
     }
 
     render() {
-        const { isLoading, isSaving, isDeleting, mode, item, fields, error } = this.state;
+        const { isLoading, isSaving, isDeleting, mode, item, fields } = this.state;
         this._formFields = [];
         if (fields) {
             return (
-                <div className='form-container'>
-                    <CommandBar ref={ref => this._commandBar = ref} styles={{ root: { paddingTop: 10 }, menuIcon: { fontSize: '16px' } }}
+                <div className='form-container' ref={this._container}>
+                    <CommandBar ref={this._commandBar} styles={{ root: { paddingTop: 10 }, menuIcon: { fontSize: '16px' } }}
                         items={this._getCommandItems()}
                         onRenderItem={this._onRenderCommandItem} />
-                    {
-                        error &&
-                        (<MessageBar messageBarType={MessageBarType.error} isMultiline={false} onDismiss={() => {
-                            this.setState({ error: undefined });
-                        }} dismissButtonAriaLabel="Close">
-                            {error.message}
-                        </MessageBar>)
-                    }
+                    <StatusBar ref={this._status} />
                     {
                         isLoading
-                            ? (<Stack horizontalAlign="start" styles={{ root: { padding: 10 } }}>
-                                <ProgressIndicator label={"Loading..."} />
-                            </Stack>)
+                            ? this._getProgressIndicator("Loading...")
                             : (<div>
-                                {isSaving && (<Stack horizontalAlign="start" styles={{ root: { padding: 10 } }}><ProgressIndicator label={"Saving..."} /></Stack>)}
-                                {isDeleting && (<Stack horizontalAlign="start" styles={{ root: { padding: 10 } }}><ProgressIndicator label={"Deleting..."} /></Stack>)}
+                                {isSaving && this._getProgressIndicator("Saving...")}
+                                {isDeleting && this._getProgressIndicator("Deleting...")}
                                 {fields.map((field, i) =>
                                     (<FormField ref={ref => {
                                         if (ref != null) {
@@ -83,6 +73,14 @@ export class ListForm extends React.Component {
         return null;
     }
 
+    _getProgressIndicator(label) {
+        return (<Callout
+            target={this._commandBar.current}
+            setInitialFocus={true}>            
+                <ProgressIndicator label={label} />         
+        </Callout>);
+    }
+
     async _abort() {
         if (this._controllers != null) {
             try {
@@ -93,7 +91,6 @@ export class ListForm extends React.Component {
             }
             catch{ }
             this._controllers = [];
-            this._aborted = true;
         }
     }
 
@@ -128,7 +125,7 @@ export class ListForm extends React.Component {
                     icon: 'Delete',
                     text: '',
                     onClick: (e, sender) => {
-                        this.deleteItemAsync();
+                        this.deleteItem();
                     },
                     iconProps: {
                         iconName: 'Delete'
@@ -155,64 +152,38 @@ export class ListForm extends React.Component {
         this._validate();
     }
 
-    async loadItemAsync(itemId) {
-        await this._abort();
-        this._aborted = false;
-        await this.loadItem(itemId);
-    }
+    async loadItem(itemId) {
 
-    loadItem(itemId) {
-        if (this._aborted === true) return;
+        const { isLoading } = this.state;
+        if (isLoading) return null;
 
         this.setState({
-            isLoading: true,
-            error: undefined
+            isLoading: true
         });
 
         let controller = new AbortController();
-        const promise = this._fetchDataAsync(itemId, { signal: controller ? controller.signal : null });
+        const promise = this._fetchData(itemId, { signal: controller.signal });
         this._controllers.push({ controller: controller, promise: promise });
 
-        return promise.then(response => {
-            if (response.ok) {
-                return response.json().then((item) => {
-                    if (item) {
-                        this.setState({
-                            item: item,
-                            isLoading: false
-                        });
-                    }
-                    return 1; // OK
+        return await this._onPromise(promise, (item) => {
+            if (item) {
+                this.setState({
+                    item: item
                 });
+                return { ok: true, data: item }; // OK
             }
-            else {
-                return response.json().then((error) => {
-                    if (!error || !error.message) {
-                        error = { message: `${response.statusText} (${response.status})` };
-                    }
-                    this.setState({
-                        error: error,
-                        isSaving: false
-                    });
-                    return 0; //error
-                }).catch(() => {
-                    let error = { message: `${response.statusText} (${response.status})` };
-                    this.setState({
-                        error: error,
-                        isSaving: false
-                    });
-                    return 0; //error
-                });
-            }
-        }).catch((error) => {
+            throw { message: `Cannot load the item with id=${itemId}.` };
+        }).then((result) => {
             this.setState({
-                error: error,
-                isSaving: false
+                isLoading: false
             });
+            return result;
         });
     }
 
-    saveItem() {
+    async saveItem() {
+        if (!this.validate()) return null;
+        const { onItemSaved } = this.props;
         const { isLoading, mode, item, isValid, isDirty } = this.state;
         if (!isLoading && mode > 0) {
             let newItem = {};
@@ -228,8 +199,7 @@ export class ListForm extends React.Component {
             }
 
             this.setState({
-                isSaving: true,
-                error: undefined
+                isSaving: true
             });
 
             if (item && mode === 1) {
@@ -237,109 +207,86 @@ export class ListForm extends React.Component {
                 newItem.Version = item.Version;
                 newItem.ContentTypeId = item.ContentTypeId
             }
-            let promise = this._saveDataAsync(newItem, null);
 
-            return promise.then(response => {
-                if (response.ok) {
-                    return response.json().then((item) => {
-                        if (item) {
-                            this.setState({
-                                item: item,
-                                isSaving: false
-                            });
-                        }
-                        return 1; // OK
+            let controller = new AbortController();
+            let promise = this._saveData(newItem, { signal: controller.signal });
+            return await this._onPromise(promise, (item) => {
+                if (item) {
+                    this.setState({
+                        item: item
                     });
+                    if (typeof (onItemSaved) === "function") {
+                        onItemSaved(this, item);
+                    }
+                    return { ok: true, data: item }; // OK
                 }
-                else {
-                    return response.json().then((error) => {
-                        if (!error || !error.message) {
-                            error = { message: `${response.statusText} (${response.status})` };
-                        }
-                        this.setState({
-                            error: error,
-                            isSaving: false
-                        });
-                        return 0; //error
-                    }).catch(() => {
-                        let error = { message: `${response.statusText} (${response.status})` };
-                        this.setState({
-                            error: error,
-                            isSaving: false
-                        });
-                        return 0; //error
-                    });
-                }
-            }).catch((error) => {
+                throw { message: `Cannot save the item with id=${itemId}.` };
+            }).then((result) => {
                 this.setState({
-                    error: error,
                     isSaving: false
                 });
+                return result;
             });
         }
     }
 
-    async saveItemAsync() {
-        let result = await this.saveItem();
-        const { onItemSaved } = this.props;
-        if (result === 1 && typeof (onItemSaved) === "function") {
-            onItemSaved();
-        }
-        return result;
-    }
-
-    async deleteItemAsync() {
-        let result = await this.deleteItem();
+    async deleteItem() {
         const { onItemDeleted } = this.props;
-        if (result === 1 && typeof (onItemDeleted) === "function") {
-            onItemDeleted();
-        }
-        return result;
-    }
-
-    deleteItem() {
         const { isLoading, isDeleting, item } = this.state;
         if (!isLoading && !isDeleting && item) {
             this.setState({
-                isDeleting: true,
-                error: undefined
+                isDeleting: true
             });
 
-            let promise = this._deleteItemAsync(item, null);
+            let controller = new AbortController();
+            let promise = this._deleteItem(item, { signal: controller.signal });
 
-            return promise.then(response => {
+            return await this._onPromise(promise, (item) => {
+                if (item) {
+                    /* this.setState({
+                         item: null
+                     });*/
+                    if (typeof (onItemDeleted) === "function") {
+                        onItemDeleted(this, item);
+                    }
+                    return { ok: true, data: item }; // OK
+                }
+                throw { message: `Cannot delete the item with id=${itemId}.` };
+            }).then((result) => {
+                this.setState({
+                    isDeleting: false
+                });
+                return result;
+            });
+        }
+    }
+
+    async _onPromise(promise, onSuccess) {
+        if (promise) {
+            return await promise.then(response => {
                 if (response.ok) {
-                    return response.json().then((result) => {
-                        this.setState({
-                            isDeleting: false
-                        });
-                        return result ? 1 : 0;
-                    });
+                    return response.json().then(onSuccess);
                 }
                 else {
                     return response.json().then((error) => {
                         if (!error || !error.message) {
                             error = { message: `${response.statusText} (${response.status})` };
                         }
-                        this.setState({
-                            error: error,
-                            isDeleting: false
-                        });
-                        return 0; //error
-                    }).catch(() => {
-                        let error = { message: `${response.statusText} (${response.status})` };
-                        this.setState({
-                            error: error,
-                            isDeleting: false
-                        });
-                        return 0; //error
+                        throw error;
+                    }).catch((error) => {
+                        if (!error || !error.message) {
+                            throw { message: error };
+                        }
+                        throw error;
                     });
                 }
             }).catch((error) => {
-                this.setState({
-                    error: error,
-                    isDeleting: false
-                });
+                if (error.code !== 20 && error.name !== 'AbortError') { //aborted
+                    if (this._status) {
+                        this._status.error(error.message ? error.message : error);
+                    }
+                }
+                return { ok: false, data: error }; //error
             });
         }
     }
@@ -358,8 +305,18 @@ export class ListForm extends React.Component {
         return isValid && isDirty;
     }
 
+    validate() {
+        if (this._formFields) {
+            for (let i = 0; i < this._formFields.length; i++) {
+                this._formFields[i].validate();
+            }
+        }
+        return this._validate();
+    }
+
     isValid() {
-        let isValid = true;
+        const { mode, item } = this.state;
+        let isValid = mode === 2 || (mode === 1 && !!item);
         if (this._formFields) {
             for (let i = 0; i < this._formFields.length; i++) {
                 if (!this._formFields[i].isValid()) {
@@ -371,7 +328,7 @@ export class ListForm extends React.Component {
     }
 
     isDirty() {
-        let isDirty = false;
+        let isDirty = this.state.mode === 2;
         if (this._formFields) {
             for (let i = 0; i < this._formFields.length; i++) {
                 isDirty = this._formFields[i].isDirty();
@@ -381,16 +338,16 @@ export class ListForm extends React.Component {
         return isDirty;
     }
 
-    _fetchDataAsync = async (itemId, options) => {
-        throw (`Method _fetchDataAsync is not yet implemented!`);
+    _fetchData = (itemId, options) => {
+        throw (`Method _fetchData is not yet implemented!`);
     }
 
-    _saveDataAsync = async (item, options) => {
-        throw (`Method _saveDataAsync is not yet implemented!`);
+    _saveData = (item, options) => {
+        throw (`Method _saveData is not yet implemented!`);
     }
 
-    _deleteItemAsync = async (item, options) => {
-        throw (`Method _deleteItemAsync is not yet implemented!`);
+    _deleteItem = (item, options) => {
+        throw (`Method _deleteItem is not yet implemented!`);
     }
 
     _getFields = () => {
@@ -405,7 +362,7 @@ export class ListForm extends React.Component {
             }
         });
         if (mode > 0) {
-            //this._validate();
+            this._validate();
         }
     }
 }

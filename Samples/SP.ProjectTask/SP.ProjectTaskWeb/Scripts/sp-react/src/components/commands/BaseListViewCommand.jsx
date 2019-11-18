@@ -1,11 +1,10 @@
 import React from "react";
 import { CommandBar } from 'office-ui-fabric-react/lib/CommandBar';
-import { OverflowSet } from 'office-ui-fabric-react/lib/OverflowSet';
 import { CommandBarButton } from 'office-ui-fabric-react/lib/Button';
-import ListFormPanel from "../form/ListFormPanel";
 import { DefaultButton, PrimaryButton } from 'office-ui-fabric-react/lib/Button';
 import { Dialog, DialogFooter, DialogType } from 'office-ui-fabric-react/lib/Dialog';
-import { MessageBar, MessageBarType } from 'office-ui-fabric-react';
+import { Panel, PanelType } from 'office-ui-fabric-react/lib/Panel';
+import { StatusBar } from '../StatusBar';
 
 export class BaseListViewCommand extends React.Component {
 
@@ -29,7 +28,11 @@ export class BaseListViewCommand extends React.Component {
     }
 
     render() {
-        const { status, showForm, mode, refreshEnabed, confirmDeletion, isDeleting } = this.state;
+        const { status, mode, refreshEnabed, confirmDeletion, confirmClosePanel, isDeleting, showPanel, isDirty } = this.state;
+        let listForm = this._getForm(mode,
+            (sender, isValid, isDirty) => this._validate(isValid, isDirty),
+            (sender, mode) => this._changeMode(mode),
+            this._closeForm);
         return (
             <div className="command-container" ref={this._container}>
                 <CommandBar ref={ref => this._commandBar = ref} styles={{ root: { paddingTop: 10 }, menuIcon: { fontSize: '16px' } }}
@@ -68,17 +71,103 @@ export class BaseListViewCommand extends React.Component {
                         <DefaultButton onClick={() => this.setState({ confirmDeletion: false })} text="No" />
                     </DialogFooter>
                 </Dialog>
-                {<ListFormPanel ref={ref => this._panel = ref} showPanel={showForm} mode={mode} listFormGetter={(mode) => this._getForm(mode)} />}
-                {
-                    status &&
-                    (<MessageBar messageBarType={status.type} isMultiline={false} onDismiss={() => {
-                        this.setState({ status: undefined });
-                    }} dismissButtonAriaLabel="Close">
-                        {status.content}
-                    </MessageBar>)
-                }
+                <Panel
+                    ref={ref => this._panel = ref}
+                    isOpen={showPanel}
+                    isLightDismiss={true}
+                    headerText={this._getPanelHeader()}
+                    onDismiss={() => {
+                        if (isDirty && mode > 0) {
+                            this.setState({ confirmClosePanel: true });
+                        }
+                        else {
+                            this._hidePanel();
+                        }
+                    }}
+                    closeButtonAriaLabel="Close"
+                    type={PanelType.medium}
+                    onRenderFooterContent={this._onRenderFooterContent}
+                    isFooterAtBottom={true}>
+                    {listForm}
+                </Panel>
+                {mode > 0 && isDirty &&
+                    (<Dialog
+                        hidden={confirmClosePanel !== true}
+                        onDismiss={() => this.setState({ confirmClosePanel: false })}
+                        dialogContentProps={{
+                            type: DialogType.normal,
+                            title: 'Close?',
+                            subText: 'Are you sure you want to close the form without saving?'
+                        }}
+                        modalProps={{
+                            isBlocking: true,
+                            styles: { main: { maxWidth: 450 } }
+                        }}>
+                        <DialogFooter>
+                            <PrimaryButton onClick={() => this.setState({ confirmClosePanel: false, showPanel: false, isDirty: false, isValid: false })} text="Yes" />
+                            <DefaultButton onClick={() => this.setState({ confirmClosePanel: false })} text="No" />
+                        </DialogFooter>
+                    </Dialog>)}
+                <StatusBar ref={ref => this._status = ref} />
             </div>
         );
+    }
+
+    viewItem(item) {
+        this._onViewItem(item);
+    }
+
+    editItem(item) {
+        this._onEditItem(item);
+    }
+
+    deleteItem(items) {
+        this.setState({ confirmDeletion: true });
+    }
+
+    async refresh() {
+        const { onRefresh } = this.props;
+        if (typeof onRefresh === "function") {
+            await onRefresh();
+        }
+    }
+
+    _getPanelHeader = () => {
+        const { newItemHeader, editItemHeader, viewItemHeader } = this.props;
+        const { mode } = this.state;
+        let headerText;
+        switch (mode) {
+            case 0:
+                headerText = viewItemHeader
+                break;
+            case 1:
+                headerText = editItemHeader
+                break;
+            case 2:
+                headerText = newItemHeader
+                break;
+        }
+        return headerText;
+    }
+
+    _onSaveClick = async () => {
+        const { isValid, isDirty } = this.state;
+        if (this._listForm && isValid && isDirty) {
+            this.setState({ isDirty: false });
+            return await this._listForm.saveItem();
+        }
+    }
+
+    _onRenderFooterContent = () => {
+        const { isValid, isDirty, mode } = this.state;
+        if (mode > 0) {
+            return (
+                <div>
+                    <PrimaryButton onClick={() => this._onSaveClick()} disabled={!isDirty || !isValid} style={{ marginRight: 7 }}>Save</PrimaryButton>
+                    <DefaultButton onClick={() => this._hidePanel()}>Cancel</DefaultButton>
+                </div>);
+        }
+        return null;
     }
 
     _onRenderItem = (item) => {
@@ -175,53 +264,73 @@ export class BaseListViewCommand extends React.Component {
         this._changeMode(0);
     }
 
-    _changeMode = (mode) => {
-        this.setState({ showForm: true, mode: mode, status: undefined });
-        let panel = this._panel;
-        if (panel) {
-            panel.setState({ showPanel: true, mode: mode });
-        }
-    }
-
-    _validate = (isValid, isDirty) => {
-        let panel = this._panel;
-        if (panel) {
-            panel.setState({ isValid: isValid, isDirty: isDirty });
-        }
-    }
-
-    _closeForm = (result, message) => {
-        let panel = this._panel;
-        if (panel) {
-            panel._hidePanel(result);
-        }
-        if (result === 1) {
-            this.refresh();
-            this.setState({ status: { content: message, type: MessageBarType.success } });
-        }
-
-    }
-
     _onDelete = (items) => {
         throw "Method _onDelete is not yet implemented!";
     }
 
-    viewItem(item) {
-        this._onViewItem(item);
+    _changeMode = (mode) => {
+        this.setState({ showPanel: true, mode: mode, status: undefined });
     }
 
-    editItem(item) {
-        this._onEditItem(item);
+    _showPanel = () => {
+        this.setState({ showPanel: true });
+    };
+
+    _hidePanel = () => {
+        const { showPanel } = this.state;
+        if (showPanel) {
+            this.setState({ showPanel: false, isDirty: false, isValid: false });
+        }
+    };
+
+    _validate = (isValid, isDirty) => {
+        this.setState({ isValid: isValid, isDirty: isDirty });
     }
 
-    deleteItem(items) {
-        this.setState({ confirmDeletion: true });
+    _closeForm = (result, message, callback) => {
+        this._hidePanel();
+        if (message) {
+            if (this._status) {
+                if (result.ok) {
+                    this._status.success(message);
+                }
+                else {
+                    this._status.warn(message);
+                }
+            }
+        }
+        if (typeof callback === "function") {
+            callback(this, result);
+        }
     }
 
-    async refresh() {
-        const { onRefresh } = this.props;
-        if (typeof onRefresh === "function") {
-            await onRefresh();
+    async _onPromise(promise, onSuccess) {
+        if (promise) {
+            return await promise.then(response => {
+                if (response.ok) {
+                    return response.json().then(onSuccess);
+                }
+                else {
+                    return response.json().then((error) => {
+                        if (!error || !error.message) {
+                            error = { message: `${response.statusText} (${response.status})` };
+                        }
+                        throw error;
+                    }).catch((error) => {
+                        if (!error || !error.message) {
+                            throw { message: error };
+                        }
+                        throw error;
+                    });
+                }
+            }).catch((error) => {
+                if (error.code !== 20 && error.name !== 'AbortError') { //aborted
+                    if (this._status) {
+                        this._status.error(error.message ? error.message : error);
+                    }
+                }
+                return { ok: false, data: error }; //error
+            });
         }
     }
 }

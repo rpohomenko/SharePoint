@@ -39,12 +39,23 @@ export class TaskList extends BaseListView {
       }}>
         <ScrollablePane scrollbarVisibility={ScrollbarVisibility.auto}>
           <Sticky stickyPosition={StickyPositionType.Header}>
-            <TaskCommand ref={ref => this._command = ref} service={this._service} selection={selection} onRefresh={() => this.refresh(true)} />
+            <TaskCommand ref={ref => this._command = ref} service={this._service} selection={selection} onRefresh={() => this.refresh(true)}
+              onItemDeleted={this._onItemDeleted} onItemSaved={this._onItemSaved} />
           </Sticky>{super.render()}
         </ScrollablePane>
       </div>
     );
   }
+
+  _onItemDeleted = (sender, result) => {
+
+
+  }
+
+  onItemSaved = (sender, result) => {
+
+  }
+
 
   _getColumns = () => {
     const columns = [
@@ -68,12 +79,8 @@ export class TaskList extends BaseListView {
     return columns;
   }
 
-  _fetchData = (count, nextPageToken, sortBy, sortDesc, filter, options) => {
-    return this._service.getTasks(count, nextPageToken, sortBy, sortDesc, filter, options);
-  }
-
-  _fetchDataAsync = async (count, nextPageToken, sortBy, sortDesc, filter, options) => {
-    return await this._fetchData(count, nextPageToken, sortBy, sortDesc, filter, options);
+  _fetchData = async (count, nextPageToken, sortBy, sortDesc, filter, options) => {
+    return await this._service.getTasks(count, nextPageToken, sortBy, sortDesc, filter, options);
   }
 
   _onSelectionChanged = (selectionItems) => {
@@ -97,9 +104,9 @@ export class TaskList extends BaseListView {
       this._command.setState({ refreshEnabed: false });
     }
     await super.refresh(resetSorting, resetFiltering);
-      if (this._command) {
-        this._command.setState({ refreshEnabed: true });
-      }  
+    if (this._command) {
+      this._command.setState({ refreshEnabed: true });
+    }
   }
 }
 

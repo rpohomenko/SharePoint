@@ -11,28 +11,16 @@ export class TaskForm extends ListForm {
         };
     }
 
-    _fetchData = (itemId, options) => {
-        return this._service.getTask(itemId, options);
+    _fetchData = async (itemId, options) => {
+        return await this._service.getTask(itemId, options);
     }
 
-    _fetchDataAsync = async (itemId, options) => {
-        return await this._fetchData(itemId, options);
+    _saveData = async (item, options) => {
+        return await this._service.saveTask(item, options);
     }
 
-    _saveData = (item, options) => {
-        return this._service.saveTask(item, options);
-    }
-
-    _saveDataAsync = async (item, options) => {
-        return await this._saveData(item, options);
-    }
-
-    _deleteItem =(item, options)=>{
-        return this._service.deleteTask([item.Id], options);
-    }
-
-    _deleteItemAsync = async (item, options) => {
-        return await this._deleteItem(item, options);
+    _deleteItem = async (item, options) => {
+        return await this._service.deleteTask([item.Id], options);
     }
 
     render() {

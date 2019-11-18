@@ -6,11 +6,12 @@ import { DirectionalHint, ContextualMenu } from 'office-ui-fabric-react/lib/Cont
 //import { Spinner, SpinnerSize } from 'office-ui-fabric-react/lib/Spinner';
 import { Stack } from 'office-ui-fabric-react/lib/Stack';
 import { MarqueeSelection } from 'office-ui-fabric-react/lib/MarqueeSelection';
-import { MessageBar, MessageBarType } from 'office-ui-fabric-react';
 import { ActionButton, IIconProps } from 'office-ui-fabric-react';
 import { TooltipHost } from 'office-ui-fabric-react/lib/Tooltip';
 import { getId } from 'office-ui-fabric-react/lib/Utilities';
 import { Sticky, StickyPositionType } from 'office-ui-fabric-react/lib/Sticky';
+
+import { StatusBar } from '../StatusBar';
 
 export class BaseListView extends React.Component {
 
@@ -52,18 +53,11 @@ export class BaseListView extends React.Component {
 
     render() {
         let { emptyMessage } = this.props;
-        let { columns, items, contextualMenuProps, nextPageToken, isLoading, isLoaded, error, count } = this.state;
+        let { columns, items, contextualMenuProps, nextPageToken, isLoading, isLoaded, count } = this.state;
 
         return (
             <div className="list-view-container">
-                {
-                    error &&
-                    (<MessageBar messageBarType={MessageBarType.error} isMultiline={false} onDismiss={() => {
-                        this.setState({ error: undefined });
-                    }} dismissButtonAriaLabel="Close">
-                        {error.message}
-                    </MessageBar>)
-                }
+                <StatusBar ref={ref => this._status = ref} />
                 <MarqueeSelection selection={this._selection}>
                     <ShimmeredDetailsList
                         ref={ref => this._list = ref}
@@ -76,10 +70,10 @@ export class BaseListView extends React.Component {
                         onRenderMissingItem={this._onRenderMissingItem}
                         onRenderCustomPlaceholder={this._onRenderCustomPlaceholder}
                         enableShimmer={(!isLoaded && items.length === 0)}
-                        onRenderDetailsHeader = {this._onRenderDetailsHeader}
+                        onRenderDetailsHeader={this._onRenderDetailsHeader}
                     />
                 </MarqueeSelection>
-                {isLoaded && items.length === 0 && !isLoading && !error && (<Stack horizontalAlign="center" styles={{ root: { padding: 10 } }}>{emptyMessage}</Stack>)}
+                {isLoaded && items.length === 0 && !isLoading && (<Stack horizontalAlign="center" styles={{ root: { padding: 10 } }}>{emptyMessage}</Stack>)}
                 {contextualMenuProps && <ContextualMenu {...contextualMenuProps} />}
                 {isLoaded && nextPageToken && (<TooltipHost
                     content={`Next ${count} item(s)`}
@@ -94,14 +88,14 @@ export class BaseListView extends React.Component {
         );
     }
 
-    _onRenderDetailsHeader = (props, defaultRender) =>{
+    _onRenderDetailsHeader = (props, defaultRender) => {
         return (
             <Sticky stickyPosition={StickyPositionType.Header} isScrollSynced={true}>
-              {defaultRender({
-                  ...props 
-                  })}
+                {defaultRender({
+                    ...props
+                })}
             </Sticky>
-          );
+        );
     }
 
     _getColumns = () => {
@@ -126,7 +120,6 @@ export class BaseListView extends React.Component {
             }
             catch{ }
             this._controllers = [];
-            this._aborted = true;
         }
     }
 
@@ -235,7 +228,6 @@ export class BaseListView extends React.Component {
             });
 
             this._abort().then(() => {
-                this._aborted = false;
                 this.setState({
                     columns: newColumns,
                     items: [],
@@ -302,15 +294,10 @@ export class BaseListView extends React.Component {
         throw "Method _fetchData is not yet implemented!";
     }
 
-    _fetchDataAsync = async (count, nextPageToken, sortBy, sortDesc, filter, options) => {
-        throw "Method _fetchDataAsync is not yet implemented!";
-    }
-
-    async refresh (resetSorting, resetFiltering) {
+    async refresh(resetSorting, resetFiltering) {
         await this._abort();
-        this._aborted = false;
-        const { isLoading} = this.state;
-        if(isLoading) return;
+        const { isLoading } = this.state;
+        if (isLoading) return;
         let { columns, sortBy, sortDesc } = this.state;
         if (resetSorting) {
             columns = columns.slice();
@@ -331,13 +318,9 @@ export class BaseListView extends React.Component {
         await this.loadItems(null, null);
     }
 
-    async loadItems (sortColumn = null, pageToken = null) {
-        await this._loadItems(sortColumn, pageToken);
-    }
+    async loadItems(sortColumn = null, pageToken = null) {
 
-    _loadItems = (sortColumn = null, pageToken = null) => {
         let { count, filter, sortBy, sortDesc, nextPageToken, items } = this.state;
-        if (this._aborted === true) return;
 
         if (sortColumn) {
             sortBy = sortColumn.name;
@@ -364,64 +347,66 @@ export class BaseListView extends React.Component {
             });
         }
         let controller = new AbortController();
-        const promise = this._fetchDataAsync(count, nextPageToken, sortBy, sortDesc, filter, { signal: controller ? controller.signal : null });
+        const promise = this._fetchData(count, nextPageToken, sortBy, sortDesc, filter, { signal: controller ? controller.signal : null });
         this._controllers.push({ controller: controller, promise: promise });
 
-        return promise.then(response => {
-            if (response.ok) {
-                return response.json().then((json) => {
-                    let { items } = this.state;
-                    if (json) {
-                        let itemsCopy = (nextPageToken ? items.splice(0, items.length - count) : items.splice(0, items.length)).concat(json.items);
+        return await this._onPromise(promise, (json) => {
+            let { items } = this.state;
+            let itemsCopy = [];
+            if (json) {
+                itemsCopy = (nextPageToken ? items.splice(0, items.length - count) : items.splice(0, items.length)).concat(json.items);
 
-                        if (this._aborted === true) return;
-                        if (this._controllers.filter(c => c.controller == controller) === 0) return;
-                        this.setState({
-                            items: itemsCopy,
-                            nextPageToken: json._nextPageToken,
-                            isLoading: false,
-                            isLoaded: true
-                        });
-                        //this._selection.setItems(itemsCopy);
-                    }
-                    else {
-                        this.setState({
-                            isLoading: false,
-                            isLoaded: true
-                        });
-                    }
-                    this._controllers = this._controllers.filter(c => c.controller !== controller);
-                    return 1; // OK
-                });
-            }
-            else {
-                return response.json().then((error) => {
-                    if (!error || !error.message) {
-                        error = { message: `${response.statusText} (${response.status})` };
-                    }
-                    this.setState({
-                        error: error,
-                        isLoading: false
-                    });
-                    return 0; //error
-                }).catch(() => {
-                    let error = { message: `${response.statusText} (${response.status})` };
-                    this.setState({
-                        error: error,
-                        isLoading: false
-                    });
-                    return 0; //error
-                });
-            }
-        }).catch((error) => {
-            if (error.code !== 20 && error.name !== 'AbortError') { //aborted
+                if (this._controllers.filter(c => c.controller == controller) === 0) return;
                 this.setState({
-                    error: error,
-                    isLoading: false
+                    items: itemsCopy,
+                    nextPageToken: json._nextPageToken
                 });
+                //this._selection.setItems(itemsCopy);
             }
+            this.setState({
+                isLoaded: true
+            });
+
+            this._controllers = this._controllers.filter(c => c.controller !== controller);
+            return { ok: true, data: itemsCopy }; // OK
+        }).then((result) => {
+            this.setState({            
+                isLoading: false
+            });
+            return result;
         });
     }
+
+    async _onPromise(promise, onSuccess) {
+        if (promise) {
+            return await promise.then(response => {
+                if (response.ok) {
+                    return response.json().then(onSuccess);
+                }
+                else {
+                    return response.json().then((error) => {
+                        if (!error || !error.message) {
+                            error = { message: `${response.statusText} (${response.status})` };
+                        }
+                        throw error;
+                    }).catch((error) => {
+                        if (!error || !error.message) {
+                            throw { message: error };
+                        }
+                        throw error;
+                    });
+                }
+            }).catch((error) => {
+                if (error.code !== 20 && error.name !== 'AbortError') { //aborted
+                    if(this._status){
+                        this._status.error(error.message ? error.message : error);
+                    }              
+                }
+                return { ok: false, data: error }; //error
+            });
+        }
+    }
+
 }
 
 BaseListView.propTypes = {

@@ -137,6 +137,12 @@ export class FormField extends React.Component {
         }
     }
 
+    validate(){
+        if (this._fieldControl) {
+            return this._fieldControl.validate();
+        }
+    }
+
     getControl() {
         return this._fieldControl;
     }
