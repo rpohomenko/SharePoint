@@ -1,6 +1,5 @@
 import * as React from 'react';
 import ErrorBoundary from '../../ErrorBoundary';
-import { underline } from 'ansi-colors';
 
 export class BaseFieldRenderer extends React.Component {
     constructor(props) {
@@ -9,16 +8,22 @@ export class BaseFieldRenderer extends React.Component {
         this.state = {
             currentValue: props.value,
             value: props.value,
-            isValid: false,
+            isValid: true,
+            isDirty: false,
             validationErrors: [],
             validators: []
         };
 
     }
 
+    componentDidMount() {            
+    }
+
     render() {
-        const { mode } = this.props;
+        const { mode, fieldProps } = this.props;
         const { isValid, validationErrors } = this.state;
+        if(!fieldProps) return null;
+
         return (
             <React.Fragment>
                 <ErrorBoundary>

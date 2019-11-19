@@ -1,5 +1,6 @@
-//import * as React from 'react';
+import * as React from 'react';
 import { ListForm } from './ListForm';
+import { Projects, ProjectList } from '../lists/Projects';
 
 export class TaskForm extends ListForm {
 
@@ -28,12 +29,24 @@ export class TaskForm extends ListForm {
     }
 
     _getFields = () => {
+        let service = this._service;   
         return [{
-            key: 'Title',
+            key: 'title',
             name: 'Title',
             type: 'text',
             title: 'Title',
             required: true
+        },
+        {
+            key: 'project',
+            name: 'Project',
+            type: 'lookup',
+            title: 'Project',
+            isMultiple: false,
+            required: true,
+            getListView: (onSelect) => {
+              return <ProjectList service={service} pageSize={30} emptyMessage="There are no projects." onSelect={onSelect} />;//(<Projects service={service}></Projects>);
+            }
         }];
     }
 }

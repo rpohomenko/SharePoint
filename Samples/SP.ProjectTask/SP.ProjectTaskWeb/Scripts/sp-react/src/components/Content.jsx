@@ -1,8 +1,10 @@
 import React from 'react'
 import PropTypes from 'prop-types';
 import { Breadcrumb, IBreadcrumbItem } from 'office-ui-fabric-react/lib/Breadcrumb'
-import Tasks from './lists/Tasks';
 import { Pivot, PivotItem } from 'office-ui-fabric-react/lib/Pivot';
+
+import Tasks from './lists/Tasks';
+import Projects from './lists/Projects';
 
 class Content extends React.Component {
     constructor() {
@@ -53,12 +55,15 @@ class Content extends React.Component {
                 content = (<Tasks service={service}></Tasks>);              
                 break;
             case 1:
+                content = (<Projects service={service}></Projects>);              
+                break;
             case 2:
             case 3:
                 break;
             default:
                 const pivotContent = {
-                    "tasks": (<Tasks service={service}></Tasks>)
+                    "tasks": (<Tasks service={service}></Tasks>),
+                    "projects": (<Projects service={service}></Projects>)
                 };
 
                 content = (<div><span>Welcome to Project Tasks!</span>

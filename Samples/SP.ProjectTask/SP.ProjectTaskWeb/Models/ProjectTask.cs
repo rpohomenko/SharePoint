@@ -3,6 +3,7 @@ using SP.Client.Linq;
 using SP.Client.Linq.Attributes;
 using SP.Client.Linq.Provisioning;
 using System;
+using System.Runtime.Serialization;
 
 namespace SP.ProjectTaskWeb.Models
 {
@@ -28,24 +29,71 @@ namespace SP.ProjectTaskWeb.Models
         //    set => base.ContentTypeId = value;
         //}
 
+        [IgnoreDataMember]
         [LookupField(Name = "pt_Project", Title = "Project", IsMultiple = false, Behavior = ProvisionBehavior.Overwrite)]
         public ISpEntityLookup<Project> ProjectLookup
         {
             get;
         }
 
-        public Project Project
+        //[IgnoreDataMember]
+        //public Project Project
+        //{
+        //    get
+        //    {
+        //        return ProjectLookup.GetEntity();
+        //    }
+        //    set
+        //    {
+        //        ProjectLookup.SetEntity(value);
+        //    }
+        //}
+
+        [DataMember]
+        public LookupValue Project
         {
             get
             {
-                return ProjectLookup.GetEntity();
+                return ProjectId > 0 ? new LookupValue() { Id = ProjectId, Value = ProjectValue } : null;
             }
             set
             {
-                ProjectLookup.SetEntity(value);
+                if (value != null)
+                {
+                    ProjectId = value.Id;
+                    ProjectValue = value.Value;
+                }
+                else
+                {
+                    ProjectId = 0;
+                    ProjectValue = null;
+                }
             }
         }
 
+        //[DataMember]
+        [LookupField(Name = "pt_Project", Result = LookupItemResult.Id)]
+        public int ProjectId
+        {
+            get
+            {
+                return ProjectLookup.EntityId;
+            }
+            set
+            {
+                ProjectLookup.EntityId = value;
+            }
+        }
+
+        //[DataMember]
+        [LookupField(Name = "pt_Project", Result = LookupItemResult.Value)]
+        public string ProjectValue
+        {
+            get;
+            protected set;
+        }
+
+        [DataMember]
         [Field(Name = "AssignedTo", DataType = FieldType.User, Behavior = ProvisionBehavior.None)]
         public virtual FieldLookupValue AssignedTo
         {
@@ -53,6 +101,7 @@ namespace SP.ProjectTaskWeb.Models
             set;
         }
 
+        [DataMember]
         [Field(Name = "Body", DataType = FieldType.Note, Behavior = ProvisionBehavior.None)]
         public string Body
         {
@@ -60,6 +109,7 @@ namespace SP.ProjectTaskWeb.Models
             set;
         }
 
+        [DataMember]
         [Field(Name = "StartDate", DataType = FieldType.DateTime, Behavior = ProvisionBehavior.None)]
         public virtual DateTime? StartDate
         {
@@ -67,6 +117,7 @@ namespace SP.ProjectTaskWeb.Models
             set;
         }
 
+        [DataMember]
         [Field(Name = "TaskDueDate", DataType = FieldType.DateTime, Behavior = ProvisionBehavior.None)]
         public virtual DateTime? DueDate
         {
@@ -74,6 +125,7 @@ namespace SP.ProjectTaskWeb.Models
             set;
         }
 
+        [DataMember]
         [ChoiceField(Name = "TaskStatus", Behavior = ProvisionBehavior.None)]
         public virtual TaskStatus TaskStatus
         {

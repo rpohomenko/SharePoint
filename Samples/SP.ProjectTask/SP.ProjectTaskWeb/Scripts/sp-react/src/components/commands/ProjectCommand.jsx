@@ -1,11 +1,11 @@
 import React from "react";
-import TaskForm from "../form/TaskForm";
 import BaseListViewCommand from "./BaseListViewCommand";
 import { ProgressIndicator } from 'office-ui-fabric-react/lib/ProgressIndicator';
 import { Stack } from 'office-ui-fabric-react/lib/Stack';
 import { Callout } from 'office-ui-fabric-react';
+import ProjectForm from "../form/ProjectForm";
 
-export class TaskCommand extends BaseListViewCommand {
+export class ProjectCommand extends BaseListViewCommand {
 
     constructor(props) {
         super(props);
@@ -33,7 +33,7 @@ export class TaskCommand extends BaseListViewCommand {
         const { onItemDeleted, onItemSaved } = this.props;
         const { selection } = this.state;
         let item = mode < 2 && selection && selection.length > 0 ? selection[0] : undefined;
-        return (<TaskForm ref={(ref) => this._listForm = ref} service={this.props.service} mode={mode} isValid={mode === 2} isDirty={mode === 2}
+        return (<ProjectForm ref={(ref) => this._listForm = ref} service={this.props.service} mode={mode} isValid={mode === 2} isDirty={mode === 2}
             item={item} itemId={item ? item.Id : undefined}
             onValidate={onValidate} onChangeMode={onChangeMode} onCloseForm={(sender) => onCloseForm(null)}
             onItemDeleted={(sender, item) => onCloseForm({ ok: true, data: [item] }, "Deleted successfully.", onItemDeleted)}
@@ -50,7 +50,7 @@ export class TaskCommand extends BaseListViewCommand {
             }
         }
 
-        let promise = this.props.service.deleteTask(ids);
+        let promise = this.props.service.deleteProject(ids);
         let status = this._status;
         return this._onPromise(promise, (result) => {
             if (result) {
@@ -75,4 +75,4 @@ export class TaskCommand extends BaseListViewCommand {
     }
 }
 
-export default TaskCommand;
+export default ProjectCommand;

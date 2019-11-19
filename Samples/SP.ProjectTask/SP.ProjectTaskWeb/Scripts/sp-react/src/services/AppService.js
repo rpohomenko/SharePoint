@@ -8,6 +8,8 @@ export class AppService extends ApiService {
         super(BASE_PATH);
     }
 
+    // Tasks
+
     getTasks = async(count, nextPageToken, sortBy, sortDesc, filter, options) => {
         return await this.get(`/api/web/tasks?count=${count}&pagingToken=${encodeURIComponent(nextPageToken || "")}&where=${encodeURIComponent(filter || "")}&sortBy=${encodeURIComponent(sortBy || "")}&sortDesc=${sortDesc || false}`, options);
     }
@@ -25,5 +27,26 @@ export class AppService extends ApiService {
 
     deleteTask = async(ids, options) => {
         return await this.delete(`/api/web/tasks?ids=${ids.join(',')}`, options);
+    }
+
+    // Projects
+
+    getProjects = async(count, nextPageToken, sortBy, sortDesc, filter, options) => {
+        return await this.get(`/api/web/projects?count=${count}&pagingToken=${encodeURIComponent(nextPageToken || "")}&where=${encodeURIComponent(filter || "")}&sortBy=${encodeURIComponent(sortBy || "")}&sortDesc=${sortDesc || false}`, options);
+    }
+
+    getProject = async(id, options) => {
+        return await this.get(`/api/web/projects/${id}`, options);
+    }
+
+    saveProject = async(item, options) => {      
+        if(item && item.Id > 0){
+            return await this.put(`/api/web/projects`, options, item);
+        }
+        return await this.post(`/api/web/projects`, options,  item);
+    }
+
+    deleteProject = async(ids, options) => {
+        return await this.delete(`/api/web/projects?ids=${ids.join(',')}`, options);
     }
 }

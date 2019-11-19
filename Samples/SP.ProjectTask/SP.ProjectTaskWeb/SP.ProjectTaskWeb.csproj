@@ -289,6 +289,7 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Models\LookupValue.cs" />
     <Compile Include="Models\ProjectTaskContext.cs" />
     <Compile Include="Models\ProjectTaskProvisionModel.cs" />
     <Compile Include="Models\ProjectTask.cs" />

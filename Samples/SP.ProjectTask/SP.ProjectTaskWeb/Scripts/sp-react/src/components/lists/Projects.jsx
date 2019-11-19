@@ -1,11 +1,10 @@
 import React from "react";
 import BaseListView from "./BaseListView";
-//import { CommandBar } from 'office-ui-fabric-react/lib/CommandBar';
-import TaskCommand from "../commands/TaskCommand";
 import { ScrollablePane, ScrollbarVisibility } from 'office-ui-fabric-react/lib/ScrollablePane';
 import { Sticky, StickyPositionType } from 'office-ui-fabric-react/lib/Sticky';
+import ProjectCommand from "../commands/ProjectCommand";
 
-export class TaskList extends BaseListView {
+export class ProjectList extends BaseListView {
 
   constructor(props) {
     super(props);
@@ -33,13 +32,13 @@ export class TaskList extends BaseListView {
   render() {
     const { selection } = this.state;
     return (
-      <div className="tasks-container" style={{
+      <div className="projects-container" style={{
         height: '80vh',
         position: 'relative'
       }}>
         <ScrollablePane scrollbarVisibility={ScrollbarVisibility.auto}>
           <Sticky stickyPosition={StickyPositionType.Header} isScrollSynced={true}>
-            <TaskCommand ref={ref => this._command = ref} service={this._service} selection={selection} onRefresh={() => this.refresh(true)}
+            <ProjectCommand ref={ref => this._command = ref} service={this._service} selection={selection} onRefresh={() => this.refresh(true)}
               onItemDeleted={this._onItemDeleted} onItemSaved={this._onItemSaved} />
           </Sticky>{super.render()}
         </ScrollablePane>
@@ -64,32 +63,13 @@ export class TaskList extends BaseListView {
         onColumnClick: this._onColumnClick,
         data: 'string',
         isPadded: false
-      },
-      {
-        key: 'project',
-        name: 'Project',
-        fieldName: 'Project',
-        minWidth: 210,
-        maxWidth: 350,
-        isRowHeader: false,
-        isResizable: false,
-        isSorted: false,
-        isSortedDescending: false,
-        sortAscendingAriaLabel: 'A to Z',
-        sortDescendingAriaLabel: 'Z to A',
-        onColumnClick: this._onColumnClick,
-        data: 'string',
-        isPadded: false,
-        getView: (lookupValue) =>{
-          return lookupValue ? (<a>{lookupValue.Value}</a>) : '';
-        }
-      }
+      }      
     ];
     return columns;
   }
 
   _fetchData = async (count, nextPageToken, sortBy, sortDesc, filter, options) => {
-    return await this._service.getTasks(count, nextPageToken, sortBy, sortDesc, filter, options);
+    return await this._service.getProjects(count, nextPageToken, sortBy, sortDesc, filter, options);
   }
 
   _onSelectionChanged(selectionItems){
@@ -120,8 +100,8 @@ export class TaskList extends BaseListView {
   }
 }
 
-const Tasks = (props) => {
-  return (<TaskList service={props.service} pageSize={30} emptyMessage="There are no tasks." />);
+const Projects = (props) => {
+  return (<ProjectList service={props.service} pageSize={30} emptyMessage="There are no projects." />);
 };
 
-export default Tasks;
+export default Projects;

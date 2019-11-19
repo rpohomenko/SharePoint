@@ -46,6 +46,28 @@ namespace SP.ProjectTaskWeb.Controllers
             return GetDataResult<ProjectTask>(where, count, sortBy, sortDesc, pagingToken);
         }
 
+        [Route("tasks")]
+        [HttpPost]
+        public IHttpActionResult CreateTask([FromBody]ProjectTask task)
+        {
+            return AddEntity(task);
+        }
+
+        [Route("tasks")]
+        [HttpPut]
+        public IHttpActionResult UpdateTask([FromBody] ProjectTask task)
+        {
+            return UpdateEntity(task);
+        }
+
+        [Route("tasks")]
+        [HttpDelete]
+        public IHttpActionResult DeleteTask([FromUri] string ids)
+        {
+            var itemIds = ids.Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries).Select(id => Convert.ToInt32(id));
+            return Delete<ProjectTask>(itemIds);
+        }
+
         [Route("projects/{id}")]
         [HttpGet]
         public IHttpActionResult GetProject(int id)
@@ -58,6 +80,28 @@ namespace SP.ProjectTaskWeb.Controllers
         public IHttpActionResult GetProjects([FromUri] string where = null, [FromUri] int count = 0, [FromUri] string sortBy = null, [FromUri] bool sortDesc = false, [FromUri] string pagingToken = null)
         {
             return GetDataResult<Project>(where, count, sortBy, sortDesc, pagingToken);
+        }
+
+        [Route("projects")]
+        [HttpPost]
+        public IHttpActionResult CreateProject([FromBody]Project project)
+        {
+            return AddEntity(project);
+        }
+
+        [Route("projects")]
+        [HttpPut]
+        public IHttpActionResult UpdateProject([FromBody] Project project)
+        {
+            return UpdateEntity(project);
+        }
+
+        [Route("projects")]
+        [HttpDelete]
+        public IHttpActionResult DeleteProject([FromUri] string ids)
+        {
+            var itemIds = ids.Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries).Select(id => Convert.ToInt32(id));
+            return Delete<Project>(itemIds);
         }
 
         [Route("employees/{id}")]
@@ -86,29 +130,7 @@ namespace SP.ProjectTaskWeb.Controllers
         public IHttpActionResult GetDepartments([FromUri] string where = null, [FromUri] int count = 0, [FromUri] string sortBy = null, [FromUri] bool sortDesc = false, [FromUri] string pagingToken = null)
         {
             return GetDataResult<Department>(where, count, sortBy, sortDesc, pagingToken);
-        }
-
-        [Route("tasks")]
-        [HttpPost]
-        public IHttpActionResult CreateTask([FromBody]ProjectTask task)
-        {
-            return AddEntity(task);
-        }
-
-        [Route("tasks")]
-        [HttpPut]
-        public IHttpActionResult UpdateTask([FromBody] ProjectTask task)
-        {
-            return UpdateEntity(task);
-        }
-
-        [Route("tasks")]
-        [HttpDelete]
-        public IHttpActionResult DeleteTask([FromUri] string ids)
-        {
-            var itemIds = ids.Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries).Select(id => Convert.ToInt32(id));
-            return Delete<ProjectTask>(itemIds);
-        }
+        }      
 
         private IHttpActionResult GetItemResult<TEntity>(int id) where TEntity : ListItemEntity, new()
         {
@@ -219,7 +241,6 @@ namespace SP.ProjectTaskWeb.Controllers
                 return new JsonErrorResult(ex);
             }
         }
-
 
 
         [Route("deploy")]

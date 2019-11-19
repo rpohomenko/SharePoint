@@ -188,6 +188,17 @@ export class ListForm extends React.Component {
     };
 
     _onValidate = (fieldControl, isValid, isDirty) => {
+        if (this._formFields) {
+            for (let i = 0; i < this._formFields.length; i++) {
+                if(fieldControl === this._formFields[i]) continue;
+                if (!this._formFields[i].isValid()) {
+                    isValid = false;
+                }
+                if (this._formFields[i].isDirty()) {
+                    isDirty = true;
+                }
+            }
+        }
         this._validate(isValid, isDirty);
     }
 

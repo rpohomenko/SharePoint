@@ -26,8 +26,8 @@ export class BaseListView extends React.Component {
             onSelectionChanged: () => this._onSelectionChanged(this._getSelectionItems())
         });
 
-        this._onRenderMissingItem = this._onRenderMissingItem.bind(this);
-        this._onRenderCustomPlaceholder = this._onRenderCustomPlaceholder.bind(this);
+        this._renderMissingItem = this._renderMissingItem.bind(this);
+        this._renderCustomPlaceholder = this._renderCustomPlaceholder.bind(this);
         this._onSelectionChanged = this._onSelectionChanged.bind(this);
 
         this.state = {
@@ -77,10 +77,11 @@ export class BaseListView extends React.Component {
                         selection={this._selection}
                         onItemInvoked={this._onItemInvoked}
                         onItemContextMenu={this._onItemContextMenu}
-                        onRenderMissingItem={this._onRenderMissingItem}
-                        onRenderCustomPlaceholder={this._onRenderCustomPlaceholder}
+                        onRenderMissingItem={this._renderMissingItem}
+                        onRenderCustomPlaceholder={this._renderCustomPlaceholder}
                         enableShimmer={(!isLoaded && items.length === 0)}
-                        onRenderDetailsHeader={this._onRenderDetailsHeader}
+                        onRenderDetailsHeader={this._renderDetailsHeader}
+                        onRenderItemColumn={this._renderItemColumn}
                     />
                 </MarqueeSelection>
                 {isLoaded && items.length === 0 && !isLoading && (<Stack horizontalAlign="center" styles={{ root: { padding: 10 } }}>{emptyMessage}</Stack>)}
@@ -98,7 +99,26 @@ export class BaseListView extends React.Component {
         );
     }
 
-    _onRenderDetailsHeader = (props, defaultRender) => {
+    _renderItemColumn(item, index, column) {
+        let value;
+        if (typeof column.getView === "function") {
+            value = column.getView(item[column.fieldName], item, index);
+        }
+        else {
+            value = item && column && column.fieldName ? item[column.fieldName] : '';
+        }
+
+        if (value === null || value === undefined) {
+            value = '';
+        }
+
+        if (typeof value === 'boolean') {
+            return value.toString();
+        }
+        return value;
+    }
+
+    _renderDetailsHeader = (props, defaultRender) => {
         return (
             <Sticky stickyPosition={StickyPositionType.Header} isScrollSynced={true}>
                 {defaultRender({
@@ -116,8 +136,13 @@ export class BaseListView extends React.Component {
         return this._selection.getSelection();
     }
 
-    _onSelectionChanged = (selectionItems) => {
-        this.setState({ selection: selectionItems });
+    _onSelectionChanged(selectionItems) {
+        const { onSelect } = this.props;
+        this.setState({ selection: selectionItems }, () => {
+            if (typeof onSelect === "function") {
+                onSelect(selectionItems);
+            }
+        });
     }
 
     async _abort() {
@@ -265,7 +290,7 @@ export class BaseListView extends React.Component {
         }, this.props.RELOAD_DELAY);
     }
 
-    _onRenderMissingItem = (index, rowProps) => {
+    _renderMissingItem = (index, rowProps) => {
         /*let { items, isLoading, isLoaded, nextPageToken } = this.state;
         if (nextPageToken && index >= items.length - 1) {
             if (isLoading || !isLoaded || this._controllers.length > 0) return null;           
@@ -275,9 +300,9 @@ export class BaseListView extends React.Component {
         return null;
     }
 
-    _onRenderCustomPlaceholder = (rowProps, index, renderShimmerPlaceholder) => {
+    _renderCustomPlaceholder = (rowProps, index, renderShimmerPlaceholder) => {
         renderShimmerPlaceholder(rowProps);
-        return this._onRenderMissingItem(index, rowProps);
+        return this._renderMissingItem(index, rowProps);
     }
 
     _getContextualMenuProps = (ev, column) => {

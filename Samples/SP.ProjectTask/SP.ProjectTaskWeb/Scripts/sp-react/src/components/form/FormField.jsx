@@ -1,11 +1,13 @@
 import * as React from 'react';
-import { TextFieldRenderer } from './TextFieldRenderer';
 import { Label } from 'office-ui-fabric-react/lib/Label';
 import { IconButton } from 'office-ui-fabric-react/lib/Button';
 import { Callout } from 'office-ui-fabric-react/lib/Callout';
 import { Stack } from 'office-ui-fabric-react/lib/Stack';
 import { Text } from 'office-ui-fabric-react/lib/Text';
 import { getId } from 'office-ui-fabric-react/lib/Utilities';
+
+import { TextFieldRenderer } from './TextFieldRenderer';
+import { LookupFieldRenderer } from './LookupFieldRenderer';
 
 export class FormField extends React.Component {
 
@@ -103,6 +105,9 @@ export class FormField extends React.Component {
         if (type === 'text') {
             field = <TextFieldRenderer ref={(ref) => this._fieldControl = ref} key={fieldProps.name} value={currentValue} item={item} fieldProps={fieldProps} mode={mode} onValidate={onValidate} />;
         }
+        else if (type === 'lookup') {
+            field = <LookupFieldRenderer ref={(ref) => this._fieldControl = ref} key={fieldProps.name} value={currentValue} item={item} fieldProps={fieldProps} mode={mode} onValidate={onValidate} />;
+        }
         if (field) {
            return field;
         }
@@ -148,7 +153,7 @@ export class FormField extends React.Component {
     }
 
     onSaveHandler = (newItem) => {
-        if (newItem && this.isDirty() && this.isValid()) {
+        if (newItem /*&& this.isDirty()*/ && this.isValid()) {
             const { fieldProps } = this.props;
             newItem[fieldProps.name] = this.getFieldValue();
         }
