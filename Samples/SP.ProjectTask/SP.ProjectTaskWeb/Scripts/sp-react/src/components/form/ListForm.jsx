@@ -1,14 +1,16 @@
 import * as React from 'react';
 import { FormField } from './FormField';
 //import { Spinner, SpinnerSize } from 'office-ui-fabric-react/lib/Spinner';
-import { Stack } from 'office-ui-fabric-react/lib/Stack';
+//import { Stack } from 'office-ui-fabric-react/lib/Stack';
 import { ProgressIndicator } from 'office-ui-fabric-react/lib/ProgressIndicator';
 import { CommandBar } from 'office-ui-fabric-react/lib/CommandBar';
 import { CommandBarButton } from 'office-ui-fabric-react/lib/Button';
 import { StatusBar } from '../StatusBar';
-import { ScrollablePane, ScrollbarVisibility } from 'office-ui-fabric-react/lib/ScrollablePane';
-import { Sticky, StickyPositionType } from 'office-ui-fabric-react/lib/Sticky';
+//import { ScrollablePane, ScrollbarVisibility } from 'office-ui-fabric-react/lib/ScrollablePane';
+//import { Sticky, StickyPositionType } from 'office-ui-fabric-react/lib/Sticky';
 import { Callout } from 'office-ui-fabric-react';
+import { DefaultButton, PrimaryButton } from 'office-ui-fabric-react/lib/Button';
+import { Dialog, DialogFooter, DialogType } from 'office-ui-fabric-react/lib/Dialog';
 
 export class ListForm extends React.Component {
 
@@ -21,8 +23,7 @@ export class ListForm extends React.Component {
         };
 
         this._container = React.createRef();
-        this._commandBar = React.createRef();
-        this._status = React.createRef();
+        this._commandNode = React.createRef();
     }
 
     async componentDidMount() {
@@ -33,9 +34,7 @@ export class ListForm extends React.Component {
         if (!item && mode < 2 && itemId > 0) {
             await this.loadItem(itemId);
         }
-        if (mode === 2) {
-            this._validate();
-        }
+        this._validate(mode === 2, true);
     }
 
     async componentWillUnmount() {
@@ -43,29 +42,50 @@ export class ListForm extends React.Component {
     }
 
     render() {
-        const { isLoading, isSaving, isDeleting, mode, item, fields } = this.state;
-        this._formFields = [];
+        const { isLoading, mode, item, fields, confirmDeletion } = this.state;
+        this._formFields = null;
+        let _progressIndicator = this._getProgressIndicator();
         if (fields) {
             return (
                 <div className='form-container' ref={this._container}>
-                    <CommandBar ref={this._commandBar} styles={{ root: { paddingTop: 10 }, menuIcon: { fontSize: '16px' } }}
-                        items={this._getCommandItems()}
-                        onRenderItem={this._onRenderCommandItem} />
-                    <StatusBar ref={this._status} />
+                    <div ref={this._commandNode}>
+                        <CommandBar ref={ref => this._commandBar = ref} styles={{ root: { paddingTop: 10 }, menuIcon: { fontSize: '16px' } }}
+                            items={this._getCommandItems()}
+                            onRenderItem={this._onRenderCommandItem} />
+                        <StatusBar ref={ref => this._status = ref} />
+                        {_progressIndicator}
+                    </div>
                     {
-                        isLoading
-                            ? this._getProgressIndicator("Loading...")
-                            : (<div>
-                                {isSaving && this._getProgressIndicator("Saving...")}
-                                {isDeleting && this._getProgressIndicator("Deleting...")}
-                                {fields.map((field, i) =>
-                                    (<FormField ref={ref => {
-                                        if (ref != null) {
-                                            this._formFields.push(ref);
-                                        }
-                                    }} key={field.name} item={item} fieldProps={field} mode={mode} onValidate={this._onValidate} />))}
-                            </div>)
-
+                        isLoading ? (<ProgressIndicator label={"Loading..."} />)
+                            : fields.map((field, i) =>
+                                (<FormField ref={ref => {
+                                    if (ref != null) {
+                                        let formFields = this._formFields = this._formFields || [];
+                                        formFields.push(ref);
+                                    }
+                                }} key={field.name} item={item} fieldProps={field} mode={mode} onValidate={this._onValidate} />))
+                    }
+                    {confirmDeletion &&
+                        (<Dialog
+                            hidden={!confirmDeletion}
+                            onDismiss={() => this.setState({ confirmDeletion: false })}
+                            dialogContentProps={{
+                                type: DialogType.normal,
+                                title: 'Delete?',
+                                subText: 'Are you sure you want to delete the item(s)?'
+                            }}
+                            modalProps={{
+                                isBlocking: true,
+                                styles: { main: { maxWidth: 450 } }
+                            }}>
+                            <DialogFooter>
+                                <PrimaryButton onClick={() => {
+                                    this.deleteItem();
+                                    this.setState({ confirmDeletion: false });
+                                }} text="Yes" />
+                                <DefaultButton onClick={() => this.setState({ confirmDeletion: false })} text="No" />
+                            </DialogFooter>
+                        </Dialog>)
                     }
                 </div>
             );
@@ -73,12 +93,30 @@ export class ListForm extends React.Component {
         return null;
     }
 
-    _getProgressIndicator(label) {
-        return (<Callout
-            target={this._commandBar.current}
-            setInitialFocus={true}>            
-                <ProgressIndicator label={label} />         
-        </Callout>);
+    _getProgressIndicator() {
+        const { isLoading, isSaving, isDeleting } = this.state;
+        let label;
+        /*if (isLoading) {
+            label = "Loading...";
+        }*/
+        if (isSaving) {
+            label = "Saving...";
+        }
+        else if (isDeleting) {
+            label = "Deleting...";
+        }
+        if (label && this._commandNode.current) {
+            return (
+                <Callout
+                    target={this._commandNode.current}
+                    setInitialFocus={true}
+                    gapSpace={0}
+                    styles={{ root: { padding: '10px' } }}>
+                    <ProgressIndicator label={label} />
+                </Callout>
+            );
+        }
+        return null;
     }
 
     async _abort() {
@@ -125,7 +163,8 @@ export class ListForm extends React.Component {
                     icon: 'Delete',
                     text: '',
                     onClick: (e, sender) => {
-                        this.deleteItem();
+                        //this.deleteItem();
+                        this.setState({ confirmDeletion: true });
                     },
                     iconProps: {
                         iconName: 'Delete'
@@ -149,7 +188,7 @@ export class ListForm extends React.Component {
     };
 
     _onValidate = (fieldControl, isValid, isDirty) => {
-        this._validate();
+        this._validate(isValid, isDirty);
     }
 
     async loadItem(itemId) {
@@ -214,10 +253,12 @@ export class ListForm extends React.Component {
                 if (item) {
                     this.setState({
                         item: item
-                    });
-                    if (typeof (onItemSaved) === "function") {
-                        onItemSaved(this, item);
+                    }, () => {
+                        if (typeof (onItemSaved) === "function") {
+                            onItemSaved(this, item);
+                        }
                     }
+                    );
                     return { ok: true, data: item }; // OK
                 }
                 throw { message: `Cannot save the item with id=${itemId}.` };
@@ -241,15 +282,15 @@ export class ListForm extends React.Component {
             let controller = new AbortController();
             let promise = this._deleteItem(item, { signal: controller.signal });
 
-            return await this._onPromise(promise, (item) => {
-                if (item) {
+            return await this._onPromise(promise, (deleted) => {
+                if (deleted) {
                     /* this.setState({
                          item: null
                      });*/
                     if (typeof (onItemDeleted) === "function") {
                         onItemDeleted(this, item);
                     }
-                    return { ok: true, data: item }; // OK
+                    return { ok: true, data: [item] }; // OK
                 }
                 throw { message: `Cannot delete the item with id=${itemId}.` };
             }).then((result) => {
@@ -291,35 +332,21 @@ export class ListForm extends React.Component {
         }
     }
 
-    _validate = () => {
+    _validate = (isValid, isDirty) => {
         const { onValidate } = this.props;
-        const isDirty = this.isDirty();
-        const isValid = this.isValid();
-
-        this.setState({ isValid: isValid, isDirty: isDirty });
-
-        if (typeof onValidate === "function") {
-            onValidate(this, isValid, isDirty);
-        }
-
+        this.setState({ isValid: isValid, isDirty: isDirty }, () => {
+            if (typeof onValidate === "function") {
+                onValidate(this, isValid, isDirty);
+            }
+        });
         return isValid && isDirty;
     }
 
     validate() {
+        let isValid = true;
         if (this._formFields) {
             for (let i = 0; i < this._formFields.length; i++) {
-                this._formFields[i].validate();
-            }
-        }
-        return this._validate();
-    }
-
-    isValid() {
-        const { mode, item } = this.state;
-        let isValid = mode === 2 || (mode === 1 && !!item);
-        if (this._formFields) {
-            for (let i = 0; i < this._formFields.length; i++) {
-                if (!this._formFields[i].isValid()) {
+                if (!this._formFields[i].validate()) {
                     isValid = false;
                 }
             }
@@ -327,14 +354,13 @@ export class ListForm extends React.Component {
         return isValid;
     }
 
+    isValid() {
+        let { isValid } = this.state;
+        return isValid;
+    }
+
     isDirty() {
-        let isDirty = this.state.mode === 2;
-        if (this._formFields) {
-            for (let i = 0; i < this._formFields.length; i++) {
-                isDirty = this._formFields[i].isDirty();
-                if (isDirty) break;
-            }
-        }
+        let { isDirty } = this.state;
         return isDirty;
     }
 
@@ -361,8 +387,8 @@ export class ListForm extends React.Component {
                 onChangeMode(this, mode);
             }
         });
-        if (mode > 0) {
-            this._validate();
+        if (mode === 2) {
+            this._validate(true, true);
         }
     }
 }

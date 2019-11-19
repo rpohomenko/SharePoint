@@ -1,4 +1,5 @@
 import React from "react";
+import PropTypes from 'prop-types';
 import { CommandBar } from 'office-ui-fabric-react/lib/CommandBar';
 import { CommandBarButton } from 'office-ui-fabric-react/lib/Button';
 import { DefaultButton, PrimaryButton } from 'office-ui-fabric-react/lib/Button';
@@ -17,18 +18,18 @@ export class BaseListViewCommand extends React.Component {
         this._getItems = this._getItems.bind(this);
 
         this.state = {
-            ...this.state,
+            ...this.props,
             refreshEnabed: false,
             newItemEnabled: false,
             isDeleting: false,
-            confirmDeletion: false
+            confirmDeletion: false          
         };
 
         this._container = React.createRef();
     }
 
     render() {
-        const { status, mode, refreshEnabed, confirmDeletion, confirmClosePanel, isDeleting, showPanel, isDirty } = this.state;
+        const { mode, refreshEnabed, confirmDeletion, confirmClosePanel, isDeleting, showPanel, isDirty } = this.state;
         let listForm = this._getForm(mode,
             (sender, isValid, isDirty) => this._validate(isValid, isDirty),
             (sender, mode) => this._changeMode(mode),
@@ -284,6 +285,9 @@ export class BaseListViewCommand extends React.Component {
     };
 
     _validate = (isValid, isDirty) => {
+        /*if(this._listForm){
+           this._listForm.setState({ isValid: isValid, isDirty: isDirty });
+        }*/
         this.setState({ isValid: isValid, isDirty: isDirty });
     }
 
@@ -292,10 +296,10 @@ export class BaseListViewCommand extends React.Component {
         if (message) {
             if (this._status) {
                 if (result.ok) {
-                    this._status.success(message);
+                    this._status.success(message, this.props.STATUS_TIMEOUT);
                 }
                 else {
-                    this._status.warn(message);
+                    this._status.warn(message, this.props.STATUS_TIMEOUT);
                 }
             }
         }
@@ -333,6 +337,14 @@ export class BaseListViewCommand extends React.Component {
             });
         }
     }
+}
+
+BaseListViewCommand.propTypes = {  
+    STATUS_TIMEOUT: PropTypes.number,    
+}
+
+BaseListViewCommand.defaultProps = {  
+    STATUS_TIMEOUT: 5000  
 }
 
 export default BaseListViewCommand;

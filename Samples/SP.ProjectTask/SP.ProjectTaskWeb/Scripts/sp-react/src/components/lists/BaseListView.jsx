@@ -10,7 +10,8 @@ import { ActionButton, IIconProps } from 'office-ui-fabric-react';
 import { TooltipHost } from 'office-ui-fabric-react/lib/Tooltip';
 import { getId } from 'office-ui-fabric-react/lib/Utilities';
 import { Sticky, StickyPositionType } from 'office-ui-fabric-react/lib/Sticky';
-
+import { Callout } from 'office-ui-fabric-react';
+import { ProgressIndicator } from 'office-ui-fabric-react/lib/ProgressIndicator';
 import { StatusBar } from '../StatusBar';
 
 export class BaseListView extends React.Component {
@@ -38,6 +39,7 @@ export class BaseListView extends React.Component {
         };
 
         this._nextActionHostId = getId('nextActionHost');
+        this._container = React.createRef();
     }
 
     async componentDidMount() {
@@ -56,8 +58,16 @@ export class BaseListView extends React.Component {
         let { columns, items, contextualMenuProps, nextPageToken, isLoading, isLoaded, count } = this.state;
 
         return (
-            <div className="list-view-container">
+            <div className="list-view-container" ref={this._container}>
                 <StatusBar ref={ref => this._status = ref} />
+                {isLoading &&
+                    (<Callout
+                        target={this._container.current}
+                        setInitialFocus={true}>
+                        <Stack horizontalAlign="start" styles={{ root: { padding: 10 } }}>
+                            <ProgressIndicator label={"Loading..."} />
+                        </Stack>
+                    </Callout>)}
                 <MarqueeSelection selection={this._selection}>
                     <ShimmeredDetailsList
                         ref={ref => this._list = ref}
@@ -130,6 +140,24 @@ export class BaseListView extends React.Component {
         });
         if (promises.length > 0) {
             return await Promise.all(promises);
+        }
+    }
+
+    _setTimeout = async (func, ms) => {
+        this._clearTimeout();
+
+        return await new Promise(resolve => this._timeout = setTimeout(() => {
+            if (typeof func === "function") {
+                func();
+            }
+            resolve()
+        }, ms));
+    }
+
+    _clearTimeout = () => {
+        if (this._timeout) {
+            clearTimeout(this._timeout);
+            this._timeout = null;
         }
     }
 
@@ -208,12 +236,9 @@ export class BaseListView extends React.Component {
         }
     };
 
-    _onSortColumn = (column) => {
-        if (this._timeout) {
-            clearTimeout(this._timeout);
-            this._timeout = null;
-        }
-        this._timeout = setTimeout(() => {
+    async sortColumn(column, isSortedDescending) {
+        column.isSortedDescending = isSortedDescending;
+        return await this._setTimeout(() => {
             const { columns, items } = this.state;
             const newColumns = columns.slice();
             const currColumn = newColumns.filter(currCol => column.key === currCol.key)[0];
@@ -227,7 +252,7 @@ export class BaseListView extends React.Component {
                 }
             });
 
-            this._abort().then(() => {
+            return this._abort().then(() => {
                 this.setState({
                     columns: newColumns,
                     items: [],
@@ -235,9 +260,9 @@ export class BaseListView extends React.Component {
                     sortBy: column.name,
                     sortDesc: column.isSortedDescending
                 });
-                this.loadItems(column, null);
+                return this.loadItems(column, null);
             });
-        }, this.props.SORT_COLUMN_DELAY);
+        }, this.props.RELOAD_DELAY);
     }
 
     _onRenderMissingItem = (index, rowProps) => {
@@ -263,7 +288,7 @@ export class BaseListView extends React.Component {
                 iconProps: { iconName: 'SortUp' },
                 canCheck: true,
                 checked: column.isSorted && !column.isSortedDescending,
-                onClick: () => { column.isSortedDescending = false; this._onSortColumn(column) }
+                onClick: () => this.sortColumn(column, false)
             },
             {
                 key: 'zToA',
@@ -271,7 +296,7 @@ export class BaseListView extends React.Component {
                 iconProps: { iconName: 'SortDown' },
                 canCheck: true,
                 checked: column.isSorted && column.isSortedDescending,
-                onClick: () => { column.isSortedDescending = true; this._onSortColumn(column) }
+                onClick: () => this.sortColumn(column, true)
             }
         ];
         return {
@@ -295,6 +320,7 @@ export class BaseListView extends React.Component {
     }
 
     async refresh(resetSorting, resetFiltering) {
+        //await this._setTimeout(null, this.props.RELOAD_DELAY);
         await this._abort();
         const { isLoading } = this.state;
         if (isLoading) return;
@@ -315,7 +341,7 @@ export class BaseListView extends React.Component {
             sortDesc: sortDesc,
             columns: columns
         });
-        await this.loadItems(null, null);
+        return await this.loadItems(null, null);
     }
 
     async loadItems(sortColumn = null, pageToken = null) {
@@ -370,7 +396,7 @@ export class BaseListView extends React.Component {
             this._controllers = this._controllers.filter(c => c.controller !== controller);
             return { ok: true, data: itemsCopy }; // OK
         }).then((result) => {
-            this.setState({            
+            this.setState({
                 isLoading: false
             });
             return result;
@@ -398,12 +424,47 @@ export class BaseListView extends React.Component {
                 }
             }).catch((error) => {
                 if (error.code !== 20 && error.name !== 'AbortError') { //aborted
-                    if(this._status){
+                    if (this._status) {
                         this._status.error(error.message ? error.message : error);
-                    }              
+                    }
                 }
                 return { ok: false, data: error }; //error
             });
+        }
+    }
+
+    _onItemDeleted = (sender, result) => {
+        if (result.ok && result.data) {
+            let deletedItems = result.data;
+            let { items } = this.state;
+            items = items.filter(item => {
+                let found = false;
+                for (let i = 0; i < deletedItems.length; i++) {
+                    if (deletedItems[i].Id === item.Id) {
+                        found = true;
+                        break;
+                    }
+                }
+                return !found;
+            });
+            this.setState({ items: items });
+        }
+    }
+
+    _onItemSaved = (sender, result) => {
+        if (result.ok && result.data) {
+            /*if (!result.isNewItem) {
+                let { items } = this.state;
+                let index = items.findIndex(item => item.Id === result.data.Id);
+                if (index > -1) {
+                    items[index] = result.data;
+                    this.setState({ items: items });
+                }
+            }
+            else {
+                this.refresh();
+            }*/
+            this.refresh();
         }
     }
 
@@ -411,13 +472,13 @@ export class BaseListView extends React.Component {
 
 BaseListView.propTypes = {
     pageSize: PropTypes.number,
-    SORT_COLUMN_DELAY: PropTypes.number,
+    RELOAD_DELAY: PropTypes.number,
     emptyMessage: PropTypes.string
 }
 
 BaseListView.defaultProps = {
     pageSize: 30,
-    SORT_COLUMN_DELAY: 700,
+    RELOAD_DELAY: 500,
     emptyMessage: "There are no items."
 }
 

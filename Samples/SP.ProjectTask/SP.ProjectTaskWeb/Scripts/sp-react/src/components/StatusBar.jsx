@@ -35,30 +35,35 @@ export class StatusBar extends React.Component {
         this.setState({ statuses: statuses });
     }
 
-    add(message, type) {
+    add(message, type, timeout) {
         let { statuses } = this.state;
         let status = { key: `status_${(++this._counter)}`, message: message, type: type }
-        if(!statuses){
+        if (!statuses) {
             statuses = [];
         }
         statuses.push(status);
         this.setState({ statuses: statuses });
-        return status;        
+        if (timeout) {
+            setTimeout(() => {
+                this.remove(status);
+            }, timeout);
+        }
+        return status;
     }
 
-    info(message) {
-        return this.add(message, MessageBarType.info);
+    info(message, timeout) {
+        return this.add(message, MessageBarType.info, timeout);
     }
 
-    warn(message) {
-        return this.add(message, MessageBarType.warning);
+    warn(message, timeout) {
+        return this.add(message, MessageBarType.warning, timeout);
     }
 
-    error(message) {
-        return this.add(message, MessageBarType.error);
+    error(message, timeout) {
+        return this.add(message, MessageBarType.error, timeout);
     }
 
-    success(message) {
-        return this.add(message, MessageBarType.success);
+    success(message, timeout) {
+        return this.add(message, MessageBarType.success, timeout);
     }
 }

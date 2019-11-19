@@ -38,7 +38,7 @@ export class TaskList extends BaseListView {
         position: 'relative'
       }}>
         <ScrollablePane scrollbarVisibility={ScrollbarVisibility.auto}>
-          <Sticky stickyPosition={StickyPositionType.Header}>
+          <Sticky stickyPosition={StickyPositionType.Header} isScrollSynced={true}>
             <TaskCommand ref={ref => this._command = ref} service={this._service} selection={selection} onRefresh={() => this.refresh(true)}
               onItemDeleted={this._onItemDeleted} onItemSaved={this._onItemSaved} />
           </Sticky>{super.render()}
@@ -46,16 +46,6 @@ export class TaskList extends BaseListView {
       </div>
     );
   }
-
-  _onItemDeleted = (sender, result) => {
-
-
-  }
-
-  onItemSaved = (sender, result) => {
-
-  }
-
 
   _getColumns = () => {
     const columns = [

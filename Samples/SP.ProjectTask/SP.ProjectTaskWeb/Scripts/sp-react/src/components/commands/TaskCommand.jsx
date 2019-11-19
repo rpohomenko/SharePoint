@@ -33,10 +33,10 @@ export class TaskCommand extends BaseListViewCommand {
         const { onItemDeleted, onItemSaved } = this.props;
         const { selection } = this.state;
         let item = selection && selection.length > 0 ? selection[0] : undefined;
-        return (<TaskForm ref={(ref) => this._listForm = ref} service={this.props.service} mode={mode} itemId={item ? item.Id : undefined}
+        return (<TaskForm ref={(ref) => this._listForm = ref} service={this.props.service} mode={mode} isValid={mode === 2} isDirty={mode === 2} itemId={item ? item.Id : undefined}
             onValidate={onValidate} onChangeMode={onChangeMode} onCloseForm={(sender) => onCloseForm(null)}
             onItemDeleted={(sender, item) => onCloseForm({ ok: true, data: [item] }, "Deleted successfully.", onItemDeleted)}
-            onItemSaved={(sender, item) => onCloseForm({ ok: true, data: item }, "Saved successfully.", onItemSaved)} />);
+            onItemSaved={(sender, item) => onCloseForm({ ok: true, data: item, isNewItem: mode === 2 }, "Saved successfully.", onItemSaved)} />);
     }
 
     _onDelete = (items) => {
@@ -50,19 +50,19 @@ export class TaskCommand extends BaseListViewCommand {
         }
 
         let promise = this.props.service.deleteTask(ids);
-        let status  = this._status;
+        let status = this._status;
         return this._onPromise(promise, (result) => {
             if (result) {
-                if(status){
-                    status.success("Deleted successfully.");
-                }               
+                if (status) {
+                    status.success("Deleted successfully.", this.props.STATUS_TIMEOUT);
+                }
                 if (typeof (onItemDeleted) === "function") {
                     onItemDeleted(this, { ok: true, data: items });
                 }
                 return { ok: true, data: items };
             }
             throw `Cannot delete item(s) with Id=[${ids.join(',')}]`;
-        }).then(result => {            
+        }).then(result => {
             this.setState({ isDeleting: false });
             return result;
         });
