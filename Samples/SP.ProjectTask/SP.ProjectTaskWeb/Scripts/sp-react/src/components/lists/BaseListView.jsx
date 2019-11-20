@@ -54,7 +54,7 @@ export class BaseListView extends React.Component {
     }
 
     render() {
-        let { emptyMessage } = this.props;
+        let { emptyMessage, isMultipleSelection } = this.props;
         let { columns, items, contextualMenuProps, nextPageToken, isLoading, isLoaded, count } = this.state;
 
         return (
@@ -75,6 +75,7 @@ export class BaseListView extends React.Component {
                         compact={false}
                         columns={columns}
                         selection={this._selection}
+                        selectionMode ={isMultipleSelection ? SelectionMode.multiple : SelectionMode.single}
                         onItemInvoked={this._onItemInvoked}
                         onItemContextMenu={this._onItemContextMenu}
                         onRenderMissingItem={this._renderMissingItem}
@@ -456,55 +457,22 @@ export class BaseListView extends React.Component {
                 return { ok: false, data: error }; //error
             });
         }
-    }
-
-    _onItemDeleted = (sender, result) => {
-        if (result.ok && result.data) {
-            let deletedItems = result.data;
-            let { items } = this.state;
-            items = items.filter(item => {
-                let found = false;
-                for (let i = 0; i < deletedItems.length; i++) {
-                    if (deletedItems[i].Id === item.Id) {
-                        found = true;
-                        break;
-                    }
-                }
-                return !found;
-            });
-            this.setState({ items: items });
-        }
-    }
-
-    _onItemSaved = (sender, result) => {
-        if (result.ok && result.data) {
-            /*if (!result.isNewItem) {
-                let { items } = this.state;
-                let index = items.findIndex(item => item.Id === result.data.Id);
-                if (index > -1) {
-                    items[index] = result.data;
-                    this.setState({ items: items });
-                }
-            }
-            else {
-                this.refresh();
-            }*/
-            this.refresh();
-        }
-    }
+    }  
 
 }
 
 BaseListView.propTypes = {
     pageSize: PropTypes.number,
     RELOAD_DELAY: PropTypes.number,
-    emptyMessage: PropTypes.string
+    emptyMessage: PropTypes.string,
+    isMultipleSelection: PropTypes.bool
 }
 
 BaseListView.defaultProps = {
     pageSize: 30,
     RELOAD_DELAY: 500,
-    emptyMessage: "There are no items."
+    emptyMessage: "There are no items.",
+    isMultipleSelection: true
 }
 
 export default BaseListView;

@@ -8,7 +8,7 @@ export class BaseFieldRenderer extends React.Component {
         this.state = {
             currentValue: props.value,
             value: props.value,
-            isValid: true,
+            isValid: undefined,
             isDirty: false,
             validationErrors: [],
             validators: []

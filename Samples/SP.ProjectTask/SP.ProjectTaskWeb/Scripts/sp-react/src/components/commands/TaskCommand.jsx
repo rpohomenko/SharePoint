@@ -29,20 +29,30 @@ export class TaskCommand extends BaseListViewCommand {
         </div>);
     }
 
-    _getForm = (mode, onValidate, onChangeMode, onCloseForm) => {
-        const { onItemDeleted, onItemSaved } = this.props;
+    _getForm = (mode, ref, onRenderCommandBar, onValidate, onChangeMode, onCloseForm, onItemSaving, onItemSaved, onItemDeleting, onItemDeleted) => {
+        //const { onItemDeleted, onItemSaved } = this.props;
         const { selection } = this.state;
         let item = mode < 2 && selection && selection.length > 0 ? selection[0] : undefined;
-        return (<TaskForm ref={(ref) => this._listForm = ref} service={this.props.service} mode={mode} isValid={mode === 2} isDirty={mode === 2}
+        return (<TaskForm ref={ref} service={this.props.service} mode={mode} isValid={mode === 2} isDirty={mode === 2}
             item={item} itemId={item ? item.Id : undefined}
-            onValidate={onValidate} onChangeMode={onChangeMode} onCloseForm={(sender) => onCloseForm(null)}
-            onItemDeleted={(sender, item) => onCloseForm({ ok: true, data: [item] }, "Deleted successfully.", onItemDeleted)}
-            onItemSaved={(sender, item) => onCloseForm({ ok: true, data: item, isNewItem: mode === 2 }, "Saved successfully.", onItemSaved)} />);
+            onRenderCommandBar = {onRenderCommandBar}
+            onValidate={onValidate}
+            onChangeMode={onChangeMode}
+            onCloseForm={(sender) => onCloseForm(null)}
+            onSaving={onItemSaving}
+            onDeleting={onItemDeleting}
+            onDeleted={(sender, item) => onCloseForm({ ok: true, data: [item] }, "Deleted successfully.", onItemDeleted)}
+            onSaved={(sender, item) => onCloseForm({ ok: true, data: item, isNewItem: mode === 2 }, "Saved successfully.", onItemSaved)} />);
     }
 
     _onDelete = (items) => {
-        const { onItemDeleted } = this.props;
-        this.setState({ isDeleting: true, status: undefined });
+        const { onItemDeleted, onItemDeleting } = this.props;
+        this.setState({ isDeleting: true, status: undefined },
+            () => {
+                if (typeof onItemDeleting === "function") {
+                    onItemDeleting(this, items);
+                }
+            });
         let ids = [];
         if (items) {
             for (let i = 0; i < items.length; i++) {

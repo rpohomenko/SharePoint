@@ -6,8 +6,8 @@ import { ProgressIndicator } from 'office-ui-fabric-react/lib/ProgressIndicator'
 import { CommandBar } from 'office-ui-fabric-react/lib/CommandBar';
 import { CommandBarButton } from 'office-ui-fabric-react/lib/Button';
 import { StatusBar } from '../StatusBar';
-//import { ScrollablePane, ScrollbarVisibility } from 'office-ui-fabric-react/lib/ScrollablePane';
-//import { Sticky, StickyPositionType } from 'office-ui-fabric-react/lib/Sticky';
+import { ScrollablePane, ScrollbarVisibility } from 'office-ui-fabric-react/lib/ScrollablePane';
+import { Sticky, StickyPositionType } from 'office-ui-fabric-react/lib/Sticky';
 import { Callout } from 'office-ui-fabric-react';
 import { DefaultButton, PrimaryButton } from 'office-ui-fabric-react/lib/Button';
 import { Dialog, DialogFooter, DialogType } from 'office-ui-fabric-react/lib/Dialog';
@@ -34,7 +34,7 @@ export class ListForm extends React.Component {
         if (!item && mode < 2 && itemId > 0) {
             await this.loadItem(itemId);
         }
-        this._validate(mode === 2, true);
+        this._validate(mode === 2, false);
     }
 
     async componentWillUnmount() {
@@ -42,52 +42,65 @@ export class ListForm extends React.Component {
     }
 
     render() {
-        const { isLoading, mode, item, fields, confirmDeletion } = this.state;
+        const { isLoading, mode, item, fields, confirmDeletion, isDeleting, isSaving, onRenderCommandBar } = this.state;
         this._formFields = null;
-        let _progressIndicator = this._getProgressIndicator();
         if (fields) {
+            let _progressIndicator = this._getProgressIndicator();
+            let commandBar;
+            if (typeof onRenderCommandBar === "function") {
+                commandBar = onRenderCommandBar(this._getCommandItems(), this._onRenderCommandItem);
+            }
+            else {
+                commandBar = (<CommandBar ref={ref => this._commandBar = ref} styles={{ root: { paddingTop: 10 }, menuIcon: { fontSize: '16px' } }}
+                    items={this._getCommandItems()}
+                    onRenderItem={this._onRenderCommandItem} />);
+            }
             return (
-                <div className='form-container' ref={this._container}>
-                    <div ref={this._commandNode}>
-                        <CommandBar ref={ref => this._commandBar = ref} styles={{ root: { paddingTop: 10 }, menuIcon: { fontSize: '16px' } }}
-                            items={this._getCommandItems()}
-                            onRenderItem={this._onRenderCommandItem} />
-                        <StatusBar ref={ref => this._status = ref} />
-                        {_progressIndicator}
-                    </div>
-                    {
-                        isLoading ? (<ProgressIndicator label={"Loading..."} />)
-                            : fields.map((field, i) =>
-                                (<FormField ref={ref => {
-                                    if (ref != null) {
-                                        let formFields = this._formFields = this._formFields || [];
-                                        formFields.push(ref);
-                                    }
-                                }} key={field.name} item={item} fieldProps={field} mode={mode} onValidate={this._onValidate} />))
-                    }
-                    {confirmDeletion &&
-                        (<Dialog
-                            hidden={!confirmDeletion}
-                            onDismiss={() => this.setState({ confirmDeletion: false })}
-                            dialogContentProps={{
-                                type: DialogType.normal,
-                                title: 'Delete?',
-                                subText: 'Are you sure you want to delete the item(s)?'
-                            }}
-                            modalProps={{
-                                isBlocking: true,
-                                styles: { main: { maxWidth: 450 } }
-                            }}>
-                            <DialogFooter>
-                                <PrimaryButton onClick={() => {
-                                    this.deleteItem();
-                                    this.setState({ confirmDeletion: false });
-                                }} text="Yes" />
-                                <DefaultButton onClick={() => this.setState({ confirmDeletion: false })} text="No" />
-                            </DialogFooter>
-                        </Dialog>)
-                    }
-                </div>
+                <div className='form-container' ref={this._container} style={{
+                    height: '80vh',
+                    position: 'relative'
+                }}>
+                    <ScrollablePane scrollbarVisibility={ScrollbarVisibility.auto}>
+                        <Sticky stickyPosition={StickyPositionType.Header} isScrollSynced={true}>
+                            <div ref={this._commandNode}>
+                                {commandBar}
+                                <StatusBar ref={ref => this._status = ref} />
+                                {_progressIndicator}
+                            </div>
+                        </Sticky>
+                        {
+                            isLoading ? (<ProgressIndicator label={"Loading..."} />)
+                                : fields.map((field, i) =>
+                                    (<FormField ref={ref => {
+                                        if (ref != null) {
+                                            let formFields = this._formFields = this._formFields || [];
+                                            formFields.push(ref);
+                                        }
+                                    }} disabled={isLoading || isDeleting || isSaving} key={field.name} item={item} fieldProps={field} mode={mode} onValidate={this._onValidate} />))
+                        }
+                        {confirmDeletion &&
+                            (<Dialog
+                                hidden={!confirmDeletion}
+                                onDismiss={() => this.setState({ confirmDeletion: false })}
+                                dialogContentProps={{
+                                    type: DialogType.normal,
+                                    title: 'Delete?',
+                                    subText: 'Are you sure you want to delete the item(s)?'
+                                }}
+                                modalProps={{
+                                    isBlocking: true,
+                                    styles: { main: { maxWidth: 450 } }
+                                }}>
+                                <DialogFooter>
+                                    <PrimaryButton onClick={() => {
+                                        this.deleteItem();
+                                        this.setState({ confirmDeletion: false });
+                                    }} text="Yes" />
+                                    <DefaultButton onClick={() => this.setState({ confirmDeletion: false })} text="No" />
+                                </DialogFooter>
+                            </Dialog>)
+                        }
+                    </ScrollablePane> </div>
             );
         }
         return null;
@@ -143,14 +156,16 @@ export class ListForm extends React.Component {
     }
 
     _getCommandItems() {
-        const { mode, item } = this.state;
+        const { mode, item, isDeleting, isSaving, isValid, isDirty } = this.state;
         let items = [];
-        if (mode === 0 && item) {
+
+        if (item && mode === 0) {
             items.push(
                 {
                     key: 'editItem',
                     icon: 'Edit',
                     text: '',
+                    disabled: isDeleting,
                     onClick: (e, sender) => this.changeMode(1),
                     iconProps: {
                         iconName: 'Edit'
@@ -162,6 +177,7 @@ export class ListForm extends React.Component {
                     key: 'deleteItem',
                     icon: 'Delete',
                     text: '',
+                    disabled: isDeleting || isSaving,
                     onClick: (e, sender) => {
                         //this.deleteItem();
                         this.setState({ confirmDeletion: true });
@@ -172,6 +188,23 @@ export class ListForm extends React.Component {
                     ariaLabel: 'Delete'
                 });
         }
+        else if (mode === 2 || (item && mode === 1)) {
+            items.push(
+                {
+                    key: 'saveItem',
+                    icon: 'Save',
+                    text: '',
+                    disabled: isDeleting || isSaving || !(isValid && isDirty),
+                    onClick: (e, sender) => {
+                        this.saveItem();
+                    },
+                    iconProps: {
+                        iconName: 'Save'
+                    },
+                    ariaLabel: 'Save'
+                });
+        }
+
         return items;
     }
 
@@ -190,7 +223,7 @@ export class ListForm extends React.Component {
     _onValidate = (fieldControl, isValid, isDirty) => {
         if (this._formFields) {
             for (let i = 0; i < this._formFields.length; i++) {
-                if(fieldControl === this._formFields[i]) continue;
+                if (fieldControl === this._formFields[i].getControl()) continue;
                 if (!this._formFields[i].isValid()) {
                     isValid = false;
                 }
@@ -233,7 +266,7 @@ export class ListForm extends React.Component {
 
     async saveItem() {
         if (!this.validate()) return null;
-        const { onItemSaved } = this.props;
+        const { onSaved, onSaving } = this.props;
         const { isLoading, mode, item, isValid, isDirty } = this.state;
         if (!isLoading && mode > 0) {
             let newItem = {};
@@ -250,6 +283,10 @@ export class ListForm extends React.Component {
 
             this.setState({
                 isSaving: true
+            }, () => {
+                if (typeof (onSaving) === "function") {
+                    onSaving(this, item);
+                }
             });
 
             if (item && mode === 1) {
@@ -265,8 +302,8 @@ export class ListForm extends React.Component {
                     this.setState({
                         item: item
                     }, () => {
-                        if (typeof (onItemSaved) === "function") {
-                            onItemSaved(this, item);
+                        if (typeof (onSaved) === "function") {
+                            onSaved(this, item);
                         }
                     }
                     );
@@ -283,27 +320,33 @@ export class ListForm extends React.Component {
     }
 
     async deleteItem() {
-        const { onItemDeleted } = this.props;
-        const { isLoading, isDeleting, item } = this.state;
+        const { onDeleted } = this.props;
+        const { isLoading, isDeleting, onDeleting, item } = this.state;
         if (!isLoading && !isDeleting && item) {
             this.setState({
                 isDeleting: true
-            });
+            },
+                () => {
+                    if (typeof onDeleting === "function") {
+                        onDeleting(this, item);
+                    }
+                });
 
             let controller = new AbortController();
             let promise = this._deleteItem(item, { signal: controller.signal });
 
             return await this._onPromise(promise, (deleted) => {
                 if (deleted) {
-                    /* this.setState({
-                         item: null
-                     });*/
-                    if (typeof (onItemDeleted) === "function") {
-                        onItemDeleted(this, item);
-                    }
+                    this.setState({
+                        item: null
+                    }, () => {
+                        if (typeof (onDeleted) === "function") {
+                            onDeleted(this, item);
+                        }
+                    });
                     return { ok: true, data: [item] }; // OK
                 }
-                throw { message: `Cannot delete the item with id=${itemId}.` };
+                throw { message: `Cannot delete the item with id=${item.Id}.` };
             }).then((result) => {
                 this.setState({
                     isDeleting: false
@@ -399,7 +442,7 @@ export class ListForm extends React.Component {
             }
         });
         if (mode === 2) {
-            this._validate(true, true);
+            this._validate(true, false);
         }
     }
 }

@@ -31,6 +31,7 @@ export class TaskList extends BaseListView {
   }
 
   render() {
+    const { onItemSaving, onItemSaved, onItemDeleting, onItemDeleted, commandItems } = this.props;
     const { selection } = this.state;
     return (
       <div className="tasks-container" style={{
@@ -39,12 +40,58 @@ export class TaskList extends BaseListView {
       }}>
         <ScrollablePane scrollbarVisibility={ScrollbarVisibility.auto}>
           <Sticky stickyPosition={StickyPositionType.Header} isScrollSynced={true}>
-            <TaskCommand ref={ref => this._command = ref} service={this._service} selection={selection} onRefresh={() => this.refresh(true)}
-              onItemDeleted={this._onItemDeleted} onItemSaved={this._onItemSaved} />
+            <TaskCommand ref={ref => this._command = ref} commandItems={commandItems} service={this._service} selection={selection} onRefresh={() => this.refresh(true)}
+              onItemDeleted={this._onItemDeleted} onItemSaved={this._onItemSaved} onItemSaving ={onItemSaving} onItemDeleting ={onItemDeleting}
+              newItemHeader={"New Task"} editItemHeader={"Edit Task"} viewItemHeader={"View Task"} />
           </Sticky>{super.render()}
         </ScrollablePane>
       </div>
     );
+  }
+
+  _onItemDeleted = (sender, result) => {
+    const { onItemDeleted } = this.props;
+
+    if (result.ok && result.data) {
+      let deletedItems = result.data;
+      let { items } = this.state;
+      items = items.filter(item => {
+        let found = false;
+        for (let i = 0; i < deletedItems.length; i++) {
+          if (deletedItems[i].Id === item.Id) {
+            found = true;
+            break;
+          }
+        }
+        return !found;
+      });
+      this.setState({ items: items }, () => {
+        if (typeof onItemDeleted === "function") {
+          onItemDeleted(sender, result);
+        }
+      });
+    }
+  }
+
+  _onItemSaved = (sender, result) => {
+    const { onItemSaved } = this.props;
+    if (result.ok && result.data) {
+      /*if (!result.isNewItem) {
+          let { items } = this.state;
+          let index = items.findIndex(item => item.Id === result.data.Id);
+          if (index > -1) {
+              items[index] = result.data;
+              this.setState({ items: items });
+          }
+      }
+      else {
+          this.refresh();
+      }*/
+      this.refresh();
+      if (typeof onItemSaved === "function") {
+        onItemSaved(sender, result);
+      }
+    }
   }
 
   _getColumns = () => {

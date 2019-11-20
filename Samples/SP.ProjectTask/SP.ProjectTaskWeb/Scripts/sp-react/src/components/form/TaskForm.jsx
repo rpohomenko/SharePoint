@@ -42,12 +42,19 @@ export class TaskForm extends ListForm {
             name: 'Project',
             type: 'lookup',
             title: 'Project',
+            lookupList: 'Projects',
+            lookupField: 'Title',
             isMultiple: false,
             required: true,
-            getListView: (onSelect) => {
-              return <ProjectList service={service} pageSize={30} emptyMessage="There are no projects." onSelect={onSelect} />;//(<Projects service={service}></Projects>);
+            getListView: (commandItems, onSelect, onSaving, onDeleting, onSaved, onDeleted) => {
+              return <ProjectList service={service} pageSize={30} isMultipleSelection={false} commandItems={commandItems} emptyMessage="There are no projects." onSelect={onSelect} onItemSaving={onSaving} onItemDeleting={onDeleting} />;//(<Projects service={service}></Projects>);
             }
         }];
+    }
+
+    _getCommandItems() {
+        let commands = super._getCommandItems();
+        return commands;
     }
 }
 

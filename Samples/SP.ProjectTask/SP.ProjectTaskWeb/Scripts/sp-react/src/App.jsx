@@ -35,7 +35,7 @@ export class App extends React.Component {
                 </nav>
                 <div className="container-fluid">
                     <div className="row">
-                        <div className="col-md-2 d-md-block bg-light sidebar">
+                        <div className="col-md-2 d-md-block bg-light sidebar sticky-top">
                             {<SidebarMenu ref={(ref) => this._sidebar = ref} className="col-md-2 d-none d-md-block bg-light sidebar" selectedKey={contentId} onRoute={onRoute} isOpen={false} />}
                         </div>
                         <div role="main" className="col-md-9 ml-sm-auto col-md-10 px-4">

@@ -21,7 +21,9 @@ export class SidebarMenu extends React.Component {
   }
 
   _onLinkClick = (e, o) => {
-    this.props.onRoute(o.key);    
+    if (typeof this.props.onRoute == "function") {
+      this.props.onRoute(o.key);
+    }
   }
 
   render() {
@@ -36,15 +38,15 @@ export class SidebarMenu extends React.Component {
             expandedStateText={expanded}
             collapsedStateText={collapsed}
             onLinkClick={this._onLinkClick}
-            selectedKey ={selectedKey}
+            selectedKey={selectedKey}
             styles={{
-              root: {              
+              root: {
                 boxSizing: 'border-box',
                 border: '1px solid #eee',
                 overflowY: 'auto'
               }
             }}
-            />
+          />
         </div>
       </Collapse>
     </Navbar>);
@@ -67,7 +69,12 @@ SidebarMenu.defaultProps = {
       {
         key: "0",
         name: 'Tasks',
-        isExpanded: true       
+        isExpanded: true
+      },
+      {
+        key: "1",
+        name: 'Projects',
+        isExpanded: true
       }]
   }],
   expanded: 'expanded',

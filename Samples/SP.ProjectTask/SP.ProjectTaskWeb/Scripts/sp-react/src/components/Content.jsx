@@ -24,38 +24,42 @@ class Content extends React.Component {
         });
     };
 
-    _getBreadcrumbs = (contentId)=>{
+    _getBreadcrumbs = (contentId) => {
         let breadcrumbs = [];
         breadcrumbs.push({
-            text: 'Home', 'key': 0, onClick: contentId === 0  || contentId > 0 ? () => {
+            text: 'Home', 'key': 0, onClick: contentId === 0 || contentId > 0 ? () => {
                 this.props.onRoute(null);
             } : null
         });
-      
+
         switch (contentId) {
-            case 0:             
+            case 0:
                 breadcrumbs.push({
                     text: 'Tasks', 'key': 1
                 });
                 break;
             case 1:
+                breadcrumbs.push({
+                    text: 'Projects', 'key': 2
+                });
+                break;
             case 2:
             case 3:
                 break;
-            default:             
+            default:
                 break;
         }
         return breadcrumbs;
     }
 
-    _getContent = (contentId, selectedTab, service)=>{
+    _getContent = (contentId, selectedTab, service) => {
         let content;
         switch (contentId) {
             case 0:
-                content = (<Tasks service={service}></Tasks>);              
+                content = (<Tasks service={service}></Tasks>);
                 break;
             case 1:
-                content = (<Projects service={service}></Projects>);              
+                content = (<Projects service={service}></Projects>);
                 break;
             case 2:
             case 3:
@@ -66,7 +70,7 @@ class Content extends React.Component {
                     "projects": (<Projects service={service}></Projects>)
                 };
 
-                content = (<div><span>Welcome to Project Tasks!</span>
+                content = (<div>
                     <Pivot selectedKey={selectedTab} onLinkClick={this._onPivotHandle} headersOnly={true} getTabId={this._getTabId}>
                         <PivotItem headerText="Tasks" itemKey="tasks" />
                         <PivotItem headerText="Projects" itemKey="projects" />
@@ -78,10 +82,10 @@ class Content extends React.Component {
         return content;
     }
 
-    render() {       
+    render() {
         const { contentId, maxBreadcrumbs, service } = this.props;
-        const { selectedTab } = this.state;    
-       
+        const { selectedTab } = this.state;
+
         return (
             <div>
                 <Breadcrumb className="breadcrumbs" items={this._getBreadcrumbs(contentId)}
@@ -99,7 +103,7 @@ Content.propTypes = {
 }
 
 Content.defaultProps = {
-    maxBreadcrumbs: 3    
+    maxBreadcrumbs: 3
 }
 
 export default Content

@@ -1,4 +1,5 @@
-import * as React from 'react';
+import React from "react";
+import PropTypes from 'prop-types';
 import { Label } from 'office-ui-fabric-react/lib/Label';
 import { TagPicker } from 'office-ui-fabric-react/lib/Pickers';
 import { DefaultButton, PrimaryButton } from 'office-ui-fabric-react/lib/Button';
@@ -29,8 +30,8 @@ export class LookupFieldRenderer extends BaseFieldRenderer {
     }
 
     _renderNewOrEditForm() {
-        let { fieldProps } = this.props;
-        const { disabled, value, showPanel } = this.state;
+        let { fieldProps, disabled, headerText } = this.props;
+        const { value, showPanel } = this.state;
         let items = []
         if (!fieldProps.isMultiple) {
             if (value) {
@@ -42,9 +43,20 @@ export class LookupFieldRenderer extends BaseFieldRenderer {
         }
         let listView = null;
         if (typeof fieldProps.getListView === "function") {
-            listView = fieldProps.getListView((selection) => {
+            listView = fieldProps.getListView(
+            this._getCommandItems(),
+            (selection) => {
                 this.setState({ selection: selection });
-            });
+            },            
+            ()=>{
+                this.setState({selection: null});
+            },
+            ()=>{
+                this.setState({selection: null});
+            },
+            null,
+            null
+            );
         }
 
         items = items.map(item => { return { name: item.Value, key: item.Id } });
@@ -54,7 +66,7 @@ export class LookupFieldRenderer extends BaseFieldRenderer {
                     ref={ref => this._panel = ref}
                     isOpen={showPanel}
                     isLightDismiss={true}
-                    headerText={"Select..."}
+                    headerText={fieldProps.lookupList || headerText}
                     onDismiss={() => this._hidePanel()}
                     closeButtonAriaLabel="Close"
                     type={PanelType.medium}
@@ -87,9 +99,24 @@ export class LookupFieldRenderer extends BaseFieldRenderer {
                     }}
                 />
                 <div className="input-group-append">
-                    <DefaultButton onClick={(e) => this._showPanel()}>...</DefaultButton>
+                    <DefaultButton  disabled={disabled} onClick={(e) => this._showPanel()}>...</DefaultButton>
                 </div>
             </div>    </React.Fragment>);
+    }
+
+    _getCommandItems = ()=>{
+        const { selection } = this.state;
+        return [{
+            key: 'selectItem',
+            icon: 'MultiSelect',
+            text: '',
+            disabled: (!selection || selection.length === 0),
+            onClick: (e, sender) => this._onSelect(),
+            iconProps: {
+                iconName: 'MultiSelect'
+            },
+            ariaLabel: 'Select Item(s)'
+        }];
     }
 
     _onRenderFooterContent = () => {
@@ -104,7 +131,7 @@ export class LookupFieldRenderer extends BaseFieldRenderer {
     _onSelect = () => {
         let { fieldProps } = this.props;
         const { selection } = this.state;
-        let items = selection.map((item) => { return { key: item.Id, name: item.Title } });
+        let items = selection.map((item) => { return { key: item.Id, name: item[fieldProps.lookupField || "Title"] } });
         this._onChange(items);
         this._hidePanel();
     }
@@ -145,6 +172,14 @@ export class LookupFieldRenderer extends BaseFieldRenderer {
     hasValue() {
         return this.getValue() && this.getValue().Id > 0 && super.hasValue();
     }
+}
+
+LookupFieldRenderer.propTypes = {
+    headerText: PropTypes.string  
+}
+
+LookupFieldRenderer.defaultProps = {   
+    headerText: "Select..."
 }
 
 export default LookupFieldRenderer;
