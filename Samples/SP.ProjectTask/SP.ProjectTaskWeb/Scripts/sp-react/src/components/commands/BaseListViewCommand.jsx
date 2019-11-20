@@ -147,13 +147,13 @@ export class BaseListViewCommand extends React.Component {
     _renderCommandBar(items, renderCommandItem) {
         let { commandBar } = this.state;
         if (!commandBar) {
-            commandBar = (<CommandBar ref={ref => this._commandBar = ref} styles={{ root: { paddingTop: 10 }, menuIcon: { fontSize: '16px' } }}
+            commandBar = (<CommandBar className="sticky-top" ref={ref => this._commandBar = ref} styles={{ root: { paddingTop: 10 }, menuIcon: { fontSize: '16px' } }}
                 items={items}
                 onRenderItem={renderCommandItem} />);
                 //TODO: Warning: Cannot update during an existing state transition (such as within `render`). Render methods should be a pure function of props and state.
-            this.setState({ commandBar: commandBar });
+                //this.setState({ commandBar: commandBar });
         }
-        return null;
+        return commandBar;//null;
     }
 
     viewItem(item) {

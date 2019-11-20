@@ -5,7 +5,13 @@ export class ApiService {
 
     get = async(url, options) => {
         options = options || {};
+        options.headers = {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'Cache-Control': 'no-cache'
+        };
         options.method = 'GET';
+        options.cache = "no-cache";
         //options.mode = 'cors'; // no-cors, cors, *same-origin
         return await fetch(this._baseUrl ? new URL(url, this._baseUrl) : url, options);
     }
@@ -13,6 +19,7 @@ export class ApiService {
     post = async(url, options, data) => {
         options = options || {};
         options.method = 'POST';
+        options.cache = "no-cache";
         //options.mode = 'cors'; // no-cors, cors, *same-origin
         options.headers = {
             'Accept': 'application/json',
@@ -29,8 +36,10 @@ export class ApiService {
         options.method = 'PUT';
         options.headers = {
             'Accept': 'application/json',
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Cache-Control': 'no-cache'
         };
+        options.cache = "no-cache";
         //options.mode = 'cors'; // no-cors, cors, *same-origin
         if (data) {
             options.body = JSON.stringify(data);
@@ -41,6 +50,7 @@ export class ApiService {
     delete = async(url, options) => {
         options = options || {};
         options.method = 'DELETE';
+        options.cache = "no-cache";
         //options.mode = 'cors'; // no-cors, cors, *same-origin   
         return await fetch(this._baseUrl ? new URL(url, this._baseUrl) : url, options);
     }

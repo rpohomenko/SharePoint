@@ -8,6 +8,7 @@ import 'promise-polyfill/src/polyfill';
 import 'whatwg-fetch';
 import 'url-polyfill';
 import 'abortcontroller-polyfill/dist/polyfill-patch-fetch';
+import "babel-polyfill";
 /* IE -- end */
 //require("bootstrap");
 

@@ -29,10 +29,8 @@ export class App extends React.Component {
             this._sidebar.setState({ isOpen: false });
         };
         return (<ErrorBoundary>
-            <Fabric className="app">
-                <nav className="navbar navbar-dark fixed-top bg-dark flex-md-nowrap p-0 shadow">
-                    <NavBar />
-                </nav>
+            <Fabric className="app">             
+                <NavBar />               
                 <div className="container-fluid">
                     <div className="row">
                         <div className="col-md-2 d-md-block bg-light sidebar sticky-top">
