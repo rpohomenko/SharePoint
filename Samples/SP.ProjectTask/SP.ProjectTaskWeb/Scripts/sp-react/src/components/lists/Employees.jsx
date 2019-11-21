@@ -2,9 +2,9 @@ import React from "react";
 import BaseListView from "./BaseListView";
 import { ScrollablePane, ScrollbarVisibility } from 'office-ui-fabric-react/lib/ScrollablePane';
 import { Sticky, StickyPositionType } from 'office-ui-fabric-react/lib/Sticky';
-import ProjectCommand from "../commands/ProjectCommand";
+import EmployeeCommand from "../commands/EmployeeCommand";
 
-export class ProjectList extends BaseListView {
+export class EmployeeList extends BaseListView {
 
   constructor(props) {
     super(props);
@@ -39,7 +39,7 @@ export class ProjectList extends BaseListView {
       }}>
         <ScrollablePane scrollbarVisibility={ScrollbarVisibility.auto}>
           <Sticky stickyPosition={StickyPositionType.Header} isScrollSynced={true}>
-            <ProjectCommand ref={ref => this._command = ref} commandItems={commandItems} service={this._service} selection={selection} onRefresh={() => this.refresh(true)}
+            <EmployeeCommand ref={ref => this._command = ref} commandItems={commandItems} service={this._service} selection={selection} onRefresh={() => this.refresh(true)}
               onItemDeleted={this._onItemDeleted} onItemSaved={this._onItemSaved} onItemSaving ={onItemSaving} onItemDeleting ={onItemDeleting} />
           </Sticky>{super.render()}
         </ScrollablePane>
@@ -104,7 +104,7 @@ export class ProjectList extends BaseListView {
   }
 
   _fetchData = async (count, nextPageToken, sortBy, sortDesc, filter, options) => {
-    return await this._service.getProjects(count, nextPageToken, sortBy, sortDesc, filter, options);
+    return await this._service.getEmployees(count, nextPageToken, sortBy, sortDesc, filter, options);
   }
 
   _onSelectionChanged(selectionItems) {
@@ -135,8 +135,8 @@ export class ProjectList extends BaseListView {
   }
 }
 
-const Projects = (props) => {
-  return (<ProjectList service={props.service} pageSize={30} emptyMessage="There are no projects." />);
+const Employees = (props) => {
+  return (<EmployeeList service={props.service} pageSize={30} emptyMessage="There are no employees." />);
 };
 
-export default Projects;
+export default Employees;

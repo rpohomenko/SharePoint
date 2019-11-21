@@ -49,4 +49,46 @@ export class AppService extends ApiService {
     deleteProject = async(ids, options) => {
         return await this.delete(`/api/web/projects?ids=${ids.join(',')}`, options);
     }
+
+     // Employees
+
+     getEmployees = async(count, nextPageToken, sortBy, sortDesc, filter, options) => {
+        return await this.get(`/api/web/employees?count=${count}&pagingToken=${encodeURIComponent(nextPageToken || "")}&where=${encodeURIComponent(filter || "")}&sortBy=${encodeURIComponent(sortBy || "")}&sortDesc=${sortDesc || false}`, options);
+    }
+
+    getEmployee = async(id, options) => {
+        return await this.get(`/api/web/employees/${id}`, options);
+    }
+
+    saveEmployee = async(item, options) => {      
+        if(item && item.Id > 0){
+            return await this.put(`/api/web/employees`, options, item);
+        }
+        return await this.post(`/api/web/employees`, options,  item);
+    }
+
+    deleteEmployee = async(ids, options) => {
+        return await this.delete(`/api/web/employees?ids=${ids.join(',')}`, options);
+    }
+
+    // Departments
+
+    getDepartments = async(count, nextPageToken, sortBy, sortDesc, filter, options) => {
+        return await this.get(`/api/web/departments?count=${count}&pagingToken=${encodeURIComponent(nextPageToken || "")}&where=${encodeURIComponent(filter || "")}&sortBy=${encodeURIComponent(sortBy || "")}&sortDesc=${sortDesc || false}`, options);
+    }
+
+    getDepartment = async(id, options) => {
+        return await this.get(`/api/web/departments/${id}`, options);
+    }
+
+    saveDepartment = async(item, options) => {      
+        if(item && item.Id > 0){
+            return await this.put(`/api/web/departments`, options, item);
+        }
+        return await this.post(`/api/web/departments`, options,  item);
+    }
+
+    deleteDepartment = async(ids, options) => {
+        return await this.delete(`/api/web/departments?ids=${ids.join(',')}`, options);
+    }
 }

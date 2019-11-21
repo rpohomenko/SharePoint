@@ -3,10 +3,10 @@ import { ProgressIndicator } from 'office-ui-fabric-react/lib/ProgressIndicator'
 import { Stack } from 'office-ui-fabric-react/lib/Stack';
 import { Callout } from 'office-ui-fabric-react';
 
-import TaskFormPanel from "../form/TaskFormPanel";
+import EmployeeFormPanel from "../form/EmployeeFormPanel";
 import BaseListViewCommand from "./BaseListViewCommand";
 
-export class TaskCommand extends BaseListViewCommand {
+export class EmployeeCommand extends BaseListViewCommand {
 
     constructor(props) {
         super(props);
@@ -31,7 +31,7 @@ export class TaskCommand extends BaseListViewCommand {
     }
 
     _renderListFormPanel = (item, ref, service, onItemSaving, onItemSaved, onItemDeleting, onItemDeleted) => {
-        return (<TaskFormPanel item={item} ref={ref} service={service} onRenderListForm={this._renderListForm}
+        return (<EmployeeFormPanel item={item} ref={ref} service={service} onRenderListForm={this._renderListForm}
             onItemSaving={onItemSaving} onItemSaved={(sender, result) => {
                 if(this._status){
                   this._status.success("Saved successfully.", this.props.STATUS_TIMEOUT);
@@ -48,7 +48,7 @@ export class TaskCommand extends BaseListViewCommand {
                     onItemDeleted(sender, result);
                 }
             }}
-            viewItemHeader="View Task" editItemHeader="Edit Task" newItemHeader="New Task" />);
+             viewItemHeader="View Employee" editItemHeader="Edit Employee" newItemHeader="New Employee"/>);
     }
 
     _onDelete = (items) => {
@@ -66,7 +66,7 @@ export class TaskCommand extends BaseListViewCommand {
             }
         }
 
-        let promise = this.props.service.deleteTask(ids);
+        let promise = this.props.service.deleteEmployee(ids);
         let status = this._status;
         return this._onPromise(promise, (result) => {
             if (result) {
@@ -91,4 +91,4 @@ export class TaskCommand extends BaseListViewCommand {
     }
 }
 
-export default TaskCommand;
+export default EmployeeCommand;

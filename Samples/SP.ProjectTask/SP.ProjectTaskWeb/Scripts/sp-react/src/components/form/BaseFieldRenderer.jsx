@@ -71,7 +71,7 @@ export class BaseFieldRenderer extends React.Component {
         return this.getValue() !== null && this.getValue() !== undefined;
     }
 
-    validate() {
+    validate(ignoreErrors) {
         const { fieldProps, onValidate } = this.props;
         let { isValid, validationErrors } = this._validate();
         if (!validationErrors) {
@@ -85,7 +85,7 @@ export class BaseFieldRenderer extends React.Component {
         }
         this.setState({
             isValid: isValid,
-            validationErrors: validationErrors
+            validationErrors: ignoreErrors ? null : validationErrors
         }, () => {
             if (typeof onValidate === "function") {
                 onValidate(this, isValid, this.isDirty(), validationErrors);

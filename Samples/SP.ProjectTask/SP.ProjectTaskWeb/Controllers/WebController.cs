@@ -118,6 +118,28 @@ namespace SP.ProjectTaskWeb.Controllers
             return GetDataResult<Employee>(where, count, sortBy, sortDesc, pagingToken);
         }
 
+        [Route("employees")]
+        [HttpPost]
+        public IHttpActionResult CreateEmployee([FromBody]Employee employee)
+        {
+            return AddEntity(employee);
+        }
+
+        [Route("employees")]
+        [HttpPut]
+        public IHttpActionResult UpdateEmployee([FromBody] Employee employee)
+        {
+            return UpdateEntity(employee);
+        }
+
+        [Route("employees")]
+        [HttpDelete]
+        public IHttpActionResult DeleteEmployee([FromUri] string ids)
+        {
+            var itemIds = ids.Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries).Select(id => Convert.ToInt32(id));
+            return Delete<Employee>(itemIds);
+        }
+
         [Route("departments/{id}")]
         [HttpGet]
         public IHttpActionResult GetDepartment(int id)
@@ -130,7 +152,29 @@ namespace SP.ProjectTaskWeb.Controllers
         public IHttpActionResult GetDepartments([FromUri] string where = null, [FromUri] int count = 0, [FromUri] string sortBy = null, [FromUri] bool sortDesc = false, [FromUri] string pagingToken = null)
         {
             return GetDataResult<Department>(where, count, sortBy, sortDesc, pagingToken);
-        }      
+        }
+
+        [Route("departments")]
+        [HttpPost]
+        public IHttpActionResult CreateDepartment([FromBody]Department department)
+        {
+            return AddEntity(department);
+        }
+
+        [Route("departments")]
+        [HttpPut]
+        public IHttpActionResult UpdateDepartment([FromBody] Department department)
+        {
+            return UpdateEntity(department);
+        }
+
+        [Route("departments")]
+        [HttpDelete]
+        public IHttpActionResult DeleteDepartment([FromUri] string ids)
+        {
+            var itemIds = ids.Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries).Select(id => Convert.ToInt32(id));
+            return Delete<Department>(itemIds);
+        }
 
         private IHttpActionResult GetItemResult<TEntity>(int id) where TEntity : ListItemEntity, new()
         {

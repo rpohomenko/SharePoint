@@ -116,21 +116,20 @@ export class FormField extends React.Component {
         return isDirty;
     }
 
-    isValid() {
-        const { mode } = this.props;
+    isValid() {      
         let isValid = undefined;
         if (this._fieldControl) {
             isValid = this._fieldControl.isValid();
         }
         if (isValid === undefined) {
-            isValid = true;
+            isValid = this.validate(true);
         }
         return isValid;
     }
 
-    validate() {
+    validate(ignoreErrors) {
         if (this._fieldControl) {
-            return this._fieldControl.validate();
+            return this._fieldControl.validate(ignoreErrors);
         }
     }
 

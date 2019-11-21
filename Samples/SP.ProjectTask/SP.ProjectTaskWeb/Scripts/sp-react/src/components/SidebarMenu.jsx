@@ -75,6 +75,11 @@ SidebarMenu.defaultProps = {
         key: "1",
         name: 'Projects',
         isExpanded: true
+      },
+      {
+        key: "2",
+        name: 'Employees',
+        isExpanded: true
       }]
   }],
   expanded: 'expanded',

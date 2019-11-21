@@ -4,9 +4,9 @@ import { CommandBar } from 'office-ui-fabric-react/lib/CommandBar';
 import { CommandBarButton } from 'office-ui-fabric-react/lib/Button';
 import { DefaultButton, PrimaryButton } from 'office-ui-fabric-react/lib/Button';
 import { Dialog, DialogFooter, DialogType } from 'office-ui-fabric-react/lib/Dialog';
-import { Panel, PanelType } from 'office-ui-fabric-react/lib/Panel';
-import { StatusBar } from '../StatusBar';
 import { isArray } from "util";
+
+import { StatusBar } from '../StatusBar';
 
 export class BaseListViewCommand extends React.Component {
 
@@ -17,7 +17,7 @@ export class BaseListViewCommand extends React.Component {
         this._onViewItem = this._onViewItem.bind(this);
         this._onDelete = this._onDelete.bind(this);
         this._getItems = this._getItems.bind(this);
-
+        this._service = props.service;
         this.state = {
             ...this.props,
             refreshEnabed: false,
@@ -27,43 +27,16 @@ export class BaseListViewCommand extends React.Component {
         };
 
         this._container = React.createRef();
-        this._listForm = React.createRef();
+        this._panel = React.createRef();
     }
 
     componentWillUnmount() {       
     }
 
     render() {
-        const { mode, selection, refreshEnabed, confirmDeletion, confirmClosePanel, isDeleting, showPanel, isDirty, onItemSaving, onItemSaved, onItemDeleting, onItemDeleted } = this.state;
-        //let item = selection && selection.length > 0 ? selection[0] : undefined;
-        let listForm = this._getForm(mode, this._listForm,
-            (items, renderCommandItem) => this._renderCommandBar(items, renderCommandItem),
-            (sender, isValid, isDirty) => this._validate(isValid, isDirty),
-            (sender, mode) => this._changeMode(mode),
-            this._closeForm,
-            (sender, item) => {
-                this.setState({ isDirty: false, commandBar: undefined }, () => {
-                    if (typeof onItemSaving === "function") {
-                        onItemSaving(sender, item);
-                    }
-                });
-            },
-            (sender, item) =>{                
-                this.setState({confirmDeletion: false, confirmClosePanel: false},
-                    () => {
-                        if (typeof onItemSaved === "function") {
-                            onItemSaved(sender, item);
-                        }
-                    });
-            },
-            (sender, item) => {
-                this.setState({ isDirty: false, commandBar: undefined }, () => {
-                    if (typeof onItemDeleting === "function") {
-                        onItemDeleting(sender, item);
-                    }
-                });
-            },
-            onItemDeleted);
+        const { onItemSaving, onItemSaved, onItemDeleting, onItemDeleted } = this.props;
+        const { selection, refreshEnabed, confirmDeletion, isDeleting } = this.state;      
+        let item = selection && selection.length > 0 ? selection[0] : undefined;
         return (
             <div className="command-container" ref={this._container}>
                 <CommandBar ref={ref => this._commandBar = ref} styles={{ root: { paddingTop: 10 }, menuIcon: { fontSize: '16px' } }}
@@ -79,8 +52,8 @@ export class BaseListViewCommand extends React.Component {
                         },
                         ariaLabel: 'Refresh'
                     }]}
-                    onRenderOverflowButton={this._onRenderOverflowButton}
-                    onRenderItem={this._onRenderItem} />
+                    onRenderOverflowButton={this._renderOverflowButton}
+                    onRenderItem={this._renderItem} />
                 <Dialog
                     hidden={!confirmDeletion}
                     onDismiss={() => this.setState({ confirmDeletion: false })}
@@ -96,64 +69,16 @@ export class BaseListViewCommand extends React.Component {
                     <DialogFooter>
                         <PrimaryButton onClick={() => {
                             const { selection } = this.state;
-                            this._onDelete(selection);
+                            this._onDelete(selection, this._onPromise);
                             this.setState({ confirmDeletion: false });
                         }} text="Yes" />
                         <DefaultButton onClick={() => this.setState({ confirmDeletion: false })} text="No" />
                     </DialogFooter>
                 </Dialog>
-                {showPanel && (<Panel
-                    ref={ref => this._panel = ref}
-                    isOpen={showPanel}
-                    isLightDismiss={true}
-                    onRenderHeader={this._renderPanelHeader}
-                    onDismiss={() => {
-                        if (isDirty && mode > 0) {
-                            this.setState({ confirmClosePanel: true });
-                        }
-                        else {
-                            this._hidePanel();
-                        }
-                    }}
-                    closeButtonAriaLabel="Close"
-                    type={PanelType.medium}
-                    onRenderFooterContent={this._onRenderFooterContent}
-                    isFooterAtBottom={true}>
-                    {listForm}
-                </Panel>)}
-                {mode > 0 && isDirty &&
-                    (<Dialog
-                        hidden={confirmClosePanel !== true}
-                        onDismiss={() => this.setState({ confirmClosePanel: false })}
-                        dialogContentProps={{
-                            type: DialogType.normal,
-                            title: 'Close?',
-                            subText: 'Are you sure you want to close the form without saving?'
-                        }}
-                        modalProps={{
-                            isBlocking: true,
-                            styles: { main: { maxWidth: 450 } }
-                        }}>
-                        <DialogFooter>
-                            <PrimaryButton onClick={() => this.setState({ confirmClosePanel: false, showPanel: false, isDirty: false, isValid: false })} text="Yes" />
-                            <DefaultButton onClick={() => this.setState({ confirmClosePanel: false })} text="No" />
-                        </DialogFooter>
-                    </Dialog>)}
-                <StatusBar ref={ref => this._status = ref} />
+                {this._renderListFormPanel(item, this._panel, this._service, onItemSaving, onItemSaved, onItemDeleting, onItemDeleted)}             
+            <StatusBar ref={ref => this._status = ref} />
             </div>
         );
-    }
-
-    _renderCommandBar(items, renderCommandItem) {
-        let { commandBar } = this.state;
-        if (!commandBar) {
-            commandBar = (<CommandBar className="sticky-top" ref={ref => this._commandBar = ref} styles={{ root: { paddingTop: 10 }, menuIcon: { fontSize: '16px' } }}
-                items={items}
-                onRenderItem={renderCommandItem} />);
-                //TODO: Warning: Cannot update during an existing state transition (such as within `render`). Render methods should be a pure function of props and state.
-                //this.setState({ commandBar: commandBar });
-        }
-        return commandBar;//null;
     }
 
     viewItem(item) {
@@ -165,7 +90,9 @@ export class BaseListViewCommand extends React.Component {
     }
 
     deleteItem(items) {
-        this.setState({ confirmDeletion: true });
+        if(items.length > 0){
+          this.setState({ confirmDeletion: true });
+        }
     }
 
     async refresh() {
@@ -175,57 +102,11 @@ export class BaseListViewCommand extends React.Component {
         }
     }
 
-    _renderPanelHeader = (
-        props,
-        defaultRender,
-        headerTextId
-    ) => {
-        const { newItemHeader, editItemHeader, viewItemHeader } = this.props;
-        const { mode, commandBar } = this.state;
-        props = Object.assign({}, props);
-        let headerText;
-        switch (mode) {
-            case 0:
-                headerText = viewItemHeader
-                break;
-            case 1:
-                headerText = editItemHeader
-                break;
-            case 2:
-                headerText = newItemHeader
-                break;
-        }
-        props.headerText = headerText;
-
-        return (<div>
-            {defaultRender(props, defaultRender, headerTextId)}
-            {commandBar}
-        </div>);
-    };
-
-    _onSaveClick = async () => {
-        const { isValid, isDirty } = this.state;
-        if (this._listForm.current && isValid && isDirty) {
-            this.setState({ isDirty: false });
-            return await this._listForm.current.saveItem();
-        }
+    _renderListFormPanel = (item, ref, service, onItemSaving, onItemSaved, onItemDeleting, onItemDeleted) => {   
+        throw "Method _renderListFormPanel is not yet implemented!";
     }
 
-    _onRenderFooterContent = () => {
-        const { isValid, isDirty, mode } = this.state;
-        let isBusy = false;
-        if (this._listForm.current) {
-            isBusy = this._listForm.current.state.isSaving || this._listForm.current.state.isDeleting;
-        }
-        return (
-            <div>
-                {mode > 0 && <PrimaryButton onClick={() => this._onSaveClick()} disabled={isBusy || !isDirty || !isValid} style={{ marginRight: 7 }}>Save</PrimaryButton>}
-                <DefaultButton onClick={() => this._hidePanel()}>{mode > 0 ? "Cancel" : "Close"}</DefaultButton>
-            </div>);
-
-    }
-
-    _onRenderItem = (item) => {
+    _renderItem = (item) => {
         return (
             <CommandBarButton
                 role="menuitem"
@@ -238,7 +119,7 @@ export class BaseListViewCommand extends React.Component {
         );
     };
 
-    _onRenderOverflowButton = (overflowItems) => {
+    _renderOverflowButton = (overflowItems) => {
         return (
             <CommandBarButton
                 role="menuitem"
@@ -312,54 +193,24 @@ export class BaseListViewCommand extends React.Component {
     }
 
     _onNewItem = () => {
-        this._changeMode(2);
+        this._showPanel(2);
     }
 
     _onEditItem = (item) => {
-        this._changeMode(1);
+        this._showPanel(1);
     }
 
     _onViewItem = (item) => {
-        this._changeMode(0);
+        this._showPanel(0);
     }
 
-    _onDelete = (items) => {
+    _onDelete = (items, onPromise) => {
         throw "Method _onDelete is not yet implemented!";
     }
 
-    _changeMode = (mode) => {
-        this.setState({ showPanel: true, mode: mode, status: undefined, commandBar: undefined });
-    }
-
-    _showPanel = () => {
-        this.setState({ showPanel: true });
-    };
-
-    _hidePanel = () => {
-        const { showPanel } = this.state;
-        if (showPanel) {
-            this.setState({ showPanel: false, isDirty: false, isValid: false, commandBar: undefined });
-        }
-    };
-
-    _validate = (isValid, isDirty) => {
-        this.setState({ isValid: isValid, isDirty: isDirty, commandBar: undefined });
-    }
-
-    _closeForm = (result, message, callback) => {
-        this._hidePanel();
-        if (message) {
-            if (this._status) {
-                if (result.ok) {
-                    this._status.success(message, this.props.STATUS_TIMEOUT);
-                }
-                else {
-                    this._status.warn(message, this.props.STATUS_TIMEOUT);
-                }
-            }
-        }
-        if (typeof callback === "function") {
-            callback(this, result);
+    _showPanel = (mode) => {
+        if(this._panel.current){
+          this._panel.current.open(mode);         
         }
     }
 

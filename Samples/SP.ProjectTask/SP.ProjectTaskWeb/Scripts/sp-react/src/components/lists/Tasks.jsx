@@ -1,9 +1,13 @@
 import React from "react";
-import BaseListView from "./BaseListView";
-//import { CommandBar } from 'office-ui-fabric-react/lib/CommandBar';
-import TaskCommand from "../commands/TaskCommand";
+
 import { ScrollablePane, ScrollbarVisibility } from 'office-ui-fabric-react/lib/ScrollablePane';
 import { Sticky, StickyPositionType } from 'office-ui-fabric-react/lib/Sticky';
+import { Link } from 'office-ui-fabric-react/lib/Link';
+
+import BaseListView from "./BaseListView";
+import TaskCommand from "../commands/TaskCommand";
+import { ProjectFormPanel } from '../form/ProjectFormPanel';
+import { isNumber } from "util";
 
 export class TaskList extends BaseListView {
 
@@ -13,6 +17,7 @@ export class TaskList extends BaseListView {
     this.state = {
       ...this.state
     };
+    this._projectFormPanel = React.createRef();
   }
 
   async componentDidMount() {
@@ -32,7 +37,7 @@ export class TaskList extends BaseListView {
 
   render() {
     const { onItemSaving, onItemSaved, onItemDeleting, onItemDeleted, commandItems } = this.props;
-    const { selection } = this.state;
+    const { selection, listFormItemId, listFormItem } = this.state;
     return (
       <div className="tasks-container" style={{
         height: '80vh',
@@ -41,9 +46,10 @@ export class TaskList extends BaseListView {
         <ScrollablePane scrollbarVisibility={ScrollbarVisibility.auto}>
           <Sticky stickyPosition={StickyPositionType.Header} isScrollSynced={true}>
             <TaskCommand ref={ref => this._command = ref} commandItems={commandItems} service={this._service} selection={selection} onRefresh={() => this.refresh(true)}
-              onItemDeleted={this._onItemDeleted} onItemSaved={this._onItemSaved} onItemSaving ={onItemSaving} onItemDeleting ={onItemDeleting}
-              newItemHeader={"New Task"} editItemHeader={"Edit Task"} viewItemHeader={"View Task"} />
-          </Sticky>{super.render()}
+              onItemDeleted={this._onItemDeleted} onItemSaved={this._onItemSaved} onItemSaving={onItemSaving} onItemDeleting={onItemDeleting} />
+          </Sticky>
+          {super.render()}
+          {this._renderProjectForm(listFormItemId, listFormItem, this._projectFormPanel)}
         </ScrollablePane>
       </div>
     );
@@ -82,12 +88,11 @@ export class TaskList extends BaseListView {
           if (index > -1) {
               items[index] = result.data;
               this.setState({ items: items });
-          }
+          }          
       }
-      else {
-          this.refresh();
-      }*/
+      else*/
       this.refresh();
+
       if (typeof onItemSaved === "function") {
         onItemSaved(sender, result);
       }
@@ -127,19 +132,58 @@ export class TaskList extends BaseListView {
         onColumnClick: this._onColumnClick,
         data: 'string',
         isPadded: false,
-        getView: (lookupValue) =>{
-          return lookupValue ? (<a>{lookupValue.Value}</a>) : '';
+        getView: (lookupItem) => {
+          if (lookupItem) {
+            let panel = this._projectFormPanel; //React.createRef();
+            return (
+              <div className="lookup-item">
+                <Link onClick={(e) => this._showForm(panel, lookupItem.Id)}>{lookupItem.Value}</Link>
+                {/*this._renderProjectForm(lookupItem.Id, null, panel)*/}
+              </div>);
+          }
+          return '';
         }
       }
     ];
     return columns;
   }
 
+  _showForm = (panel, itemId) => {
+    if (panel && panel.current) {      
+      if (isNumber(itemId)) {
+        this.setState({ listFormItemId: itemId }, ()=>{
+          panel.current.open(0);
+        });
+      }    
+    }
+  }
+
+  _renderProjectForm = (itemId, item, ref) => {
+    return <ProjectFormPanel ref={ref} service={this.props.service}
+      itemId={itemId} item={item}
+      onItemDeleted={() => {
+        this.refresh();
+        if (this._command && this._command._status) {
+          this._command._status.success("Deleted successfully.", this._command.props.STATUS_TIMEOUT);
+        }
+      }}
+      onItemSaved={() => {
+        this.refresh();
+        if (this._command && this._command._status) {
+          this._command._status.success("Saved successfully.", this._command.props.STATUS_TIMEOUT);
+        }
+      }}
+      onItemLoaded={(sender, item) => {
+        this.setState({listFormItem: item});
+      }}
+      />;
+  }
+
   _fetchData = async (count, nextPageToken, sortBy, sortDesc, filter, options) => {
     return await this._service.getTasks(count, nextPageToken, sortBy, sortDesc, filter, options);
   }
 
-  _onSelectionChanged(selectionItems){
+  _onSelectionChanged(selectionItems) {
     super._onSelectionChanged(selectionItems);
     this._command.setState({ selection: selectionItems });
   }

@@ -5,6 +5,7 @@ import { Pivot, PivotItem } from 'office-ui-fabric-react/lib/Pivot';
 
 import Tasks from './lists/Tasks';
 import Projects from './lists/Projects';
+import Employees from './lists/Employees';
 
 class Content extends React.Component {
     constructor() {
@@ -44,6 +45,10 @@ class Content extends React.Component {
                 });
                 break;
             case 2:
+                breadcrumbs.push({
+                    text: 'Employees', 'key': 3
+                });
+                break;
             case 3:
                 break;
             default:
@@ -62,18 +67,22 @@ class Content extends React.Component {
                 content = (<Projects service={service}></Projects>);
                 break;
             case 2:
+                content = (<Employees service={service}></Employees>);
+                break;
             case 3:
                 break;
             default:
                 const pivotContent = {
                     "tasks": (<Tasks service={service}></Tasks>),
-                    "projects": (<Projects service={service}></Projects>)
+                    "projects": (<Projects service={service}></Projects>),
+                    "employees": (<Employees service={service}></Employees>)
                 };
 
                 content = (<div>
                     <Pivot selectedKey={selectedTab} onLinkClick={this._onPivotHandle} headersOnly={true} getTabId={this._getTabId}>
                         <PivotItem headerText="Tasks" itemKey="tasks" />
                         <PivotItem headerText="Projects" itemKey="projects" />
+                        <PivotItem headerText="Employees" itemKey="employees" />
                     </Pivot>
                     {pivotContent[selectedTab]}
                 </div>);

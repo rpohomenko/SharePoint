@@ -11,6 +11,7 @@ import { Sticky, StickyPositionType } from 'office-ui-fabric-react/lib/Sticky';
 import { Callout } from 'office-ui-fabric-react';
 import { DefaultButton, PrimaryButton } from 'office-ui-fabric-react/lib/Button';
 import { Dialog, DialogFooter, DialogType } from 'office-ui-fabric-react/lib/Dialog';
+import { isArray } from 'util';
 
 export class ListForm extends React.Component {
 
@@ -34,7 +35,10 @@ export class ListForm extends React.Component {
         if (!item && mode < 2 && itemId > 0) {
             await this.loadItem(itemId);
         }
-        this._validate(mode === 2, false);
+        if (mode === 2 || mode === 1) {
+            //this._validate(true, false);
+            this.validate();
+        }
     }
 
     async componentWillUnmount() {
@@ -42,17 +46,18 @@ export class ListForm extends React.Component {
     }
 
     render() {
+        const { commandItems } = this.props;
         const { isLoading, mode, item, fields, confirmDeletion, isDeleting, isSaving, onRenderCommandBar } = this.state;
         this._formFields = null;
         if (fields) {
             let _progressIndicator = this._getProgressIndicator();
             let commandBar;
             if (typeof onRenderCommandBar === "function") {
-                commandBar = onRenderCommandBar(this._getCommandItems(), this._onRenderCommandItem);
+                commandBar = onRenderCommandBar(isArray(commandItems) ? commandItems : this._getCommandItems(), this._onRenderCommandItem);
             }
             else {
                 commandBar = (<CommandBar ref={ref => this._commandBar = ref} styles={{ root: { paddingTop: 10 }, menuIcon: { fontSize: '16px' } }}
-                    items={this._getCommandItems()}
+                    items={isArray(commandItems) ? commandItems : this._getCommandItems()}
                     onRenderItem={this._onRenderCommandItem} />);
             }
             return (
@@ -236,7 +241,7 @@ export class ListForm extends React.Component {
     }
 
     async loadItem(itemId) {
-
+        const { onItemLoaded } = this.props;
         const { isLoading } = this.state;
         if (isLoading) return null;
 
@@ -252,6 +257,10 @@ export class ListForm extends React.Component {
             if (item) {
                 this.setState({
                     item: item
+                }, () => {
+                    if (typeof onItemLoaded === "function") {
+                        onItemLoaded(this, item);
+                    }
                 });
                 return { ok: true, data: item }; // OK
             }
@@ -398,14 +407,18 @@ export class ListForm extends React.Component {
 
     validate() {
         let isValid = true;
+        let isDirty = false;
         if (this._formFields) {
             for (let i = 0; i < this._formFields.length; i++) {
                 if (!this._formFields[i].validate()) {
                     isValid = false;
                 }
+                if (this._formFields[i].isDirty()) {
+                    isDirty = true;
+                }
             }
         }
-        return isValid;
+        return isValid && isDirty;
     }
 
     isValid() {
@@ -434,15 +447,19 @@ export class ListForm extends React.Component {
         throw "Method _getFields is not yet implemented!";
     }
 
-    changeMode(mode) {
+    changeMode(changedMode) {
         const { onChangeMode } = this.props;
-        this.setState({ mode: mode }, () => {
-            if (typeof onChangeMode === "function") {
-                onChangeMode(this, mode);
-            }
-        });
-        if (mode === 2) {
-            this._validate(true, false);
+        const { mode } = this.state;
+        if (mode !== changedMode) {
+            this.setState({ mode: changedMode }, () => {
+                if (changedMode === 2 || changedMode === 1) {
+                    //this._validate(true, false);
+                    this.validate();
+                }
+                if (typeof onChangeMode === "function") {
+                    onChangeMode(this, changedMode);
+                }
+            });
         }
     }
 }

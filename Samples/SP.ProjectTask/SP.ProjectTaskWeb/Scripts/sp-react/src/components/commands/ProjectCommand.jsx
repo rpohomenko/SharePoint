@@ -1,9 +1,10 @@
 import React from "react";
-import BaseListViewCommand from "./BaseListViewCommand";
 import { ProgressIndicator } from 'office-ui-fabric-react/lib/ProgressIndicator';
 import { Stack } from 'office-ui-fabric-react/lib/Stack';
 import { Callout } from 'office-ui-fabric-react';
-import ProjectForm from "../form/ProjectForm";
+
+import ProjectFormPanel from "../form/ProjectFormPanel";
+import BaseListViewCommand from "./BaseListViewCommand";
 
 export class ProjectCommand extends BaseListViewCommand {
 
@@ -29,23 +30,28 @@ export class ProjectCommand extends BaseListViewCommand {
         </div>);
     }
 
-    _getForm = (mode, ref, onRenderCommandBar, onValidate, onChangeMode, onCloseForm, onItemSaving, onItemSaved, onItemDeleting, onItemDeleted) => {
-        //const { onItemDeleted, onItemSaved } = this.props;
-        const { selection } = this.state;
-        let item = mode < 2 && selection && selection.length > 0 ? selection[0] : undefined;
-        return (<ProjectForm ref={ref} service={this.props.service} mode={mode} isValid={mode === 2} isDirty={mode === 2}
-            item={item} itemId={item ? item.Id : undefined} 
-            onRenderCommandBar = {onRenderCommandBar}     
-            onValidate={onValidate}
-            onChangeMode={onChangeMode}
-            onCloseForm={(sender) => onCloseForm(null)}
-            onSaving ={onItemSaving}
-            onDeleting = {onItemDeleting}
-            onDeleted={(sender, item) => onCloseForm({ ok: true, data: [item] }, "Deleted successfully.", onItemDeleted)}
-            onSaved={(sender, item) => onCloseForm({ ok: true, data: item, isNewItem: mode === 2 }, "Saved successfully.", onItemSaved)} />);
+    _renderListFormPanel = (item, ref, service, onItemSaving, onItemSaved, onItemDeleting, onItemDeleted) => {
+        return (<ProjectFormPanel item={item} service={service} ref={ref} onRenderListForm={this._renderListForm}
+            onItemSaving={onItemSaving} onItemSaved={(sender, result) => {
+                if(this._status){
+                  this._status.success("Saved successfully.", this.props.STATUS_TIMEOUT);
+                }
+                if (typeof onItemSaved === "function") {
+                    onItemSaved(sender, result);
+                }
+            }}
+            onItemDeleting={onItemDeleting} onItemDeleted={(sender, result) => {
+                if(this._status){
+                  this._status.success("Deleted successfully.", this.props.STATUS_TIMEOUT);
+                }
+                if (typeof onItemDeleted === "function") {
+                    onItemDeleted(sender, result);
+                }
+            }}
+            viewItemHeader="View Project" editItemHeader="Edit Project" newItemHeader="New Project" />);
     }
 
-    _onDelete = (items) => {
+    _onDelete = (items, onPromise) => {
         const { onItemDeleted, onItemDeleting } = this.props;
         this.setState({ isDeleting: true, status: undefined },
             () => {
@@ -62,7 +68,7 @@ export class ProjectCommand extends BaseListViewCommand {
 
         let promise = this.props.service.deleteProject(ids);
         let status = this._status;
-        return this._onPromise(promise, (result) => {
+        return onPromise(promise, (result) => {
             if (result) {
                 if (status) {
                     status.success("Deleted successfully.", this.props.STATUS_TIMEOUT);
