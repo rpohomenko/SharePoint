@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { TextFieldRenderer } from './TextFieldRenderer';
 import { Label } from 'office-ui-fabric-react/lib/Label';
 import { IconButton } from 'office-ui-fabric-react/lib/Button';
 import { Callout } from 'office-ui-fabric-react/lib/Callout';
@@ -7,13 +6,17 @@ import { Stack } from 'office-ui-fabric-react/lib/Stack';
 import { Text } from 'office-ui-fabric-react/lib/Text';
 import { getId } from 'office-ui-fabric-react/lib/Utilities';
 
+import { TextFieldRenderer } from './TextFieldRenderer';
+import { LookupFieldRenderer } from './LookupFieldRenderer';
+
 export class FormField extends React.Component {
 
     _iconButtonId = getId('iFieldInfo');
 
     constructor(props) {
         super(props);
-        this.state = {            
+        this.state = {
+            ...this.props,
             field: null
         };
 
@@ -21,10 +24,7 @@ export class FormField extends React.Component {
     }
 
     componentDidMount() {
-        const { fieldProps } = this.props;
-        if (fieldProps) {
-            //this._setFieldRenderer(fieldProps.type);
-        }
+
     }
 
     render() {
@@ -79,32 +79,19 @@ export class FormField extends React.Component {
         this.setState({ isCalloutVisible: false });
     }
 
-    _setFieldRenderer = (type) => {
-        const { fieldProps, mode, item, onValidate } = this.props;
-        let currentValue = item ? item[fieldProps.name] : undefined;
-        let field;
-        if (type === 'text') {
-            field = <TextFieldRenderer ref={(ref) => this._fieldControl = ref} key={fieldProps.name} value={currentValue} item={item} fieldProps={fieldProps} mode={mode} onValidate={onValidate} />;
-        }
-        if (field) {
-            this.setState({
-                field: field
-            });
-        }
-        else {
-            throw `Field Type "${type}" is not supported.`;
-        }
-    }
-
     _getFieldRenderer = (type) => {
-        const { fieldProps, mode, item, onValidate } = this.props;
+        const { fieldProps, mode, item, onValidate, disabled } = this.props;
+        //const { disabled } = this.state;
         let currentValue = item ? item[fieldProps.name] : undefined;
         let field;
         if (type === 'text') {
-            field = <TextFieldRenderer ref={(ref) => this._fieldControl = ref} key={fieldProps.name} value={currentValue} item={item} fieldProps={fieldProps} mode={mode} onValidate={onValidate} />;
+            field = <TextFieldRenderer ref={(ref) => this._fieldControl = ref} disabled={disabled} key={fieldProps.name} value={currentValue} item={item} fieldProps={fieldProps} mode={mode} onValidate={onValidate} />;
+        }
+        else if (type === 'lookup') {
+            field = <LookupFieldRenderer ref={(ref) => this._fieldControl = ref} disabled={disabled} key={fieldProps.name} value={currentValue} item={item} fieldProps={fieldProps} mode={mode} onValidate={onValidate} />;
         }
         if (field) {
-           return field;
+            return field;
         }
         else {
             throw `Field Type "${type}" is not supported.`;
@@ -119,21 +106,30 @@ export class FormField extends React.Component {
 
     isDirty() {
         const { mode } = this.props;
+        let isDirty = undefined;
         if (this._fieldControl) {
-            return this._fieldControl.isDirty();
+            isDirty = this._fieldControl.isDirty();
         }
-        else {
-            if (mode === 2) return true;
+        if(isDirty === undefined) {
+            if (mode === 2) isDirty = true;
         }
+        return isDirty;
     }
 
-    isValid() {
-        const { mode } = this.props;
+    isValid() {      
+        let isValid = undefined;
         if (this._fieldControl) {
-            return this._fieldControl.isValid();
+            isValid = this._fieldControl.isValid();
         }
-        else {
-            if (mode === 2) return true;
+        if (isValid === undefined) {
+            isValid = this.validate(true);
+        }
+        return isValid;
+    }
+
+    validate(ignoreErrors) {
+        if (this._fieldControl) {
+            return this._fieldControl.validate(ignoreErrors);
         }
     }
 
@@ -142,7 +138,7 @@ export class FormField extends React.Component {
     }
 
     onSaveHandler = (newItem) => {
-        if (newItem && this.isDirty() && this.isValid()) {
+        if (newItem /*&& this.isDirty()*/ && this.isValid()) {
             const { fieldProps } = this.props;
             newItem[fieldProps.name] = this.getFieldValue();
         }

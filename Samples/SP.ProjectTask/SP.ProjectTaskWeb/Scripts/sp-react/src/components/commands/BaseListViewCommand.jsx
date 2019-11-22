@@ -1,11 +1,12 @@
 import React from "react";
+import PropTypes from 'prop-types';
 import { CommandBar } from 'office-ui-fabric-react/lib/CommandBar';
-import { OverflowSet } from 'office-ui-fabric-react/lib/OverflowSet';
 import { CommandBarButton } from 'office-ui-fabric-react/lib/Button';
-import ListFormPanel from "../form/ListFormPanel";
 import { DefaultButton, PrimaryButton } from 'office-ui-fabric-react/lib/Button';
 import { Dialog, DialogFooter, DialogType } from 'office-ui-fabric-react/lib/Dialog';
-import { MessageBar, MessageBarType } from 'office-ui-fabric-react';
+import { isArray } from "util";
+
+import { StatusBar } from '../StatusBar';
 
 export class BaseListViewCommand extends React.Component {
 
@@ -16,9 +17,9 @@ export class BaseListViewCommand extends React.Component {
         this._onViewItem = this._onViewItem.bind(this);
         this._onDelete = this._onDelete.bind(this);
         this._getItems = this._getItems.bind(this);
-
+        this._service = props.service;
         this.state = {
-            ...this.state,
+            ...this.props,
             refreshEnabed: false,
             newItemEnabled: false,
             isDeleting: false,
@@ -26,10 +27,16 @@ export class BaseListViewCommand extends React.Component {
         };
 
         this._container = React.createRef();
+        this._panel = React.createRef();
+    }
+
+    componentWillUnmount() {       
     }
 
     render() {
-        const { status, showForm, mode, refreshEnabed, confirmDeletion, isDeleting } = this.state;
+        const { onItemSaving, onItemSaved, onItemDeleting, onItemDeleted } = this.props;
+        const { selection, refreshEnabed, confirmDeletion, isDeleting } = this.state;      
+        let item = selection && selection.length > 0 ? selection[0] : undefined;
         return (
             <div className="command-container" ref={this._container}>
                 <CommandBar ref={ref => this._commandBar = ref} styles={{ root: { paddingTop: 10 }, menuIcon: { fontSize: '16px' } }}
@@ -45,8 +52,8 @@ export class BaseListViewCommand extends React.Component {
                         },
                         ariaLabel: 'Refresh'
                     }]}
-                    onRenderOverflowButton={this._onRenderOverflowButton}
-                    onRenderItem={this._onRenderItem} />
+                    onRenderOverflowButton={this._renderOverflowButton}
+                    onRenderItem={this._renderItem} />
                 <Dialog
                     hidden={!confirmDeletion}
                     onDismiss={() => this.setState({ confirmDeletion: false })}
@@ -62,26 +69,44 @@ export class BaseListViewCommand extends React.Component {
                     <DialogFooter>
                         <PrimaryButton onClick={() => {
                             const { selection } = this.state;
-                            this._onDelete(selection);
+                            this._onDelete(selection, this._onPromise);
                             this.setState({ confirmDeletion: false });
                         }} text="Yes" />
                         <DefaultButton onClick={() => this.setState({ confirmDeletion: false })} text="No" />
                     </DialogFooter>
                 </Dialog>
-                {<ListFormPanel ref={ref => this._panel = ref} showPanel={showForm} mode={mode} listFormGetter={(mode) => this._getForm(mode)} />}
-                {
-                    status &&
-                    (<MessageBar messageBarType={status.type} isMultiline={false} onDismiss={() => {
-                        this.setState({ status: undefined });
-                    }} dismissButtonAriaLabel="Close">
-                        {status.content}
-                    </MessageBar>)
-                }
+                {this._renderListFormPanel(item, this._panel, this._service, onItemSaving, onItemSaved, onItemDeleting, onItemDeleted)}             
+            <StatusBar ref={ref => this._status = ref} />
             </div>
         );
     }
 
-    _onRenderItem = (item) => {
+    viewItem(item) {
+        this._onViewItem(item);
+    }
+
+    editItem(item) {
+        this._onEditItem(item);
+    }
+
+    deleteItem(items) {
+        if(items.length > 0){
+          this.setState({ confirmDeletion: true });
+        }
+    }
+
+    async refresh() {
+        const { onRefresh } = this.props;
+        if (typeof onRefresh === "function") {
+            await onRefresh();
+        }
+    }
+
+    _renderListFormPanel = (item, ref, service, onItemSaving, onItemSaved, onItemDeleting, onItemDeleted) => {   
+        throw "Method _renderListFormPanel is not yet implemented!";
+    }
+
+    _renderItem = (item) => {
         return (
             <CommandBarButton
                 role="menuitem"
@@ -94,7 +119,7 @@ export class BaseListViewCommand extends React.Component {
         );
     };
 
-    _onRenderOverflowButton = (overflowItems) => {
+    _renderOverflowButton = (overflowItems) => {
         return (
             <CommandBarButton
                 role="menuitem"
@@ -107,8 +132,12 @@ export class BaseListViewCommand extends React.Component {
     };
 
     _getItems() {
+        const { commandItems } = this.props;
         const { selection, isDeleting, newItemEnabled } = this.state;
-        let items = [];
+        let items = []
+        if (isArray(commandItems)) {
+            items = items.concat(commandItems);
+        }
         items.push(
             {
                 key: 'newItem',
@@ -164,66 +193,64 @@ export class BaseListViewCommand extends React.Component {
     }
 
     _onNewItem = () => {
-        this._changeMode(2);
+        this._showPanel(2);
     }
 
     _onEditItem = (item) => {
-        this._changeMode(1);
+        this._showPanel(1);
     }
 
     _onViewItem = (item) => {
-        this._changeMode(0);
+        this._showPanel(0);
     }
 
-    _changeMode = (mode) => {
-        this.setState({ showForm: true, mode: mode, status: undefined });
-        let panel = this._panel;
-        if (panel) {
-            panel.setState({ showPanel: true, mode: mode });
-        }
-    }
-
-    _validate = (isValid, isDirty) => {
-        let panel = this._panel;
-        if (panel) {
-            panel.setState({ isValid: isValid, isDirty: isDirty });
-        }
-    }
-
-    _closeForm = (result, message) => {
-        let panel = this._panel;
-        if (panel) {
-            panel._hidePanel(result);
-        }
-        if (result === 1) {
-            this.refresh();
-            this.setState({ status: { content: message, type: MessageBarType.success } });
-        }
-
-    }
-
-    _onDelete = (items) => {
+    _onDelete = (items, onPromise) => {
         throw "Method _onDelete is not yet implemented!";
     }
 
-    viewItem(item) {
-        this._onViewItem(item);
-    }
-
-    editItem(item) {
-        this._onEditItem(item);
-    }
-
-    deleteItem(items) {
-        this.setState({ confirmDeletion: true });
-    }
-
-    async refresh() {
-        const { onRefresh } = this.props;
-        if (typeof onRefresh === "function") {
-            return await onRefresh();
+    _showPanel = (mode) => {
+        if(this._panel.current){
+          this._panel.current.open(mode);         
         }
     }
+
+    async _onPromise(promise, onSuccess) {
+        if (promise) {
+            return await promise.then(response => {
+                if (response.ok) {
+                    return response.json().then(onSuccess);
+                }
+                else {
+                    return response.json().then((error) => {
+                        if (!error || !error.message) {
+                            error = { message: `${response.statusText} (${response.status})` };
+                        }
+                        throw error;
+                    }).catch((error) => {
+                        if (!error || !error.message) {
+                            throw { message: error };
+                        }
+                        throw error;
+                    });
+                }
+            }).catch((error) => {
+                if (error.code !== 20 && error.name !== 'AbortError') { //aborted
+                    if (this._status) {
+                        this._status.error(error.message ? error.message : error);
+                    }
+                }
+                return { ok: false, data: error }; //error
+            });
+        }
+    }
+}
+
+BaseListViewCommand.propTypes = {
+    STATUS_TIMEOUT: PropTypes.number,
+}
+
+BaseListViewCommand.defaultProps = {
+    STATUS_TIMEOUT: 5000
 }
 
 export default BaseListViewCommand;

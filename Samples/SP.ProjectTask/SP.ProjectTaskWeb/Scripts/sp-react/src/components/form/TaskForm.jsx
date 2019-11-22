@@ -1,5 +1,6 @@
-//import * as React from 'react';
+import * as React from 'react';
 import { ListForm } from './ListForm';
+import { Projects, ProjectList } from '../lists/Projects';
 
 export class TaskForm extends ListForm {
 
@@ -11,28 +12,16 @@ export class TaskForm extends ListForm {
         };
     }
 
-    _fetchData = (itemId, options) => {
-        return this._service.getTask(itemId, options);
+    _fetchData = async (itemId, options) => {
+        return await this._service.getTask(itemId, options);
     }
 
-    _fetchDataAsync = async (itemId, options) => {
-        return await this._fetchData(itemId, options);
+    _saveData = async (item, options) => {
+        return await this._service.saveTask(item, options);
     }
 
-    _saveData = (item, options) => {
-        return this._service.saveTask(item, options);
-    }
-
-    _saveDataAsync = async (item, options) => {
-        return await this._saveData(item, options);
-    }
-
-    _deleteItem =(item, options)=>{
-        return this._service.deleteTask([item.Id], options);
-    }
-
-    _deleteItemAsync = async (item, options) => {
-        return await this._deleteItem(item, options);
+    _deleteItem = async (item, options) => {
+        return await this._service.deleteTask([item.Id], options);
     }
 
     render() {
@@ -40,13 +29,32 @@ export class TaskForm extends ListForm {
     }
 
     _getFields = () => {
+        let service = this._service;   
         return [{
-            key: 'Title',
+            key: 'title',
             name: 'Title',
             type: 'text',
             title: 'Title',
             required: true
+        },
+        {
+            key: 'project',
+            name: 'Project',
+            type: 'lookup',
+            title: 'Project',
+            lookupList: 'Projects',
+            lookupField: 'Title',
+            isMultiple: false,
+            required: true,
+            getListView: (commandItems, onSelect, onSaving, onDeleting, onSaved, onDeleted) => {
+              return <ProjectList service={service} pageSize={30} isMultipleSelection={false} commandItems={commandItems} emptyMessage="There are no projects." onSelect={onSelect} onItemSaving={onSaving} onItemDeleting={onDeleting} />;//(<Projects service={service}></Projects>);
+            }
         }];
+    }
+
+    _getCommandItems() {
+        let commands = super._getCommandItems();
+        return commands;
     }
 }
 
