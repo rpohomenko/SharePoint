@@ -185,8 +185,8 @@ namespace SP.Client.Linq
 
         public List GetList()
         {
-            Check.NotNull(_args, nameof(SpQueryArgs<TContext>));
-            Check.NotNull(_args.Context, nameof(TContext));
+            //Check.NotNull(_args, nameof(SpQueryArgs<TContext>));
+            //Check.NotNull(_args.Context, nameof(TContext));
 
             if (_args != null && _args.Context != null)
             {
@@ -209,14 +209,14 @@ namespace SP.Client.Linq
                 ? null
                 : new Uri(string.Concat(this._args.Context.SiteUrl.TrimEnd('/'), "/", string.IsNullOrEmpty(_args.ListUrl) ? "" : $"{_args.ListUrl.Trim('/')}/", (!string.IsNullOrEmpty(_args.ListUrl) ? this._args.FolderUrl.Replace(_args.ListUrl, "") : this._args.FolderUrl).TrimStart('/'))).LocalPath;
             var list = GetList();
-            if (list == null)
-            {
-                Check.NotNull(list, nameof(List));
-            }
-            if (spView == null)
-            {
-                Check.NotNull(spView, nameof(Caml.View));
-            }
+            //if (list == null)
+            //{
+            //    Check.NotNull(list, nameof(List));
+            //}
+            //if (spView == null)
+            //{
+            //    Check.NotNull(spView, nameof(Caml.View));
+            //}
             if (list != null && spView != null)
             {
                 var items = list.GetItems(new CamlQuery() { FolderServerRelativeUrl = folderUrl, ViewXml = spView.ToString(true), ListItemCollectionPosition = position });

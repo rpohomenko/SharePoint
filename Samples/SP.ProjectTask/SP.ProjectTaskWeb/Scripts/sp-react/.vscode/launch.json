@@ -10,7 +10,7 @@
             "name": "Launch Chrome against localhost",
             "url": "http://localhost:3000",
             "webRoot": "${workspaceFolder}",
-            "preLaunchTask": "run start webpack",
+            //"preLaunchTask": "run start webpack",
             "postDebugTask": "end serve",                
             "sourceMaps": true, 
             //"breakOnLoad": true,
@@ -26,7 +26,7 @@
             "url": "http://localhost:3000",
             "webRoot": "${workspaceFolder}",
             "port": 9222,
-            "preLaunchTask": "run start webpack",
+            //"preLaunchTask": "run start webpack",
             "sourceMaps": true,
             "sourceMapPathOverrides": {
                 "webpack:///*": "${webRoot}/*"
@@ -40,7 +40,7 @@
             "preLaunchTask": "run build webpack",
             "file": "${workspaceFolder}/dist/test.html"
         },      
-        {
+       /* {
             "type": "firefox",
             "request": "launch",
             "reAttach": true,
@@ -60,6 +60,6 @@
             "name": "Launch Firefox index.html",
             "file": "${workspaceFolder}/dist/index.html",            
             "preLaunchTask": "run build webpack"
-        }        
+        } */      
     ]
 }

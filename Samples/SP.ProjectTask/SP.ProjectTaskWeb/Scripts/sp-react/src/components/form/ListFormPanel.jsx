@@ -15,16 +15,28 @@ export class ListFormPanel extends React.Component {
         this.state = {
             ...this.props
         };
-
         this._listForm = React.createRef();
+    }
+
+    componentWillMount() {
+
+    }
+
+    componentDidUpdate(nextProps, nextState) {
+        if (nextProps.item !== undefined && nextState.item !== nextProps.item) {
+            this.setState({ item: nextProps.item });
+        }
+        if (nextProps.itemId !== undefined && nextState.itemId !== nextProps.itemId) {
+            this.setState({ itemId: nextProps.itemId });
+        }
     }
 
     componentWillUnmount() {
     }
 
     render() {
-        const { onRenderListForm, onItemSaving, onItemSaved, onItemDeleting, onItemDeleted, onItemLoaded, item, itemId } = this.props;
-        const { mode, confirmClosePanel, showPanel, isDirty } = this.state;
+        const { onRenderListForm, onItemSaving, onItemSaved, onItemDeleting, onItemDeleted, onItemLoaded } = this.props;
+        const { mode, item, itemId, confirmClosePanel, showPanel, isDirty } = this.state;
         let listForm;
         let renderListForm = this._renderListForm;
 
@@ -41,30 +53,45 @@ export class ListFormPanel extends React.Component {
             /*(sender, mode) => this.changeMode(mode)*/ null,
             this._closeForm,
             (sender, item) => {
-                this.setState({ isDirty: false, commandBar: undefined }, () => {
-                    if (typeof onItemSaving === "function") {
-                        onItemSaving(sender, item);
-                    }
-                });
+                //this.setState({ isDirty: false }, () => {
+                if (typeof onItemSaving === "function") {
+                    onItemSaving(sender, item);
+                }
+                //});
             },
             (sender, item) => {
-                this.setState({ confirmClosePanel: false },
+                this.setState({ item: item, confirmClosePanel: false },
                     () => {
-                        if (typeof onItemSaved === "function") {
-                            onItemSaved(sender, item);
-                        }
+                        this.setState({ isDirty: false }, () => {
+                            if (typeof onItemSaved === "function") {
+                                onItemSaved(sender, item);
+                            }
+                        });
                     });
             },
             (sender, item) => {
-                this.setState({ isDirty: false, commandBar: undefined }, () => {
-                    if (typeof onItemDeleting === "function") {
-                        onItemDeleting(sender, item);
+                //this.setState({ isDirty: false }, () => {
+                if (typeof onItemDeleting === "function") {
+                    onItemDeleting(sender, item);
+                }
+                // });
+            },
+            (sender, item) => {
+                this.setState({ item: undefined, itemId: undefined }, () => {
+                    if (typeof (onItemDeleted) === "function") {
+                        onItemDeleted(sender, item);
                     }
                 });
             },
-            onItemDeleted,
-            onItemLoaded);
-
+            (sender, item) => {
+                this.setState({ item: item }, () => {
+                    this.setState({ isDirty: false }, () => {
+                        if (typeof (onItemLoaded) === "function") {
+                            onItemLoaded(sender, item);
+                        }
+                    });
+                });
+            });
 
         return (
             <div className="listform-panel-container" ref={this._container}>
@@ -159,7 +186,10 @@ export class ListFormPanel extends React.Component {
         const { isValid, isDirty } = this.state;
         if (this._listForm.current && isValid && isDirty) {
             this.setState({ isDirty: false });
-            return await this._listForm.current.saveItem();
+            let result = await this._listForm.current.saveItem();
+            if(!result.ok){
+              this.setState({ isDirty: true });
+            }
         }
     }
 
@@ -178,8 +208,7 @@ export class ListFormPanel extends React.Component {
     }
 
     _getCommandItems() {
-        const { item } = this.props;
-        const { mode, isValid, isDirty } = this.state;
+        const { item, mode, isValid, isDirty } = this.state;
         let isDeleting, isSaving;
         if (this._listForm.current) {
             isSaving = this._listForm.current.state.isSaving;

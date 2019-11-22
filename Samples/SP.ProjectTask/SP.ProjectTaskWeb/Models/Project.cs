@@ -21,13 +21,13 @@ namespace SP.ProjectTaskWeb.Models
             _tasks = new SpEntitySet<ProjectTask>();
         }
 
-        /*public ISpEntitySet<ProjectTask> Tasks
+        public ISpEntitySet<ProjectTask> Tasks
         {
             get
             {
                 return _tasks.Where(task => task.ProjectLookup == (object)this.Id).ToEntitySet();
             }
-        }*/
+        }
 
         public override string ContentTypeId
         {

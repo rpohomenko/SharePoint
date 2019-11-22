@@ -75,7 +75,7 @@ export class BaseListView extends React.Component {
                         compact={false}
                         columns={columns}
                         selection={this._selection}
-                        selectionMode ={isMultipleSelection ? SelectionMode.multiple : SelectionMode.single}
+                        selectionMode={isMultipleSelection ? SelectionMode.multiple : SelectionMode.single}
                         onItemInvoked={this._onItemInvoked}
                         onItemContextMenu={this._onItemContextMenu}
                         onRenderMissingItem={this._renderMissingItem}
@@ -134,16 +134,20 @@ export class BaseListView extends React.Component {
     }
 
     _getSelectionItems = () => {
-        return this._selection.getSelection();
+        const { isLoaded } = this.state;
+        return isLoaded ? this._selection.getSelection() : null;
     }
 
     _onSelectionChanged(selectionItems) {
         const { onSelect } = this.props;
-        this.setState({ selection: selectionItems }, () => {
-            if (typeof onSelect === "function") {
-                onSelect(selectionItems);
-            }
-        });
+        const { isLoaded } = this.state;
+        if (isLoaded) {
+            this.setState({ selection: selectionItems }, () => {
+                if (typeof onSelect === "function") {
+                    onSelect(selectionItems);
+                }
+            });
+        }
     }
 
     async _abort() {
@@ -457,7 +461,7 @@ export class BaseListView extends React.Component {
                 return { ok: false, data: error }; //error
             });
         }
-    }  
+    }
 
 }
 

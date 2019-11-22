@@ -18,11 +18,11 @@ export class AppService extends ApiService {
         return await this.get(`/api/web/tasks/${id}`, options);
     }
 
-    saveTask = async(item, options) => {      
-        if(item && item.Id > 0){
+    saveTask = async(item, options) => {
+        if (item && item.Id > 0) {
             return await this.put(`/api/web/tasks`, options, item);
         }
-        return await this.post(`/api/web/tasks`, options,  item);
+        return await this.post(`/api/web/tasks`, options, item);
     }
 
     deleteTask = async(ids, options) => {
@@ -39,20 +39,20 @@ export class AppService extends ApiService {
         return await this.get(`/api/web/projects/${id}`, options);
     }
 
-    saveProject = async(item, options) => {      
-        if(item && item.Id > 0){
+    saveProject = async(item, options) => {
+        if (item && item.Id > 0) {
             return await this.put(`/api/web/projects`, options, item);
         }
-        return await this.post(`/api/web/projects`, options,  item);
+        return await this.post(`/api/web/projects`, options, item);
     }
 
     deleteProject = async(ids, options) => {
         return await this.delete(`/api/web/projects?ids=${ids.join(',')}`, options);
     }
 
-     // Employees
+    // Employees
 
-     getEmployees = async(count, nextPageToken, sortBy, sortDesc, filter, options) => {
+    getEmployees = async(count, nextPageToken, sortBy, sortDesc, filter, options) => {
         return await this.get(`/api/web/employees?count=${count}&pagingToken=${encodeURIComponent(nextPageToken || "")}&where=${encodeURIComponent(filter || "")}&sortBy=${encodeURIComponent(sortBy || "")}&sortDesc=${sortDesc || false}`, options);
     }
 
@@ -60,11 +60,11 @@ export class AppService extends ApiService {
         return await this.get(`/api/web/employees/${id}`, options);
     }
 
-    saveEmployee = async(item, options) => {      
-        if(item && item.Id > 0){
+    saveEmployee = async(item, options) => {
+        if (item && item.Id > 0) {
             return await this.put(`/api/web/employees`, options, item);
         }
-        return await this.post(`/api/web/employees`, options,  item);
+        return await this.post(`/api/web/employees`, options, item);
     }
 
     deleteEmployee = async(ids, options) => {
@@ -81,11 +81,11 @@ export class AppService extends ApiService {
         return await this.get(`/api/web/departments/${id}`, options);
     }
 
-    saveDepartment = async(item, options) => {      
-        if(item && item.Id > 0){
+    saveDepartment = async(item, options) => {
+        if (item && item.Id > 0) {
             return await this.put(`/api/web/departments`, options, item);
         }
-        return await this.post(`/api/web/departments`, options,  item);
+        return await this.post(`/api/web/departments`, options, item);
     }
 
     deleteDepartment = async(ids, options) => {

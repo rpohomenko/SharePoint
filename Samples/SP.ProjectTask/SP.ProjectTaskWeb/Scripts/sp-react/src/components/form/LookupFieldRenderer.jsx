@@ -44,18 +44,18 @@ export class LookupFieldRenderer extends BaseFieldRenderer {
         let listView = null;
         if (typeof fieldProps.getListView === "function") {
             listView = fieldProps.getListView(
-            this._getCommandItems(),
-            (selection) => {
-                this.setState({ selection: selection });
-            },            
-            ()=>{
-                this.setState({selection: null});
-            },
-            ()=>{
-                this.setState({selection: null});
-            },
-            null,
-            null
+                this._getCommandItems(),
+                (selection) => {
+                    this.setState({ selection: selection });
+                },
+                () => {
+                    this.setState({ selection: null });
+                },
+                () => {
+                    this.setState({ selection: null });
+                },
+                null,
+                null
             );
         }
 
@@ -74,37 +74,38 @@ export class LookupFieldRenderer extends BaseFieldRenderer {
                     isFooterAtBottom={true}>
                     {listView}
                 </Panel>)}
-            <div className="input-group mb-3">
-                <TagPicker componentRef={this._picker}
-                    onResolveSuggestions={() => { }}
-                    selectedItems={items}
-                    onChange={(items) => this._onChange(items)}
-                    getTextFromItem={this._getTextFromItem}
-                    pickerSuggestionsProps={{
-                        suggestionsHeaderText: '',
-                        noResultsFoundText: ''
-                    }}
-                    disabled={disabled}
-                    inputProps={{
-                        disabled: true,
-                        readonly: true,
-                        onClick: (ev) => {
-                            ev.target.readOnly = true;
-                        },
-                        onBlur: (ev) => { },
-                        onFocus: (ev) => {
-                            ev.target.readOnly = true;
-                        },
-                        'aria-label': ''
-                    }}
-                />
-                <div className="input-group-append">
-                    <DefaultButton  disabled={disabled} onClick={(e) => this._showPanel()}>...</DefaultButton>
+            <div className="input-group row">
+              
+                    <TagPicker className="col-8" componentRef={this._picker}
+                        onResolveSuggestions={() => { }}
+                        selectedItems={items}
+                        onChange={(items) => this._onChange(items)}
+                        getTextFromItem={this._getTextFromItem}
+                        pickerSuggestionsProps={{
+                            suggestionsHeaderText: '',
+                            noResultsFoundText: ''
+                        }}
+                        disabled={disabled}
+                        inputProps={{
+                            disabled: true,
+                            readonly: true,
+                            onClick: (ev) => {
+                                ev.target.readOnly = true;
+                            },
+                            onBlur: (ev) => { },
+                            onFocus: (ev) => {
+                                ev.target.readOnly = true;
+                            },
+                            'aria-label': ''
+                        }}
+                    />
+                <div className="col-2">
+                    <DefaultButton disabled={disabled} onClick={(e) => this._showPanel()}>...</DefaultButton>
                 </div>
             </div>    </React.Fragment>);
     }
 
-    _getCommandItems = ()=>{
+    _getCommandItems = () => {
         const { selection } = this.state;
         return [{
             key: 'selectItem',
@@ -175,10 +176,10 @@ export class LookupFieldRenderer extends BaseFieldRenderer {
 }
 
 LookupFieldRenderer.propTypes = {
-    headerText: PropTypes.string  
+    headerText: PropTypes.string
 }
 
-LookupFieldRenderer.defaultProps = {   
+LookupFieldRenderer.defaultProps = {
     headerText: "Select..."
 }
 
