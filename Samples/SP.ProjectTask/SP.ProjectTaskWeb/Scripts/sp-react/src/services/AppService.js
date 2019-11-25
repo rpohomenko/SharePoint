@@ -91,4 +91,12 @@ export class AppService extends ApiService {
     deleteDepartment = async(ids, options) => {
         return await this.delete(`/api/web/departments?ids=${ids.join(',')}`, options);
     }
+
+    deploy = async(options) => {       
+        return await this.post(`/api/web/deploy`, options);
+    }
+
+    retract = async(options) => {       
+        return await this.post(`/api/web/retract`, options);
+    }
 }

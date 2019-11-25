@@ -1,9 +1,26 @@
 [role="main"] {
-    padding-top: 0px; /* Space for fixed navbar */
-  }
-  
-  @media (min-width: 768px) {
-    [role="main"] {
-      padding-top: 32px; /* Space for fixed navbar */
+  padding-top: 0px;
+  /* Space for fixed navbar */
+}
+
+@media (min-width: 768px) {
+  [role="main"] {
+    .breadcrumbs {
+      padding-top: 40px;
+      /* Space for fixed navbar */
     }
   }
+}
+
+.ms-Panel-header {
+  margin: 0 !important;
+}
+
+.ms-Panel-headerText{
+  font-weight: 300;
+}
+
+.ms-Breadcrumb-item {
+  font-weight: 400 !important;
+  color: darkgrey !important;
+}

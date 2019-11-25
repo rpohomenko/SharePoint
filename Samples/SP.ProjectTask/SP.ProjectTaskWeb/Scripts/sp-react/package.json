@@ -6,7 +6,10 @@
     "scripts": {
         "start": "webpack-dev-server --mode development --config webpack.dev.config --open",
         "build": "webpack --mode production --config webpack.prod.config",
-        "build:min": "webpack --mode production --config webpack.prod.min.config"
+        "build:min": "webpack --mode production --config webpack.prod.min.config",
+        "start:admin": "webpack-dev-server --mode development --config webpack.dev.admin.config --open",
+        "build:admin": "webpack --mode production --config webpack.prod.admin.config",
+        "build:admin:min": "webpack --mode production --config webpack.prod.admin.min.config"
     },
     "keywords": [],
     "author": "Ruslan Pakhomenka",

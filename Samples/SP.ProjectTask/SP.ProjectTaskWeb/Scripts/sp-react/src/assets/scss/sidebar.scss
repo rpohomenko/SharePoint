@@ -3,18 +3,30 @@
     bottom: 0;
     left: 0;
     z-index: 100;
-    padding: 34px 0 0 7px;
+    padding: 40px 0 0 0px;
     box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+    /*border-color: rgb(238, 238, 238);
+    border-style: solid;
+    border-width: 1px;*/
+
     @media (min-width: 768px) {
         .collapse {
             &:not(.show) {
                 display: block;
             }
         }
+
         .sidebar-menu {
-            height: calc(100vh - 34px);
+            height: calc(100vh - 42px);
+            margin-right: 0;
         }
+
+        .navbar-brand {
+            display: none;
+        }
+
     }
+
     .navbar {
         padding: 0 0;
     }
@@ -23,9 +35,12 @@
 .sidebar-menu {
     position: relative;
     top: 0;
-    height: calc(50vh - 34px);
-    margin-right: .5rem;
-    padding-top: .5rem;
+    height: calc(50vh - 42px);   
     overflow-x: hidden;
     overflow-y: auto;
+}
+
+.navbar-brand {
+    display: block;
+    margin-left: 1rem;
 }

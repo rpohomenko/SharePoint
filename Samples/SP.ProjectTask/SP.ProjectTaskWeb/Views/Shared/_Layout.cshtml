@@ -4,23 +4,31 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@ViewBag.Title</title>
-    @Styles.Render("~/Content/css")
+    @if (this.ViewContext.RouteData.Values["action"].ToString() == "Admin")
+    {
+        @Styles.Render("~/Content/admin/css")
+    }
+    else
+    {
+        @Styles.Render("~/Content/css")
+    }
     @Scripts.Render("~/bundles/modernizr")
 </head>
 <body>
     @if (ViewBag.PageContextInfo != null)
     {
         <script type="text/javascript">
-                window._spPageContextInfo = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.PageContextInfo));
+            window._spPageContextInfo = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.PageContextInfo));
+            window._isAppInstalled = @Html.Raw(ViewBag.IsAppInstalled ? "true": "false");
         </script>
     }
-    @RenderBody()
 
     @Scripts.Render("~/bundles/jquery")
     @Scripts.Render("~/bundles/bootstrap")
     @Scripts.Render("~/bundles/spcontext")
-    @Scripts.Render("~/bundles/vendor")
-    @Scripts.Render("~/bundles/main")
+
+    @RenderBody()
+
     @RenderSection("scripts", required: false)
 </body>
 </html>

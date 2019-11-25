@@ -150,7 +150,7 @@ export class BaseListView extends React.Component {
         }
     }
 
-    async _abort() {
+    _abort = async() => {
         if (this._controllers != null) {
             try {
                 this._controllers.forEach(c => {
@@ -433,7 +433,7 @@ export class BaseListView extends React.Component {
         });
     }
 
-    async _onPromise(promise, onSuccess) {
+    _onPromise = async (promise, onSuccess) => {
         if (promise) {
             return await promise.then(response => {
                 if (response.ok) {
@@ -462,7 +462,6 @@ export class BaseListView extends React.Component {
             });
         }
     }
-
 }
 
 BaseListView.propTypes = {

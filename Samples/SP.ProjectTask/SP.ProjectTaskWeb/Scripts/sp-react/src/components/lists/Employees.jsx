@@ -34,7 +34,7 @@ export class EmployeeList extends BaseListView {
     const { selection } = this.state;
     return (
       <div className="projects-container" style={{
-        height: '80vh',
+        height: '70vh',
         position: 'relative'
       }}>
         <ScrollablePane scrollbarVisibility={ScrollbarVisibility.auto}>

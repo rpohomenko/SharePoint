@@ -1,5 +1,5 @@
 ﻿@{
-    ViewBag.Title = ViewBag.PageContextInfo.WebTitle;
+    ViewBag.Title = $"{ViewBag.PageContextInfo.WebTitle} - Administration";
 }
 
 <div id="app-container">
@@ -11,4 +11,4 @@
 </div>
 
 @Scripts.Render("~/bundles/vendor")
-@Scripts.Render("~/bundles/main")
+@Scripts.Render("~/bundles/admin/main")

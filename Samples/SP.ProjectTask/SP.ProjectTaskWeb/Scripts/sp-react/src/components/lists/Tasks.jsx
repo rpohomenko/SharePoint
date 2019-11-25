@@ -40,7 +40,7 @@ export class TaskList extends BaseListView {
     const { selection } = this.state;
     return (
       <div className="tasks-container" style={{
-        height: '80vh',
+        height: '70vh',
         position: 'relative'
       }}>
         <ScrollablePane scrollbarVisibility={ScrollbarVisibility.auto}>
@@ -157,7 +157,8 @@ export class TaskList extends BaseListView {
   }
 
   _renderProjectForm = (ref) => {
-    return <ProjectFormPanel ref={ref} service={this.props.service}   
+    return <ProjectFormPanel ref={ref} service={this.props.service}
+      viewItemHeader="View Project" editItemHeader="Edit Project" newItemHeader="New Project"
       onItemDeleted={() => {
         this.refresh();
         if (this._command && this._command._status) {

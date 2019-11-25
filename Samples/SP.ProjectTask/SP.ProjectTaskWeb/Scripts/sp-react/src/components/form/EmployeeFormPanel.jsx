@@ -14,7 +14,7 @@ export class EmployeeFormPanel extends ListFormPanel {
         return super.render();
     }
 
-    _renderListForm = (mode, ref, item, itemId, onRenderCommandBar, onValidate, onChangeMode, onCloseForm, onItemSaving, onItemSaved, onItemDeleting, onItemDeleted) => {
+    _renderListForm = (mode, ref, item, itemId, onRenderCommandBar, onValidate, onChangeMode, onCloseForm, onItemSaving, onItemSaved, onItemDeleting, onItemDeleted, onItemLoaded) => {
         return (<EmployeeForm ref={ref} service={this.props.service} mode={mode}
             item={mode < 2 ? item : undefined} itemId={mode < 2 ? itemId : undefined}
             onRenderCommandBar={onRenderCommandBar}

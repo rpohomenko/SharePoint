@@ -26,6 +26,14 @@
           "${command:workbench.action.tasks.terminate}",
           "${command:workbench.action.acceptSelectedQuickOpenItem}",
        ],
-     }, 
+     },
+     {
+      "type": "npm",
+      "label": "run start admin webpack",
+      "script": "start:admin", 
+      "options": {
+          "cwd": "${workspaceFolder}"
+      }    
+    }, 
     ]
   }

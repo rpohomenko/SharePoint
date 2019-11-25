@@ -34,7 +34,7 @@ export class DepartmentList extends BaseListView {
     const { selection } = this.state;
     return (
       <div className="projects-container" style={{
-        height: '80vh',
+        height: '70vh',
         position: 'relative'
       }}>
         <ScrollablePane scrollbarVisibility={ScrollbarVisibility.auto}>
@@ -136,7 +136,7 @@ export class DepartmentList extends BaseListView {
 }
 
 const Departments = (props) => {
-  return (<DepartmentList service={props.service} pageSize={30} emptyMessage="There are no Departments." />);
+  return (<DepartmentList service={props.service} pageSize={30} emptyMessage="There are no departments." />);
 };
 
 export default Departments;

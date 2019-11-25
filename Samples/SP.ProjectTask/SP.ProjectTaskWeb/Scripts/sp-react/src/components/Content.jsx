@@ -103,12 +103,12 @@ class Content extends React.Component {
         const { selectedTab } = this.state;
 
         return (
-            <div>
+            <>
                 <Breadcrumb className="breadcrumbs" items={this._getBreadcrumbs(contentId)}
                     maxDisplayedItems={maxBreadcrumbs}
                 />
                 {this._getContent(contentId, selectedTab, service)}
-            </div>
+            </>
         );
     }
 }

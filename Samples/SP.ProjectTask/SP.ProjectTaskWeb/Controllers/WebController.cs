@@ -289,14 +289,45 @@ namespace SP.ProjectTaskWeb.Controllers
 
         [Route("deploy")]
         [HttpPost]
-        public void Deploy()
+        public IHttpActionResult Deploy()
         {
-            using (ClientContext context = _tokenHelper.CreateClientContext())
+            try
             {
-                ProjectTaskContext projectTaskContext = new ProjectTaskContext(context);
-                ProjectTaskProvisionModel<SpDataContext> projectTaskProvisionModel = projectTaskContext.CreateModel();
-                projectTaskProvisionModel.UnProvision();
-                projectTaskProvisionModel.Provision();
+                using (ClientContext context = new Authentication.LowTrustTokenHelper(_tokenHelper).GetUserClientContext())
+                {
+                    ProjectTaskContext projectTaskContext = new ProjectTaskContext(context);
+                    ProjectTaskProvisionModel<SpDataContext> projectTaskProvisionModel = projectTaskContext.CreateModel();
+                    projectTaskProvisionModel.UnProvision(true);
+                    projectTaskProvisionModel.Provision();
+                    Helper.SetAppInstalled(context, true);
+                    return Json(new { ok = true });
+                }
+            }
+
+            catch (Exception ex)
+            {
+                return new JsonErrorResult(ex);
+            }
+        }
+
+        [Route("retract")]
+        [HttpPost]
+        public IHttpActionResult Retract()
+        {
+            try
+            {
+                using (ClientContext context = new Authentication.LowTrustTokenHelper(_tokenHelper).GetUserClientContext())
+                {
+                    ProjectTaskContext projectTaskContext = new ProjectTaskContext(context);
+                    ProjectTaskProvisionModel<SpDataContext> projectTaskProvisionModel = projectTaskContext.CreateModel();
+                    projectTaskProvisionModel.UnProvision();
+                    Helper.SetAppInstalled(context, false);
+                    return Json(new { ok = true });
+                }
+            }
+            catch (Exception ex)
+            {
+                return new JsonErrorResult(ex);
             }
         }
 

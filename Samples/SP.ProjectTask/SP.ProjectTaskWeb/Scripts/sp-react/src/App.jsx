@@ -36,7 +36,7 @@ export class App extends React.Component {
                         <div className="col-md-2 d-md-block bg-light sidebar sticky-top">
                             {<SidebarMenu ref={(ref) => this._sidebar = ref} className="col-md-2 d-none d-md-block bg-light sidebar" selectedKey={contentId} onRoute={onRoute} isOpen={false} />}
                         </div>
-                        <div role="main" className="col-md-9 ml-sm-auto col-md-10 px-4">
+                        <div role="main" className="col-md-9 ml-sm-auto col-md-10 px-2">
                             <Content service={service} contentId={contentId} onRoute={onRoute} />
                         </div>
                     </div>
