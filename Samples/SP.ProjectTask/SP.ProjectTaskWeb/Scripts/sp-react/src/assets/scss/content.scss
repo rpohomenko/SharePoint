@@ -5,9 +5,9 @@
 
 @media (min-width: 768px) {
   [role="main"] {
-    .breadcrumbs {
-      padding-top: 40px;
-      /* Space for fixed navbar */
+    padding-top: 40px;
+    .content {
+      height: calc(80vh - 10px); 
     }
   }
 }
@@ -16,11 +16,27 @@
   margin: 0 !important;
 }
 
-.ms-Panel-headerText{
+.ms-Panel-headerText {
   font-weight: 300;
 }
 
 .ms-Breadcrumb-item {
   font-weight: 400 !important;
   color: darkgrey !important;
+}
+
+.ms-CommandBar {
+  padding: 0.5rem;
+}
+
+.breadcrumbs {
+  margin: 0;
+  height: 40px;
+}
+
+[role="main"] {
+  height: 100vh;
+  .content {   
+    position: relative;
+  }
 }

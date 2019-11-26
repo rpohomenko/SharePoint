@@ -30,11 +30,11 @@ export class ProjectList extends BaseListView {
   }
 
   render() {
-    const { onItemSaving, onItemSaved, onItemDeleting, onItemDeleted, commandItems } = this.props;
+    const { onItemSaving, onItemSaved, onItemDeleting, onItemDeleted, commandItems, style } = this.props;
     const { selection } = this.state;
     return (
       <div className="projects-container" style={{
-        height: '70vh',
+        height: 'calc(100vh - 160px)',
         position: 'relative'
       }}>
         <ScrollablePane scrollbarVisibility={ScrollbarVisibility.auto}>
@@ -136,7 +136,7 @@ export class ProjectList extends BaseListView {
 }
 
 const Projects = (props) => {
-  return (<ProjectList service={props.service} pageSize={30} emptyMessage="There are no projects." />);
+  return (<ProjectList service={props.service} pageSize={10} emptyMessage="There are no projects." />);
 };
 
 export default Projects;

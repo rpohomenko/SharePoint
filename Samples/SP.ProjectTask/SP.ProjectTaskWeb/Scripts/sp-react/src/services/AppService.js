@@ -62,6 +62,7 @@ export class AppService extends ApiService {
 
     saveEmployee = async(item, options) => {
         if (item && item.Id > 0) {
+            item.FullName = `${item.FirstName} ${item.LastName}`;
             return await this.put(`/api/web/employees`, options, item);
         }
         return await this.post(`/api/web/employees`, options, item);

@@ -7,7 +7,7 @@ import { CommandBar } from 'office-ui-fabric-react/lib/CommandBar';
 import { CommandBarButton } from 'office-ui-fabric-react/lib/Button';
 import { StatusBar } from '../StatusBar';
 import { ScrollablePane, ScrollbarVisibility } from 'office-ui-fabric-react/lib/ScrollablePane';
-import { Sticky, StickyPositionType } from 'office-ui-fabric-react/lib/Sticky';
+//import { Sticky, StickyPositionType } from 'office-ui-fabric-react/lib/Sticky';
 import { Callout } from 'office-ui-fabric-react';
 import { DefaultButton, PrimaryButton } from 'office-ui-fabric-react/lib/Button';
 import { Dialog, DialogFooter, DialogType } from 'office-ui-fabric-react/lib/Dialog';
@@ -61,51 +61,45 @@ export class ListForm extends React.Component {
                     onRenderItem={this._onRenderCommandItem} />);
             }
             return (
-                <div className='form-container' ref={this._container} style={{
-                    height: '80vh',
-                    position: 'relative'
-                }}>
-                    <ScrollablePane scrollbarVisibility={ScrollbarVisibility.auto}>
-                        <Sticky stickyPosition={StickyPositionType.Header} isScrollSynced={true}>
-                            <div ref={this._commandNode}>
-                                {commandBar}
-                                <StatusBar ref={ref => this._status = ref} />
-                                {_progressIndicator}
-                            </div>
-                        </Sticky>
-                        {
-                            isLoading ? (<ProgressIndicator label={"Loading..."} />)
-                                : fields.map((field, i) =>
-                                    (<FormField ref={ref => {
-                                        if (ref != null) {
-                                            let formFields = this._formFields = this._formFields || [];
-                                            formFields.push(ref);
-                                        }
-                                    }} disabled={isLoading || isDeleting || isSaving} key={field.name} item={item} fieldProps={field} mode={mode} onValidate={this._onValidate} />))
-                        }
-                        {confirmDeletion &&
-                            (<Dialog
-                                hidden={!confirmDeletion}
-                                onDismiss={() => this.setState({ confirmDeletion: false })}
-                                dialogContentProps={{
-                                    type: DialogType.normal,
-                                    title: 'Delete?',
-                                    subText: 'Are you sure you want to delete the item(s)?'
-                                }}
-                                modalProps={{
-                                    isBlocking: true,
-                                    styles: { main: { maxWidth: 450 } }
-                                }}>
-                                <DialogFooter>
-                                    <PrimaryButton onClick={() => {
-                                        this.deleteItem();
-                                        this.setState({ confirmDeletion: false });
-                                    }} text="Yes" />
-                                    <DefaultButton onClick={() => this.setState({ confirmDeletion: false })} text="No" />
-                                </DialogFooter>
-                            </Dialog>)
-                        }
-                    </ScrollablePane> </div>
+                <div className='form-container' ref={this._container}>
+                    <div ref={this._commandNode}>
+                        {commandBar}
+                        <StatusBar ref={ref => this._status = ref} />
+                        {_progressIndicator}
+                    </div>
+                    {
+                        isLoading ? (<ProgressIndicator label={"Loading..."} />)
+                            : fields.map((field, i) =>
+                                (<FormField ref={ref => {
+                                    if (ref != null) {
+                                        let formFields = this._formFields = this._formFields || [];
+                                        formFields.push(ref);
+                                    }
+                                }} disabled={isLoading || isDeleting || isSaving} key={field.name} item={item} fieldProps={field} mode={mode} onValidate={this._onValidate} />))
+                    }
+                    {confirmDeletion &&
+                        (<Dialog
+                            hidden={!confirmDeletion}
+                            onDismiss={() => this.setState({ confirmDeletion: false })}
+                            dialogContentProps={{
+                                type: DialogType.normal,
+                                title: 'Delete?',
+                                subText: 'Are you sure you want to delete the item(s)?'
+                            }}
+                            modalProps={{
+                                isBlocking: true,
+                                styles: { main: { maxWidth: 450 } }
+                            }}>
+                            <DialogFooter>
+                                <PrimaryButton onClick={() => {
+                                    this.deleteItem();
+                                    this.setState({ confirmDeletion: false });
+                                }} text="Yes" />
+                                <DefaultButton onClick={() => this.setState({ confirmDeletion: false })} text="No" />
+                            </DialogFooter>
+                        </Dialog>)
+                    }
+                </div >
             );
         }
         return null;

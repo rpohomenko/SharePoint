@@ -20,6 +20,22 @@ class Content extends React.Component {
 
     }
 
+    render() {
+        const { contentId, maxBreadcrumbs, service } = this.props;
+        const { selectedTab } = this.state;
+
+        return (
+            <>
+                <Breadcrumb className="breadcrumbs" items={this._getBreadcrumbs(contentId)}
+                    maxDisplayedItems={maxBreadcrumbs}
+                />
+                <div className="content">
+                    {this._getContent(contentId, selectedTab, service)}
+                </div>
+            </>
+        );
+    }
+
     _onPivotHandle = (item) => {
         this.setState({
             selectedTab: item.props.itemKey
@@ -78,13 +94,13 @@ class Content extends React.Component {
                 break;
             default:
                 const pivotContent = {
-                    "tasks": (<Tasks service={service}></Tasks>),
-                    "projects": (<Projects service={service}></Projects>),
-                    "employees": (<Employees service={service}></Employees>),
+                    "tasks": (<Tasks service={service} />),
+                    "projects": (<Projects service={service} />),
+                    "employees": (<Employees service={service} />),
                     "departments": (<Departments service={service} />)
                 };
 
-                content = (<div>
+                content = (<>
                     <Pivot selectedKey={selectedTab} onLinkClick={this._onPivotHandle} headersOnly={true} getTabId={this._getTabId}>
                         <PivotItem headerText="Tasks" itemKey="tasks" />
                         <PivotItem headerText="Projects" itemKey="projects" />
@@ -92,24 +108,10 @@ class Content extends React.Component {
                         <PivotItem headerText="Departments" itemKey="departments" />
                     </Pivot>
                     {pivotContent[selectedTab]}
-                </div>);
+                </>);
                 break;
         }
         return content;
-    }
-
-    render() {
-        const { contentId, maxBreadcrumbs, service } = this.props;
-        const { selectedTab } = this.state;
-
-        return (
-            <>
-                <Breadcrumb className="breadcrumbs" items={this._getBreadcrumbs(contentId)}
-                    maxDisplayedItems={maxBreadcrumbs}
-                />
-                {this._getContent(contentId, selectedTab, service)}
-            </>
-        );
     }
 }
 

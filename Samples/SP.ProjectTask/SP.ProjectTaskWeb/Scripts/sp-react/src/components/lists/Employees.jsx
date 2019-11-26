@@ -30,11 +30,11 @@ export class EmployeeList extends BaseListView {
   }
 
   render() {
-    const { onItemSaving, onItemSaved, onItemDeleting, onItemDeleted, commandItems } = this.props;
+    const { onItemSaving, onItemSaved, onItemDeleting, onItemDeleted, commandItems, style } = this.props;
     const { selection } = this.state;
     return (
-      <div className="projects-container" style={{
-        height: '70vh',
+      <div className="employees-container" style={{
+        height: 'calc(100vh - 160px)',
         position: 'relative'
       }}>
         <ScrollablePane scrollbarVisibility={ScrollbarVisibility.auto}>
@@ -136,7 +136,7 @@ export class EmployeeList extends BaseListView {
 }
 
 const Employees = (props) => {
-  return (<EmployeeList service={props.service} pageSize={30} emptyMessage="There are no employees." />);
+  return (<EmployeeList service={props.service} pageSize={10} emptyMessage="There are no employees." />);
 };
 
 export default Employees;

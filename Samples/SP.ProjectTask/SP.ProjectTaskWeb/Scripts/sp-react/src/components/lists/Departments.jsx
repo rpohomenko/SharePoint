@@ -30,11 +30,11 @@ export class DepartmentList extends BaseListView {
   }
 
   render() {
-    const { onItemSaving, onItemSaved, onItemDeleting, onItemDeleted, commandItems } = this.props;
+    const { onItemSaving, onItemSaved, onItemDeleting, onItemDeleted, commandItems, style } = this.props;
     const { selection } = this.state;
     return (
-      <div className="projects-container" style={{
-        height: '70vh',
+      <div className="departments-container" style={{
+        height: 'calc(100vh - 160px)',
         position: 'relative'
       }}>
         <ScrollablePane scrollbarVisibility={ScrollbarVisibility.auto}>
@@ -98,6 +98,22 @@ export class DepartmentList extends BaseListView {
         onColumnClick: this._onColumnClick,
         data: 'string',
         isPadded: false        
+      },
+      {
+        key: 'shortName',
+        name: 'Short Name',
+        fieldName: 'ShortName',
+        minWidth: 210,
+        maxWidth: 350,
+        isRowHeader: false,
+        isResizable: false,
+        isSorted: false,
+        isSortedDescending: false,
+        sortAscendingAriaLabel: 'A to Z',
+        sortDescendingAriaLabel: 'Z to A',
+        onColumnClick: this._onColumnClick,
+        data: 'string',
+        isPadded: false        
       }
     ];
     return columns;
@@ -136,7 +152,7 @@ export class DepartmentList extends BaseListView {
 }
 
 const Departments = (props) => {
-  return (<DepartmentList service={props.service} pageSize={30} emptyMessage="There are no departments." />);
+  return (<DepartmentList service={props.service} pageSize={10} emptyMessage="There are no departments." />);
 };
 
 export default Departments;

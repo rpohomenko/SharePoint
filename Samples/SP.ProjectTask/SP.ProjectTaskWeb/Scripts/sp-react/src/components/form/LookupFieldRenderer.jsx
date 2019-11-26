@@ -6,6 +6,7 @@ import { DefaultButton, PrimaryButton } from 'office-ui-fabric-react/lib/Button'
 import { Panel, PanelType } from 'office-ui-fabric-react/lib/Panel';
 
 import { BaseFieldRenderer } from './BaseFieldRenderer';
+import { isArray } from "util";
 
 export class LookupFieldRenderer extends BaseFieldRenderer {
     constructor(props) {
@@ -39,7 +40,9 @@ export class LookupFieldRenderer extends BaseFieldRenderer {
             }
         }
         else {
-            items = value;
+            if (isArray(value)) {
+              items = value;
+            }
         }
         let listView = null;
         if (typeof fieldProps.getListView === "function") {

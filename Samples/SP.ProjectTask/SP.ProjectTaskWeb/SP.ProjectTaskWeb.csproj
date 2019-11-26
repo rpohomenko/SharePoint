@@ -360,8 +360,12 @@
     <Content Include="Scripts\popper-utils.min.js" />
     <Content Include="Scripts\popper.js" />
     <Content Include="Scripts\popper.min.js" />
+    <Content Include="Scripts\sp-react\dist\css\main.admin.css" />
+    <Content Include="Scripts\sp-react\dist\css\main.admin.min.css" />
     <Content Include="Scripts\sp-react\dist\css\main.css" />
     <Content Include="Scripts\sp-react\dist\css\main.min.css" />
+    <Content Include="Scripts\sp-react\dist\js\main.admin.bundle.js" />
+    <Content Include="Scripts\sp-react\dist\js\main.admin.bundle.min.js" />
     <Content Include="Scripts\sp-react\dist\js\main.bundle.js" />
     <Content Include="Scripts\sp-react\dist\js\main.bundle.min.js" />
     <Content Include="Scripts\sp-react\dist\js\vendor.bundle.js" />
@@ -398,6 +402,8 @@
     <Content Include="Views\Home\Admin.cshtml">
       <BrowseToURL>~/Home/Admin</BrowseToURL>
     </Content>
+    <Content Include="Scripts\sp-react\dist\css\main.admin.css.map" />
+    <Content Include="Scripts\sp-react\dist\js\main.admin.bundle.js.map" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

@@ -3,7 +3,7 @@
     bottom: 0;
     left: 0;
     z-index: 100;
-    padding: 40px 0 0 0px;
+    padding: 40px 5px 0 5px;
     box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
     /*border-color: rgb(238, 238, 238);
     border-style: solid;
@@ -38,6 +38,7 @@
     height: calc(50vh - 42px);   
     overflow-x: hidden;
     overflow-y: auto;
+    border: none;
 }
 
 .navbar-brand {

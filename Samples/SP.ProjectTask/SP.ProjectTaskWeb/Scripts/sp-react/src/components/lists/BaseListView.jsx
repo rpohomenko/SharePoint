@@ -40,6 +40,7 @@ export class BaseListView extends React.Component {
 
         this._nextActionHostId = getId('nextActionHost');
         this._container = React.createRef();
+        this._list = React.createRef();
     }
 
     async componentDidMount() {
@@ -69,8 +70,8 @@ export class BaseListView extends React.Component {
                         </Stack>
                     </Callout>)}
                 <MarqueeSelection selection={this._selection}>
-                    <ShimmeredDetailsList
-                        ref={ref => this._list = ref}
+                    <ShimmeredDetailsList                      
+                        listProps= { {ref: this._list}}
                         items={items}
                         compact={false}
                         columns={columns}
@@ -150,7 +151,7 @@ export class BaseListView extends React.Component {
         }
     }
 
-    _abort = async() => {
+    _abort = async () => {
         if (this._controllers != null) {
             try {
                 this._controllers.forEach(c => {

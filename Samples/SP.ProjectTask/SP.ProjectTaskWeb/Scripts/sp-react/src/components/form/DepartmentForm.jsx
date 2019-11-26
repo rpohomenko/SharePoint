@@ -35,6 +35,13 @@ export class DepartmentForm extends ListForm {
             title: 'Title',
             required: true
         },
+        {
+            key: 'shortName',
+            name: 'ShortName',
+            type: 'text',
+            title: 'Short Name',
+            required: true
+        }
         ];
     }
 }

@@ -178,6 +178,7 @@ export class ListFormPanel extends React.Component {
             {defaultRender(props, defaultRender, headerTextId)}
             <CommandBar ref={ref => this._commandBar = ref} styles={{ root: { paddingTop: 10 }, menuIcon: { fontSize: '16px' } }}
                 items={this._getCommandItems()}
+                farItems={this._getCommandFarItems()}
                 onRenderItem={this._onRenderCommandItem} />
         </div>);
     };
@@ -187,9 +188,19 @@ export class ListFormPanel extends React.Component {
         if (this._listForm.current && isValid && isDirty) {
             this.setState({ isDirty: false });
             let result = await this._listForm.current.saveItem();
-            if(!result.ok){
-              this.setState({ isDirty: true });
+            if (!result.ok) {
+                this.setState({ isDirty: true });
             }
+        }
+    }
+
+    _refresh = async () => {
+        const { itemId, item } = this.state;
+        if (this._listForm.current) {
+            this.setState({ isDirty: false, isRefreshing: true });
+            return await this._listForm.current.loadItem(item ? item.Id : itemId).then((result) => {
+                this.setState({ isRefreshing: false });
+            });
         }
     }
 
@@ -265,6 +276,29 @@ export class ListFormPanel extends React.Component {
         }
 
         return items;
+    }
+
+    _getCommandFarItems() {
+        let isDeleting, isSaving, isLoading;
+        if (this._listForm.current) {
+            isSaving = this._listForm.current.state.isSaving;
+            isDeleting = this._listForm.current.state.isDeleting;
+            isLoading = this._listForm.current.state.isLoading;
+        }
+        const { mode, isRefreshing } = this.state;
+        if (mode === 0 || mode === 1) {
+            return [{
+                key: 'refresh',
+                icon: 'Refresh',
+                text: '',
+                disabled: isDeleting || isSaving || isLoading || isRefreshing,
+                onClick: (e, sender) => this._refresh(),
+                iconProps: {
+                    iconName: 'Refresh'
+                },
+                ariaLabel: 'Refresh'
+            }];
+        }
     }
 
     _onRenderCommandItem = (item) => {

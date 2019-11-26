@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { ListForm } from './ListForm';
-import { Projects, ProjectList } from '../lists/Projects';
+import { ProjectList } from '../lists/Projects';
 
 export class TaskForm extends ListForm {
 
@@ -47,7 +47,7 @@ export class TaskForm extends ListForm {
             isMultiple: false,
             required: true,
             getListView: (commandItems, onSelect, onSaving, onDeleting, onSaved, onDeleted) => {
-              return <ProjectList service={service} pageSize={30} isMultipleSelection={false} commandItems={commandItems} emptyMessage="There are no projects." onSelect={onSelect} onItemSaving={onSaving} onItemDeleting={onDeleting} />;//(<Projects service={service}></Projects>);
+              return <ProjectList service={service} pageSize={10} isMultipleSelection={false} commandItems={commandItems} emptyMessage="There are no projects." onSelect={onSelect} onItemSaving={onSaving} onItemDeleting={onDeleting} />;
             }
         }];
     }
