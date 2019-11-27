@@ -6,8 +6,9 @@
 @media (min-width: 768px) {
   [role="main"] {
     padding-top: 40px;
+
     .content {
-      height: calc(80vh - 10px); 
+      height: calc(80vh - 10px);
     }
   }
 }
@@ -36,7 +37,15 @@
 
 [role="main"] {
   height: 100vh;
-  .content {   
+
+  .content {
     position: relative;
   }
+}
+
+.form-field {
+  padding: 5px 5px;
+.form-field-label {
+  color: darkgrey;
+}
 }

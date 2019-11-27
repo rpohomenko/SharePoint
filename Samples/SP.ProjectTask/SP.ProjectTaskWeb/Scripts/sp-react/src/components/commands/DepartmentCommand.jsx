@@ -30,8 +30,8 @@ export class DepartmentCommand extends BaseListViewCommand {
         </div>);
     }
 
-    _renderListFormPanel = (item, ref, service, onItemSaving, onItemSaved, onItemDeleting, onItemDeleted) => {
-        return (<DepartmentFormPanel item={item} ref={ref} service={service} onRenderListForm={this._renderListForm}
+    _renderListFormPanel = (item, ref, service, canAddListItems, onItemSaving, onItemSaved, onItemDeleting, onItemDeleted) => {
+        return (<DepartmentFormPanel item={item} ref={ref} service={service} canAddListItems={canAddListItems} onRenderListForm={this._renderListForm}
             onItemSaving={onItemSaving} onItemSaved={(sender, result) => {
                 if(this._status){
                   this._status.success("Saved successfully.", this.props.STATUS_TIMEOUT);

@@ -46,7 +46,7 @@ export class FormField extends React.Component {
         return (
             <div className="form-field">
                 <Stack horizontal verticalAlign="center" styles={{ root: { padding: 2 } }}>
-                    <Label required={fieldProps.required}>{fieldProps.title}</Label>
+                    <Label className="form-field-label" required={fieldProps.required}>{fieldProps.title}</Label>
                     {fieldProps.description &&
                         (<IconButton
                             id={this._iconButtonId}

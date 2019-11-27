@@ -9,7 +9,7 @@ namespace SP.ProjectTaskWeb.Models
 {
   [ContentType(Name = "Department", Id = "0x01004BF822E9207E43869D826290F33C909C", Level = ProvisionLevel.List, Behavior = ProvisionBehavior.Default)]
   [List(Title = "Departments", Url = "Lists/Departments", Behavior = ProvisionBehavior.Default)]
-  public class Department : ListItemEntity
+  public class Department : Entity
   {
     private readonly SpEntitySet<Employee> _employees;
 

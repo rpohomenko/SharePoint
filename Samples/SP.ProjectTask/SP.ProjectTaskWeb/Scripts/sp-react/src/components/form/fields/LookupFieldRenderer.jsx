@@ -27,6 +27,11 @@ export class LookupFieldRenderer extends BaseFieldRenderer {
     }
 
     _renderDispForm() {
+        if(isArray(this.props.value)){
+            return this.props.value.map((lv, i) => {
+                return (<Label>{lv ? lv.Value : ''}</Label>);
+            });
+        }
         return (<Label>{this.props.value ? this.props.value.Value : ''}</Label>);
     }
 
@@ -79,7 +84,7 @@ export class LookupFieldRenderer extends BaseFieldRenderer {
                 </Panel>)}
             <div className="input-group row">
               
-                    <TagPicker className="col-8" componentRef={this._picker}
+                    <TagPicker className="col-10" componentRef={this._picker}
                         onResolveSuggestions={() => { }}
                         selectedItems={items}
                         onChange={(items) => this._onChange(items)}

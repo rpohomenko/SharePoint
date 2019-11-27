@@ -37,14 +37,14 @@ export class TaskList extends BaseListView {
 
   render() {
     const { onItemSaving, onItemSaved, onItemDeleting, onItemDeleted, commandItems, styles } = this.props;
-    const { selection } = this.state;
+    const { selection, canAddListItems } = this.state;
     return (
       <div className="tasks-container" style={{
           height: 'calc(100vh - 160px)',
           position: 'relative' }}>
         <ScrollablePane scrollbarVisibility={ScrollbarVisibility.auto}>
           <Sticky stickyPosition={StickyPositionType.Header} isScrollSynced={true}>
-            <TaskCommand ref={ref => this._command = ref} commandItems={commandItems} service={this._service} selection={selection} onRefresh={() => this.refresh(true)}
+            <TaskCommand ref={ref => this._command = ref} canAddListItems={canAddListItems} commandItems={commandItems} service={this._service} selection={selection} onRefresh={() => this.refresh(true)}
               onItemDeleted={this._onItemDeleted} onItemSaved={this._onItemSaved} onItemSaving={onItemSaving} onItemDeleting={onItemDeleting} />
           </Sticky>
           {super.render()}

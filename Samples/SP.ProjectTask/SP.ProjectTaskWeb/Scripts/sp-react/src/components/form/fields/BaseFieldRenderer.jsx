@@ -1,5 +1,5 @@
 import * as React from 'react';
-import ErrorBoundary from '../../ErrorBoundary';
+import ErrorBoundary from '../../../ErrorBoundary';
 
 export class BaseFieldRenderer extends React.Component {
     constructor(props) {

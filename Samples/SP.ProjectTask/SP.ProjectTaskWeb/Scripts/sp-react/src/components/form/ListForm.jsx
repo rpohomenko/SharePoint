@@ -1,17 +1,18 @@
 import * as React from 'react';
-import { FormField } from './FormField';
+import { FormField } from './fields/FormField';
 //import { Spinner, SpinnerSize } from 'office-ui-fabric-react/lib/Spinner';
 //import { Stack } from 'office-ui-fabric-react/lib/Stack';
 import { ProgressIndicator } from 'office-ui-fabric-react/lib/ProgressIndicator';
-import { CommandBar } from 'office-ui-fabric-react/lib/CommandBar';
+//import { CommandBar } from 'office-ui-fabric-react/lib/CommandBar';
 import { CommandBarButton } from 'office-ui-fabric-react/lib/Button';
-import { StatusBar } from '../StatusBar';
-import { ScrollablePane, ScrollbarVisibility } from 'office-ui-fabric-react/lib/ScrollablePane';
+//import { ScrollablePane, ScrollbarVisibility } from 'office-ui-fabric-react/lib/ScrollablePane';
 //import { Sticky, StickyPositionType } from 'office-ui-fabric-react/lib/Sticky';
 import { Callout } from 'office-ui-fabric-react';
 import { DefaultButton, PrimaryButton } from 'office-ui-fabric-react/lib/Button';
 import { Dialog, DialogFooter, DialogType } from 'office-ui-fabric-react/lib/Dialog';
 import { isArray } from 'util';
+
+import { StatusBar } from '../StatusBar';
 
 export class ListForm extends React.Component {
 
@@ -37,7 +38,7 @@ export class ListForm extends React.Component {
         }
         if (mode === 2 || mode === 1) {
             //this._validate(true, false);
-            this.validate();
+            this.validate(true);
         }
     }
 
@@ -53,12 +54,12 @@ export class ListForm extends React.Component {
             let _progressIndicator = this._getProgressIndicator();
             let commandBar;
             if (typeof onRenderCommandBar === "function") {
-                commandBar = onRenderCommandBar(isArray(commandItems) ? commandItems : this._getCommandItems(), this._onRenderCommandItem);
+                commandBar = onRenderCommandBar(isArray(commandItems) ? commandItems : /*this._getCommandItems()*/ [], this._onRenderCommandItem);
             }
             else {
-                commandBar = (<CommandBar ref={ref => this._commandBar = ref} styles={{ root: { paddingTop: 10 }, menuIcon: { fontSize: '16px' } }}
+               /* commandBar = (<CommandBar ref={ref => this._commandBar = ref} styles={{ root: { paddingTop: 10 }, menuIcon: { fontSize: '16px' } }}
                     items={isArray(commandItems) ? commandItems : this._getCommandItems()}
-                    onRenderItem={this._onRenderCommandItem} />);
+                    onRenderItem={this._onRenderCommandItem} />);*/
             }
             return (
                 <div className='form-container' ref={this._container}>
@@ -154,7 +155,7 @@ export class ListForm extends React.Component {
         }
     }
 
-    _getCommandItems() {
+  /* _getCommandItems() {
         const { mode, item, isDeleting, isSaving, isValid, isDirty } = this.state;
         let items = [];
 
@@ -205,7 +206,7 @@ export class ListForm extends React.Component {
         }
 
         return items;
-    }
+    }*/
 
     _onRenderCommandItem = (item) => {
         return (
@@ -399,12 +400,12 @@ export class ListForm extends React.Component {
         return isValid && isDirty;
     }
 
-    validate() {
+    validate(ignoreErrors) {
         let isValid = true;
         let isDirty = false;
         if (this._formFields) {
             for (let i = 0; i < this._formFields.length; i++) {
-                if (!this._formFields[i].validate()) {
+                if (!this._formFields[i].validate(ignoreErrors)) {
                     isValid = false;
                 }
                 if (this._formFields[i].isDirty()) {
@@ -448,7 +449,7 @@ export class ListForm extends React.Component {
             this.setState({ mode: changedMode }, () => {
                 if (changedMode === 2 || changedMode === 1) {
                     //this._validate(true, false);
-                    this.validate();
+                    this.validate(true);
                 }
                 if (typeof onChangeMode === "function") {
                     onChangeMode(this, changedMode);

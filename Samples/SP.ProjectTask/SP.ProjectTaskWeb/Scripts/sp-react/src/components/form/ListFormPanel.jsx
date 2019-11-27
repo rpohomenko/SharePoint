@@ -205,26 +205,52 @@ export class ListFormPanel extends React.Component {
     }
 
     _onRenderFooterContent = () => {
-        const { isValid, isDirty, mode } = this.state;
+        const { canAddListItems } = this.props;
+        const { isValid, isDirty, mode, item } = this.state;
+        let canSave = false;
+        if (mode === 2) {
+            canSave = canAddListItems;
+        }
+        else if (mode === 1) {
+            if (item) {
+                canSave = item.CanUpdate;
+            }
+        }
+
         let isBusy = false;
         if (this._listForm.current) {
             isBusy = this._listForm.current.state.isSaving || this._listForm.current.state.isDeleting;
         }
         return (
             <div>
-                {mode > 0 && <PrimaryButton onClick={() => this._onSaveClick()} disabled={isBusy || !isDirty || !isValid} style={{ marginRight: 7 }}>Save</PrimaryButton>}
+                {mode > 0 && <PrimaryButton onClick={() => this._onSaveClick()} disabled={!canSave || isBusy || !isDirty || !isValid} style={{ marginRight: 7 }}>Save</PrimaryButton>}
                 <DefaultButton onClick={() => this.close()}>{mode > 0 ? "Cancel" : "Close"}</DefaultButton>
             </div>);
 
     }
 
     _getCommandItems() {
+        const { canAddListItems } = this.props;
         const { item, mode, isValid, isDirty } = this.state;
         let isDeleting, isSaving;
         if (this._listForm.current) {
             isSaving = this._listForm.current.state.isSaving;
             isDeleting = this._listForm.current.state.isDeleting;
         }
+
+        let canSave = false, canEdit, canDelete = false;
+        if (mode === 2) {
+            canSave = canAddListItems;
+        }
+        else if (mode === 1) {
+            if (item) {
+                canSave = item.CanUpdate;
+            }
+        }
+        if (item) {
+            canEdit = item.CanUpdate;  
+            canDelete = item.CanDelete;
+        }      
 
         let items = [];
 
@@ -234,7 +260,7 @@ export class ListFormPanel extends React.Component {
                     key: 'editItem',
                     icon: 'Edit',
                     text: '',
-                    disabled: !!(isDeleting || isSaving),
+                    disabled: !canEdit || !!(isDeleting || isSaving),
                     onClick: (e, sender) => this.changeMode(1),
                     iconProps: {
                         iconName: 'Edit'
@@ -246,7 +272,7 @@ export class ListFormPanel extends React.Component {
                     key: 'deleteItem',
                     icon: 'Delete',
                     text: '',
-                    disabled: !!(isDeleting || isSaving),
+                    disabled: !canDelete || !!(isDeleting || isSaving),
                     onClick: (e, sender) => {
                         if (this._listForm.current) {
                             this._listForm.current.setState({ confirmDeletion: true });
@@ -264,7 +290,7 @@ export class ListFormPanel extends React.Component {
                     key: 'saveItem',
                     icon: 'Save',
                     text: '',
-                    disabled: !!(isDeleting || isSaving) || !(isValid && isDirty),
+                    disabled: !canSave || !!(isDeleting || isSaving) || !(isValid && isDirty),
                     onClick: (e, sender) => {
                         this._onSaveClick();
                     },

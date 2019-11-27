@@ -11,7 +11,7 @@ namespace SP.ProjectTaskWeb.Models
 {
     [ContentType(Id = "0x0100E565C775F9444F2A854437781B8D2749", Name = "Employee", ParentId = "0x01", Level = ProvisionLevel.List, Behavior = ProvisionBehavior.Default)]
     [List(Title = "Employees", Url = "Lists/Employees", Behavior = ProvisionBehavior.Default)]
-    public class Employee : ListItemEntity
+    public class Employee : Entity
     {
         public Employee()
         {

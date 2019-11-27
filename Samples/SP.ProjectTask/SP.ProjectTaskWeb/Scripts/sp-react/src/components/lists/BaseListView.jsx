@@ -73,6 +73,7 @@ export class BaseListView extends React.Component {
                     <ShimmeredDetailsList                      
                         listProps= { {ref: this._list}}
                         items={items}
+                        setKey = "items"
                         compact={false}
                         columns={columns}
                         selection={this._selection}
@@ -377,7 +378,7 @@ export class BaseListView extends React.Component {
 
     async loadItems(sortColumn = null, pageToken = null) {
 
-        let { count, filter, sortBy, sortDesc, nextPageToken, items } = this.state;
+        let { count, filter, sortBy, sortDesc, nextPageToken, items, selection } = this.state;
 
         if (sortColumn) {
             sortBy = sortColumn.name;
@@ -401,7 +402,9 @@ export class BaseListView extends React.Component {
         else {
             this.setState({
                 items: items.concat(new Array(count))
-            });
+            }, ()=>{
+                //this._selection.setItems(items, true);
+            });           
         }
         let controller = new AbortController();
         const promise = this._fetchData(count, nextPageToken, sortBy, sortDesc, filter, { signal: controller ? controller.signal : null });
@@ -416,7 +419,8 @@ export class BaseListView extends React.Component {
                 if (this._controllers.filter(c => c.controller == controller) === 0) return;
                 this.setState({
                     items: itemsCopy,
-                    nextPageToken: json._nextPageToken
+                    nextPageToken: json._nextPageToken,
+                    canAddListItems : json._canAddListItems
                 });
                 //this._selection.setItems(itemsCopy);
             }

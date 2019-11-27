@@ -9,7 +9,7 @@ namespace SP.ProjectTaskWeb.Models
 {
     [ContentType(Name = "ProjectTask", /*Id = "0x01084225DD54225249DB88BDACE25F9E3880",*/ ParentId = "0x0108", Level = ProvisionLevel.List, Behavior = ProvisionBehavior.Default)]
     [List(Title = "Project Tasks", Url = "Lists/ProjectTasks", Behavior = ProvisionBehavior.Default)]
-    public class ProjectTask : ListItemEntity
+    public class ProjectTask : Entity
     {
         public ProjectTask()
         {

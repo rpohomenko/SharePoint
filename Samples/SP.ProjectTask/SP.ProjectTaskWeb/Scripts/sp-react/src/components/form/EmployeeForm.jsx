@@ -42,7 +42,8 @@ export class EmployeeForm extends ListForm {
             name: 'FirstName',
             type: 'text',
             title: 'First Name',
-            required: true
+            required: true,
+            description: "First Name"
         },
         {
             key: 'lastName',

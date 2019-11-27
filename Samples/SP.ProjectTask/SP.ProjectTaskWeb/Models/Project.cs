@@ -9,7 +9,7 @@ namespace SP.ProjectTaskWeb.Models
 {
     [ContentType(Name = "Project", Id = "0x0100E38E1DCF11EC46CE9AE771A9423B8AAD", Level = ProvisionLevel.List, Behavior = ProvisionBehavior.Default)]
     [List(Title = "Projects", Url = "Lists/Projects", Behavior = ProvisionBehavior.Default)]
-    public class Project : ListItemEntity
+    public class Project : Entity
     {
         private readonly SpEntitySet<ProjectTask> _tasks;
 

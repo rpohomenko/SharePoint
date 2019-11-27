@@ -182,8 +182,8 @@ namespace SP.ProjectTaskWeb.Controllers
             {
                 using (ClientContext context = new Authentication.LowTrustTokenHelper(_tokenHelper).GetUserClientContext())
                 {
-                    ProjectTaskContext projectTaskContext = new ProjectTaskContext(context);
-                    return Json((id > 0) ? projectTaskContext.List<TEntity>().FirstOrDefault((TEntity item) => item.Id == id) : null);
+                    var projectTaskContext = new ProjectTaskContext(context);
+                    return Json((id > 0) ? projectTaskContext.List<TEntity>().WithPermissions().FirstOrDefault((TEntity item) => item.Id == id) : null);
                 }
             }
             catch (Exception ex)
@@ -247,7 +247,7 @@ namespace SP.ProjectTaskWeb.Controllers
                     var projectTaskContext = new ProjectTaskContext(context);
                     if (entity.Id > 0)
                     {
-                        var entry = projectTaskContext.List<TEntity>().AddOrUpdate(entity);
+                        var entry = projectTaskContext.List<TEntity>().WithPermissions().AddOrUpdate(entity);
                         projectTaskContext.SaveChanges();
                         return Json(entry.Entity);
                     }
@@ -340,7 +340,13 @@ namespace SP.ProjectTaskWeb.Controllers
             [DataMember(Name = "_nextPageToken")]
             public string NextToken { get; set; }
 
-            private TEntity[] GetItems(ClientContext context, string where, int count, string sortBy, bool sortDesc, string pagingToken, out string nextPageToken)
+            [DataMember(Name = "_canAddListItems")]
+            public bool CanAddListItems
+            {
+                get; private set;
+            }
+
+            private TEntity[] GetItems(ClientContext context, string where, int count, string sortBy, bool sortDesc, string pagingToken, out string nextPageToken, out bool canCreate)
             {
                 ProjectTaskContext projectTaskContext = new ProjectTaskContext(context);
                 IQueryable<TEntity> source = projectTaskContext.List<TEntity>();
@@ -372,16 +378,20 @@ namespace SP.ProjectTaskWeb.Controllers
                     pageToken = nextToken;
                 });
 
+                source = source.WithPermissions();
                 var result = source.ToArray();
                 nextPageToken = pageToken;
+                canCreate = source.HasPermission(PermissionKind.AddListItems);
                 return result;
             }
 
             public void Load(ClientContext context, string where = null, int count = 0, string sortBy = null, bool sortDesc = false, string pagingToken = null)
             {
                 string nextToken;
-                Items = GetItems(context, where, count, sortBy, sortDesc, pagingToken, out nextToken);
+                bool canCreate;
+                Items = GetItems(context, where, count, sortBy, sortDesc, pagingToken, out nextToken, out canCreate);
                 NextToken = nextToken;
+                CanAddListItems = canCreate;
             }
         }
     }

@@ -30,12 +30,12 @@ export class BaseListViewCommand extends React.Component {
         this._panel = React.createRef();
     }
 
-    componentWillUnmount() {       
+    componentWillUnmount() {
     }
 
     render() {
-        const { onItemSaving, onItemSaved, onItemDeleting, onItemDeleted } = this.props;
-        const { selection, refreshEnabed, confirmDeletion, isDeleting } = this.state;      
+        const { canAddListItems, onItemSaving, onItemSaved, onItemDeleting, onItemDeleted } = this.props;
+        const { selection, refreshEnabed, confirmDeletion, isDeleting } = this.state;
         let item = selection && selection.length > 0 ? selection[0] : undefined;
         return (
             <div className="command-container" ref={this._container}>
@@ -75,8 +75,8 @@ export class BaseListViewCommand extends React.Component {
                         <DefaultButton onClick={() => this.setState({ confirmDeletion: false })} text="No" />
                     </DialogFooter>
                 </Dialog>
-                {this._renderListFormPanel(item, this._panel, this._service, onItemSaving, onItemSaved, onItemDeleting, onItemDeleted)}             
-            <StatusBar ref={ref => this._status = ref} />
+                {this._renderListFormPanel(item, this._panel, this._service, canAddListItems, onItemSaving, onItemSaved, onItemDeleting, onItemDeleted)}
+                <StatusBar ref={ref => this._status = ref} />
             </div>
         );
     }
@@ -90,8 +90,8 @@ export class BaseListViewCommand extends React.Component {
     }
 
     deleteItem(items) {
-        if(items.length > 0){
-          this.setState({ confirmDeletion: true });
+        if (items.length > 0) {
+            this.setState({ confirmDeletion: true });
         }
     }
 
@@ -102,7 +102,7 @@ export class BaseListViewCommand extends React.Component {
         }
     }
 
-    _renderListFormPanel = (item, ref, service, onItemSaving, onItemSaved, onItemDeleting, onItemDeleted) => {   
+    _renderListFormPanel = (item, ref, service, onItemSaving, onItemSaved, onItemDeleting, onItemDeleted) => {
         throw "Method _renderListFormPanel is not yet implemented!";
     }
 
@@ -132,18 +132,32 @@ export class BaseListViewCommand extends React.Component {
     };
 
     _getItems() {
-        const { commandItems } = this.props;
+        const { commandItems, canAddListItems } = this.props;
         const { selection, isDeleting, newItemEnabled } = this.state;
         let items = []
         if (isArray(commandItems)) {
             items = items.concat(commandItems);
         }
+        let canCreate = canAddListItems,
+         canUpdate = true, canDelete = true;
+        if (selection)
+            for (let i = 0; i < selection.length; i++) {
+                if (!selection[i].CanCreate && canCreate) {
+                    canCreate = false;
+                }
+                if (!selection[i].CanUpdate && canUpdate) {
+                    canUpdate = false;
+                }
+                if (!selection[i].CanDelete && canDelete) {
+                    canDelete = false;
+                }
+            }
         items.push(
             {
                 key: 'newItem',
                 icon: 'Add',
                 text: '',
-                disabled: isDeleting || !newItemEnabled,
+                disabled: !canCreate || isDeleting || !newItemEnabled,
                 onClick: (e, sender) => this._onNewItem(),
                 iconProps: {
                     iconName: 'Add'
@@ -168,7 +182,7 @@ export class BaseListViewCommand extends React.Component {
                 key: 'editItem',
                 icon: 'Edit',
                 text: '',
-                disabled: isDeleting || (!selection || selection.length !== 1),
+                disabled: !canUpdate || isDeleting || (!selection || selection.length !== 1),
                 onClick: (e, sender) => this._onEditItem(selection[0]),
                 iconProps: {
                     iconName: 'Edit'
@@ -181,7 +195,7 @@ export class BaseListViewCommand extends React.Component {
                 key: 'deleteItem',
                 icon: 'Delete',
                 text: '',
-                disabled: isDeleting || (!selection || selection.length === 0),
+                disabled: !canDelete || isDeleting || (!selection || selection.length === 0),
                 onClick: (e, sender) => this.deleteItem(selection),
                 iconProps: {
                     iconName: 'Delete'
@@ -209,8 +223,8 @@ export class BaseListViewCommand extends React.Component {
     }
 
     _showPanel = (mode) => {
-        if(this._panel.current){
-          this._panel.current.open(mode);         
+        if (this._panel.current) {
+            this._panel.current.open(mode);
         }
     }
 
