@@ -178,7 +178,8 @@ namespace SP.Client.Linq
             {
                 if (Context == null)
                 {
-                    throw new ArgumentNullException(nameof(Context));
+                    return null;
+                    //throw new ArgumentNullException(nameof(Context));
                 }
                 Entity = Context.List<TEntity>(SpQueryArgs).FirstOrDefault(entity => entity.Id == EntityId);
                 Entry = GetEntry();
