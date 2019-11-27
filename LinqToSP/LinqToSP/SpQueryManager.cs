@@ -83,11 +83,11 @@ namespace SP.Client.Linq
                             }
                         }
                     }
-                    else if (value is FieldLookupValue[])
+                    else if (value is ICollection<FieldLookupValue>)
                     {
                         if (!lookupFieldMap.IsMultiple)
                         {
-                            var lookupValue = (value as FieldLookupValue[]).FirstOrDefault();
+                            var lookupValue = (value as ICollection<FieldLookupValue>).FirstOrDefault();
                             if (lookupValue != null)
                             {
                                 if (!typeof(FieldLookupValue).IsAssignableFrom(valueType) && !valueType.IsSubclassOf(typeof(FieldLookupValue)))
@@ -112,8 +112,8 @@ namespace SP.Client.Linq
                             if (!typeof(FieldLookupValue).IsAssignableFrom(elType) && !elType.IsSubclassOf(typeof(FieldLookupValue)))
                             {
                                 var result = lookupFieldMap.Result == LookupItemResult.Id
-                                ? (value as FieldLookupValue[]).Select(v => SpConverter.ConvertValue(v.LookupId, elType))
-                                : (value as FieldLookupValue[]).Select(v => SpConverter.ConvertValue(v.LookupValue, elType));
+                                ? (value as ICollection<FieldLookupValue>).Select(v => SpConverter.ConvertValue(v.LookupId, elType))
+                                : (value as ICollection<FieldLookupValue>).Select(v => SpConverter.ConvertValue(v.LookupValue, elType));
                                 if (valueType.IsArray)
                                 {
                                     value = result.ToArray(elType);
@@ -148,9 +148,9 @@ namespace SP.Client.Linq
                     {
                         entitySet.EntityId = ((FieldLookupValue)itemValue).LookupId;
                     }
-                    else if (itemValue is FieldLookupValue[] && (itemValue as FieldLookupValue[]).Any())
+                    else if (itemValue is ICollection<FieldLookupValue> && (itemValue as ICollection<FieldLookupValue>).Any())
                     {
-                        entitySet.EntityId = (itemValue as FieldLookupValue[]).First().LookupId;
+                        entitySet.EntityId = (itemValue as ICollection<FieldLookupValue>).First().LookupId;
                     }
                     if (entitySet.SpQueryArgs != null)
                     {
@@ -164,9 +164,9 @@ namespace SP.Client.Linq
                 var entitySets = (ISpEntityLookupCollection)value;
                 if (entitySets != null)
                 {
-                    if (itemValue is FieldLookupValue[])
+                    if (itemValue is ICollection<FieldLookupValue>)
                     {
-                        entitySets.EntityIds = ((FieldLookupValue[])itemValue).Select(lv => lv.LookupId).ToArray();
+                        entitySets.EntityIds = ((ICollection<FieldLookupValue>)itemValue).Select(lv => lv.LookupId).ToArray();
                     }
                     else if (itemValue is FieldLookupValue)
                     {
@@ -562,7 +562,10 @@ namespace SP.Client.Linq
                                 }
                                 else if ((fieldMapping as LookupFieldAttribute).IsMultiple)
                                 {
-                                    value = value is int[]? (value as int[]).Select(id => new FieldLookupValue() { LookupId = id }).ToArray() : null;
+                                    if (!(value is ICollection<FieldLookupValue>))
+                                    {
+                                        value = value is ICollection<int> ? (value as ICollection<int>).Select(id => new FieldLookupValue() { LookupId = id }).ToArray() : null;
+                                    }
                                 }
                                 else
                                 {
@@ -602,6 +605,10 @@ namespace SP.Client.Linq
                     listItem.Update();
                 }
                 listItem.Context.Load(listItem);
+                if (_args.IncludeItemPermissions)
+                {
+                    listItem.Context.Load(listItem, item => item.EffectiveBasePermissions);
+                }
                 return listItem;
             }
             return null;

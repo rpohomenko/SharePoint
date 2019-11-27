@@ -226,6 +226,21 @@ namespace SP.Client.Linq.Query
             return SpView;
         }
 
+        public List GetList(bool withPermissions)
+        {
+            var list = _manager.GetList();
+            if (list != null)
+            {
+                list.Context.Load(list);
+                if (withPermissions)
+                {
+                    list.Context.Load(list, l => l.EffectiveBasePermissions);
+                }
+                list.Context.ExecuteQuery();
+            }
+            return list;
+        }
+
         #endregion
     }
 

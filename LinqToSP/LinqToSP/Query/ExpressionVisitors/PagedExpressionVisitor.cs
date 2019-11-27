@@ -89,7 +89,7 @@ namespace SP.Client.Linq.Query.ExpressionVisitors
                                     {
                                         value = (value as FieldLookupValue).LookupValue;
                                     }
-                                    else if (value is FieldLookupValue[])
+                                    else if (value is ICollection<FieldLookupValue>)
                                     {
                                         continue;
                                     }
@@ -217,7 +217,7 @@ namespace SP.Client.Linq.Query.ExpressionVisitors
         //                            {
         //                                value = (value as FieldLookupValue).LookupValue;
         //                            }
-        //                            else if (value is FieldLookupValue[])
+        //                            else if (value is ICollection<FieldLookupValue>)
         //                            {
         //                                continue;
         //                            }
