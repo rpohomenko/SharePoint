@@ -1,21 +1,20 @@
 import React from "react";
 import PropTypes from 'prop-types';
 import { Label } from 'office-ui-fabric-react/lib/Label';
+import { Link } from 'office-ui-fabric-react/lib/Link';
 import { TagPicker } from 'office-ui-fabric-react/lib/Pickers';
 import { DefaultButton, PrimaryButton } from 'office-ui-fabric-react/lib/Button';
 import { Panel, PanelType } from 'office-ui-fabric-react/lib/Panel';
+import { isArray, isNumber } from "util";
 
 import { BaseFieldRenderer } from './BaseFieldRenderer';
-import { isArray } from "util";
 
 export class LookupFieldRenderer extends BaseFieldRenderer {
     constructor(props) {
         super(props);
         this._picker = React.createRef();
-    }
-
-    componentDidMount() {
-        //super.componentDidMount();      
+        this._listForm = React.createRef();
+        this._listView = React.createRef();
     }
 
     _renderNewForm() {
@@ -26,18 +25,42 @@ export class LookupFieldRenderer extends BaseFieldRenderer {
         return this._renderNewOrEditForm();
     }
 
-    _renderDispForm() {
+    /*_renderDispForm() {
         if(isArray(this.props.value)){
-            return this.props.value.map((lv, i) => {
-                return (<Label>{lv ? lv.Value : ''}</Label>);
-            });
+            return this.props.value.map((lv, i) => (<Label key={`lookup_${i}`}>{lv ? lv.Value : ''}</Label>));
         }
         return (<Label>{this.props.value ? this.props.value.Value : ''}</Label>);
+    }*/
+
+    _renderDispForm() {
+        const { value, fieldProps } = this.props;
+        if (value) {
+            let listForm = null;
+            if (typeof fieldProps.renderListForm === "function") {
+                listForm = fieldProps.renderListForm(this._listForm);
+            }
+
+            if (isArray(value)) {
+                return <>
+                    {value.map((lv, i) => (
+                        <Label style={{display: 'inline-block'}} key={`lookup_${i}`}><Link onClick={(e) => this._showForm(lv.Id)}>{lv ? lv.Value : ''}</Link></Label>)
+                    )}
+                    {listForm}
+                </>;
+            }
+            return (<>
+                <div className="lookup-item">
+                    <Label style={{display: 'inline-block'}}><Link onClick={(e) => this._showForm(value.Id)}>{value.Value}</Link></Label>
+                </div>
+                {listForm}
+            </>);
+        }
+        return null;
     }
 
     _renderNewOrEditForm() {
         let { fieldProps, disabled, headerText } = this.props;
-        const { value, showPanel } = this.state;
+        const { value, showListView } = this.state;
         let items = []
         if (!fieldProps.isMultiple) {
             if (value) {
@@ -46,12 +69,13 @@ export class LookupFieldRenderer extends BaseFieldRenderer {
         }
         else {
             if (isArray(value)) {
-              items = value;
+                items = value;
             }
         }
         let listView = null;
-        if (typeof fieldProps.getListView === "function") {
-            listView = fieldProps.getListView(
+        if (typeof fieldProps.renderListView === "function") {
+            listView = fieldProps.renderListView(
+                this._listView,
                 this._getCommandItems(),
                 (selection) => {
                     this.setState({ selection: selection });
@@ -72,10 +96,10 @@ export class LookupFieldRenderer extends BaseFieldRenderer {
             {listView &&
                 (<Panel
                     ref={ref => this._panel = ref}
-                    isOpen={showPanel}
+                    isOpen={showListView}
                     isLightDismiss={true}
                     headerText={fieldProps.lookupList || headerText}
-                    onDismiss={() => this._hidePanel()}
+                    onDismiss={() => this._hideListView()}
                     closeButtonAriaLabel="Close"
                     type={PanelType.medium}
                     onRenderFooterContent={this._onRenderFooterContent}
@@ -83,32 +107,31 @@ export class LookupFieldRenderer extends BaseFieldRenderer {
                     {listView}
                 </Panel>)}
             <div className="input-group row">
-              
-                    <TagPicker className="col-10" componentRef={this._picker}
-                        onResolveSuggestions={() => { }}
-                        selectedItems={items}
-                        onChange={(items) => this._onChange(items)}
-                        getTextFromItem={this._getTextFromItem}
-                        pickerSuggestionsProps={{
-                            suggestionsHeaderText: '',
-                            noResultsFoundText: ''
-                        }}
-                        disabled={disabled}
-                        inputProps={{
-                            disabled: true,
-                            readonly: true,
-                            onClick: (ev) => {
-                                ev.target.readOnly = true;
-                            },
-                            onBlur: (ev) => { },
-                            onFocus: (ev) => {
-                                ev.target.readOnly = true;
-                            },
-                            'aria-label': ''
-                        }}
-                    />
+                <TagPicker className="col-10" componentRef={this._picker}
+                    onResolveSuggestions={() => { }}
+                    selectedItems={items}
+                    onChange={(items) => this._onChange(items)}
+                    getTextFromItem={this._getTextFromItem}
+                    pickerSuggestionsProps={{
+                        suggestionsHeaderText: '',
+                        noResultsFoundText: ''
+                    }}
+                    disabled={disabled}
+                    inputProps={{
+                        disabled: true,
+                        readonly: true,
+                        onClick: (ev) => {
+                            ev.target.readOnly = true;
+                        },
+                        onBlur: (ev) => { },
+                        onFocus: (ev) => {
+                            ev.target.readOnly = true;
+                        },
+                        'aria-label': ''
+                    }}
+                />
                 <div className="col-2">
-                    <DefaultButton disabled={disabled} onClick={(e) => this._showPanel()}>...</DefaultButton>
+                    <DefaultButton disabled={disabled} onClick={(e) => this._showListView()}>...</DefaultButton>
                 </div>
             </div>    </React.Fragment>);
     }
@@ -133,7 +156,7 @@ export class LookupFieldRenderer extends BaseFieldRenderer {
         return (
             <div>
                 <PrimaryButton onClick={() => this._onSelect()} disabled={!selection || selection.length === 0} style={{ marginRight: 7 }}>Select</PrimaryButton>
-                <DefaultButton onClick={() => this._hidePanel()}>Cancel</DefaultButton>
+                <DefaultButton onClick={() => this._hideListView()}>Cancel</DefaultButton>
             </div>);
     }
 
@@ -142,22 +165,32 @@ export class LookupFieldRenderer extends BaseFieldRenderer {
         const { selection } = this.state;
         let items = selection.map((item) => { return { key: item.Id, name: item[fieldProps.lookupField || "Title"] } });
         this._onChange(items);
-        this._hidePanel();
+        this._hideListView();
     }
 
-    _showPanel = () => {
-        const { showPanel } = this.state;
-        if (!showPanel) {
-            this.setState({ showPanel: true });
+    _showListView = () => {
+        const { showListView } = this.state;
+        if (!showListView) {
+            this.setState({ showListView: true });
         }
     };
 
-    _hidePanel = () => {
-        const { showPanel } = this.state;
-        if (showPanel) {
-            this.setState({ showPanel: false, selection: null });
+    _hideListView = () => {
+        const { showListView } = this.state;
+        if (showListView) {
+            this.setState({ showListView: false, selection: null });
         }
     };
+
+    _showForm = (itemId) => {
+        if (this._listForm.current) {
+            if (isNumber(itemId)) {
+                this._listForm.current.setState({ itemId: itemId, item: undefined }, () => {
+                    this._listForm.current.open(0);
+                });
+            }
+        }
+    }
 
     _onChange = (items) => {
         const { fieldProps } = this.props;

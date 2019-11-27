@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { FormField } from './fields/FormField';
+import PropTypes from 'prop-types';
 //import { Spinner, SpinnerSize } from 'office-ui-fabric-react/lib/Spinner';
 //import { Stack } from 'office-ui-fabric-react/lib/Stack';
 import { ProgressIndicator } from 'office-ui-fabric-react/lib/ProgressIndicator';
@@ -12,6 +12,7 @@ import { DefaultButton, PrimaryButton } from 'office-ui-fabric-react/lib/Button'
 import { Dialog, DialogFooter, DialogType } from 'office-ui-fabric-react/lib/Dialog';
 import { isArray } from 'util';
 
+import { FormField } from './fields/FormField';
 import { StatusBar } from '../StatusBar';
 
 export class ListForm extends React.Component {
@@ -457,6 +458,14 @@ export class ListForm extends React.Component {
             });
         }
     }
+}
+
+ListForm.propTypes = {   
+    STATUS_TIMEOUT: PropTypes.number   
+}
+
+ListForm.defaultProps = {  
+    STATUS_TIMEOUT: 5000   
 }
 
 export default ListForm;

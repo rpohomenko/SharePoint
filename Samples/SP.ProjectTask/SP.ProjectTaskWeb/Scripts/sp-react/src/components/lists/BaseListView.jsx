@@ -56,8 +56,7 @@ export class BaseListView extends React.Component {
 
     render() {
         let { emptyMessage, isMultipleSelection } = this.props;
-        let { columns, items, contextualMenuProps, nextPageToken, isLoading, isLoaded, count } = this.state;
-
+        let { columns, items, contextualMenuProps, nextPageToken, isLoading, isLoaded, count } = this.state;        
         return (
             <div className="list-view-container" ref={this._container}>
                 <StatusBar ref={ref => this._status = ref} />
@@ -87,6 +86,7 @@ export class BaseListView extends React.Component {
                         onRenderItemColumn={this._renderItemColumn}
                     />
                 </MarqueeSelection>
+                {this._renderLookupForms()}
                 {isLoaded && items.length === 0 && !isLoading && (<Stack horizontalAlign="center" styles={{ root: { padding: 10 } }}>{emptyMessage}</Stack>)}
                 {contextualMenuProps && <ContextualMenu {...contextualMenuProps} />}
                 {isLoaded && nextPageToken && (<TooltipHost
@@ -100,6 +100,13 @@ export class BaseListView extends React.Component {
                   /*isLoading && (<Stack horizontalAlign="center" styles={{ root: { padding: 10 } }}><Spinner size={SpinnerSize.medium} /></Stack>)*/}
             </div>
         );
+    }
+
+    _renderLookupForms(){
+      const { columns } = this.state;
+      /*return columns.filter(col=>col.data === 'lookup').map((col, i)=>{
+       
+      });*/
     }
 
     _renderItemColumn(item, index, column) {

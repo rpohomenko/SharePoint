@@ -4,6 +4,7 @@ using SP.Client.Linq.Attributes;
 using SP.Client.Linq.Provisioning;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 
 namespace SP.ProjectTaskWeb.Models
 {
@@ -47,7 +48,7 @@ namespace SP.ProjectTaskWeb.Models
         {
             get;
         }
-        public ICollection<Employee> Managers
+        public ICollection<Employee> ManagerEntities
         {
             get
             {
@@ -59,12 +60,41 @@ namespace SP.ProjectTaskWeb.Models
             }
         }
 
+        [LookupField(Name = "pt_Manager", Title = "Manager", Result = LookupItemResult.None, Order = 6, IsMultiple = true)]
+        public FieldLookupValue[] Managers
+        {
+            get;
+            set;
+        }
+
+        [DataMember]
+        public ICollection<LookupValue> Manager
+        {
+            get
+            {
+                return Managers != null
+                    ? Managers.Select(lookupValue => new LookupValue() { Id = lookupValue.LookupId, Value = lookupValue.LookupValue }).ToArray()
+                    : null;
+            }
+            set
+            {
+                if (value != null)
+                {
+                    Managers = value.Select(lookup => new FieldLookupValue() { LookupId = lookup.Id }).ToArray();
+                }
+                else
+                {
+                    Managers = null;
+                }
+            }
+        }
+
         [LookupField(Name = "pt_Developer", Title = "Developer", IsMultiple = true, Behavior = ProvisionBehavior.Overwrite)]
         public ISpEntityLookupCollection<Employee> DeveloperLookup
         {
             get;
         }
-        public ICollection<Employee> Developers
+        public ICollection<Employee> DeveloperEntities
         {
             get
             {
@@ -76,13 +106,41 @@ namespace SP.ProjectTaskWeb.Models
             }
         }
 
+        [LookupField(Name = "pt_Developer", Title = "Developer", IsMultiple = true, Behavior = ProvisionBehavior.Overwrite)]
+        public FieldLookupValue[] Developers
+        {
+            get;
+            set;
+        }
+
+        [DataMember]
+        public ICollection<LookupValue> Developer
+        {
+            get
+            {
+                return Developers != null
+                    ? Developers.Select(lookupValue => new LookupValue() { Id = lookupValue.LookupId, Value = lookupValue.LookupValue }).ToArray()
+                    : null;
+            }
+            set
+            {
+                if (value != null)
+                {
+                    Developers = value.Select(lookup => new FieldLookupValue() { LookupId = lookup.Id }).ToArray();
+                }
+                else
+                {
+                    Developers = null;
+                }
+            }
+        }
 
         [LookupField(Name = "pt_Tester", Title = "Tester", IsMultiple = true, Behavior = ProvisionBehavior.Overwrite)]
         public ISpEntityLookupCollection<Employee> TesterLookup
         {
             get;
         }
-        public ICollection<Employee> Testers
+        public ICollection<Employee> TesterEntities
         {
             get
             {
@@ -91,6 +149,35 @@ namespace SP.ProjectTaskWeb.Models
             set
             {
                 TesterLookup.SetEntities(value);
+            }
+        }
+
+        [LookupField(Name = "pt_Tester", Title = "Tester", IsMultiple = true, Behavior = ProvisionBehavior.Overwrite)]
+        public FieldLookupValue[] Testers
+        {
+            get;
+            set;
+        }
+
+        [DataMember]
+        public ICollection<LookupValue> Tester
+        {
+            get
+            {
+                return Testers != null
+                    ? Testers.Select(lookupValue => new LookupValue() { Id = lookupValue.LookupId, Value = lookupValue.LookupValue }).ToArray()
+                    : null;
+            }
+            set
+            {
+                if (value != null)
+                {
+                    Testers = value.Select(lookup => new FieldLookupValue() { LookupId = lookup.Id }).ToArray();
+                }
+                else
+                {
+                    Testers = null;
+                }
             }
         }
 

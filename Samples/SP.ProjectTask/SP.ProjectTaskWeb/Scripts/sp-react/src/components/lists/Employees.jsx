@@ -1,8 +1,13 @@
 import React from "react";
-import BaseListView from "./BaseListView";
+
 import { ScrollablePane, ScrollbarVisibility } from 'office-ui-fabric-react/lib/ScrollablePane';
 import { Sticky, StickyPositionType } from 'office-ui-fabric-react/lib/Sticky';
+
+import BaseListView from "./BaseListView";
 import EmployeeCommand from "../commands/EmployeeCommand";
+import { EmployeeFormPanel } from '../form/EmployeeFormPanel';
+import { DepartmentFormPanel } from '../form/DepartmentFormPanel';
+import { LookupFieldRenderer } from '../form/fields/LookupFieldRenderer';
 
 export class EmployeeList extends BaseListView {
 
@@ -98,9 +103,113 @@ export class EmployeeList extends BaseListView {
         onColumnClick: this._onColumnClick,
         data: 'string',
         isPadded: false        
-      }
+      },
+      {
+        key: 'manager',
+        name: 'Manager',
+        fieldName: 'Manager',
+        minWidth: 210,
+        maxWidth: 350,
+        isRowHeader: false,
+        isResizable: false,
+        isSorted: false,
+        isSortedDescending: false,
+        sortAscendingAriaLabel: 'A to Z',
+        sortDescendingAriaLabel: 'Z to A',
+        onColumnClick: this._onColumnClick,
+        data: 'string',
+        isPadded: false,
+        getView: (lookupItem) => {
+          if (lookupItem) {
+              return <LookupFieldRenderer key='manager' value={lookupItem} fieldProps={{
+                key: 'manager',
+                name: 'Manager',
+                type: 'lookup',
+                title: 'Manager',
+                lookupList: 'Employees',
+                lookupField: 'Title',
+                isMultiple: true,                         
+                renderListForm: (ref) => this._renderEmployeeListForm(ref)
+            }} mode={0} />
+          }
+          return '';
+        }
+      },
+      {
+        key: 'department',
+        name: 'Department',
+        fieldName: 'Department',
+        minWidth: 210,
+        maxWidth: 350,
+        isRowHeader: false,
+        isResizable: false,
+        isSorted: false,
+        isSortedDescending: false,
+        sortAscendingAriaLabel: 'A to Z',
+        sortDescendingAriaLabel: 'Z to A',
+        onColumnClick: this._onColumnClick,
+        data: 'string',
+        isPadded: false,
+        getView: (lookupItem) => {
+          if (lookupItem) {
+              return <LookupFieldRenderer key='department' value={lookupItem} fieldProps={{
+                key: 'department',
+                name: 'Department',
+                type: 'lookup',
+                title: 'Department',
+                lookupList: 'Departments',
+                lookupField: 'Title',
+                isMultiple: true,                         
+                renderListForm: (ref) => this._renderDepartmentListForm(ref)
+            }} mode={0} />
+          }
+          return '';
+        }
+      },
     ];
     return columns;
+  }
+
+  _renderEmployeeListForm = (ref) => {
+    return <EmployeeFormPanel ref={ref} service={this.props.service}
+      viewItemHeader="View Employee" editItemHeader="Edit Employee" newItemHeader="New Employee"
+      onItemDeleted={() => {
+        this.refresh();
+        if (this._command && this._command._status) {
+          this._command._status.success("Deleted successfully.", this._command.props.STATUS_TIMEOUT);
+        }
+      }}
+      onItemSaved={() => {
+        this.refresh();
+        if (this._command && this._command._status) {
+          this._command._status.success("Saved successfully.", this._command.props.STATUS_TIMEOUT);
+        }
+      }}
+      onItemLoaded={(sender, item) => {
+
+      }}
+    />;
+  }
+
+  _renderDepartmentListForm = (ref) => {
+    return <DepartmentFormPanel ref={ref} service={this.props.service}
+      viewItemHeader="View Department" editItemHeader="Edit Department" newItemHeader="New Department"
+      onItemDeleted={() => {
+        this.refresh();
+        if (this._command && this._command._status) {
+          this._command._status.success("Deleted successfully.", this._command.props.STATUS_TIMEOUT);
+        }
+      }}
+      onItemSaved={() => {
+        this.refresh();
+        if (this._command && this._command._status) {
+          this._command._status.success("Saved successfully.", this._command.props.STATUS_TIMEOUT);
+        }
+      }}
+      onItemLoaded={(sender, item) => {
+
+      }}
+    />;
   }
 
   _fetchData = async (count, nextPageToken, sortBy, sortDesc, filter, options) => {

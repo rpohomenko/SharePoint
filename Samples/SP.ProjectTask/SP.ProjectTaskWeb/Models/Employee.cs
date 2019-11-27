@@ -15,7 +15,7 @@ namespace SP.ProjectTaskWeb.Models
     {
         public Employee()
         {
-            //ManagerLookup = new SpEntityLookupCollection<Employee>();
+            ManagerLookup = new SpEntityLookupCollection<Employee>();
             DepartmentLookup = new SpEntityLookup<Department>();
         }
 
@@ -111,27 +111,27 @@ namespace SP.ProjectTaskWeb.Models
             set;
         }
 
-        //[LookupField(Name = "pt_Manager", Title = "Manager", Order = 6, IsMultiple = true, Behavior = ProvisionBehavior.Overwrite)]
-        //public ISpEntityLookupCollection<Employee> ManagerLookup
-        //{
-        //    get;
-        //}
+        [LookupField(Name = "pt_Manager", Title = "Manager", Order = 6, IsMultiple = true, Behavior = ProvisionBehavior.Overwrite)]
+        public ISpEntityLookupCollection<Employee> ManagerLookup
+        {
+            get;
+        }
 
-        //public ICollection<Employee> Managers
-        //{
-        //    get
-        //    {
-        //        return ManagerLookup.GetEntities();
-        //    }
-        //    set
-        //    {
-        //        ManagerLookup.SetEntities(value);
-        //    }
-        //}
+        public ICollection<Employee> ManagerEntities
+        {
+            get
+            {
+                return ManagerLookup.GetEntities();
+            }
+            set
+            {
+                ManagerLookup.SetEntities(value);
+            }
+        }
 
 
         [LookupField(Name = "pt_Manager", Title = "Manager", Result = LookupItemResult.None, Order = 6, IsMultiple = true)]
-        public FieldLookupValue[] ManagerLookup
+        public FieldLookupValue[] Managers
         {
             get;
             set;
@@ -142,19 +142,19 @@ namespace SP.ProjectTaskWeb.Models
         {
             get
             {
-                return ManagerLookup != null
-                    ? ManagerLookup.Select(lookupValue => new LookupValue() { Id = lookupValue.LookupId, Value = lookupValue.LookupValue }).ToArray()
+                return Managers != null
+                    ? Managers.Select(lookupValue => new LookupValue() { Id = lookupValue.LookupId, Value = lookupValue.LookupValue }).ToArray()
                     : null;
             }
             set
             {
                 if (value != null)
                 {
-                    ManagerLookup = value.Select(lookup => new FieldLookupValue() { LookupId = lookup.Id }).ToArray();
+                    Managers = value.Select(lookup => new FieldLookupValue() { LookupId = lookup.Id }).ToArray();
                 }
                 else
                 {
-                    ManagerLookup = null;
+                    Managers = null;
                 }
             }
         }
@@ -181,12 +181,12 @@ namespace SP.ProjectTaskWeb.Models
             }
         }
 
-        //[LookupField(Name = "pt_Department")]
-        //public Department Department
-        //{
-        //  get { return DepartmentLookup.GetEntity(); }
-        //  set { DepartmentLookup.SetEntity(value); }
-        //}
+        [LookupField(Name = "pt_Department")]
+        public Department DepartmentEntity
+        {
+            get { return DepartmentLookup.GetEntity(); }
+            set { DepartmentLookup.SetEntity(value); }
+        }
 
         [LookupField(Name = "pt_Department", Result = LookupItemResult.Id)]
         public int DepartmentId

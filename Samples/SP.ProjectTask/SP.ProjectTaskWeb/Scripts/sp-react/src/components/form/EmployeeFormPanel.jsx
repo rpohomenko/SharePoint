@@ -23,6 +23,7 @@ export class EmployeeFormPanel extends ListFormPanel {
             onCloseForm={(sender) => onCloseForm(null)}
             onSaving={onItemSaving}
             onDeleting={onItemDeleting}
+            onItemLoaded={onItemLoaded}
             onDeleted={(sender, item) => {
                 if (sender._status) {
                     sender._status.success("Deleted successfully.", this.props.STATUS_TIMEOUT);

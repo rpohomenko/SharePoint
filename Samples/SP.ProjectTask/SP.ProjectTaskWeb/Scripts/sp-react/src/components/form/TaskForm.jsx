@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { ListForm } from './ListForm';
 import { ProjectList } from '../lists/Projects';
+import { ProjectFormPanel } from './ProjectFormPanel';
 
 export class TaskForm extends ListForm {
 
@@ -29,7 +30,7 @@ export class TaskForm extends ListForm {
     }
 
     _getFields = () => {
-        let service = this._service;   
+        let service = this._service;
         return [{
             key: 'title',
             name: 'Title',
@@ -46,10 +47,35 @@ export class TaskForm extends ListForm {
             lookupField: 'Title',
             isMultiple: false,
             required: true,
-            getListView: (commandItems, onSelect, onSaving, onDeleting, onSaved, onDeleted) => {
-              return <ProjectList service={service} pageSize={10} isMultipleSelection={false} commandItems={commandItems} emptyMessage="There are no projects." onSelect={onSelect} onItemSaving={onSaving} onItemDeleting={onDeleting} />;
-            }
+            renderListView: (ref, commandItems, onSelect, onSaving, onDeleting, onSaved, onDeleted) =>
+                this._renderProjectListView(ref, true, commandItems, onSelect, onSaving, onDeleting, onSaved, onDeleted),
+            renderListForm: (ref) => this._renderProjectListForm(ref)
         }];
+    }
+
+    _renderProjectListForm = (ref) => {
+        return (<ProjectFormPanel ref={ref} service={this._service}
+            viewItemHeader="View Project" editItemHeader="Edit Project" newItemHeader="New Project"
+            onItemDeleted={() => {
+                this.loadItem(this.props.item.Id);
+                if (this._status) {
+                    this._status.success("Deleted successfully.", this.props.STATUS_TIMEOUT);
+                }
+            }}
+            onItemSaved={() => {
+                this.loadItem(this.props.item.Id);
+                if (this._status) {
+                    this._status.success("Saved successfully.", this.props.STATUS_TIMEOUT);
+                }
+            }}
+            onItemLoaded={(sender, item) => {
+
+            }}
+        />);
+    }
+
+    _renderProjectListView = (ref, isMultiple, commandItems, onSelect, onSaving, onDeleting, onSaved, onDeleted) => {
+        return <ProjectList ref={ref} service={this._service} pageSize={10} isMultipleSelection={isMultiple} commandItems={commandItems} emptyMessage="There are no projects." onSelect={onSelect} onItemSaving={onSaving} onItemDeleting={onDeleting} />;
     }
 
     _getCommandItems() {

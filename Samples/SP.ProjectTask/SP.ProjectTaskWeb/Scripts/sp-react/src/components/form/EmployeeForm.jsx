@@ -1,7 +1,9 @@
 import * as React from 'react';
 import { ListForm } from './ListForm';
 import { DepartmentList } from '../lists/Departments';
+import { DepartmentFormPanel } from './DepartmentFormPanel';
 import { EmployeeList } from '../lists/Employees';
+import { EmployeeFormPanel } from './EmployeeFormPanel';
 
 export class EmployeeForm extends ListForm {
 
@@ -82,10 +84,12 @@ export class EmployeeForm extends ListForm {
             name: 'Manager',
             type: 'lookup',
             isMultiple: true,
+            lookupList: 'Employees',
+            lookupField: 'Title',
             title: 'Manager',
-            getListView: (commandItems, onSelect, onSaving, onDeleting, onSaved, onDeleted) => {
-                return <EmployeeList service={this._service} pageSize={10} isMultipleSelection={true} commandItems={commandItems} emptyMessage="There are no employees." onSelect={onSelect} onItemSaving={onSaving} onItemDeleting={onDeleting} />;
-            }         
+            renderListView: (ref, commandItems, onSelect, onSaving, onDeleting, onSaved, onDeleted) => 
+                            this._renderEmployeeListView(ref, true, commandItems, onSelect, onSaving, onDeleting, onSaved, onDeleted),
+            renderListForm: (ref) => this._renderEmployeeListForm(ref)
         },
         {
             key: 'department',
@@ -93,9 +97,11 @@ export class EmployeeForm extends ListForm {
             type: 'lookup',
             isMultiple: false,
             title: 'Department',
-            getListView: (commandItems, onSelect, onSaving, onDeleting, onSaved, onDeleted) => {
-                return <DepartmentList service={this._service} pageSize={10} isMultipleSelection={false} commandItems={commandItems} emptyMessage="There are no departments." onSelect={onSelect} onItemSaving={onSaving} onItemDeleting={onDeleting} />;
-            }          
+            lookupList: 'Departments',
+            lookupField: 'Title',
+            renderListView: (ref, commandItems, onSelect, onSaving, onDeleting, onSaved, onDeleted) => 
+                            this._renderDepartmentListView(ref, false, commandItems, onSelect, onSaving, onDeleting, onSaved, onDeleted),
+            renderListForm: (ref) => this._renderDepartmentListForm(ref)       
         },
         {
             key: 'description',
@@ -104,6 +110,50 @@ export class EmployeeForm extends ListForm {
             title: 'Description'           
         },
         ];
+    }
+
+    _renderEmployeeListForm = (ref) => {
+        return (<EmployeeFormPanel ref={ref} service={this._service}
+            viewItemHeader="View Employee" editItemHeader="Edit Employee" newItemHeader="New Employee"
+            onItemDeleted={() => {
+                this.loadItem(this.props.item.Id);
+                if (this._status) {
+                    this._status.success("Deleted successfully.", this.props.STATUS_TIMEOUT);
+                }
+            }}
+            onItemSaved={() => {
+                this.loadItem(this.props.item.Id);
+                if (this._status) {
+                    this._status.success("Saved successfully.", this.props.STATUS_TIMEOUT);
+                }
+            }}
+        />);
+    }
+
+    _renderEmployeeListView = (ref, isMultiple, commandItems, onSelect, onSaving, onDeleting, onSaved, onDeleted) => {
+        return <EmployeeList ref={ref} service={this._service} pageSize={10} isMultipleSelection={isMultiple} commandItems={commandItems} emptyMessage="There are no employees." onSelect={onSelect} onItemSaving={onSaving} onItemDeleting={onDeleting} />;
+    }
+
+    _renderDepartmentListForm = (ref) => {
+        return (<DepartmentFormPanel ref={ref} service={this._service}
+            viewItemHeader="View Department" editItemHeader="Edit Department" newItemHeader="New Department"
+            onItemDeleted={() => {
+                this.loadItem(this.props.item.Id);
+                if (this._status) {
+                    this._status.success("Deleted successfully.", this.props.STATUS_TIMEOUT);
+                }
+            }}
+            onItemSaved={() => {
+                this.loadItem(this.props.item.Id);
+                if (this._status) {
+                    this._status.success("Saved successfully.", this.props.STATUS_TIMEOUT);
+                }
+            }}
+        />);
+    }
+
+    _renderDepartmentListView = (ref, isMultiple, commandItems, onSelect, onSaving, onDeleting, onSaved, onDeleted) => {
+        return <DepartmentList ref={ref} service={this._service} pageSize={10} isMultipleSelection={isMultiple} commandItems={commandItems} emptyMessage="There are no departments." onSelect={onSelect} onItemSaving={onSaving} onItemDeleting={onDeleting} />;
     }
 }
 

@@ -36,37 +36,37 @@ namespace SP.ProjectTaskWeb.Models
             get;
         }
 
-        //[IgnoreDataMember]
-        //public Project Project
-        //{
-        //    get
-        //    {
-        //        return ProjectLookup.GetEntity();
-        //    }
-        //    set
-        //    {
-        //        ProjectLookup.SetEntity(value);
-        //    }
-        //}
+        [IgnoreDataMember]
+        public Project ProjectEntity
+        {
+            get
+            {
+                return ProjectLookup.GetEntity();
+            }
+            set
+            {
+                ProjectLookup.SetEntity(value);
+            }
+        }
 
         [DataMember]
         public LookupValue Project
         {
             get
             {
-                return ProjectId > 0 ? new LookupValue() { Id = ProjectId, Value = ProjectValue } : null;
+                return ProjectId > 0 ? new LookupValue() { Id = ProjectId, Value = ProjectTitle } : null;
             }
             set
             {
                 if (value != null)
                 {
                     ProjectId = value.Id;
-                    ProjectValue = value.Value;
+                    ProjectTitle = value.Value;
                 }
                 else
                 {
                     ProjectId = 0;
-                    ProjectValue = null;
+                    ProjectTitle = null;
                 }
             }
         }
@@ -87,7 +87,7 @@ namespace SP.ProjectTaskWeb.Models
 
         //[DataMember]
         [LookupField(Name = "pt_Project", Result = LookupItemResult.Value)]
-        public string ProjectValue
+        public string ProjectTitle
         {
             get;
             protected set;

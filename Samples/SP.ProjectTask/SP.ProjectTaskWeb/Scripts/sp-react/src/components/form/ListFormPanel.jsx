@@ -43,97 +43,98 @@ export class ListFormPanel extends React.Component {
         if (typeof onRenderListForm === "function") {
             renderListForm = onRenderListForm;
         }
-        listForm = renderListForm(
-            mode,
-            this._listForm,
-            item,
-            itemId,
-            (items, renderCommandItem) => this._renderCommandBar(items, renderCommandItem),
-            (sender, isValid, isDirty) => this._validate(isValid, isDirty),
+        if (showPanel) {
+            listForm = renderListForm(
+                mode,
+                this._listForm,
+                item,
+                itemId,
+                (items, renderCommandItem) => this._renderCommandBar(items, renderCommandItem),
+                (sender, isValid, isDirty) => this._validate(isValid, isDirty),
             /*(sender, mode) => this.changeMode(mode)*/ null,
-            this._closeForm,
-            (sender, item) => {
-                //this.setState({ isDirty: false }, () => {
-                if (typeof onItemSaving === "function") {
-                    onItemSaving(sender, item);
-                }
-                //});
-            },
-            (sender, item) => {
-                this.setState({ item: item, confirmClosePanel: false },
-                    () => {
-                        this.setState({ isDirty: false }, () => {
-                            if (typeof onItemSaved === "function") {
-                                onItemSaved(sender, item);
-                            }
-                        });
+                this._closeForm,
+                (sender, item) => {
+                    this.setState({ isSaving: true }, () => {
+                        if (typeof onItemSaving === "function") {
+                            onItemSaving(sender, item);
+                        }
                     });
-            },
-            (sender, item) => {
-                //this.setState({ isDirty: false }, () => {
-                if (typeof onItemDeleting === "function") {
-                    onItemDeleting(sender, item);
-                }
-                // });
-            },
-            (sender, item) => {
-                this.setState({ item: undefined, itemId: undefined }, () => {
-                    if (typeof (onItemDeleted) === "function") {
-                        onItemDeleted(sender, item);
-                    }
-                });
-            },
-            (sender, item) => {
-                this.setState({ item: item }, () => {
-                    this.setState({ isDirty: false }, () => {
+                },
+                (sender, item) => {
+                    this.setState({ item: item, confirmClosePanel: false },
+                        () => {
+                            this.setState({ isSaving: false, isDirty: false }, () => {
+                                if (typeof onItemSaved === "function") {
+                                    onItemSaved(sender, item);
+                                }
+                            });
+                        });
+                },
+                (sender, item) => {
+                    this.setState({ isDeleting: true }, () => {
+                        if (typeof onItemDeleting === "function") {
+                            onItemDeleting(sender, item);
+                        }
+                    });
+                },
+                (sender, item) => {
+                    this.setState({ isDeleting: false, isValid: true, isDirty: false, item: undefined, itemId: undefined }, () => {
+                        if (typeof (onItemDeleted) === "function") {
+                            onItemDeleted(sender, item);
+                        }
+                    });
+                },
+                (sender, item) => {
+                    this.setState({ item: item, isDirty: false, isLoaded: true }, () => {
                         if (typeof (onItemLoaded) === "function") {
                             onItemLoaded(sender, item);
                         }
                     });
                 });
-            });
 
-        return (
-            <div className="listform-panel-container" ref={this._container}>
-                {showPanel && (<Panel
-                    ref={ref => this._panel = ref}
-                    isOpen={showPanel}
-                    isLightDismiss={true}
-                    onRenderHeader={(props, defaultRender, headerTextId) => this._renderPanelHeader(props, defaultRender, headerTextId)}
-                    onDismiss={() => {
-                        if (isDirty && mode > 0) {
-                            this.setState({ confirmClosePanel: true });
-                        }
-                        else {
-                            this.close();
-                        }
-                    }}
-                    closeButtonAriaLabel="Close"
-                    type={PanelType.medium}
-                    onRenderFooterContent={this._onRenderFooterContent}
-                    isFooterAtBottom={true}>
-                    {listForm}
-                </Panel>)}
-                {confirmClosePanel && mode > 0 && isDirty &&
-                    (<Dialog
-                        hidden={confirmClosePanel !== true}
-                        onDismiss={() => this.setState({ confirmClosePanel: false })}
-                        dialogContentProps={{
-                            type: DialogType.normal,
-                            title: 'Close?',
-                            subText: 'Are you sure you want to close the form without saving?'
+            return (
+                <div className="listform-panel-container" ref={this._container}>
+                    <Panel
+                        ref={ref => this._panel = ref}
+                        isOpen={showPanel}
+                        isLightDismiss={true}
+                        onRenderHeader={(props, defaultRender, headerTextId) => this._renderPanelHeader(props, defaultRender, headerTextId)}
+                        onDismiss={() => {
+                            if (isDirty && mode > 0) {
+                                this.setState({ confirmClosePanel: true });
+                            }
+                            else {
+                                this.close();
+                            }
                         }}
-                        modalProps={{
-                            isBlocking: true,
-                            styles: { main: { maxWidth: 450 } }
-                        }}>
-                        <DialogFooter>
-                            <PrimaryButton onClick={() => this.setState({ confirmClosePanel: false, showPanel: false, isDirty: false, isValid: false })} text="Yes" />
-                            <DefaultButton onClick={() => this.setState({ confirmClosePanel: false })} text="No" />
-                        </DialogFooter>
-                    </Dialog>)}
-            </div>
-        );
+                        closeButtonAriaLabel="Close"
+                        type={PanelType.medium}
+                        onRenderFooterContent={this._onRenderFooterContent}
+                        isFooterAtBottom={true}>
+                        {listForm}
+                    </Panel>
+                {confirmClosePanel && mode > 0 && isDirty &&
+                        (<Dialog
+                            hidden={confirmClosePanel !== true}
+                            onDismiss={() => this.setState({ confirmClosePanel: false })}
+                            dialogContentProps={{
+                                type: DialogType.normal,
+                                title: 'Close?',
+                                subText: 'Are you sure you want to close the form without saving?'
+                            }}
+                            modalProps={{
+                                isBlocking: true,
+                                styles: { main: { maxWidth: 450 } }
+                            }}>
+                            <DialogFooter>
+                                <PrimaryButton onClick={() => this.setState({ confirmClosePanel: false, showPanel: false, isDirty: false, isValid: false })} text="Yes" />
+                                <DefaultButton onClick={() => this.setState({ confirmClosePanel: false })} text="No" />
+                            </DialogFooter>
+                        </Dialog>)}
+                </div>
+            );
+        }
+        return null;
     }
 
     _renderListForm = (mode, ref, item, itemId, onRenderCommandBar, onValidate, onChangeMode, onCloseForm, onItemSaving, onItemSaved, onItemDeleting, onItemDeleted, onItemLoaded) => {
@@ -206,7 +207,7 @@ export class ListFormPanel extends React.Component {
 
     _onRenderFooterContent = () => {
         const { canAddListItems } = this.props;
-        const { isValid, isDirty, mode, item } = this.state;
+        const { isValid, isDirty, mode, item, isDeleting, isSaving, isRefreshing } = this.state;
         let canSave = false;
         if (mode === 2) {
             canSave = canAddListItems;
@@ -217,10 +218,10 @@ export class ListFormPanel extends React.Component {
             }
         }
 
-        let isBusy = false;
-        if (this._listForm.current) {
+        let isBusy = isDeleting || isSaving || isRefreshing;
+        /*if (this._listForm.current) {
             isBusy = this._listForm.current.state.isSaving || this._listForm.current.state.isDeleting;
-        }
+        }*/
         return (
             <div>
                 {mode > 0 && <PrimaryButton onClick={() => this._onSaveClick()} disabled={!canSave || isBusy || !isDirty || !isValid} style={{ marginRight: 7 }}>Save</PrimaryButton>}
@@ -231,12 +232,11 @@ export class ListFormPanel extends React.Component {
 
     _getCommandItems() {
         const { canAddListItems } = this.props;
-        const { item, mode, isValid, isDirty } = this.state;
-        let isDeleting, isSaving;
-        if (this._listForm.current) {
+        const { item, mode, isValid, isDirty, isSaving, isDeleting, isRefreshing, isLoaded } = this.state;
+        /*if (this._listForm.current) {
             isSaving = this._listForm.current.state.isSaving;
             isDeleting = this._listForm.current.state.isDeleting;
-        }
+        }*/
 
         let canSave = false, canEdit, canDelete = false;
         if (mode === 2) {
@@ -248,9 +248,9 @@ export class ListFormPanel extends React.Component {
             }
         }
         if (item) {
-            canEdit = item.CanUpdate;  
+            canEdit = item.CanUpdate;
             canDelete = item.CanDelete;
-        }      
+        }
 
         let items = [];
 
@@ -260,19 +260,37 @@ export class ListFormPanel extends React.Component {
                     key: 'editItem',
                     icon: 'Edit',
                     text: '',
-                    disabled: !canEdit || !!(isDeleting || isSaving),
+                    disabled: !canEdit || !!(isDeleting || isSaving || isRefreshing) /*|| !isLoaded*/,
                     onClick: (e, sender) => this.changeMode(1),
                     iconProps: {
                         iconName: 'Edit'
                     },
                     ariaLabel: 'Edit'
                 });
+        }
+        else if (mode === 2 || (item && mode === 1)) {
+            items.push(
+                {
+                    key: 'saveItem',
+                    icon: 'Save',
+                    text: '',
+                    disabled: !canSave || !!(isDeleting || isSaving || isRefreshing) || !(isValid && isDirty) /*|| !isLoaded*/,
+                    onClick: (e, sender) => {
+                        this._onSaveClick();
+                    },
+                    iconProps: {
+                        iconName: 'Save'
+                    },
+                    ariaLabel: 'Save'
+                });
+        }
+        if (item && mode < 2) {
             items.push(
                 {
                     key: 'deleteItem',
                     icon: 'Delete',
                     text: '',
-                    disabled: !canDelete || !!(isDeleting || isSaving),
+                    disabled: !canDelete || !!(isDeleting || isSaving || isRefreshing) /*|| !isLoaded*/,
                     onClick: (e, sender) => {
                         if (this._listForm.current) {
                             this._listForm.current.setState({ confirmDeletion: true });
@@ -284,40 +302,23 @@ export class ListFormPanel extends React.Component {
                     ariaLabel: 'Delete'
                 });
         }
-        else if (mode === 2 || (item && mode === 1)) {
-            items.push(
-                {
-                    key: 'saveItem',
-                    icon: 'Save',
-                    text: '',
-                    disabled: !canSave || !!(isDeleting || isSaving) || !(isValid && isDirty),
-                    onClick: (e, sender) => {
-                        this._onSaveClick();
-                    },
-                    iconProps: {
-                        iconName: 'Save'
-                    },
-                    ariaLabel: 'Save'
-                });
-        }
-
         return items;
     }
 
     _getCommandFarItems() {
-        let isDeleting, isSaving, isLoading;
-        if (this._listForm.current) {
-            isSaving = this._listForm.current.state.isSaving;
-            isDeleting = this._listForm.current.state.isDeleting;
-            isLoading = this._listForm.current.state.isLoading;
-        }
-        const { mode, isRefreshing } = this.state;
-        if (mode === 0 || mode === 1) {
+        const { item, mode, isRefreshing, isDeleting, isSaving, isLoaded } = this.state;
+        //let isLoading = false;
+         //if (this._listForm.current) {
+            //isSaving = this._listForm.current.state.isSaving;
+            //isDeleting = this._listForm.current.state.isDeleting;
+            //isLoading = this._listForm.current.state.isLoading;
+        //}
+        if (item && (mode === 0 || mode === 1)) {
             return [{
                 key: 'refresh',
                 icon: 'Refresh',
                 text: '',
-                disabled: isDeleting || isSaving || isLoading || isRefreshing,
+                disabled: isDeleting || isSaving || /*isLoading*/ /*!isLoaded ||*/ isRefreshing,
                 onClick: (e, sender) => this._refresh(),
                 iconProps: {
                     iconName: 'Refresh'

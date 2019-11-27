@@ -3,11 +3,11 @@ import React from "react";
 import { ScrollablePane, ScrollbarVisibility } from 'office-ui-fabric-react/lib/ScrollablePane';
 import { Sticky, StickyPositionType } from 'office-ui-fabric-react/lib/Sticky';
 import { Link } from 'office-ui-fabric-react/lib/Link';
-
+import { isNumber } from "util";
 import BaseListView from "./BaseListView";
 import TaskCommand from "../commands/TaskCommand";
 import { ProjectFormPanel } from '../form/ProjectFormPanel';
-import { isNumber } from "util";
+import { LookupFieldRenderer } from '../form/fields/LookupFieldRenderer';
 
 export class TaskList extends BaseListView {
 
@@ -17,7 +17,6 @@ export class TaskList extends BaseListView {
     this.state = {
       ...this.state
     };
-    this._projectFormPanel = React.createRef();
   }
 
   async componentDidMount() {
@@ -36,7 +35,7 @@ export class TaskList extends BaseListView {
   }
 
   render() {
-    const { onItemSaving, onItemSaved, onItemDeleting, onItemDeleted, commandItems, styles } = this.props;
+    const { onItemSaving, onItemSaved, onItemDeleting, onItemDeleted, commandItems } = this.props;
     const { selection, canAddListItems } = this.state;
     return (
       <div className="tasks-container" style={{
@@ -47,8 +46,7 @@ export class TaskList extends BaseListView {
             <TaskCommand ref={ref => this._command = ref} canAddListItems={canAddListItems} commandItems={commandItems} service={this._service} selection={selection} onRefresh={() => this.refresh(true)}
               onItemDeleted={this._onItemDeleted} onItemSaved={this._onItemSaved} onItemSaving={onItemSaving} onItemDeleting={onItemDeleting} />
           </Sticky>
-          {super.render()}
-          {this._renderProjectForm(this._projectFormPanel)}
+          {super.render()}          
         </ScrollablePane>
       </div>
     );
@@ -132,30 +130,27 @@ export class TaskList extends BaseListView {
         data: 'string',
         isPadded: false,
         getView: (lookupItem) => {
-          if (lookupItem) {           
-            return (
-              <div className="lookup-item">
-                <Link onClick={(e) => this._showForm(this._projectFormPanel, lookupItem.Id)}>{lookupItem.Value}</Link>
-              </div>);
+          if (lookupItem) {
+              return <LookupFieldRenderer key='project' value={lookupItem} fieldProps={{
+                key: 'project',
+                name: 'Project',
+                type: 'lookup',
+                title: 'Project',
+                lookupList: 'Projects',
+                lookupField: 'Title',
+                isMultiple: false,
+                required: true,             
+                renderListForm: (ref) => this._renderProjectListForm(ref)
+            }} mode={0} />
           }
           return '';
         }
       }
     ];
     return columns;
-  }
+  }  
 
-  _showForm = (panel, itemId) => {
-    if (panel && panel.current) {      
-      if (isNumber(itemId)) {
-        panel.current.setState({ itemId: itemId, item: undefined }, ()=>{
-          panel.current.open(0);
-        });
-      }    
-    }
-  }
-
-  _renderProjectForm = (ref) => {
+  _renderProjectListForm = (ref) => {
     return <ProjectFormPanel ref={ref} service={this.props.service}
       viewItemHeader="View Project" editItemHeader="Edit Project" newItemHeader="New Project"
       onItemDeleted={() => {
