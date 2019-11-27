@@ -43,7 +43,7 @@ export class LookupFieldRenderer extends BaseFieldRenderer {
             if (isArray(value)) {
                 return <>
                     {value.map((lv, i) => (
-                        <Label style={{display: 'inline-block'}} key={`lookup_${i}`}><Link onClick={(e) => this._showForm(lv.Id)}>{lv ? lv.Value : ''}</Link></Label>)
+                        <><Label style={{display: 'inline-block'}} key={`lookup_${i}`}><Link onClick={(e) => this._showForm(lv.Id)}>{lv ? lv.Value : ''}</Link></Label><br/></>)
                     )}
                     {listForm}
                 </>;
