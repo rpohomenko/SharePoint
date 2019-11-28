@@ -9,6 +9,7 @@ import { getId } from 'office-ui-fabric-react/lib/Utilities';
 import { TextFieldRenderer } from './TextFieldRenderer';
 import { LookupFieldRenderer } from './LookupFieldRenderer';
 import { ChoiceFieldRenderer } from './ChoiceFieldRenderer';
+import { DateFieldRenderer } from './DateFieldRenderer';
 
 export class FormField extends React.Component {
 
@@ -82,7 +83,7 @@ export class FormField extends React.Component {
 
     _getFieldRenderer = (type) => {
         const { fieldProps, mode, item, onValidate, disabled } = this.props;
-        //const { disabled } = this.state;
+       
         let currentValue = item ? item[fieldProps.name] : undefined;
         let field;
         if (type === 'text') {
@@ -93,6 +94,9 @@ export class FormField extends React.Component {
         }
         else if (type === 'choice') {
             field = <ChoiceFieldRenderer ref={(ref) => this._fieldControl = ref} disabled={disabled} key={fieldProps.name} currentValue={currentValue} item={item} fieldProps={fieldProps} mode={mode} onValidate={onValidate} />;
+        }
+        else if (type === 'date') {
+            field = <DateFieldRenderer ref={(ref) => this._fieldControl = ref} disabled={disabled} key={fieldProps.name} currentValue={currentValue} item={item} fieldProps={fieldProps} mode={mode} onValidate={onValidate} />;
         }
         if (field) {
             return field;

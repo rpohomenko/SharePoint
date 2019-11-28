@@ -61,7 +61,14 @@ export class TaskForm extends ListForm {
                 "In Progress",
                 "Completed"                
             ]          
-        },];
+        },
+        {
+            key: 'startDate',
+            name: 'StartDate',
+            type: 'date',
+            title: 'Start Date'               
+        },
+    ];
     }
 
     _renderProjectListForm = (ref) => {
