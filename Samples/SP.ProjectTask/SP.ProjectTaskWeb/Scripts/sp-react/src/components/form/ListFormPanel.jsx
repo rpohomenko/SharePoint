@@ -64,7 +64,7 @@ export class ListFormPanel extends React.Component {
                     this.setState({ item: item, confirmClosePanel: false },
                         () => {
                             this.setState({ isSaving: false, isDirty: false }, () => {
-                                if (typeof onItemSaved === "function") {
+                                if (item && typeof onItemSaved === "function") {
                                     onItemSaved(sender, item);
                                 }
                             });
@@ -79,14 +79,14 @@ export class ListFormPanel extends React.Component {
                 },
                 (sender, item) => {
                     this.setState({ isDeleting: false, isValid: true, isDirty: false, item: undefined, itemId: undefined }, () => {
-                        if (typeof (onItemDeleted) === "function") {
+                        if (item && typeof (onItemDeleted) === "function") {
                             onItemDeleted(sender, item);
                         }
                     });
                 },
                 (sender, item) => {
                     this.setState({ item: item, isDirty: false, isLoaded: true }, () => {
-                        if (typeof (onItemLoaded) === "function") {
+                        if (item && typeof (onItemLoaded) === "function") {
                             onItemLoaded(sender, item);
                         }
                     });
@@ -190,7 +190,7 @@ export class ListFormPanel extends React.Component {
             this.setState({ isDirty: false });
             let result = await this._listForm.current.saveItem();
             if (!result.ok) {
-                this.setState({ isDirty: true });
+                this.setState({ isDirty: true, isSaving: false });
             }
         }
     }

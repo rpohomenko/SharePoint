@@ -2,7 +2,6 @@ import * as React from 'react';
 import { Label } from 'office-ui-fabric-react/lib/Label';
 import { DatePicker, DayOfWeek } from 'office-ui-fabric-react/lib/DatePicker';
 import { BaseFieldRenderer } from './BaseFieldRenderer';
-var moment = require('moment');
 
 export class DateFieldRenderer extends BaseFieldRenderer {
     constructor(props) {
@@ -27,7 +26,11 @@ export class DateFieldRenderer extends BaseFieldRenderer {
     }
 
     _renderDispForm() {
-        return (<Label>{this.props.currentValue}</Label>);
+        let date = this.props.currentValue;
+        if(date){
+            date = new Date(date);
+        }
+        return date ? (<Label>{this._onFormatDate(date)}</Label>) : null;
     }
 
     _renderNewOrEditForm() {
@@ -78,13 +81,13 @@ export class DateFieldRenderer extends BaseFieldRenderer {
     getValue(){
         let date = super.getValue();
         if(date){
-            return moment(date).format("YYYY-DD-MM[T]HH:mm:ss"); //date.toJSON(); //date.toISOString();
+            return date.toISOString();
         }
         return null;
     }
 
     hasValue() {
-        return this.getValue() !== "" && super.hasValue();
+        return this.getValue() !== null && super.hasValue();
     }
 }
 

@@ -85,8 +85,7 @@ export class BaseListView extends React.Component {
                         onRenderDetailsHeader={this._renderDetailsHeader}
                         onRenderItemColumn={this._renderItemColumn}
                     />
-                </MarqueeSelection>
-                {this._renderLookupForms()}
+                </MarqueeSelection>               
                 {isLoaded && items.length === 0 && !isLoading && (<Stack horizontalAlign="center" styles={{ root: { padding: 10 } }}>{emptyMessage}</Stack>)}
                 {contextualMenuProps && <ContextualMenu {...contextualMenuProps} />}
                 {isLoaded && nextPageToken && (<TooltipHost
@@ -100,14 +99,7 @@ export class BaseListView extends React.Component {
                   /*isLoading && (<Stack horizontalAlign="center" styles={{ root: { padding: 10 } }}><Spinner size={SpinnerSize.medium} /></Stack>)*/}
             </div>
         );
-    }
-
-    _renderLookupForms(){
-      const { columns } = this.state;
-      /*return columns.filter(col=>col.data === 'lookup').map((col, i)=>{
-       
-      });*/
-    }
+    }  
 
     _renderItemColumn(item, index, column) {
         let value;

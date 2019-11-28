@@ -355,6 +355,10 @@ export class ListForm extends React.Component {
             }).then((result) => {
                 this.setState({
                     isDeleting: false
+                }, () => {
+                    if (typeof (onDeleted) === "function") {
+                        onDeleted(this, false);
+                    }
                 });
                 return result;
             });
