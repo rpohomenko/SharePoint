@@ -119,7 +119,7 @@ export class ProjectList extends BaseListView {
         isPadded: false,
         getView: (lookupItem) => {
           if (lookupItem) {
-              return <LookupFieldRenderer key='manager' value={lookupItem} fieldProps={{
+              return <LookupFieldRenderer key='manager' currentValue={lookupItem} fieldProps={{
                 key: 'manager',
                 name: 'Manager',
                 type: 'lookup',
@@ -150,7 +150,7 @@ export class ProjectList extends BaseListView {
         isPadded: false,
         getView: (lookupItem) => {
           if (lookupItem) {
-              return <LookupFieldRenderer key='developer' value={lookupItem} fieldProps={{
+              return <LookupFieldRenderer key='developer' currentValue={lookupItem} fieldProps={{
                 key: 'developer',
                 name: 'Developer',
                 type: 'lookup',
@@ -181,7 +181,7 @@ export class ProjectList extends BaseListView {
         isPadded: false,
         getView: (lookupItem) => {
           if (lookupItem) {
-              return <LookupFieldRenderer key='tester' value={lookupItem} fieldProps={{
+              return <LookupFieldRenderer key='tester' currentValue={lookupItem} fieldProps={{
                 key: 'tester',
                 name: 'Tester',
                 type: 'lookup',

@@ -121,7 +121,7 @@ export class EmployeeList extends BaseListView {
         isPadded: false,
         getView: (lookupItem) => {
           if (lookupItem) {
-              return <LookupFieldRenderer key='manager' value={lookupItem} fieldProps={{
+              return <LookupFieldRenderer key='manager' currentValue={lookupItem} fieldProps={{
                 key: 'manager',
                 name: 'Manager',
                 type: 'lookup',
@@ -152,7 +152,7 @@ export class EmployeeList extends BaseListView {
         isPadded: false,
         getView: (lookupItem) => {
           if (lookupItem) {
-              return <LookupFieldRenderer key='department' value={lookupItem} fieldProps={{
+              return <LookupFieldRenderer key='department' currentValue={lookupItem} fieldProps={{
                 key: 'department',
                 name: 'Department',
                 type: 'lookup',

@@ -131,7 +131,7 @@ export class TaskList extends BaseListView {
         isPadded: false,
         getView: (lookupItem) => {
           if (lookupItem) {
-              return <LookupFieldRenderer key='project' value={lookupItem} fieldProps={{
+              return <LookupFieldRenderer key='project' currentValue={lookupItem} fieldProps={{
                 key: 'project',
                 name: 'Project',
                 type: 'lookup',

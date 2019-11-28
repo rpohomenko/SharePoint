@@ -25,32 +25,25 @@ export class LookupFieldRenderer extends BaseFieldRenderer {
         return this._renderNewOrEditForm();
     }
 
-    /*_renderDispForm() {
-        if(isArray(this.props.value)){
-            return this.props.value.map((lv, i) => (<Label key={`lookup_${i}`}>{lv ? lv.Value : ''}</Label>));
-        }
-        return (<Label>{this.props.value ? this.props.value.Value : ''}</Label>);
-    }*/
-
     _renderDispForm() {
-        const { value, fieldProps } = this.props;
-        if (value) {
+        const { fieldProps, currentValue } = this.props;
+        if (currentValue) {
             let listForm = null;
             if (typeof fieldProps.renderListForm === "function") {
                 listForm = fieldProps.renderListForm(this._listForm);
             }
 
-            if (isArray(value)) {
+            if (isArray(currentValue)) {
                 return <>
-                    {value.map((lv, i) => (
-                        <><Label style={{display: 'inline-block'}} key={`lookup_${i}`}><Link onClick={(e) => this._showForm(lv.Id)}>{lv ? lv.Value : ''}</Link></Label><br/></>)
+                    {currentValue.map((lv, i) => (
+                        <><Label style={{ display: 'inline-block' }} key={`lookup_${i}`}><Link onClick={(e) => this._showForm(lv.Id)}>{lv ? lv.Value : ''}</Link></Label><br /></>)
                     )}
                     {listForm}
                 </>;
             }
             return (<>
                 <div className="lookup-item">
-                    <Label style={{display: 'inline-block'}}><Link onClick={(e) => this._showForm(value.Id)}>{value.Value}</Link></Label>
+                    <Label style={{ display: 'inline-block' }}><Link onClick={(e) => this._showForm(currentValue.Id)}>{currentValue.Value}</Link></Label>
                 </div>
                 {listForm}
             </>);
@@ -207,9 +200,29 @@ export class LookupFieldRenderer extends BaseFieldRenderer {
         return { isValid: isValid, validationErrors: validationErrors };
     }
 
-    /*getValue() {
-        return this.state.value ? this.state.value.Id : 0;
-    }*/
+    isDirty() {
+        const { currentValue } = this.props;
+        const { value } = this.state;
+        if (super.isDirty()) {
+            if (isArray(value) && isArray(currentValue)) {
+                if (value.length !== currentValue.length) return true;
+                let arr1 = value.sort((a, b) => a.Id - b.Id);
+                let arr2 = currentValue.sort((a, b) => a.Id - b.Id);
+                for (var i = 0; i < arr1.length; i++) {
+                    if (arr1[i].Id !== arr2[i].Id) return true;
+                }
+                return false;
+            }
+            if (currentValue) {
+                if (!value) return true;
+            }
+            else if (value) {
+                return true;
+            }
+            return currentValue.Id !== value.Id;
+        }
+        return false;
+    }
 
     hasValue() {
         return this.getValue() && this.getValue().Id > 0 && super.hasValue();

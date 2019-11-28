@@ -17,30 +17,31 @@ export class TextFieldRenderer extends BaseFieldRenderer {
     }
 
     _renderDispForm() {
-        return (<Label>{this.props.value}</Label>);
+        return (<Label>{this.props.currentValue}</Label>);
     }
 
     _renderNewOrEditForm() {
-        const { fieldProps, disabled } = this.props;
-        const { currentValue, item } = this.state;
-        return (<TextField underlined ref={ref=>this._textField = ref}
+        const { fieldProps, currentValue, disabled } = this.props;
+        const { item, value } = this.state;
+        return (<TextField underlined ref={ref => this._textField = ref}
             required={/*fieldProps.required*/false}
-            disabled = {disabled}
+            disabled={disabled}
             onChange={(ev, newValue) => {
                 this.setValue(newValue);
             }}
+            value={value || ''}
             defaultValue={currentValue}
         />);
     }
 
-    _validate = () => {        
+    _validate = () => {
         let { isValid, validationErrors } = {};
         isValid = true;
-        return {isValid: isValid, validationErrors: validationErrors };
+        return { isValid: isValid, validationErrors: validationErrors };
     }
 
     hasValue() {
-       return this.getValue() !== "" && super.hasValue();
+        return this.getValue() !== "" && super.hasValue();
     }
 }
 

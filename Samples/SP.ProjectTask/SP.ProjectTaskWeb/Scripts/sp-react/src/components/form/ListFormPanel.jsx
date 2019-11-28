@@ -13,7 +13,7 @@ export class ListFormPanel extends React.Component {
         super(props);
         this._service = props.service;
         this.state = {
-            ...this.props
+            ...props
         };
         this._listForm = React.createRef();
     }

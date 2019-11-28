@@ -64,8 +64,16 @@ export class EmployeeForm extends ListForm {
         {
             key: 'position',
             name: 'Position',
-            type: 'text',
-            title: 'Position'           
+            type: 'choice',
+            isMultiple: true,            
+            title: 'Position',
+            choices: [
+                "Web developer",
+                "Project manager",
+                "Software tester",
+                "Technical consultant",
+                "Business analyst"             
+        ]         
         },
         {
             key: 'phone',

@@ -77,7 +77,7 @@ export class ListForm extends React.Component {
                                         let formFields = this._formFields = this._formFields || [];
                                         formFields.push(ref);
                                     }
-                                }} disabled={isLoading || isDeleting || isSaving} key={field.name} item={item} fieldProps={field} mode={mode} onValidate={this._onValidate} />))
+                                }} disabled={isLoading || isDeleting || isSaving} key={field.name} item={item} fieldProps={field} mode={mode} onValidate={(fieldControl, isValid, isDirty) => this._onValidate(fieldControl, isValid, isDirty)} />))
                     }
                     {confirmDeletion &&
                         (<Dialog
@@ -222,7 +222,7 @@ export class ListForm extends React.Component {
     };
 
     _onValidate = (fieldControl, isValid, isDirty) => {
-        if (this._formFields) {
+        if (this._formFields && this._formFields.length > 0) {
             for (let i = 0; i < this._formFields.length; i++) {
                 if (fieldControl === this._formFields[i].getControl()) continue;
                 if (!this._formFields[i].isValid()) {
@@ -231,9 +231,9 @@ export class ListForm extends React.Component {
                 if (this._formFields[i].isDirty()) {
                     isDirty = true;
                 }
-            }
+            }        
+          this._validate(isValid, isDirty);
         }
-        this._validate(isValid, isDirty);
     }
 
     async loadItem(itemId) {

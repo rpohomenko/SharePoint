@@ -50,7 +50,18 @@ export class TaskForm extends ListForm {
             renderListView: (ref, commandItems, onSelect, onSaving, onDeleting, onSaved, onDeleted) =>
                 this._renderProjectListView(ref, true, commandItems, onSelect, onSaving, onDeleting, onSaved, onDeleted),
             renderListForm: (ref) => this._renderProjectListForm(ref)
-        }];
+        },
+        {
+            key: 'status',
+            name: 'TaskStatus',
+            type: 'choice',
+            title: 'Status',
+            choices: [
+                "Not Started",
+                "In Progress",
+                "Completed"                
+            ]          
+        },];
     }
 
     _renderProjectListForm = (ref) => {

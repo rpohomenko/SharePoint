@@ -5,9 +5,8 @@ export class BaseFieldRenderer extends React.Component {
     constructor(props) {
         super(props);
 
-        this.state = {
-            currentValue: props.value,
-            value: props.value,
+        this.state = {           
+            value: props.currentValue,
             isValid: undefined,
             isDirty: false,
             validationErrors: [],
@@ -87,7 +86,7 @@ export class BaseFieldRenderer extends React.Component {
             isValid: isValid,
             validationErrors: ignoreErrors ? null : validationErrors
         }, () => {
-            if (typeof onValidate === "function") {
+            if (!ignoreErrors && typeof onValidate === "function") {
                 onValidate(this, isValid, this.isDirty(), validationErrors);
             }
         });
@@ -111,8 +110,8 @@ export class BaseFieldRenderer extends React.Component {
     }
 
     isDirty() {
-        const { mode } = this.props;
-        const { currentValue, value } = this.state;
+        const { mode, currentValue } = this.props;
+        const { value } = this.state;
         return mode === 2 ? this.hasValue() : value !== currentValue;
     }
 }

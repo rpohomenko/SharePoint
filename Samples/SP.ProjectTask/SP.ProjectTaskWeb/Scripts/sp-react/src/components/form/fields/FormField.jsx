@@ -8,6 +8,7 @@ import { getId } from 'office-ui-fabric-react/lib/Utilities';
 
 import { TextFieldRenderer } from './TextFieldRenderer';
 import { LookupFieldRenderer } from './LookupFieldRenderer';
+import { ChoiceFieldRenderer } from './ChoiceFieldRenderer';
 
 export class FormField extends React.Component {
 
@@ -85,10 +86,13 @@ export class FormField extends React.Component {
         let currentValue = item ? item[fieldProps.name] : undefined;
         let field;
         if (type === 'text') {
-            field = <TextFieldRenderer ref={(ref) => this._fieldControl = ref} disabled={disabled} key={fieldProps.name} value={currentValue} item={item} fieldProps={fieldProps} mode={mode} onValidate={onValidate} />;
+            field = <TextFieldRenderer ref={(ref) => this._fieldControl = ref} disabled={disabled} key={fieldProps.name} currentValue={currentValue} item={item} fieldProps={fieldProps} mode={mode} onValidate={onValidate} />;
         }
         else if (type === 'lookup') {
-            field = <LookupFieldRenderer ref={(ref) => this._fieldControl = ref} disabled={disabled} key={fieldProps.name} value={currentValue} item={item} fieldProps={fieldProps} mode={mode} onValidate={onValidate} />;
+            field = <LookupFieldRenderer ref={(ref) => this._fieldControl = ref} disabled={disabled} key={fieldProps.name} currentValue={currentValue} item={item} fieldProps={fieldProps} mode={mode} onValidate={onValidate} />;
+        }
+        else if (type === 'choice') {
+            field = <ChoiceFieldRenderer ref={(ref) => this._fieldControl = ref} disabled={disabled} key={fieldProps.name} currentValue={currentValue} item={item} fieldProps={fieldProps} mode={mode} onValidate={onValidate} />;
         }
         if (field) {
             return field;
