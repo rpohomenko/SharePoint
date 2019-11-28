@@ -359,7 +359,10 @@ namespace SP.Client.Linq.Infrastructure
 
         if (EntityId > 0)
         {
-          //nothing
+          if (Entity.Id == 0 && !isChanged && originalValue == null)
+          {
+            isChanged = true;
+          }
         }
         else
         {
@@ -392,7 +395,7 @@ namespace SP.Client.Linq.Infrastructure
           {
             throw new Exception($"Field '{fieldMapping.Name}' is required.");
           }
-          if (Entity.Id <= 0)
+          if (!isChanged && EntityId <= 0)
           {
             return false;
           }
