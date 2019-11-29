@@ -98,7 +98,7 @@ namespace SP.Client.Linq
 
         public static string GetChoiceValueString(Type enumType, object value)
         {
-            if (value != null && enumType != null && enumType.IsEnum && enumType.IsDefined(typeof(FlagsAttribute), false))
+            if (value != null && enumType != null && enumType.IsEnum)
             {
                 var enumName = enumType.GetEnumName(value);
                 var choices = AttributeHelper.GetFieldAttributes<ChoiceAttribute>(enumType);
@@ -115,7 +115,7 @@ namespace SP.Client.Linq
 
         public static IEnumerable<string> GetChoiceValuesString(Type enumType, object value)
         {
-            if (value != null && enumType != null && enumType.IsEnum)
+            if (value != null && enumType != null && enumType.IsEnum && enumType.IsDefined(typeof(FlagsAttribute), false))
             {
                 var enumValues = Enum.GetValues(enumType).Cast<Enum>();
                 var choices = AttributeHelper.GetFieldAttributes<ChoiceAttribute>(enumType).OrderBy(choice => choice.Value.Index);
@@ -125,7 +125,7 @@ namespace SP.Client.Linq
                     if ((value as Enum).HasFlag(enumValue))
                     {
                         var enumName = enumType.GetEnumName(enumValue);
-                        var choice = choices.FirstOrDefault(ch => string.Equals(ch.Value.Value, enumName, StringComparison.OrdinalIgnoreCase));
+                        var choice = choices.FirstOrDefault(ch => string.Equals(ch.Key.Name, enumName));
                         if (choice.Key != null)
                         {
                             yield return choice.Value.Value;
