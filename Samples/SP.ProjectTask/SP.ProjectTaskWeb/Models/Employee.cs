@@ -102,7 +102,7 @@ namespace SP.ProjectTaskWeb.Models
             }
             set
             {
-                EmployeePosition = value != null ? (EmployeePosition)value.Aggregate((p1, p2) => p1 | p2) : default;
+                EmployeePosition = value != null && value.Length > 0 ? (EmployeePosition)value.Aggregate((p1, p2) => p1 | p2) : default;
             }
         }
 
