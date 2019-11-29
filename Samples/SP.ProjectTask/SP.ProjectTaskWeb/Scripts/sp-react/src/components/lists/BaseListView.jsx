@@ -288,7 +288,7 @@ export class BaseListView extends React.Component {
                     columns: newColumns,
                     items: [],
                     nextPageToken: null,
-                    sortBy: column.name,
+                    sortBy: column.sortFieldName || column.fieldName,
                     sortDesc: column.isSortedDescending
                 });
                 return this.loadItems(column, null);
@@ -317,7 +317,8 @@ export class BaseListView extends React.Component {
                 key: 'aToZ',
                 name: column.sortAscendingAriaLabel,
                 iconProps: { iconName: 'SortUp' },
-                canCheck: true,
+                canCheck: column.isSortable,
+                disabled: !column.isSortable,
                 checked: column.isSorted && !column.isSortedDescending,
                 onClick: () => this.sortColumn(column, false)
             },
@@ -325,7 +326,8 @@ export class BaseListView extends React.Component {
                 key: 'zToA',
                 name: column.sortDescendingAriaLabel,
                 iconProps: { iconName: 'SortDown' },
-                canCheck: true,
+                canCheck: column.isSortable,
+                disabled: !column.isSortable,
                 checked: column.isSorted && column.isSortedDescending,
                 onClick: () => this.sortColumn(column, true)
             }
@@ -380,7 +382,7 @@ export class BaseListView extends React.Component {
         let { count, filter, sortBy, sortDesc, nextPageToken, items, selection } = this.state;
 
         if (sortColumn) {
-            sortBy = sortColumn.name;
+            sortBy = sortColumn.sortFieldName || sortColumn.fieldName;
             sortDesc = sortColumn.isSortedDescending;
         }
         if (pageToken) {

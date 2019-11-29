@@ -8,6 +8,8 @@ import BaseListView from "./BaseListView";
 import TaskCommand from "../commands/TaskCommand";
 import { ProjectFormPanel } from '../form/ProjectFormPanel';
 import { LookupFieldRenderer } from '../form/fields/LookupFieldRenderer';
+import { ChoiceFieldRenderer } from '../form/fields/ChoiceFieldRenderer';
+import { DateFieldRenderer } from '../form/fields/DateFieldRenderer';
 
 export class TaskList extends BaseListView {
 
@@ -39,14 +41,15 @@ export class TaskList extends BaseListView {
     const { selection, canAddListItems } = this.state;
     return (
       <div className="tasks-container" style={{
-          height: 'calc(100vh - 160px)',
-          position: 'relative' }}>
+        height: 'calc(100vh - 160px)',
+        position: 'relative'
+      }}>
         <ScrollablePane scrollbarVisibility={ScrollbarVisibility.auto}>
           <Sticky stickyPosition={StickyPositionType.Header} isScrollSynced={true}>
             <TaskCommand ref={ref => this._command = ref} canAddListItems={canAddListItems} commandItems={commandItems} service={this._service} selection={selection} onRefresh={() => this.refresh(true)}
               onItemDeleted={this._onItemDeleted} onItemSaved={this._onItemSaved} onItemSaving={onItemSaving} onItemDeleting={onItemDeleting} />
           </Sticky>
-          {super.render()}          
+          {super.render()}
         </ScrollablePane>
       </div>
     );
@@ -104,6 +107,7 @@ export class TaskList extends BaseListView {
         fieldName: 'Title',
         minWidth: 210,
         maxWidth: 350,
+        isSortable: true,
         isRowHeader: false,
         isResizable: false,
         isSorted: false,
@@ -118,8 +122,76 @@ export class TaskList extends BaseListView {
         key: 'project',
         name: 'Project',
         fieldName: 'Project',
+        sortFieldName: 'ProjectTitle',
         minWidth: 210,
         maxWidth: 350,
+        isRowHeader: false,
+        isResizable: false,
+        isSortable: true,
+        isSorted: false,
+        isSortedDescending: false,
+        sortAscendingAriaLabel: 'A to Z',
+        sortDescendingAriaLabel: 'Z to A',
+        onColumnClick: this._onColumnClick,
+        data: 'string',
+        isPadded: false,
+        getView: (lookupItem) => {
+          if (lookupItem) {
+            return <LookupFieldRenderer key='project' currentValue={lookupItem} fieldProps={{
+              key: 'project',
+              name: 'Project',
+              type: 'lookup',
+              title: 'Project',
+              lookupList: 'Projects',
+              lookupField: 'Title',
+              isMultiple: false,
+              required: true,
+              renderListForm: (ref) => this._renderProjectListForm(ref)
+            }} mode={0} />
+          }
+          return '';
+        }
+      },
+      {
+        key: 'status',
+        name: 'Status',
+        fieldName: 'TaskStatus',
+        minWidth: 210,
+        maxWidth: 350,
+        isRowHeader: false,
+        isResizable: false,
+        isSortable: true,
+        isSorted: false,
+        isSortedDescending: false,
+        sortAscendingAriaLabel: 'A to Z',
+        sortDescendingAriaLabel: 'Z to A',
+        onColumnClick: this._onColumnClick,
+        data: 'string',
+        isPadded: false,
+        getView: (value) => {
+          if (value) {
+            return <ChoiceFieldRenderer key='status' currentValue={value} fieldProps={{
+              key: 'status',
+              name: 'TaskStatus',
+              type: 'choice',
+              choices: [
+                { value: "Not Started", key: 1 },
+                { value: "In Progress", key: 2 },
+                { value: "Completed", key: 3 }
+              ]
+            }}
+              mode={0} />
+          }
+          return '';
+        }
+      },
+      {
+        key: 'startDate',
+        name: 'Start Date',
+        fieldName: 'StartDate',
+        minWidth: 210,
+        maxWidth: 350,
+        isSortable: true,
         isRowHeader: false,
         isResizable: false,
         isSorted: false,
@@ -131,16 +203,33 @@ export class TaskList extends BaseListView {
         isPadded: false,
         getView: (lookupItem) => {
           if (lookupItem) {
-              return <LookupFieldRenderer key='project' currentValue={lookupItem} fieldProps={{
-                key: 'project',
-                name: 'Project',
-                type: 'lookup',
-                title: 'Project',
-                lookupList: 'Projects',
-                lookupField: 'Title',
-                isMultiple: false,
-                required: true,             
-                renderListForm: (ref) => this._renderProjectListForm(ref)
+            return <DateFieldRenderer key='startDate' currentValue={lookupItem} fieldProps={{            
+              type: 'date'
+            }} mode={0} />
+          }
+          return '';
+        }
+      },
+      {
+        key: 'endDate',
+        name: 'End Date',
+        fieldName: 'DueDate',
+        minWidth: 210,
+        maxWidth: 350,
+        isRowHeader: false,        
+        isResizable: false,
+        isSortable: true,
+        isSorted: false,
+        isSortedDescending: false,
+        sortAscendingAriaLabel: 'A to Z',
+        sortDescendingAriaLabel: 'Z to A',
+        onColumnClick: this._onColumnClick,
+        data: 'string',
+        isPadded: false,
+        getView: (lookupItem) => {
+          if (lookupItem) {
+            return <DateFieldRenderer key='endDate' currentValue={lookupItem} fieldProps={{
+              type: 'date'
             }} mode={0} />
           }
           return '';
@@ -148,7 +237,7 @@ export class TaskList extends BaseListView {
       }
     ];
     return columns;
-  }  
+  }
 
   _renderProjectListForm = (ref) => {
     return <ProjectFormPanel ref={ref} service={this.props.service}
@@ -168,7 +257,7 @@ export class TaskList extends BaseListView {
       onItemLoaded={(sender, item) => {
 
       }}
-      />;
+    />;
   }
 
   _fetchData = async (count, nextPageToken, sortBy, sortDesc, filter, options) => {

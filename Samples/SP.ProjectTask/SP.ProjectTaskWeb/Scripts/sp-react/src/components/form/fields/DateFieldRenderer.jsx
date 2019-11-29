@@ -2,19 +2,68 @@ import * as React from 'react';
 import { Label } from 'office-ui-fabric-react/lib/Label';
 import { DatePicker, DayOfWeek } from 'office-ui-fabric-react/lib/DatePicker';
 import { BaseFieldRenderer } from './BaseFieldRenderer';
+var moment = require('moment');
+
+String.prototype.replaceAll = function (search, replacement) {
+    var target = this;
+    return target.split(search).join(replacement);
+};
 
 export class DateFieldRenderer extends BaseFieldRenderer {
     constructor(props) {
         super(props);
         let currentValue = props.currentValue;
-        if(currentValue){
+        if (currentValue) {
             currentValue = new Date(currentValue);
         }
+
+        if (_currentCulture) {
+            moment.updateLocale(_currentCulture.twoLetterISOLanguageName, {
+                monthsShort: _currentCulture.abbreviatedMonthNames,
+                months: _currentCulture.monthNames,
+                weekdays: _currentCulture.dayNames,
+                weekdaysShort: _currentCulture.abbreviatedDayNames,
+                longDateFormat: {
+                    //LT: _currentCulture.shortTimeFormat,
+                    //LTS: _currentCulture.longTimeFormat,
+                    L: _currentCulture.shortDateFormat.toUpperCase(),
+                    LL: _currentCulture.longDateFormat.replaceAll('y', 'Y').replaceAll('d', 'D').replaceAll("'", ''),
+                    //LLL: "LL LT",
+                    //LLLL: _currentCulture.fullDateTimeFormat.replaceAll('y', 'Y').replaceAll('d', 'D').replaceAll("'", '')
+                }
+            });
+            moment.locale(_currentCulture.twoLetterISOLanguageName);
+        }
+
+        if (_spPageContextInfo && _spPageContextInfo.regionalSettings) {
+
+        }
+
+        var dateSettings = [...props.fieldProps.dateSettings || []];
+        if (_currentCulture) {
+            if (dateSettings.months === undefined) {
+                dateSettings.months = _currentCulture.monthNames;
+            }
+            if (dateSettings.shortMonths === undefined) {
+                dateSettings.shortMonths = _currentCulture.abbreviatedMonthNames;
+            }
+            if (dateSettings.days === undefined) {
+                dateSettings.days = _currentCulture.dayNames;
+            }
+            if (dateSettings.shortDays === undefined) {
+                dateSettings.shortDays = _currentCulture.abbreviatedDayNames;
+            }
+            if (dateSettings.firstDayOfWeek === undefined) {
+                dateSettings.firstDayOfWeek = _currentCulture.firstDayOfWeek;
+            }
+        }
+
         this.state = {
             ...this.state,
+            dateSettings: dateSettings,
             currentValue: currentValue,
-            value: currentValue           
-        };       
+            value: currentValue
+        };
     }
 
     _renderNewForm() {
@@ -27,27 +76,27 @@ export class DateFieldRenderer extends BaseFieldRenderer {
 
     _renderDispForm() {
         let date = this.props.currentValue;
-        if(date){
+        if (date) {
             date = new Date(date);
         }
-        return date ? (<Label>{this._onFormatDate(date)}</Label>) : null;
+        return date ? (<Label>{this._onFormatDate(date, this.props.fieldProps.longDateFormat || "LL")}</Label>) : null;
     }
 
     _renderNewOrEditForm() {
         const { fieldProps, currentValue, disabled } = this.props;
-        const { item, value } = this.state;
+        const { item, value, dateSettings } = this.state;
         let firstDayOfWeek = fieldProps.dateOptions ? fieldProps.dateOptions.firstDayOfWeek : 0;
         return (
             <DatePicker
                 ref={ref => this._date = ref}
                 disabled={disabled}
                 allowTextInput={true}
-                firstDayOfWeek={firstDayOfWeek}
-                strings={fieldProps.dateOptions}
+                firstDayOfWeek={dateSettings.firstDayOfWeek}
+                strings={dateSettings}
                 value={value}
                 onSelectDate={(date) => this._onChange(date)}
-                formatDate={(date)=>this._onFormatDate(date)}
-                parseDateFromString={this._onParseDateFromString}
+                formatDate={(date) => this._onFormatDate(date, fieldProps.shortDateFormat || "L")}
+                parseDateFromString={(value) => this._onParseDateFromString(value, fieldProps.shortDateFormat || "L")}
             />
         );
     }
@@ -56,12 +105,13 @@ export class DateFieldRenderer extends BaseFieldRenderer {
         this.setValue(date);
     }
 
-    _onFormatDate = (date) => {
-        return date.getDate() + '/' + (date.getMonth() + 1) + '/' + (date.getFullYear() % 100);
+    _onFormatDate = (date, format) => {
+        return moment(date).format(format);
+        //return date.getDate() + '/' + (date.getMonth() + 1) + '/' + (date.getFullYear() % 100);
     };
 
-    _onParseDateFromString = (value) => {
-        const date = this.state.value || new Date();
+    _onParseDateFromString = (value, format) => {
+        /*const date = this.state.value || new Date();
         const values = (value || '').trim().split('/');
         const day = values.length > 0 ? Math.max(1, Math.min(31, parseInt(values[0], 10))) : date.getDate();
         const month = values.length > 1 ? Math.max(1, Math.min(12, parseInt(values[1], 10))) - 1 : date.getMonth();
@@ -69,7 +119,8 @@ export class DateFieldRenderer extends BaseFieldRenderer {
         if (year < 100) {
             year += date.getFullYear() - (date.getFullYear() % 100);
         }
-        return new Date(year, month, day);
+        return new Date(year, month, day);*/
+        return moment(value, format).toDate();
     };
 
     _validate = () => {
@@ -78,9 +129,9 @@ export class DateFieldRenderer extends BaseFieldRenderer {
         return { isValid: isValid, validationErrors: validationErrors };
     }
 
-    getValue(){
+    getValue() {
         let date = super.getValue();
-        if(date){
+        if (date) {
             return date.toISOString();
         }
         return null;
@@ -88,6 +139,24 @@ export class DateFieldRenderer extends BaseFieldRenderer {
 
     hasValue() {
         return this.getValue() !== null && super.hasValue();
+    }
+
+    isDirty() {
+        const { value, currentValue } = this.state;
+        if (super.isDirty()) {
+            if (value !== currentValue) {
+                if (value) {
+                    if (currentValue) {
+                        return currentValue - value !== 0;
+                    }
+                }
+                else if (!currentValue) {
+                    return false;
+                }
+                return true;
+            }
+        }
+        return false;
     }
 }
 

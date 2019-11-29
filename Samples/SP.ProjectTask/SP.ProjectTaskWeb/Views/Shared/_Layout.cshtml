@@ -19,6 +19,7 @@
     {
         <script type="text/javascript">
             window._spPageContextInfo = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.PageContextInfo));
+            window._currentCulture = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.CurrentCulture));
             window._isAppInstalled = @Html.Raw(ViewBag.IsAppInstalled ? "true": "false");
         </script>
     }

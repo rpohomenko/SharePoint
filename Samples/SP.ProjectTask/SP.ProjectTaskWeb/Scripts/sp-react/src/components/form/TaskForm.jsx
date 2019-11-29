@@ -68,6 +68,12 @@ export class TaskForm extends ListForm {
             type: 'date',
             title: 'Start Date'
         },
+        {
+            key: 'endDate',
+            name: 'DueDate',
+            type: 'date',
+            title: 'End Date'
+        },
         ];
     }
 

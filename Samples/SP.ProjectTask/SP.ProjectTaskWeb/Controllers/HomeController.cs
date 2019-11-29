@@ -1,6 +1,7 @@
 ﻿using Microsoft.SharePoint.Client;
 using SharePoint.Authentication;
 using SP.ProjectTaskWeb.Models;
+using System.Globalization;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 
@@ -17,7 +18,6 @@ namespace SP.ProjectTaskWeb.Controllers
 
         private async Task LoadData(ClientContext context)
         {
-
             var web = context.Web;
             var user = context.Web.CurrentUser;
             Site site = context.Site;
@@ -33,6 +33,11 @@ namespace SP.ProjectTaskWeb.Controllers
             SPPageContextInfo pageContextInfo = new SPPageContextInfo(site, web, false);
             ViewBag.PageContextInfo = pageContextInfo;
 
+            CultureInfo webCulture = new CultureInfo((int)pageContextInfo.RegionalInfo.LocaleId);
+            CultureInfo.DefaultThreadCurrentCulture = webCulture;
+            CultureInfo.DefaultThreadCurrentUICulture = webCulture;
+            //CultureInfo.CurrentCulture = webCulture;
+            ViewBag.CurrentCulture = new CultureInformation(/*webCulture*/ CultureInfo.CurrentCulture);
         }
 
         public async Task<ActionResult> Index()
