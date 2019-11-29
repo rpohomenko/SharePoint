@@ -125,22 +125,22 @@ namespace SP.ProjectTaskWeb.Models
             set;
         }
 
-    //[DataMember]
-    //[ChoiceField(Name = "TaskStatus", Behavior = ProvisionBehavior.None)]
-    //public virtual TaskStatus TaskStatus
-    //{
-    //    get;
-    //    set;
-    //}
+        [DataMember]
+        [ChoiceField(Name = "TaskStatus", Behavior = ProvisionBehavior.None)]
+        public virtual TaskStatus TaskStatus
+        {
+            get;
+            set;
+        }
 
-    [DataMember]
-    [ChoiceField(Name = "TaskStatus", Behavior = ProvisionBehavior.None)]
-    public virtual string TaskStatus
-    {
-      get;
-      set;
+        //[DataMember]
+        //[ChoiceField(Name = "TaskStatus", Behavior = ProvisionBehavior.None)]
+        //public virtual string TaskStatus
+        //{
+        //    get;
+        //    set;
+        //}
     }
-  }
 
     public enum TaskStatus
     {

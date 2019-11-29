@@ -13,7 +13,7 @@ namespace SP.ProjectTaskWeb
 
       config.Formatters.JsonFormatter.SerializerSettings.Formatting = Formatting.Indented;
       config.Formatters.JsonFormatter.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
-      config.Formatters.JsonFormatter.SerializerSettings.Converters.Add(new StringEnumConverter() { NamingStrategy = new CamelCaseNamingStrategy() });
+      config.Formatters.JsonFormatter.SerializerSettings.Converters.Add(new StringEnumConverter() { NamingStrategy = new CamelCaseNamingStrategy(), AllowIntegerValues = true });
       //config.Formatters.JsonFormatter.UseDataContractJsonSerializer = true;
       //config.Formatters.JsonFormatter.SerializerSettings.Converters.Add(
       //  new IsoDateTimeConverter

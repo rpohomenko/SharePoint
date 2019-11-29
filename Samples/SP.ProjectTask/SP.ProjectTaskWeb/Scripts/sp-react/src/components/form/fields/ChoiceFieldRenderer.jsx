@@ -12,12 +12,8 @@ export class ChoiceFieldRenderer extends BaseFieldRenderer {
         let choices = fieldProps.choices;
         let options = [];
         if (isArray(choices)) {
-            currentValue = isArray(currentValue)
-                ? currentValue.map((val, i) => choices.indexOf(val))
-                : (currentValue ? choices.indexOf(currentValue) : null);
-
             if (isArray(choices)) {
-                options = fieldProps.choices.map((choice, i) => { return { key: i, text: choice } });
+                options = fieldProps.choices.map((choice) => { return { key: choice.key, text: choice.value } });
                 if (!fieldProps.required && !fieldProps.isMultiple) {
                     options = [{ key: -1, text: '' }].concat(options);
                 }
@@ -40,11 +36,20 @@ export class ChoiceFieldRenderer extends BaseFieldRenderer {
     }
 
     _renderDispForm() {
-        const { currentValue } = this.props;
-        if (isArray(currentValue)) {
-            return currentValue.map((choice, i) => (<span key={`choice_${i}`}>{i > 0 ? ', ' : ''}{choice}</span>));
+        const { currentValue, fieldProps } = this.props;
+        let choices = fieldProps.choices;
+        if (isArray(choices)) {
+            if (isArray(currentValue)) {
+                return currentValue.map((key, i) => (<span key={`choice_${i}`}>{i > 0 ? ', ' : ''}{this._getChoiceValue(key, choices)}</span>));
+            }
+            return (<span>{this._getChoiceValue(currentValue, choices)}</span>);
         }
-        return (<span>{currentValue ? currentValue : ''}</span>);
+        return null;
+    }
+
+    _getChoiceValue(key, choices) {
+        let choice = choices.filter(choice => choice.key === key);
+        return choice.length > 0 ? choice[0].value : null;
     }
 
     _renderNewOrEditForm() {
@@ -100,18 +105,7 @@ export class ChoiceFieldRenderer extends BaseFieldRenderer {
     }
 
     getValue() {
-        const { fieldProps } = this.props;
-        let value = super.getValue();
-        if (isArray(fieldProps.choices)) {
-            if (fieldProps.isMultiple) {
-                if ((isArray(value) && value.length > 0))
-                    return value.map((key) => fieldProps.choices[key]);
-            }
-            else {
-                return fieldProps.choices[value];
-            }
-        }
-        return null;
+       return super.getValue();       
     }
 
     hasValue() {
@@ -133,7 +127,7 @@ export class ChoiceFieldRenderer extends BaseFieldRenderer {
                     return false;
                 }
             }
-            if(value === -1){
+            if (value === -1) {
                 return currentValue !== -1 && currentValue !== null && currentValue !== undefined;
             }
             return value !== currentValue;

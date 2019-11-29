@@ -39,84 +39,84 @@ export class EmployeeForm extends ListForm {
             title: 'Title',
             required: true
         },*/
-        {
-            key: 'firstName',
-            name: 'FirstName',
-            type: 'text',
-            title: 'First Name',
-            required: true,
-            description: "First Name"
-        },
-        {
-            key: 'lastName',
-            name: 'LastName',
-            type: 'text',
-            title: 'Last Name',
-            required: true
-        },
-        {
-            key: 'account',
-            name: 'Account',
-            type: 'text',
-            title: 'Account',
-            //required: true
-        },
-        {
-            key: 'position',
-            name: 'Position',
-            type: 'choice',
-            isMultiple: true,            
-            title: 'Position',
-            choices: [
-                "Web developer",
-                "Project manager",
-                "Software tester",
-                "Technical consultant",
-                "Business analyst"             
-        ]         
-        },
-        {
-            key: 'phone',
-            name: 'Phone',
-            type: 'text',
-            title: 'Phone'           
-        },
-        {
-            key: 'email',
-            name: 'Email',
-            type: 'text',
-            title: 'Email'           
-        },
-        {
-            key: 'manager',
-            name: 'Manager',
-            type: 'lookup',
-            isMultiple: true,
-            lookupList: 'Employees',
-            lookupField: 'Title',
-            title: 'Manager',
-            renderListView: (ref, commandItems, onSelect, onSaving, onDeleting, onSaved, onDeleted) => 
-                            this._renderEmployeeListView(ref, true, commandItems, onSelect, onSaving, onDeleting, onSaved, onDeleted),
-            renderListForm: (ref) => this._renderEmployeeListForm(ref)
-        },
-        {
-            key: 'department',
-            name: 'Department',
-            type: 'lookup',
-            isMultiple: false,
-            title: 'Department',
-            lookupList: 'Departments',
-            lookupField: 'Title',
-            renderListView: (ref, commandItems, onSelect, onSaving, onDeleting, onSaved, onDeleted) => 
-                            this._renderDepartmentListView(ref, false, commandItems, onSelect, onSaving, onDeleting, onSaved, onDeleted),
-            renderListForm: (ref) => this._renderDepartmentListForm(ref)       
-        },
-        {
-            key: 'description',
-            name: 'Description',
-            type: 'text',
-            title: 'Description'           
-        },
+            {
+                key: 'firstName',
+                name: 'FirstName',
+                type: 'text',
+                title: 'First Name',
+                required: true,
+                description: "First Name"
+            },
+            {
+                key: 'lastName',
+                name: 'LastName',
+                type: 'text',
+                title: 'Last Name',
+                required: true
+            },
+            {
+                key: 'account',
+                name: 'Account',
+                type: 'text',
+                title: 'Account',
+                //required: true
+            },
+            {
+                key: 'position',
+                name: 'Position',
+                type: 'choice',
+                isMultiple: true,
+                title: 'Position',
+                choices: [
+                    { value: "Web developer", key: 1 },
+                    { value: "Project manager", key: 2 },
+                    { value: "Software tester", key: 4 },
+                    { value: "Technical consultant", key: 8 },
+                    { value: "Business analyst", key: 16 }
+                ]
+            },
+            {
+                key: 'phone',
+                name: 'Phone',
+                type: 'text',
+                title: 'Phone'
+            },
+            {
+                key: 'email',
+                name: 'Email',
+                type: 'text',
+                title: 'Email'
+            },
+            {
+                key: 'manager',
+                name: 'Manager',
+                type: 'lookup',
+                isMultiple: true,
+                lookupList: 'Employees',
+                lookupField: 'Title',
+                title: 'Manager',
+                renderListView: (ref, commandItems, onSelect, onSaving, onDeleting, onSaved, onDeleted) =>
+                    this._renderEmployeeListView(ref, true, commandItems, onSelect, onSaving, onDeleting, onSaved, onDeleted),
+                renderListForm: (ref) => this._renderEmployeeListForm(ref)
+            },
+            {
+                key: 'department',
+                name: 'Department',
+                type: 'lookup',
+                isMultiple: false,
+                title: 'Department',
+                lookupList: 'Departments',
+                lookupField: 'Title',
+                renderListView: (ref, commandItems, onSelect, onSaving, onDeleting, onSaved, onDeleted) =>
+                    this._renderDepartmentListView(ref, false, commandItems, onSelect, onSaving, onDeleting, onSaved, onDeleted),
+                renderListForm: (ref) => this._renderDepartmentListForm(ref)
+            },
+            {
+                key: 'description',
+                name: 'Description',
+                type: 'text',
+                title: 'Description'
+            },
         ];
     }
 

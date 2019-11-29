@@ -57,18 +57,18 @@ export class TaskForm extends ListForm {
             type: 'choice',
             title: 'Status',
             choices: [
-                "Not Started",
-                "In Progress",
-                "Completed"                
-            ]          
+                { value: "Not Started", key: 1 },
+                { value: "In Progress", key: 2 },
+                { value: "Completed", key: 3 }
+            ]
         },
         {
             key: 'startDate',
             name: 'StartDate',
             type: 'date',
-            title: 'Start Date'               
+            title: 'Start Date'
         },
-    ];
+        ];
     }
 
     _renderProjectListForm = (ref) => {
