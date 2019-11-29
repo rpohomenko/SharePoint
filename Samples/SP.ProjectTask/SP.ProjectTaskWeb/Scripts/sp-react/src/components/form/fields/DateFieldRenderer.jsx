@@ -13,8 +13,13 @@ export class DateFieldRenderer extends BaseFieldRenderer {
     constructor(props) {
         super(props);
         let currentValue = props.currentValue;
+        this._tzBias = 0;
+        if (_spPageContextInfo && _spPageContextInfo.regionalSettings) {
+            this._tzBias = _spPageContextInfo.regionalSettings.tzBias;
+        }
+
         if (currentValue) {
-            currentValue = new Date(currentValue);
+            currentValue = this._getDate(currentValue, this._tzBias);
         }
 
         if (_currentCulture) {
@@ -33,10 +38,6 @@ export class DateFieldRenderer extends BaseFieldRenderer {
                 }
             });
             moment.locale(_currentCulture.twoLetterISOLanguageName);
-        }
-
-        if (_spPageContextInfo && _spPageContextInfo.regionalSettings) {
-
         }
 
         var dateSettings = [...props.fieldProps.dateSettings || []];
@@ -66,6 +67,19 @@ export class DateFieldRenderer extends BaseFieldRenderer {
         };
     }
 
+    _getDate(dateString, tzBias){
+        let date = new Date(dateString);
+        return this._getLocaleDate(date, tzBias);
+    }
+
+    _getLocaleDate(date, tzBias){       
+       return moment(date).add(-(moment(date).utcOffset() + tzBias), 'm').toDate();
+    }
+
+    _getUtcDate(date, tzBias){       
+        return moment(date).add(moment(date).utcOffset() + tzBias, 'm')/*.utc()*/.toDate();
+     }
+
     _renderNewForm() {
         return this._renderNewOrEditForm();
     }
@@ -85,7 +99,6 @@ export class DateFieldRenderer extends BaseFieldRenderer {
     _renderNewOrEditForm() {
         const { fieldProps, currentValue, disabled } = this.props;
         const { item, value, dateSettings } = this.state;
-        let firstDayOfWeek = fieldProps.dateOptions ? fieldProps.dateOptions.firstDayOfWeek : 0;
         return (
             <DatePicker
                 ref={ref => this._date = ref}
@@ -132,6 +145,7 @@ export class DateFieldRenderer extends BaseFieldRenderer {
     getValue() {
         let date = super.getValue();
         if (date) {
+            date = this._getUtcDate(date, this._tzBias);
             return date.toISOString();
         }
         return null;
