@@ -32,9 +32,7 @@ export class DateFieldRenderer extends BaseFieldRenderer {
                     //LT: _currentCulture.shortTimeFormat,
                     //LTS: _currentCulture.longTimeFormat,
                     L: _currentCulture.shortDateFormat.toUpperCase(),
-                    LL: _currentCulture.longDateFormat.replaceAll('y', 'Y').replaceAll('d', 'D').replaceAll("'", ''),
-                    //LLL: "LL LT",
-                    //LLLL: _currentCulture.fullDateTimeFormat.replaceAll('y', 'Y').replaceAll('d', 'D').replaceAll("'", '')
+                    LL: _currentCulture.longDateFormat.replaceAll('y', 'Y').replaceAll('d', 'D').replaceAll('DDDD', 'dddd').replaceAll('DDD', 'ddd').replaceAll("'", ''),
                 }
             });
             moment.locale(_currentCulture.twoLetterISOLanguageName);
