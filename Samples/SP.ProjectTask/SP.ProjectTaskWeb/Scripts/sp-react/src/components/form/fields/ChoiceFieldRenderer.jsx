@@ -59,6 +59,7 @@ export class ChoiceFieldRenderer extends BaseFieldRenderer {
         let selectedKeys = (isArray(value) ? value : null);
         return (fieldProps.isMultiple
             ? <Dropdown
+                ref={ref => this._choiceField = ref}
                 placeholder={fieldProps.placeholder}
                 selectedKeys={selectedKeys}
                 onChange={(ev, item) => this._onChange(item)}
@@ -68,6 +69,7 @@ export class ChoiceFieldRenderer extends BaseFieldRenderer {
                 styles={{ dropdown: { width: '100%' } }}
             />
             : <Dropdown
+                ref={ref => this._choiceField = ref}
                 placeholder={fieldProps.placeholder}
                 selectedKey={value}
                 onChange={(ev, item) => this._onChange(item)}

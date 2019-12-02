@@ -41,6 +41,7 @@ export class DateTimeFieldRenderer extends DateFieldRenderer {
     }
 
     _renderNewOrEditForm() {
+        const { disabled } = this.props;
         const { hours, minutes, meridiem } = this.state;
         let mask = meridiem
             ? `99:99${meridiem ? ' ' + new Array(meridiem.length + 1).join('*') : ''}`
@@ -52,7 +53,8 @@ export class DateTimeFieldRenderer extends DateFieldRenderer {
             </div>
             <div className="col">
                 <MaskedTextField
-                    ref={ref => this._time = ref}
+                    disabled={disabled}
+                    ref={ref => this._timeField = ref}
                     mask={mask}
                     maskChar={this._maskChar}
                     maskFormat={{
@@ -130,14 +132,21 @@ export class DateTimeFieldRenderer extends DateFieldRenderer {
                 }
                 if (newValue !== value || newHours !== hours || newMinutes !== minutes || newMeridiem !== meridiem) {
                     this.setState({ hours: newHours, minutes: newMinutes, meridiem: newMeridiem });
-                    if (this._time) {
-                        this._time.setState({ displayValue: newValue });
+                    if (this._timeField) {
+                        this._timeField.setState({ displayValue: newValue });
                     }
 
                     let date = this.state.value;
                     let newDate = new Date(date.getTime());
                     if (!this._isTime24) {
-                        newHours = newMeridiem === this._pm ? newHours + 12 : newHours;
+                        if (newHours == 12) {
+                            if (newMeridiem === this._am) {
+                                newHours = 0;
+                            }
+                        }
+                        else {
+                            newHours = newMeridiem === this._pm ? newHours + 12 : newHours;
+                        }
                     }
                     newDate.setHours(newHours);
                     newDate.setMinutes(newMinutes);
