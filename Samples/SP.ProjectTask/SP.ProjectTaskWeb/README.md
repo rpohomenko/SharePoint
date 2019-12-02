@@ -12,7 +12,7 @@ Open **SP.ProjectTaskWeb** folder with **Visual Studio Code**.
 
 `npm install --save-dev sass-loader node-sass`
 
-`npm install @babel/plugin-transform-runtime react react-dom office-ui-fabric-react reactstrap`
+`npm install @babel/plugin-transform-runtime react react-dom office-ui-fabric-react reactstrap moment`
 
 `npm install url-polyfill whatwg-fetch abortcontroller-polyfill promise-polyfill babel-polyfill` - for IE browser
 

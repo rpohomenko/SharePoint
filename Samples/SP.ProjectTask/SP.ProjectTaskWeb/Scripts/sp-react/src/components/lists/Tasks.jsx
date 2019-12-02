@@ -10,6 +10,7 @@ import { ProjectFormPanel } from '../form/ProjectFormPanel';
 import { LookupFieldRenderer } from '../form/fields/LookupFieldRenderer';
 import { ChoiceFieldRenderer } from '../form/fields/ChoiceFieldRenderer';
 import { DateFieldRenderer } from '../form/fields/DateFieldRenderer';
+import { DateTimeFieldRenderer } from '../form/fields/DateTimeFieldRenderer';
 
 export class TaskList extends BaseListView {
 
@@ -203,8 +204,8 @@ export class TaskList extends BaseListView {
         isPadded: false,
         getView: (lookupItem) => {
           if (lookupItem) {
-            return <DateFieldRenderer key='startDate' currentValue={lookupItem} fieldProps={{            
-              type: 'date'
+            return <DateTimeFieldRenderer key='startDate' currentValue={lookupItem} fieldProps={{         
+              type: 'datetime'
             }} mode={0} />
           }
           return '';
@@ -228,8 +229,8 @@ export class TaskList extends BaseListView {
         isPadded: false,
         getView: (lookupItem) => {
           if (lookupItem) {
-            return <DateFieldRenderer key='endDate' currentValue={lookupItem} fieldProps={{
-              type: 'date'
+            return <DateTimeFieldRenderer key='endDate' currentValue={lookupItem} fieldProps={{
+              type: 'datetime'
             }} mode={0} />
           }
           return '';

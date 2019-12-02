@@ -10,6 +10,7 @@ import { TextFieldRenderer } from './TextFieldRenderer';
 import { LookupFieldRenderer } from './LookupFieldRenderer';
 import { ChoiceFieldRenderer } from './ChoiceFieldRenderer';
 import { DateFieldRenderer } from './DateFieldRenderer';
+import { DateTimeFieldRenderer } from './DateTimeFieldRenderer';
 
 export class FormField extends React.Component {
 
@@ -97,6 +98,9 @@ export class FormField extends React.Component {
         }
         else if (type === 'date') {
             field = <DateFieldRenderer ref={(ref) => this._fieldControl = ref} disabled={disabled} key={fieldProps.name} currentValue={currentValue} item={item} fieldProps={fieldProps} mode={mode} onValidate={onValidate} />;
+        }
+        else if (type === 'datetime') {
+            field = <DateTimeFieldRenderer ref={(ref) => this._fieldControl = ref} disabled={disabled} key={fieldProps.name} currentValue={currentValue} item={item} fieldProps={fieldProps} mode={mode} onValidate={onValidate} />;
         }
         if (field) {
             return field;

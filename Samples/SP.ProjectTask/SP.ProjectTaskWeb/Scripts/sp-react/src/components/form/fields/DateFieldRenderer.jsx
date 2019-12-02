@@ -29,10 +29,10 @@ export class DateFieldRenderer extends BaseFieldRenderer {
                 weekdays: _currentCulture.dayNames,
                 weekdaysShort: _currentCulture.abbreviatedDayNames,
                 longDateFormat: {
-                    //LT: _currentCulture.shortTimeFormat,
+                    LT: _currentCulture.shortTimeFormat,
                     //LTS: _currentCulture.longTimeFormat,
                     L: _currentCulture.shortDateFormat.toUpperCase(),
-                    LL: _currentCulture.longDateFormat.replaceAll('y', 'Y').replaceAll('d', 'D').replaceAll('DDDD', 'dddd').replaceAll('DDD', 'ddd').replaceAll("'", ''),
+                    LL: _currentCulture.longDateFormat.replaceAll('y', 'Y').replaceAll(/\bd\b/gi, 'D').replaceAll(/\bdd\b/gi, 'DD').replaceAll("'", ''),
                 }
             });
             moment.locale(_currentCulture.twoLetterISOLanguageName);
@@ -65,18 +65,18 @@ export class DateFieldRenderer extends BaseFieldRenderer {
         };
     }
 
-    _getDate(dateString, tzBias){
+    _getDate(dateString, tzBias) {
         let date = new Date(dateString);
         return this._getLocaleDate(date, tzBias);
     }
 
-    _getLocaleDate(date, tzBias){       
-       return moment(date).add(-(moment(date).utcOffset() + tzBias), 'm').toDate();
+    _getLocaleDate(date, tzBias) {
+        return moment(date).add(-(moment(date).utcOffset() + tzBias), 'm').toDate();
     }
 
-    _getUtcDate(date, tzBias){       
+    _getUtcDate(date, tzBias) {
         return moment(date).add(moment(date).utcOffset() + tzBias, 'm')/*.utc()*/.toDate();
-     }
+    }
 
     _renderNewForm() {
         return this._renderNewOrEditForm();
@@ -87,10 +87,7 @@ export class DateFieldRenderer extends BaseFieldRenderer {
     }
 
     _renderDispForm() {
-        let date = this.props.currentValue;
-        if (date) {
-            date = new Date(date);
-        }
+        let date = this.state.currentValue;
         return date ? (<Label>{this._onFormatDate(date, this.props.fieldProps.longDateFormat || "LL")}</Label>) : null;
     }
 
@@ -105,14 +102,14 @@ export class DateFieldRenderer extends BaseFieldRenderer {
                 firstDayOfWeek={dateSettings.firstDayOfWeek}
                 strings={dateSettings}
                 value={value}
-                onSelectDate={(date) => this._onChange(date)}
+                onSelectDate={(date) => this._onDateChange(date)}
                 formatDate={(date) => this._onFormatDate(date, fieldProps.shortDateFormat || "L")}
                 parseDateFromString={(value) => this._onParseDateFromString(value, fieldProps.shortDateFormat || "L")}
             />
         );
     }
 
-    _onChange = (date) => {
+    _onDateChange(date) {
         this.setValue(date);
     }
 
