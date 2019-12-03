@@ -1,51 +1,56 @@
 [role="main"] {
-  padding-top: 0px;
-  /* Space for fixed navbar */
+    padding-top: 0px;
+    /* Space for fixed navbar */
 }
 
 @media (min-width: 768px) {
-  [role="main"] {
-    padding-top: 40px;
-
-    .content {
-      height: calc(80vh - 10px);
+    [role="main"] {
+        padding-top: 40px;
+        .content {
+            height: calc(80vh - 10px);
+        }
     }
-  }
 }
 
 .ms-Panel-header {
-  margin: 0 !important;
+    margin: 0 !important;
 }
 
 .ms-Panel-headerText {
-  font-weight: 300;
+    font-weight: 300;
 }
 
 .ms-Breadcrumb-item {
-  font-weight: 400 !important;
-  color: darkgrey !important;
+    font-weight: 400 !important;
+    color: darkgrey !important;
 }
 
 .ms-CommandBar {
-  padding: 0.5rem;
+    padding: 0.5rem;
 }
 
 .breadcrumbs {
-  margin: 0;
-  height: 40px;
+    margin: 0;
+    height: 40px;
 }
 
 [role="main"] {
-  height: 100vh;
-
-  .content {
-    position: relative;
-  }
+    height: 100vh;
+    .content {
+        position: relative;
+    }
 }
 
 .form-field {
-  padding: 5px 5px;
-.form-field-label {
-  color: darkgrey;
+    padding: 5px 5px;
+    .form-field-label {
+        color: darkgrey;
+    }
 }
+
+.time-picker {
+    input {
+        width: 2em;
+        font-size: 16pt;
+    }
 }

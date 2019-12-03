@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { Label } from 'office-ui-fabric-react/lib/Label';
 import { DatePicker, DayOfWeek } from 'office-ui-fabric-react/lib/DatePicker';
 import { BaseFieldRenderer } from './BaseFieldRenderer';
 var moment = require('moment');
@@ -10,8 +9,20 @@ String.prototype.replaceAll = function (search, replacement) {
 };
 
 export class DateFieldRenderer extends BaseFieldRenderer {
+
     constructor(props) {
         super(props);
+
+        this.state = {
+            ...this.state,
+            value: null
+        };
+    }
+
+    componentDidMount(){
+        super.componentDidMount();
+
+        let props = this.props;
         let currentValue = props.currentValue;
         this._tzBias = 0;
         if (_spPageContextInfo && _spPageContextInfo.regionalSettings) {
@@ -29,7 +40,7 @@ export class DateFieldRenderer extends BaseFieldRenderer {
                 weekdays: _currentCulture.dayNames,
                 weekdaysShort: _currentCulture.abbreviatedDayNames,
                 longDateFormat: {
-                    LT: _currentCulture.shortTimeFormat,
+                    //LT: _currentCulture.shortTimeFormat,
                     //LTS: _currentCulture.longTimeFormat,
                     L: _currentCulture.shortDateFormat.toUpperCase(),
                     LL: _currentCulture.longDateFormat.replaceAll('y', 'Y').replaceAll(/\bd\b/gi, 'D').replaceAll(/\bdd\b/gi, 'DD').replaceAll("'", ''),
@@ -57,12 +68,11 @@ export class DateFieldRenderer extends BaseFieldRenderer {
             }
         }
 
-        this.state = {
-            ...this.state,
+        this.setState({
             dateSettings: dateSettings,
             currentValue: currentValue,
             value: currentValue
-        };
+        });
     }
 
     _getDate(dateString, tzBias) {
@@ -88,7 +98,7 @@ export class DateFieldRenderer extends BaseFieldRenderer {
 
     _renderDispForm() {
         let date = this.state.currentValue;
-        return date ? (<Label>{this._onFormatDate(date, this.props.fieldProps.longDateFormat || "LL")}</Label>) : null;
+        return date ? (<span>{this._onFormatDate(date, this.props.fieldProps.longDateFormat || "LL")}</span>) : null;
     }
 
     _renderNewOrEditForm() {
@@ -99,7 +109,7 @@ export class DateFieldRenderer extends BaseFieldRenderer {
                 ref={ref => this._date = ref}
                 disabled={disabled}
                 allowTextInput={true}
-                firstDayOfWeek={dateSettings.firstDayOfWeek}
+                firstDayOfWeek={dateSettings ? dateSettings.firstDayOfWeek : 0}
                 strings={dateSettings}
                 value={value}
                 onSelectDate={(date) => this._onDateChange(date)}

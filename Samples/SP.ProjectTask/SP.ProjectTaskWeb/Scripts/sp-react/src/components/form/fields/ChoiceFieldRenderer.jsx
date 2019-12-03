@@ -7,6 +7,13 @@ export class ChoiceFieldRenderer extends BaseFieldRenderer {
     constructor(props) {
         super(props);
 
+        this.state = {
+            ...this.state
+        };
+    }
+
+    componentDidMount() {
+        let props = this.props;
         let currentValue = props.currentValue;
         let fieldProps = props.fieldProps;
         let choices = fieldProps.choices;
@@ -19,12 +26,11 @@ export class ChoiceFieldRenderer extends BaseFieldRenderer {
                 }
             }
         }
-        this.state = {
-            ...this.state,
+        this.setState({
             currentValue: currentValue,
             value: currentValue,
             options: options
-        };
+        });
     }
 
     _renderNewForm() {
@@ -107,7 +113,11 @@ export class ChoiceFieldRenderer extends BaseFieldRenderer {
     }
 
     getValue() {
-       return super.getValue();       
+        let value = super.getValue();
+        if (isArray(value)) {
+            value = value.sort();
+        }
+        return value;
     }
 
     hasValue() {

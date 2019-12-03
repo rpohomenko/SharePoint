@@ -2,6 +2,7 @@ import * as React from 'react';
 import ErrorBoundary from '../../../ErrorBoundary';
 
 export class BaseFieldRenderer extends React.Component {
+
     constructor(props) {
         super(props);
 
@@ -12,10 +13,9 @@ export class BaseFieldRenderer extends React.Component {
             validationErrors: [],
             validators: []
         };
-
     }
 
-    componentDidMount() {            
+    componentDidMount(){            
     }
 
     render() {

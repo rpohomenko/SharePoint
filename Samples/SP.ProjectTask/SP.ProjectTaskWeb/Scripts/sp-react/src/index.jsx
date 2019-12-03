@@ -16,7 +16,7 @@ const service = new AppService();
 ReactDOM.render(<App service={service} />, document.querySelector("#app-container"));
 
 window._currentCulture = window._currentCulture ||
-    /*{
+    {
         abbreviatedDayNames: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
         abbreviatedMonthNames: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec", ""],
         currencyDecimalSeparator: ".",
@@ -41,8 +41,8 @@ window._currentCulture = window._currentCulture ||
         shortestDayNames: ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"],
         timeSeparator: ":",
         twoLetterISOLanguageName: "en"
-    }*/
-    {
+    }
+    /*{
         abbreviatedDayNames: ["Вс", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"],
         abbreviatedMonthNames: ["янв", "фев", "мар", "апр", "май", "июн", "июл", "авг", "сен", "окт", "ноя", "дек", ""],
         currencyDecimalSeparator: ",",
@@ -67,7 +67,7 @@ window._currentCulture = window._currentCulture ||
         shortestDayNames: ["Вс", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"],
         timeSeparator: ":",
         twoLetterISOLanguageName: "ru",
-    };
+    }*/;
 
 window._spPageContextInfo = window._spPageContextInfo ||
     {

@@ -4,8 +4,15 @@ import { isArray } from 'util';
 
 export class ChoiceFieldRenderer2 extends ChoiceFieldRenderer {
     constructor(props) {
-        super(props);
+        super(props);        
+        this.state = {
+            ...this.state          
+        };
+    }
 
+    componentDidMount() {
+        super.componentDidMount();
+        let props = this.props;
         let currentValue = props.currentValue;
         let fieldProps = props.fieldProps;
         let choices = fieldProps.choices;
@@ -22,12 +29,11 @@ export class ChoiceFieldRenderer2 extends ChoiceFieldRenderer {
                 }
             }
         }
-        this.state = {
-            ...this.state,
+        this.setState({
             currentValue: currentValue,
             value: currentValue,
             options: options
-        };
+        });
     }
 
     _renderNewForm() {
