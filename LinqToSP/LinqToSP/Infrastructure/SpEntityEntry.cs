@@ -359,7 +359,7 @@ namespace SP.Client.Linq.Infrastructure
 
                 if (EntityId > 0)
                 {
-                    if (Entity.Id == 0 && !isChanged && (originalValue != null && Equals(originalValue.GetType().GetDefaultValue(), originalValue)))
+                    if (Entity.Id == 0 && !isChanged && !(originalValue == null || Equals(originalValue.GetType().GetDefaultValue(), originalValue)))
                     {
                         isChanged = true;
                     }
