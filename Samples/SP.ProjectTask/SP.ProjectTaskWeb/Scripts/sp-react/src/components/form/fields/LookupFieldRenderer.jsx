@@ -2,8 +2,9 @@ import React from "react";
 import PropTypes from 'prop-types';
 import { Label } from 'office-ui-fabric-react/lib/Label';
 import { Link } from 'office-ui-fabric-react/lib/Link';
+import { Stack } from 'office-ui-fabric-react/lib/Stack';
 import { TagPicker } from 'office-ui-fabric-react/lib/Pickers';
-import { DefaultButton, PrimaryButton } from 'office-ui-fabric-react/lib/Button';
+import { DefaultButton, PrimaryButton, IconButton } from 'office-ui-fabric-react/lib/Button';
 import { Panel, PanelType } from 'office-ui-fabric-react/lib/Panel';
 import { isArray, isNumber } from "util";
 
@@ -99,8 +100,8 @@ export class LookupFieldRenderer extends BaseFieldRenderer {
                     isFooterAtBottom={true}>
                     {listView}
                 </Panel>)}
-            <div className="input-group row">
-                <TagPicker className="col-10" componentRef={this._picker}
+            <Stack tokens={{ childrenGap: 2 }} horizontal>
+                <TagPicker componentRef={this._picker}
                     onResolveSuggestions={() => { }}
                     selectedItems={items}
                     onChange={(items) => this._onChange(items)}
@@ -120,13 +121,13 @@ export class LookupFieldRenderer extends BaseFieldRenderer {
                         onFocus: (ev) => {
                             ev.target.readOnly = true;
                         },
-                        'aria-label': ''
+                        defaultVisibleValue: items && items.length > 0 ? "" : (fieldProps.isMultiple ? "Select options..." : "Select an option..."),
+                        "aria-label": items && items.length > 0 ? "" : (fieldProps.isMultiple ? "Select options..." : "Select an option...")
                     }}
                 />
-                <div className="col-2">
-                    <DefaultButton disabled={disabled} onClick={(e) => this._showListView()}>...</DefaultButton>
-                </div>
-            </div>    </React.Fragment>);
+                <IconButton iconProps={{ iconName: 'More' }} disabled={disabled} onClick={(e) => this._showListView()} />
+            </Stack>
+        </React.Fragment>);
     }
 
     _getCommandItems = () => {

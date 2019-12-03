@@ -48,7 +48,7 @@ export class TaskForm extends ListForm {
             isMultiple: false,
             required: true,
             renderListView: (ref, commandItems, onSelect, onSaving, onDeleting, onSaved, onDeleted) =>
-                this._renderProjectListView(ref, true, commandItems, onSelect, onSaving, onDeleting, onSaved, onDeleted),
+                this._renderProjectListView(ref, false, commandItems, onSelect, onSaving, onDeleting, onSaved, onDeleted),
             renderListForm: (ref) => this._renderProjectListForm(ref)
         },
         {

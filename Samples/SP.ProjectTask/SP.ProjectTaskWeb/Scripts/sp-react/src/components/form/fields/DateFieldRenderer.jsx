@@ -112,6 +112,8 @@ export class DateFieldRenderer extends BaseFieldRenderer {
                 firstDayOfWeek={dateSettings ? dateSettings.firstDayOfWeek : 0}
                 strings={dateSettings}
                 value={value}
+                placeholder="Select a date..."
+                ariaLabel="Select a date"
                 onSelectDate={(date) => this._onDateChange(date)}
                 formatDate={(date) => this._onFormatDate(date, fieldProps.shortDateFormat || "L")}
                 parseDateFromString={(value) => this._onParseDateFromString(value, fieldProps.shortDateFormat || "L")}

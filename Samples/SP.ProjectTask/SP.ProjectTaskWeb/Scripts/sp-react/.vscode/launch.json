@@ -14,7 +14,7 @@
             "postDebugTask": "end serve",                
             "sourceMaps": true, 
             //"breakOnLoad": true,
-            "trace": true,
+            //"trace": true,
             "sourceMapPathOverrides": {
                 "webpack:///*": "${webRoot}/*"
             }

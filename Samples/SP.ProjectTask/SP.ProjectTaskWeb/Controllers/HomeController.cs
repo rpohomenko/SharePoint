@@ -36,8 +36,8 @@ namespace SP.ProjectTaskWeb.Controllers
             CultureInfo webCulture = new CultureInfo((int)pageContextInfo.RegionalInfo.LocaleId);
             CultureInfo.DefaultThreadCurrentCulture = webCulture;
             CultureInfo.DefaultThreadCurrentUICulture = webCulture;
-            //CultureInfo.CurrentCulture = webCulture;
-            ViewBag.CurrentCulture = new CultureInformation(/*webCulture*/ CultureInfo.CurrentCulture);
+            CultureInfo.CurrentCulture = webCulture;
+            ViewBag.CurrentCulture = new CultureInformation(CultureInfo.CurrentCulture);
         }
 
         public async Task<ActionResult> Index()
