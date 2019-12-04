@@ -51,7 +51,7 @@ namespace SP.Client.Linq
         /// Version
         /// </summary>
         [DataMember]
-        [Field(Name = "owshiddenversion", DataType = FieldType.Integer, IsReadOnly = false, Behavior = ProvisionBehavior.None)]
+        //[Field(Name = "owshiddenversion", DataType = FieldType.Integer, IsReadOnly = false, Behavior = ProvisionBehavior.None)]
         public int? Version
         {
             get; internal set;

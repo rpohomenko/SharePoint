@@ -199,13 +199,15 @@ namespace SP.Client.Linq.Infrastructure
                         Debug.WriteLine($"List item saved: {Entity}.");
                     }
 
-                    Detach();
                     if (state != EntityState.Deleted && state != EntityState.Recycled)
                     {
-                        if (_item.IsPropertyAvailable("Id"))
+                        Detach();
+
+                        if (_item.IsPropertyAvailable("Id") || _item.FieldValues.ContainsKey("ID"))
                         {
-                            EntityId = _item.Id;
+                            EntityId = _item.FieldValues.ContainsKey("ID") ? (int)_item["ID"] : _item.Id;
                             Entity = _manager.ToEntity(_item);
+                            Version = Entity.Version.HasValue ? Entity.Version.Value : Version;
                             FetchOriginalValues();
                             Attach();
                         }
@@ -231,7 +233,7 @@ namespace SP.Client.Linq.Infrastructure
                                     return (Entity as ICustomMapping).MapTo(listItem);
                                 }
                                 return false;
-                            });
+                            }, true);
                     case EntityState.Deleted:
                     case EntityState.Recycled:
                         return _manager.DeleteItems(new[] { EntityId }, State == EntityState.Recycled).FirstOrDefault();

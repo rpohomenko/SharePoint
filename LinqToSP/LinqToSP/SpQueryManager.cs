@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading.Tasks;
 
@@ -500,7 +501,7 @@ namespace SP.Client.Linq
             return entity;
         }
 
-        public ListItem Update(int itemId, Dictionary<string, object> properties, int version, bool systemUpdate = false, Func<ListItem, bool> onUpdating = null)
+        public ListItem Update(int itemId, Dictionary<string, object> properties, int version, bool systemUpdate = false, Func<ListItem, bool> onUpdating = null, bool reloadAllValues = false)
         {
             if (properties == null || _args == null) return null;
 
@@ -592,6 +593,17 @@ namespace SP.Client.Linq
                 {
                     listItem["owshiddenversion"] = version;
                 }
+
+                var retrievals = (reloadAllValues
+                ? fieldMappings.Values.Where(field=> !typeof(DependentLookupFieldAttribute).IsAssignableFrom(field.GetType())).Select(field =>
+                {
+                    return (Expression<Func<ListItem, object>>) (item => item[field.Name]);
+                })
+                : listItem.FieldValues.Keys.Select(fieldName =>
+                 {
+                     return (Expression<Func<ListItem, object>>)(item => item[fieldName]);
+                 })).ToArray();
+
                 if (systemUpdate)
                 {
 #if !SP2013 && !SP2016
@@ -604,7 +616,9 @@ namespace SP.Client.Linq
                 {
                     listItem.Update();
                 }
-                listItem.Context.Load(listItem);
+
+                listItem.Context.Load(listItem, item => item["ID"], item => item["ContentTypeId"], item => item["owshiddenversion"]);
+                listItem.Context.Load(listItem, retrievals);
                 if (_args.IncludeItemPermissions)
                 {
                     listItem.Context.Load(listItem, item => item.EffectiveBasePermissions);

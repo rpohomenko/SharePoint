@@ -15,5 +15,11 @@ namespace SP.Client.Linq
         {
             get; set;
         }
+
+        [Field(Name = "owshiddenversion", DataType = FieldType.Integer, IsReadOnly = false, Behavior = ProvisionBehavior.None)]
+        int? Version
+        {
+            get;
+        }
     }
 }
