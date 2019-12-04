@@ -30,7 +30,6 @@ export class TaskForm extends ListForm {
     }
 
     _getFields = () => {
-        let service = this._service;
         return [{
             key: 'title',
             name: 'Title',
@@ -66,15 +65,41 @@ export class TaskForm extends ListForm {
             key: 'startDate',
             name: 'StartDate',
             type: 'datetime',
-            title: 'Start Date'
+            title: 'Start Date',
+            onChangeValue: (value) => {
+                this._onChangeStartDate(value);
+            }
         },
         {
             key: 'endDate',
             name: 'DueDate',
             type: 'datetime',
-            title: 'End Date'
+            title: 'End Date',
+            onChangeValue: (value) => {
+                this._onChangeEndDate(value);
+            }
         },
         ];
+    }
+
+    _onChangeStartDate(startDate) {
+        let endField = this.getFieldForm('DueDate');
+        if (endField && endField.getControl()) {
+            let endDate = endField.getControl().getDate();
+            if (endDate < startDate) {
+                endField.setFieldValue(startDate);
+            }
+        }
+    }
+
+    _onChangeEndDate(endDate) {
+        let startField = this.getFieldForm('StartDate');
+        if (startField && startField.getControl()) {
+            let startDate = startField.getControl().getDate();
+            if (endDate < startDate) {
+                startField.setFieldValue(endDate);
+            }
+        }
     }
 
     _renderProjectListForm = (ref) => {

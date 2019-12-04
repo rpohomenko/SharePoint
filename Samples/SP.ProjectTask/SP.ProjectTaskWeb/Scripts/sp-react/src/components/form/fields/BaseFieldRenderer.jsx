@@ -97,11 +97,19 @@ export class BaseFieldRenderer extends React.Component {
         return this.state.value;
     }
 
-    setValue(newValue) {
+    setValue(newValue) {       
         this.setState({ value: newValue }, () => {
             if (this.validate()) {
+               this._onChangeValue(newValue);
             }
         });
+    }
+
+    _onChangeValue(value){
+        const { fieldProps } = this.props;
+        if(typeof fieldProps.onChangeValue === "function"){
+            fieldProps.onChangeValue(value);
+        }
     }
 
     isValid() {

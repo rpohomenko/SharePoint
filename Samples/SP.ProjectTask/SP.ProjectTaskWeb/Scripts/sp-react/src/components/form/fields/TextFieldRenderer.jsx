@@ -26,6 +26,7 @@ export class TextFieldRenderer extends BaseFieldRenderer {
         return (<TextField underlined ref={ref => this._textField = ref}
             required={/*fieldProps.required*/false}
             disabled={disabled}
+            multiline = {fieldProps.isMultiLine}
             onChange={(ev, newValue) => {
                 this.setValue(newValue);
             }}

@@ -116,6 +116,20 @@ export class FormField extends React.Component {
         }
     }
 
+    setFieldValue(value) {
+        if (this._fieldControl) {
+            return this._fieldControl.setValue(value);
+        }
+    }
+
+    getFieldName() {
+        const { fieldProps } = this.props;
+        if(fieldProps){
+            return fieldProps.name;
+        }
+        return null;
+    }
+
     isDirty() {
         const { mode } = this.props;
         let isDirty = undefined;

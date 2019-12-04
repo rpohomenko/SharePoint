@@ -112,22 +112,36 @@ export class LookupFieldRenderer extends BaseFieldRenderer {
                     }}
                     disabled={disabled}
                     inputProps={{
+                        ref: (ref) => this._input = ref,
                         disabled: true,
-                        readonly: true,
+                        //readonly: true,
                         onClick: (ev) => {
                             ev.target.readOnly = true;
+                            ev.target.value = "";
+                            if (items && items.length > 0) {
+                                ev.target.defaultValue = "";
+                            }
                         },
                         onBlur: (ev) => { },
                         onFocus: (ev) => {
                             ev.target.readOnly = true;
+                            ev.target.value = "";
+                            if (items && items.length > 0) {
+                                ev.target.defaultValue = "";
+                            }
                         },
-                        defaultVisibleValue: items && items.length > 0 ? "" : (fieldProps.isMultiple ? "Select options..." : "Select an option..."),
-                        "aria-label": items && items.length > 0 ? "" : (fieldProps.isMultiple ? "Select options..." : "Select an option...")
+                        defaultVisibleValue: items && items.length > 0 ? "" : this._getPlaceholder(),
+                        "aria-label": items && items.length > 0 ? "" : this._getPlaceholder()
                     }}
                 />
                 <IconButton iconProps={{ iconName: 'More' }} disabled={disabled} onClick={(e) => this._showListView()} />
             </Stack>
         </React.Fragment>);
+    }
+
+    _getPlaceholder = () => {
+        const { fieldProps } = this.props;
+        return fieldProps.isMultiple ? "Select options..." : "Select an option...";
     }
 
     _getCommandItems = () => {
@@ -193,6 +207,18 @@ export class LookupFieldRenderer extends BaseFieldRenderer {
             value = value.length > 0 ? value[0] : null;
         }
         this.setValue(value);
+        let displayValue;
+        if (items && items.length > 0) {
+            displayValue = "";
+        }
+        else {
+            displayValue = this._getPlaceholder();
+        }
+
+        if (this._input) {
+            this._input._value = displayValue;
+            this._input.setState({ displayValue: displayValue });
+        }
     }
 
     _validate = () => {

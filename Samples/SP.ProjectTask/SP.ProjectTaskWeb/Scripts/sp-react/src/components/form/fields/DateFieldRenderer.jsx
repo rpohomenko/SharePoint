@@ -179,6 +179,10 @@ export class DateFieldRenderer extends BaseFieldRenderer {
         }
         return false;
     }
+
+    getDate(){
+        return this.state.value;
+    }
 }
 
 export default DateFieldRenderer;

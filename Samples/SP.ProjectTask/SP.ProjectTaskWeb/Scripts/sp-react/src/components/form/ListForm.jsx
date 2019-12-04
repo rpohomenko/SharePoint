@@ -55,12 +55,12 @@ export class ListForm extends React.Component {
             let _progressIndicator = this._getProgressIndicator();
             let commandBar;
             if (typeof onRenderCommandBar === "function") {
-                commandBar = onRenderCommandBar(isArray(commandItems) ? commandItems : /*this._getCommandItems()*/ [], this._onRenderCommandItem);
+                commandBar = onRenderCommandBar(isArray(commandItems) ? commandItems : /*this._getCommandItems()*/[], this._onRenderCommandItem);
             }
             else {
-               /* commandBar = (<CommandBar ref={ref => this._commandBar = ref} styles={{ root: { paddingTop: 10 }, menuIcon: { fontSize: '16px' } }}
-                    items={isArray(commandItems) ? commandItems : this._getCommandItems()}
-                    onRenderItem={this._onRenderCommandItem} />);*/
+                /* commandBar = (<CommandBar ref={ref => this._commandBar = ref} styles={{ root: { paddingTop: 10 }, menuIcon: { fontSize: '16px' } }}
+                     items={isArray(commandItems) ? commandItems : this._getCommandItems()}
+                     onRenderItem={this._onRenderCommandItem} />);*/
             }
             return (
                 <div className='form-container' ref={this._container}>
@@ -77,7 +77,7 @@ export class ListForm extends React.Component {
                                         let formFields = this._formFields = this._formFields || [];
                                         formFields.push(ref);
                                     }
-                                }} disabled={isLoading || isDeleting || isSaving} key={field.name} item={item} fieldProps={field} mode={mode} onValidate={(fieldControl, isValid, isDirty) => this._onValidate(fieldControl, isValid, isDirty)} />))
+                                }} disabled={isLoading || isDeleting || isSaving} key={field.key || field.name} item={item} fieldProps={field} mode={mode} onValidate={(fieldControl, isValid, isDirty) => this._onValidate(fieldControl, isValid, isDirty)} />))
                     }
                     {confirmDeletion &&
                         (<Dialog
@@ -156,58 +156,58 @@ export class ListForm extends React.Component {
         }
     }
 
-  /* _getCommandItems() {
-        const { mode, item, isDeleting, isSaving, isValid, isDirty } = this.state;
-        let items = [];
-
-        if (item && mode === 0) {
-            items.push(
-                {
-                    key: 'editItem',
-                    icon: 'Edit',
-                    text: '',
-                    disabled: isDeleting,
-                    onClick: (e, sender) => this.changeMode(1),
-                    iconProps: {
-                        iconName: 'Edit'
-                    },
-                    ariaLabel: 'Edit'
-                });
-            items.push(
-                {
-                    key: 'deleteItem',
-                    icon: 'Delete',
-                    text: '',
-                    disabled: isDeleting || isSaving,
-                    onClick: (e, sender) => {
-                        //this.deleteItem();
-                        this.setState({ confirmDeletion: true });
-                    },
-                    iconProps: {
-                        iconName: 'Delete'
-                    },
-                    ariaLabel: 'Delete'
-                });
-        }
-        else if (mode === 2 || (item && mode === 1)) {
-            items.push(
-                {
-                    key: 'saveItem',
-                    icon: 'Save',
-                    text: '',
-                    disabled: isDeleting || isSaving || !(isValid && isDirty),
-                    onClick: (e, sender) => {
-                        this.saveItem();
-                    },
-                    iconProps: {
-                        iconName: 'Save'
-                    },
-                    ariaLabel: 'Save'
-                });
-        }
-
-        return items;
-    }*/
+    /* _getCommandItems() {
+          const { mode, item, isDeleting, isSaving, isValid, isDirty } = this.state;
+          let items = [];
+  
+          if (item && mode === 0) {
+              items.push(
+                  {
+                      key: 'editItem',
+                      icon: 'Edit',
+                      text: '',
+                      disabled: isDeleting,
+                      onClick: (e, sender) => this.changeMode(1),
+                      iconProps: {
+                          iconName: 'Edit'
+                      },
+                      ariaLabel: 'Edit'
+                  });
+              items.push(
+                  {
+                      key: 'deleteItem',
+                      icon: 'Delete',
+                      text: '',
+                      disabled: isDeleting || isSaving,
+                      onClick: (e, sender) => {
+                          //this.deleteItem();
+                          this.setState({ confirmDeletion: true });
+                      },
+                      iconProps: {
+                          iconName: 'Delete'
+                      },
+                      ariaLabel: 'Delete'
+                  });
+          }
+          else if (mode === 2 || (item && mode === 1)) {
+              items.push(
+                  {
+                      key: 'saveItem',
+                      icon: 'Save',
+                      text: '',
+                      disabled: isDeleting || isSaving || !(isValid && isDirty),
+                      onClick: (e, sender) => {
+                          this.saveItem();
+                      },
+                      iconProps: {
+                          iconName: 'Save'
+                      },
+                      ariaLabel: 'Save'
+                  });
+          }
+  
+          return items;
+      }*/
 
     _onRenderCommandItem = (item) => {
         return (
@@ -231,8 +231,8 @@ export class ListForm extends React.Component {
                 if (this._formFields[i].isDirty()) {
                     isDirty = true;
                 }
-            }        
-          this._validate(isValid, isDirty);
+            }
+            this._validate(isValid, isDirty);
         }
     }
 
@@ -421,6 +421,17 @@ export class ListForm extends React.Component {
         return isValid && isDirty;
     }
 
+    getFieldForm(fieldName) {
+        if (this._formFields) {
+            for (let i = 0; i < this._formFields.length; i++) {
+                if (this._formFields[i].getFieldName() === fieldName) {
+                    return this._formFields[i];
+                }
+            }
+        }
+        return null;
+    }
+
     isValid() {
         let { isValid } = this.state;
         return isValid;
@@ -464,12 +475,12 @@ export class ListForm extends React.Component {
     }
 }
 
-ListForm.propTypes = {   
-    STATUS_TIMEOUT: PropTypes.number   
+ListForm.propTypes = {
+    STATUS_TIMEOUT: PropTypes.number
 }
 
-ListForm.defaultProps = {  
-    STATUS_TIMEOUT: 5000   
+ListForm.defaultProps = {
+    STATUS_TIMEOUT: 5000
 }
 
 export default ListForm;
