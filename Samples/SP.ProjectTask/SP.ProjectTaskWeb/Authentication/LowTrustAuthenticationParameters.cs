@@ -15,8 +15,7 @@ namespace SP.ProjectTaskWeb.Authentication
     {
       ClientId = ConfigurationManager.AppSettings["app:LowTrustClientId"];
       ClientSecret = ConfigurationManager.AppSettings["app:LowTrustClientSecret"];
-      CacheSessionDurationInMinutes = ConfigurationManager.AppSettings["app:TokenCacheDurationInMinutes"] == null ? 10
-        : Convert.ToInt32(ConfigurationManager.AppSettings["app:CacheSessionDurationInMinutes"]);
+      CacheSessionDurationInMinutes = Convert.ToInt32(ConfigurationManager.AppSettings["app:CacheSessionDurationInMinutes"]);
     }
   }
 }

@@ -9,8 +9,7 @@
     <IISExpressUseClassicPipelineMode />
     <UseGlobalApplicationHostFile />
     <LastActiveSolutionConfig>Debug|Any CPU</LastActiveSolutionConfig>
-    <ProfileToSelectInPublishDialog>
-    </ProfileToSelectInPublishDialog>
+    <ProfileToSelectInPublishDialog>FolderProfile</ProfileToSelectInPublishDialog>
     <NameOfLastUsedPublishProfile>FolderProfile</NameOfLastUsedPublishProfile>
     <ProjectView>ProjectFiles</ProjectView>
     <ActiveDebugTarget />

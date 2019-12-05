@@ -15,6 +15,7 @@ using System.Threading.Tasks;
 using System.Threading;
 using System.Text;
 using Newtonsoft.Json;
+using Microsoft.SharePoint.Client.Search.Query;
 
 namespace SP.ProjectTaskWeb.Controllers
 {
@@ -176,6 +177,53 @@ namespace SP.ProjectTaskWeb.Controllers
             return Delete<Department>(itemIds);
         }
 
+        [Route("users")]
+        [HttpGet]
+        public IHttpActionResult GetAllUsers()
+        {
+            try
+            {
+                var users = GetSiteUsers().Select(user => new SPUserInformation(user));
+                return Json(users);
+            }
+            catch (Exception ex)
+            {
+                return new JsonErrorResult(ex);
+            }
+        }
+
+        [Route("users/{searchTerm}")]
+        [HttpGet]
+        public IHttpActionResult GetUsers(string searchTerm)
+        {
+            try
+            {
+                if (!string.IsNullOrEmpty(searchTerm))
+                {
+                    var result = this.GetSiteUsers()
+                    .Where(user => user.Title.ToUpper().Contains(searchTerm.ToUpper()) || user.LoginName.ToUpper().Contains(searchTerm.ToUpper()))
+                    .Select(user => new SPUserInformation(user));
+                    return Json(result);
+                }
+                return Json(new string[0]);
+            }
+            catch (Exception ex)
+            {
+                return new JsonErrorResult(ex);
+            }
+        }
+
+        private UserCollection GetSiteUsers()
+        {
+            using (ClientContext context = new Authentication.LowTrustTokenHelper(_tokenHelper).GetUserClientContext())
+            {
+                var users = context.Web.SiteUsers;
+                context.Load(users, user => user.Include(u => u.Title, u => u.LoginName, u => u.Email, u => u.UserPrincipalName, u => u.Id));
+                context.ExecuteQuery();
+                return users;
+            }
+        }
+
         private IHttpActionResult GetItemResult<TEntity>(int id) where TEntity : ListItemEntity, new()
         {
             try
@@ -183,7 +231,12 @@ namespace SP.ProjectTaskWeb.Controllers
                 using (ClientContext context = new Authentication.LowTrustTokenHelper(_tokenHelper).GetUserClientContext())
                 {
                     var projectTaskContext = new ProjectTaskContext(context);
-                    return Json((id > 0) ? projectTaskContext.List<TEntity>().WithPermissions().FirstOrDefault((TEntity item) => item.Id == id) : null);
+                    var result = (id > 0) ? projectTaskContext.List<TEntity>().WithPermissions().FirstOrDefault((TEntity item) => item.Id == id) : null;
+                    if (result == null)
+                    {
+                        throw new Exception($"Item with Id={id} not found.");
+                    }
+                    return Json(result);
                 }
             }
             catch (Exception ex)

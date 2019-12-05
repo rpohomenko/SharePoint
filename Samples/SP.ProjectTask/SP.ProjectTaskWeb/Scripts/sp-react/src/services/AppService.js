@@ -100,4 +100,8 @@ export class AppService extends ApiService {
     retract = async(options) => {       
         return await this.post(`/api/web/retract`, options);
     }
+
+    getUsers = async(searchTerm, options) => {
+        return await this.get(`/api/web/users/${searchTerm}`, options);
+    }
 }

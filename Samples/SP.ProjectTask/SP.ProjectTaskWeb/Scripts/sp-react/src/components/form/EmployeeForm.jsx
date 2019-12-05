@@ -57,9 +57,10 @@ export class EmployeeForm extends ListForm {
             {
                 key: 'account',
                 name: 'Account',
-                type: 'text',
+                type: 'user',
                 title: 'Account',
-                //required: true
+                //required: true,
+                getUsers: (searchTerm, options)=>{ return this._service.getUsers(searchTerm, options);}
             },
             {
                 key: 'position',

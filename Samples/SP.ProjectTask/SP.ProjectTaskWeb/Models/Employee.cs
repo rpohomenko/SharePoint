@@ -69,12 +69,35 @@ namespace SP.ProjectTaskWeb.Models
             set;
         }
 
-        [Field("pt_Account", Title = "Account", Order = 3, DataType = FieldType.User, Indexed = true, EnforceUniqueValues = true)]
-        public FieldLookupValue Account
+        //[Field("pt_Account", Title = "Account", Order = 3, DataType = FieldType.User, Indexed = true, EnforceUniqueValues = true)]
+        //public FieldLookupValue Account
+        //{
+        //    get;
+        //    set;
+        //}
+
+        [DataMember]
+        public LookupValue Account
         {
-            get;
-            set;
+            get
+            {
+                return AccountId > 0 ? new LookupValue() { Id = AccountId, Value = AccountName } : null;
+            }
+            set
+            {
+                if (value != null)
+                {
+                    AccountId = value.Id;
+                    AccountName = value.Value;
+                }
+                else
+                {
+                    AccountId = 0;
+                    AccountName = null;
+                }
+            }
         }
+
         [DataMember]
         [LookupField(Name = "pt_Account", Result = LookupItemResult.Id)]
         public int AccountId
