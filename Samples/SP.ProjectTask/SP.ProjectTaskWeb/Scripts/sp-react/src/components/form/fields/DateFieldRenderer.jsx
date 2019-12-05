@@ -30,7 +30,7 @@ export class DateFieldRenderer extends BaseFieldRenderer {
         }
 
         if (currentValue) {
-            currentValue = this._getDate(currentValue, this._tzBias);
+            currentValue = this._parseDate(currentValue, this._tzBias);
         }
 
         if (_currentCulture) {
@@ -75,16 +75,16 @@ export class DateFieldRenderer extends BaseFieldRenderer {
         });
     }
 
-    _getDate(dateString, tzBias) {
+    _parseDate(dateString, tzBias) {
         let date = new Date(dateString);
-        return this._getLocaleDate(date, tzBias);
+        return this._toLocaleDate(date, tzBias);
     }
 
-    _getLocaleDate(date, tzBias) {
+    _toLocaleDate(date, tzBias) {
         return moment(date).add(-(moment(date).utcOffset() + tzBias), 'm').toDate();
     }
 
-    _getUtcDate(date, tzBias) {
+    _toUtcDate(date, tzBias) {
         return moment(date).add(moment(date).utcOffset() + tzBias, 'm')/*.utc()*/.toDate();
     }
 
@@ -127,19 +127,9 @@ export class DateFieldRenderer extends BaseFieldRenderer {
 
     _onFormatDate = (date, format) => {
         return moment(date).format(format);
-        //return date.getDate() + '/' + (date.getMonth() + 1) + '/' + (date.getFullYear() % 100);
     };
 
-    _onParseDateFromString = (value, format) => {
-        /*const date = this.state.value || new Date();
-        const values = (value || '').trim().split('/');
-        const day = values.length > 0 ? Math.max(1, Math.min(31, parseInt(values[0], 10))) : date.getDate();
-        const month = values.length > 1 ? Math.max(1, Math.min(12, parseInt(values[1], 10))) - 1 : date.getMonth();
-        let year = values.length > 2 ? parseInt(values[2], 10) : date.getFullYear();
-        if (year < 100) {
-            year += date.getFullYear() - (date.getFullYear() % 100);
-        }
-        return new Date(year, month, day);*/
+    _onParseDateFromString = (value, format) => {        
         return moment(value, format).toDate();
     };
 
@@ -152,7 +142,7 @@ export class DateFieldRenderer extends BaseFieldRenderer {
     getValue() {
         let date = super.getValue();
         if (date) {
-            date = this._getUtcDate(date, this._tzBias);
+            date = this._toUtcDate(date, this._tzBias);
             return date.toISOString();
         }
         return null;

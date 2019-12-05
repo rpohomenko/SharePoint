@@ -113,7 +113,7 @@ export class ListFormPanel extends React.Component {
                         isFooterAtBottom={true}>
                         {listForm}
                     </Panel>
-                {confirmClosePanel && mode > 0 && isDirty &&
+                    {confirmClosePanel && mode > 0 && isDirty &&
                         (<Dialog
                             hidden={confirmClosePanel !== true}
                             onDismiss={() => this.setState({ confirmClosePanel: false })}
@@ -308,10 +308,10 @@ export class ListFormPanel extends React.Component {
     _getCommandFarItems() {
         const { item, mode, isRefreshing, isDeleting, isSaving, isLoaded } = this.state;
         //let isLoading = false;
-         //if (this._listForm.current) {
-            //isSaving = this._listForm.current.state.isSaving;
-            //isDeleting = this._listForm.current.state.isDeleting;
-            //isLoading = this._listForm.current.state.isLoading;
+        //if (this._listForm.current) {
+        //isSaving = this._listForm.current.state.isSaving;
+        //isDeleting = this._listForm.current.state.isDeleting;
+        //isLoading = this._listForm.current.state.isLoading;
         //}
         if (item && (mode === 0 || mode === 1)) {
             return [{
@@ -366,7 +366,9 @@ export class ListFormPanel extends React.Component {
     };
 
     _validate = (isValid, isDirty) => {
-        this.setState({ isValid: isValid, isDirty: isDirty, commandBar: undefined });
+        if (this.state.isValid !== isValid || this.state.isDirty !== isDirty) {
+            this.setState({ isValid: isValid, isDirty: isDirty, commandBar: undefined });
+        }
     }
 
     _closeForm = (result, callback) => {

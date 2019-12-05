@@ -17,7 +17,10 @@ export class DateTimeFieldRenderer extends DateFieldRenderer {
         this._timeSeparator = ":";
 
         this.state = {
-            ...this.state
+            ...this.state,
+            hours: 0,
+            minutes: 0,
+            meridiem: ""
         };
 
         this._onTimeChange = this._onTimeChange.bind(this);
@@ -29,7 +32,7 @@ export class DateTimeFieldRenderer extends DateFieldRenderer {
         let meridiem, hours = 0, minutes = 0;
         if (_spPageContextInfo && _spPageContextInfo.regionalSettings) {
             this._pm = _spPageContextInfo.regionalSettings.pm;
-            this._am = _spPageContextInfo.regionalSettings.am;;
+            this._am = _spPageContextInfo.regionalSettings.am;
             this._isTime24 = _spPageContextInfo.regionalSettings.time24;
             this._timeSeparator = _spPageContextInfo.regionalSettings.timeSeparator;
             if (!this._isTime24) {
@@ -37,14 +40,14 @@ export class DateTimeFieldRenderer extends DateFieldRenderer {
             }
             let currentValue = props.currentValue;
             if (currentValue) {
-                let date = this._getDate(currentValue, this._tzBias);
+                let date = this._parseDate(currentValue, this._tzBias);
                 hours = date.getHours();
                 minutes = date.getMinutes();
-                meridiem = this._getMeridiem(hours, meridiem);
-                hours = this._getHours(hours);
-                minutes = this._getMinutes(minutes);
             }
         }
+        meridiem = this._getMeridiem(hours);
+        hours = this._getHours(hours);
+        minutes = this._getMinutes(minutes);
         this.setState({
             hours: hours,
             minutes: minutes,
@@ -75,16 +78,10 @@ export class DateTimeFieldRenderer extends DateFieldRenderer {
             ? `99${this._timeSeparator}99${meridiem ? ' ' + new Array(meridiem.length + 1).join('*') : ''}`
             : `99${this._timeSeparator}99`;
 
-        meridiem = this._getMeridiem(hours, meridiem);
-        hours = this._getHours(hours);
-        minutes = this._getMinutes(minutes);
         let value = this._formatTime(hours, minutes, meridiem);
 
         return <Stack tokens={{ childrenGap: 2 }} horizontal>
-
             {super._renderNewOrEditForm()}
-
-
             <Stack tokens={{ childrenGap: 2 }} horizontal>
                 <MaskedTextField
                     disabled={disabled}
@@ -197,10 +194,8 @@ export class DateTimeFieldRenderer extends DateFieldRenderer {
                                             this._changeDateTime(hours, minutes, option.key);
                                     }} />
                             }
-
                         </Stack>
                     </div>
-
                 </Callout>
             )}
         </Stack>;
@@ -225,8 +220,86 @@ export class DateTimeFieldRenderer extends DateFieldRenderer {
         super._onDateChange(date)
     }
 
+    _onTimeChange = (value) => {
+        if (value) {
+            const { hours, minutes, meridiem } = this.state;
+            let matches = value.match(new RegExp(`(?<hours>\\d{2})${this._timeSeparator}(?<minutes>\\d{2})\\s*(?<meridiem>\\w*)`));
+            if (matches && matches.groups) {
+                let newHours = Number(matches.groups["hours"]);
+                let newMinutes = Number(matches.groups["minutes"]);
+                let newMeridiem = matches.groups["meridiem"];
+
+                let newValue;
+                if (!this._isTime24) {
+                    if (newMeridiem.indexOf(this._maskChar) === -1) {
+                        if (newMeridiem !== this._am && newMeridiem !== this._pm) {
+                            newMeridiem = this._getMeridiem(newHours);
+                        }
+                        else {
+                            if (newHours > 12) {
+                                newMeridiem = this._getMeridiem(newHours);
+                            }
+                        }
+                        newHours = this._getHours(newHours);
+                        newMinutes = this._getMinutes(newMinutes);
+                        newValue = this._formatTime(newHours, newMinutes, newMeridiem);
+                    }
+                    else {
+                        newHours = this._getHours(newHours);
+                        newMinutes = this._getMinutes(newMinutes);
+                        newValue = this._formatTime(newHours, newMinutes, newMeridiem);
+                        newMeridiem = meridiem;
+                    }
+                }
+                else {
+                    newHours = this._getHours(newHours);
+                    newMinutes = this._getMinutes(newMinutes);
+                    newValue = this._formatTime(newHours, newMinutes);
+                }
+                if (newValue !== value || newHours !== hours || newMinutes !== minutes || newMeridiem !== meridiem) {
+                    if (this._timeField) {
+                        this._timeField.setState({ displayValue: newValue });
+                    }
+                    this._changeDateTime(newHours, newMinutes, newMeridiem);
+                }
+            }
+        }
+    }
+
+    _changeDateTime = (hours, minutes, meridiem) => {
+        //this.setState({ hours: hours, minutes: minutes, meridiem: meridiem });
+        /*if (this._hourInput) {
+            this._hourInput._value = `${hours < 10 ? '0' : ''}${hours}`;
+        }
+        if (this._minuteInput) {
+            this._minuteInput._value = `${minutes < 10 ? '0' : ''}${minutes}`;
+        }
+        if (this._meridiemInput) {
+            this._minuteInput._value = meridiem;
+        }*/
+        let date = this.getDate();
+        if (!date) {
+            date = new Date();
+            date = new Date(/*0*/date.getFullYear(), date.getMonth(), date.getDate());
+        }
+        let newDate = new Date(date.getTime());
+        if (!this._isTime24) {
+            if (hours == 12) {
+                if (meridiem === this._am) {
+                    hours = 0;
+                }
+            }
+            else {
+                hours = meridiem === this._pm ? hours + 12 : hours;
+            }
+        }
+        newDate.setHours(hours);
+        newDate.setMinutes(minutes);
+        this.setValue(newDate);
+    }
+
     _formatTime = (hours, minutes, meridiem) => {
-        return `${hours > 9 ? hours : `0${hours}`}${this._timeSeparator}${minutes > 9 ? minutes : `0${minutes}`}${(meridiem ? ' ' + meridiem : '')}`;
+        return `${hours > 9 ? hours : `0${hours || 0}`}${this._timeSeparator}${minutes > 9 ? minutes : `0${minutes || 0}`}${(meridiem ? ` ${meridiem || ''}` : '')}`;
     };
 
     _getHours(hours) {
@@ -256,11 +329,12 @@ export class DateTimeFieldRenderer extends DateFieldRenderer {
         return hours;
     }
 
-    _getMeridiem(hours, meridiem) {
+    _getMeridiem(hours) {
         hours = hours || 0;
         if (this._isTime24) {
             return "";
         }
+        let meridiem;
         if (hours > 12) {
             if (hours > 23) {
                 meridiem = this._am;
@@ -272,8 +346,11 @@ export class DateTimeFieldRenderer extends DateFieldRenderer {
         else if (hours < 1) {
             meridiem = this._am;
         }
-        else if (!meridiem) {
+        else if (hours < 12) {
             meridiem = this._am;
+        }
+        else {
+            meridiem = this._pm;
         }
         return meridiem;
     }
@@ -284,74 +361,6 @@ export class DateTimeFieldRenderer extends DateFieldRenderer {
             minutes = 0;
         }
         return minutes;
-    }
-
-    _changeDateTime = (hours, minutes, meridiem) => {
-        this.setState({ hours: hours, minutes: minutes, meridiem: meridiem });
-        /*if (this._hourInput) {
-            this._hourInput._value = `${hours < 10 ? '0' : ''}${hours}`;
-        }
-        if (this._minuteInput) {
-            this._minuteInput._value = `${minutes < 10 ? '0' : ''}${minutes}`;
-        }
-        if (this._meridiemInput) {
-            this._minuteInput._value = meridiem;
-        }*/
-        let date = this.getDate();
-        if (date) {
-            let newDate = new Date(date.getTime());
-            if (!this._isTime24) {
-                if (hours == 12) {
-                    if (meridiem === this._am) {
-                        hours = 0;
-                    }
-                }
-                else {
-                    hours = meridiem === this._pm ? hours + 12 : hours;
-                }
-            }
-            newDate.setHours(hours);
-            newDate.setMinutes(minutes);
-            this.setValue(newDate);
-        }
-    }
-
-    _onTimeChange = (value) => {
-        if (value) {
-            const { hours, minutes, meridiem } = this.state;
-            let matches = value.match(new RegExp(`(?<hours>\\d{2})${this._timeSeparator}(?<minutes>\\d{2})\\s*(?<meridiem>\\w*)`));
-            if (matches && matches.groups) {
-                let newHours = Number(matches.groups["hours"]);
-                let newMinutes = Number(matches.groups["minutes"]);
-                let newMeridiem = matches.groups["meridiem"];
-                newMeridiem = this._getMeridiem(newHours, newMeridiem);
-                newHours = this._getHours(newHours);
-                newMinutes = this._getMinutes(newMinutes);
-                let newValue;
-                if (!this._isTime24) {
-                    if (newMeridiem.indexOf(this._maskChar) === -1) {
-                        if (newMeridiem !== this._am && newMeridiem !== this._pm) {
-                            newMeridiem = meridiem;
-                        }
-                        newValue = this._formatTime(newHours, newMinutes, newMeridiem);
-                    }
-                    else {
-                        newValue = this._formatTime(newHours, newMinutes, newMeridiem);
-                        newMeridiem = meridiem;
-                    }
-                }
-                else {
-                    newValue = this._formatTime(newHours, newMinutes);
-                }
-                if (newValue !== value || newHours !== hours || newMinutes !== minutes || newMeridiem !== meridiem) {
-                    //this.setState({ hours: newHours, minutes: newMinutes, meridiem: newMeridiem });
-                    if (this._timeField) {
-                        this._timeField.setState({ displayValue: newValue });
-                    }
-                    this._changeDateTime(newHours, newMinutes, newMeridiem);
-                }
-            }
-        }
     }
 
     setValue(value) {

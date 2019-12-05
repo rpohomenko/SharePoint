@@ -138,6 +138,7 @@ export class FormField extends React.Component {
         }
         if(isDirty === undefined) {
             if (mode === 2) isDirty = true;
+            else isDirty = false;
         }
         return isDirty;
     }

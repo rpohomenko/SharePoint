@@ -38,7 +38,6 @@ export class ListForm extends React.Component {
             await this.loadItem(itemId);
         }
         if (mode === 2 || mode === 1) {
-            //this._validate(true, false);
             this.validate(true);
         }
     }
@@ -77,7 +76,7 @@ export class ListForm extends React.Component {
                                         let formFields = this._formFields = this._formFields || [];
                                         formFields.push(ref);
                                     }
-                                }} disabled={isLoading || isDeleting || isSaving} key={field.key || field.name} item={item} fieldProps={field} mode={mode} onValidate={(fieldControl, isValid, isDirty) => this._onValidate(fieldControl, isValid, isDirty)} />))
+                                }} disabled={isLoading || isDeleting || isSaving} key={field.key || field.name} item={item} fieldProps={field} mode={mode} onValidate={(fieldControl, isValid) => this._onValidate(fieldControl, isValid)} />))
                     }
                     {confirmDeletion &&
                         (<Dialog
@@ -221,7 +220,8 @@ export class ListForm extends React.Component {
         );
     };
 
-    _onValidate = (fieldControl, isValid, isDirty) => {
+    _onValidate = (fieldControl, isValid) => {
+        let isDirty = fieldControl.isDirty();
         if (this._formFields && this._formFields.length > 0) {
             for (let i = 0; i < this._formFields.length; i++) {
                 if (fieldControl === this._formFields[i].getControl()) continue;
@@ -232,7 +232,14 @@ export class ListForm extends React.Component {
                     isDirty = true;
                 }
             }
-            this._validate(isValid, isDirty);
+            const { onValidate } = this.props;
+            if (this.isDirty() !== isDirty || this.isValid() !== isValid) {
+                this.setState({ isValid: isValid, isDirty: isDirty }, () => {
+                    if (typeof onValidate === "function") {
+                        onValidate(this, isValid, isDirty);
+                    }
+                });
+            }
         }
     }
 
@@ -395,16 +402,6 @@ export class ListForm extends React.Component {
         }
     }
 
-    _validate = (isValid, isDirty) => {
-        const { onValidate } = this.props;
-        this.setState({ isValid: isValid, isDirty: isDirty }, () => {
-            if (typeof onValidate === "function") {
-                onValidate(this, isValid, isDirty);
-            }
-        });
-        return isValid && isDirty;
-    }
-
     validate(ignoreErrors) {
         let isValid = true;
         let isDirty = false;
@@ -464,7 +461,6 @@ export class ListForm extends React.Component {
         if (mode !== changedMode) {
             this.setState({ mode: changedMode }, () => {
                 if (changedMode === 2 || changedMode === 1) {
-                    //this._validate(true, false);
                     this.validate(true);
                 }
                 if (typeof onChangeMode === "function") {

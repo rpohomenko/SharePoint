@@ -85,8 +85,8 @@ export class TaskForm extends ListForm {
     _onChangeStartDate(startDate) {
         let endField = this.getFieldForm('DueDate');
         if (endField && endField.getControl()) {
-            let endDate = endField.getControl().getDate();
-            if (endDate < startDate) {
+            let endDate = endField.getControl().getDate();   
+            if (!endDate || endDate < startDate) {
                 endField.setFieldValue(startDate);
             }
         }
@@ -95,8 +95,8 @@ export class TaskForm extends ListForm {
     _onChangeEndDate(endDate) {
         let startField = this.getFieldForm('StartDate');
         if (startField && startField.getControl()) {
-            let startDate = startField.getControl().getDate();
-            if (endDate < startDate) {
+            let startDate = startField.getControl().getDate() || endDate;
+            if (!startDate || endDate < startDate) {
                 startField.setFieldValue(endDate);
             }
         }
