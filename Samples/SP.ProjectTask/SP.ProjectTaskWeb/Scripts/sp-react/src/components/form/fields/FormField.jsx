@@ -7,6 +7,7 @@ import { Text } from 'office-ui-fabric-react/lib/Text';
 import { getId } from 'office-ui-fabric-react/lib/Utilities';
 
 import { TextFieldRenderer } from './TextFieldRenderer';
+import { RichTextFieldRenderer } from './RichTextFieldRenderer';
 import { LookupFieldRenderer } from './LookupFieldRenderer';
 import { ChoiceFieldRenderer } from './ChoiceFieldRenderer';
 import { DateFieldRenderer } from './DateFieldRenderer';
@@ -89,6 +90,9 @@ export class FormField extends React.Component {
         let field;
         if (type === 'text') {
             field = <TextFieldRenderer ref={(ref) => this._fieldControl = ref} disabled={disabled} key={fieldProps.name} currentValue={currentValue} item={item} fieldProps={fieldProps} mode={mode} onValidate={onValidate} />;
+        }
+        if (type === 'richtext') {
+            field = <RichTextFieldRenderer ref={(ref) => this._fieldControl = ref} disabled={disabled} key={fieldProps.name} currentValue={currentValue} item={item} fieldProps={fieldProps} mode={mode} onValidate={onValidate} />;
         }
         else if (type === 'lookup') {
             field = <LookupFieldRenderer ref={(ref) => this._fieldControl = ref} disabled={disabled} key={fieldProps.name} currentValue={currentValue} item={item} fieldProps={fieldProps} mode={mode} onValidate={onValidate} />;

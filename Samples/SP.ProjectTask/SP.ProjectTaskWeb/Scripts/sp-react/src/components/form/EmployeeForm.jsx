@@ -114,7 +114,7 @@ export class EmployeeForm extends ListForm {
             {
                 key: 'description',
                 name: 'Description',
-                type: 'text',
+                type: 'richtext',
                 title: 'Description',
                 isMultiLine: true
             },

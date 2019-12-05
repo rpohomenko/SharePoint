@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Dropdown, DropdownMenuItemType } from 'office-ui-fabric-react/lib/Dropdown';
+import { Dropdown } from 'office-ui-fabric-react/lib/Dropdown';
 import { BaseFieldRenderer } from './BaseFieldRenderer';
 import { isArray } from 'util';
 
