@@ -1,6 +1,5 @@
 ﻿using Microsoft.SharePoint.Client;
 using SharePoint.Authentication;
-using SharePoint.Authentication.Owin.Extensions;
 using SP.Client.Linq;
 using SP.ProjectTaskWeb.Models;
 using System.Collections.Generic;
@@ -15,7 +14,8 @@ using System.Threading.Tasks;
 using System.Threading;
 using System.Text;
 using Newtonsoft.Json;
-using Microsoft.SharePoint.Client.Search.Query;
+using System.Net.Http.Headers;
+using Microsoft.SharePoint.Client.Utilities;
 
 namespace SP.ProjectTaskWeb.Controllers
 {
@@ -25,7 +25,6 @@ namespace SP.ProjectTaskWeb.Controllers
     [RoutePrefix("api/web")]
     public class WebController : ApiController
     {
-
         private readonly LowTrustTokenHelper _tokenHelper;
 
         public WebController(LowTrustTokenHelper lowTrustTokenHelper)
@@ -192,17 +191,18 @@ namespace SP.ProjectTaskWeb.Controllers
             }
         }
 
-        [Route("users/{searchTerm}")]
+        [Route("users/{searchTerm}/{limit}")]
         [HttpGet]
-        public IHttpActionResult GetUsers(string searchTerm)
+        public IHttpActionResult GetUsers(string searchTerm, int limit = 10)
         {
             try
             {
                 if (!string.IsNullOrEmpty(searchTerm))
                 {
-                    var result = this.GetSiteUsers()
-                    .Where(user => user.Title.ToUpper().Contains(searchTerm.ToUpper()) || user.LoginName.ToUpper().Contains(searchTerm.ToUpper()))
-                    .Select(user => new SPUserInformation(user));
+                    //var result = this.GetSiteUsers()
+                    //.Where(user => user.Title.ToUpper().Contains(searchTerm.ToUpper()) || user.LoginName.ToUpper().Contains(searchTerm.ToUpper()))
+                    //.Select(user => new SPUserInformation(user));
+                    var result = this.GetUserPrincipals(searchTerm, limit).Select(principal => new SPUserInformation(principal));
                     return Json(result);
                 }
                 return Json(new string[0]);
@@ -213,12 +213,51 @@ namespace SP.ProjectTaskWeb.Controllers
             }
         }
 
+        [HttpGet]
+        [Route("users/photo/{accountName}/{size}")]
+        public HttpResponseMessage GetUserPhoto(string accountName, string size = "M")
+        {
+            using (var client = new WebClient())
+            {
+                //client.Headers.Add("X-FORMS_BASED_AUTH_ACCEPTED", "f");
+                using (ClientContext context = new Authentication.LowTrustTokenHelper(_tokenHelper).GetUserClientContext())
+                {
+                    string accessToken = Helper.GetAccessToken(context);
+                    if (!string.IsNullOrEmpty(accessToken))
+                    {
+                        client.Headers.Add(HttpRequestHeader.Authorization, new AuthenticationHeaderValue("Bearer", accessToken).ToString());
+                    }
+                    string pictureUrl = null;
+                    string userPhotoUrl = $"{context.Url.TrimEnd('/')}/_layouts/15/userphoto.aspx?accountname={System.Web.HttpUtility.UrlEncode(accountName)}&size={size}&url={System.Web.HttpUtility.UrlEncode(pictureUrl)}";
+                    //$"{context.Url.TrimEnd('/')}/_vti_bin/DelveApi.ashx/people/profileimage?userId={System.Web.HttpUtility.UrlEncode(accountName)}&size={size}"
+                    var userPhoto = client.DownloadData(userPhotoUrl);
+                    var response = new HttpResponseMessage(HttpStatusCode.OK)
+                    {
+                        Content = new ByteArrayContent(userPhoto) //new StringContent($"data:image/png;base64,{Convert.ToBase64String(userPhoto)}")
+                    };
+
+                    response.Content.Headers.ContentType = new MediaTypeHeaderValue("image/png");
+                    return response;
+                }
+            }
+        }
+
         private UserCollection GetSiteUsers()
         {
             using (ClientContext context = new Authentication.LowTrustTokenHelper(_tokenHelper).GetUserClientContext())
             {
                 var users = context.Web.SiteUsers;
                 context.Load(users, user => user.Include(u => u.Title, u => u.LoginName, u => u.Email, u => u.UserPrincipalName, u => u.Id));
+                context.ExecuteQuery();
+                return users;
+            }
+        }
+
+        private IList<PrincipalInfo> GetUserPrincipals(string input, int limit)
+        {
+            using (ClientContext context = new Authentication.LowTrustTokenHelper(_tokenHelper).GetUserClientContext())
+            {
+                var users = Utility.SearchPrincipals(context, context.Web, input, PrincipalType.User, PrincipalSource.UserInfoList, context.Web.SiteUsers, limit);
                 context.ExecuteQuery();
                 return users;
             }

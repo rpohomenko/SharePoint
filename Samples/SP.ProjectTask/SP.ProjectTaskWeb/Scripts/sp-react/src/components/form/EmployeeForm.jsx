@@ -4,6 +4,7 @@ import { DepartmentList } from '../lists/Departments';
 import { DepartmentFormPanel } from './DepartmentFormPanel';
 import { EmployeeList } from '../lists/Employees';
 import { EmployeeFormPanel } from './EmployeeFormPanel';
+import { isArray } from 'util';
 
 export class EmployeeForm extends ListForm {
 
@@ -59,8 +60,12 @@ export class EmployeeForm extends ListForm {
                 name: 'Account',
                 type: 'user',
                 title: 'Account',
-                //required: true,
-                getUsers: (searchTerm, options)=>{ return this._service.getUsers(searchTerm, options);}
+                required: true,
+                limitResults: 5,
+                getUsers: (searchTerm, limitResults, options) => { return this._service.getUsers(searchTerm, limitResults, options); },
+                onChangeValue: (sender, value) => {
+                    this._onChangeAccount(sender, value);
+                }
             },
             {
                 key: 'position',
@@ -120,6 +125,42 @@ export class EmployeeForm extends ListForm {
                 isMultiLine: true
             },
         ];
+    }
+
+    _onChangeAccount = (sender, value) => {
+        if (isArray(value) && value.length > 0) {
+            let persona = sender.getPersonaById(value[0].key);
+            if (persona) {
+                let [firstName, lastName] = persona.Name.split(/<[/\w\s-]+>|\s/g);
+                let firstNameField = this.getFormField('FirstName');
+                if (firstNameField) {                    
+                    if (firstNameField.getFieldValue() !== firstName) {
+                        firstNameField.setFieldValue(firstName);
+                    }
+                }
+                let lastNameField = this.getFormField('LastName');
+                if (lastNameField) {                    
+                    if (lastNameField.getFieldValue() !== lastName) {
+                        lastNameField.setFieldValue(lastName);
+                    }
+                }
+                let emailField = this.getFormField('Email');
+                if (emailField) {
+                    if (emailField.getFieldValue() !== persona.Email) {
+                        emailField.setFieldValue(persona.Email);
+                    }
+                }
+                let phoneField = this.getFormField('Phone');
+                if (phoneField) {
+                    if (phoneField.getFieldValue() !== persona.Phone) {
+                        phoneField.setFieldValue(persona.Phone);
+                    }
+                }
+            }
+        }
+        else {
+
+        }
     }
 
     _renderEmployeeListForm = (ref) => {

@@ -242,17 +242,25 @@ export class LookupFieldRenderer extends BaseFieldRenderer {
             }
             if (currentValue) {
                 if (!value) return true;
+                return currentValue.Id !== value.Id;
             }
             else if (value) {
                 return true;
             }
-            return currentValue.Id !== value.Id;
+            return true;
         }
         return false;
     }
 
     hasValue() {
-        return this.getValue() && this.getValue().Id > 0 && super.hasValue();
+        if (super.hasValue()) {
+            let value = this.getValue();
+            if (isArray(value)) {
+                return value.filter(item => item.Id > 0).length > 0;
+            }
+            return value.Id > 0;
+        }
+        return false;
     }
 }
 

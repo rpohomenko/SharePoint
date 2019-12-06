@@ -9,7 +9,7 @@ import TaskCommand from "../commands/TaskCommand";
 import { ProjectFormPanel } from '../form/ProjectFormPanel';
 import { LookupFieldRenderer } from '../form/fields/LookupFieldRenderer';
 import { ChoiceFieldRenderer } from '../form/fields/ChoiceFieldRenderer';
-import { DateFieldRenderer } from '../form/fields/DateFieldRenderer';
+import { UserFieldRenderer } from '../form/fields/UserFieldRenderer';
 import { DateTimeFieldRenderer } from '../form/fields/DateTimeFieldRenderer';
 
 export class TaskList extends BaseListView {
@@ -153,6 +153,36 @@ export class TaskList extends BaseListView {
           return '';
         }
       },
+
+      {
+        key: 'assignedTo',
+        name: 'Assigned To',
+        fieldName: 'AssignedTo',
+        minWidth: 210,
+        maxWidth: 350,
+        isRowHeader: false,
+        isResizable: true,
+        isSortable: false,
+        isSorted: false,
+        isSortedDescending: false,
+        sortAscendingAriaLabel: 'A to Z',
+        sortDescendingAriaLabel: 'Z to A',
+        onColumnClick: this._onColumnClick,
+        data: 'string',
+        isPadded: false,
+        getView: (value) => {
+          if (value) {
+            return <UserFieldRenderer key='assignedTo' currentValue={value} fieldProps={{             
+              type: 'user',
+              isMultiple: true             
+            }}
+              mode={0} />
+          }
+          return '';
+        }
+      },
+
+
       {
         key: 'status',
         name: 'Status',

@@ -47,6 +47,7 @@
         "react-dom": "^16.12.0",
         "react-rte": "^0.16.1",
         "reactstrap": "^8.1.1",
+        "urijs": "^1.19.2",
         "url-polyfill": "^1.1.7",
         "whatwg-fetch": "^3.0.0"
     }

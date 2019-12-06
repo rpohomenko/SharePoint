@@ -8,6 +8,7 @@ import EmployeeCommand from "../commands/EmployeeCommand";
 import { EmployeeFormPanel } from '../form/EmployeeFormPanel';
 import { DepartmentFormPanel } from '../form/DepartmentFormPanel';
 import { LookupFieldRenderer } from '../form/fields/LookupFieldRenderer';
+import { ChoiceFieldRenderer } from '../form/fields/ChoiceFieldRenderer';
 
 export class EmployeeList extends BaseListView {
 
@@ -104,6 +105,39 @@ export class EmployeeList extends BaseListView {
         onColumnClick: this._onColumnClick,
         data: 'string',
         isPadded: false        
+      },
+      {
+        key: 'position',
+        name: 'Position',        
+        fieldName: 'Position',
+        isSortable: false,
+        minWidth: 210,
+        maxWidth: 350,
+        isRowHeader: false,
+        isResizable: true,
+        isSorted: false,
+        isSortedDescending: false,
+        sortAscendingAriaLabel: 'A to Z',
+        sortDescendingAriaLabel: 'Z to A',
+        onColumnClick: this._onColumnClick,
+        data: 'string',
+        isPadded: false,
+        getView: (lookupItem) => {
+          if (lookupItem) {
+              return <ChoiceFieldRenderer key='position' currentValue={lookupItem} fieldProps={{              
+                type: 'choice',
+                isMultiple: true,              
+                choices: [
+                    { value: "Web developer", key: 1 },
+                    { value: "Project manager", key: 2 },
+                    { value: "Software tester", key: 4 },
+                    { value: "Technical consultant", key: 8 },
+                    { value: "Business analyst", key: 16 }
+                ]
+            }} mode={0} />
+          }
+          return '';
+        }
       },
       {
         key: 'manager',

@@ -1,4 +1,5 @@
 ﻿using Microsoft.SharePoint.Client;
+using Microsoft.SharePoint.Client.Utilities;
 using System;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -16,13 +17,13 @@ namespace SP.ProjectTaskWeb.Models
             }
             if (spUser.IsPropertyAvailable("Title"))
             {
-                Initials = ExtractInitialsFromName(spUser.Title);
+                //Initials = ExtractInitialsFromName(spUser.Title);
                 Name = spUser.Title;
             }
             if (spUser.IsPropertyAvailable("LoginName"))
             {
                 Login = spUser.LoginName;
-                ImageUrl = $"~splayouts/userphoto.aspx?accountname={spUser.LoginName.Split('|').Last()}";
+                //ImageUrl = $"~splayouts/userphoto.aspx?accountname={spUser.LoginName.Split('|').Last()}";
             }
             if (spUser.IsPropertyAvailable("IsSiteAdmin"))
             {
@@ -31,7 +32,20 @@ namespace SP.ProjectTaskWeb.Models
             if (spUser.IsPropertyAvailable("Email"))
             {
                 Email = spUser.Email;
+                ImageUrl = $"/api/web/users/photo/{Email}/S";//$"https://outlook.office365.com/owa/service.svc/s/GetPersonaPhoto?email={Email}&size=HR64x64";
             }
+        }
+
+        internal SPUserInformation(PrincipalInfo principal)
+        {
+            if (principal == null) throw new ArgumentNullException(nameof(principal));
+
+            Id = principal.PrincipalId;
+            Name = principal.DisplayName;
+            Login = principal.LoginName;
+            Email = principal.Email;
+            ImageUrl = $"/api/web/users/photo/{Email}/S";//$"https://outlook.office365.com/owa/service.svc/s/GetPersonaPhoto?email={Email}&size=HR64x64";   
+            Phone = principal.Mobile;
         }
 
         public int Id { get; private set; }
@@ -41,6 +55,7 @@ namespace SP.ProjectTaskWeb.Models
         public string Email { get; private set; }
         public bool IsSiteAdmin { get; private set; }
         public string ImageUrl { get; private set; }
+        public string Phone { get; private set; }
 
         private static string ExtractInitialsFromName(string name)
         {

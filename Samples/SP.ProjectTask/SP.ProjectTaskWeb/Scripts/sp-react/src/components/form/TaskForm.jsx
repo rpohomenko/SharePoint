@@ -51,6 +51,17 @@ export class TaskForm extends ListForm {
             renderListForm: (ref) => this._renderProjectListForm(ref)
         },
         {
+            key: 'assignedTo',
+            name: 'AssignedTo',
+            type: 'user',
+            title: 'Assigned To',
+            required: true,
+            isMultiple: true,
+            limitResults: 5,
+            itemLimit: 5,
+            getUsers: (searchTerm, limitResults, options)=>{ return this._service.getUsers(searchTerm, limitResults, options);}
+        },
+        {
             key: 'status',
             name: 'TaskStatus',
             type: 'choice',
@@ -66,7 +77,7 @@ export class TaskForm extends ListForm {
             name: 'StartDate',
             type: 'datetime',
             title: 'Start Date',
-            onChangeValue: (value) => {
+            onChangeValue: (sender, value) => {
                 this._onChangeStartDate(value);
             }
         },
@@ -75,15 +86,21 @@ export class TaskForm extends ListForm {
             name: 'DueDate',
             type: 'datetime',
             title: 'End Date',
-            onChangeValue: (value) => {
+            onChangeValue: (sender, value) => {
                 this._onChangeEndDate(value);
             }
+        },
+        {
+            key: 'body',
+            name: 'Body',
+            type: 'richtext',
+            title: 'Body'            
         },
         ];
     }
 
     _onChangeStartDate(startDate) {
-        let endField = this.getFieldForm('DueDate');
+        let endField = this.getFormField('DueDate');
         if (endField && endField.getControl()) {
             let endDate = endField.getControl().getDate();   
             if (!endDate || endDate < startDate) {
@@ -93,7 +110,7 @@ export class TaskForm extends ListForm {
     }
 
     _onChangeEndDate(endDate) {
-        let startField = this.getFieldForm('StartDate');
+        let startField = this.getFormField('StartDate');
         if (startField && startField.getControl()) {
             let startDate = startField.getControl().getDate() || endDate;
             if (!startDate || endDate < startDate) {

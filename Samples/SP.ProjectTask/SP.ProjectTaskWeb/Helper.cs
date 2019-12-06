@@ -1,4 +1,5 @@
 ﻿using Microsoft.SharePoint.Client;
+using System;
 using System.Threading.Tasks;
 
 namespace SP.ProjectTaskWeb
@@ -24,5 +25,25 @@ namespace SP.ProjectTaskWeb
             web.Update();
             context.ExecuteQuery();
         }
+
+        public static string GetAccessToken(ClientRuntimeContext clientContext)
+        {
+            string accessToken = null;
+            EventHandler<WebRequestEventArgs> handler = (s, e) =>
+            {
+                string authorization = e.WebRequestExecutor.RequestHeaders["Authorization"];
+                if (!string.IsNullOrEmpty(authorization))
+                {
+                    accessToken = authorization.Replace("Bearer ", string.Empty);
+                }
+            };
+            // Issue a dummy request to get it from the Authorization header
+            clientContext.ExecutingWebRequest += handler;
+            clientContext.ExecuteQuery();
+            clientContext.ExecutingWebRequest -= handler;
+
+            return accessToken;
+        }
+
     }
 }

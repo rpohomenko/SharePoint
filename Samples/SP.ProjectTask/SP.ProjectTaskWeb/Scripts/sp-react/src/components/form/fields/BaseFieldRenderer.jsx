@@ -107,7 +107,7 @@ export class BaseFieldRenderer extends React.Component {
     _onChangeValue(value){
         const { fieldProps } = this.props;
         if(typeof fieldProps.onChangeValue === "function"){
-            fieldProps.onChangeValue(value);
+            fieldProps.onChangeValue(this, value);
         }
     }
 

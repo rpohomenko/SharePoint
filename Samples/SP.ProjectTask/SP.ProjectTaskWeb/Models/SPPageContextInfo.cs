@@ -31,7 +31,10 @@ namespace SP.ProjectTaskWeb.Models
                 if (web.IsPropertyAvailable("Title"))
                     this.WebTitle = web.Title;
                 if (web.IsPropertyAvailable("UIVersion"))
+                {
                     this.WebUIVersion = web.UIVersion;
+                    LayoutsUrl = $"_layouts/{web.UIVersion}";
+                }
 
                 User user = web.CurrentUser;
                 UserInformation = new SPUserInformation(user);

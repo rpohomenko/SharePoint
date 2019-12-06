@@ -4,9 +4,9 @@ import { isArray } from 'util';
 
 export class ChoiceFieldRenderer2 extends ChoiceFieldRenderer {
     constructor(props) {
-        super(props);        
+        super(props);
         this.state = {
-            ...this.state          
+            ...this.state
         };
     }
 
@@ -50,7 +50,7 @@ export class ChoiceFieldRenderer2 extends ChoiceFieldRenderer {
             return currentValue.map((choice, i) => (<span key={`choice_${i}`}>{i > 0 ? ', ' : ''}{choice}</span>));
         }
         return (<span>{currentValue ? currentValue : ''}</span>);
-    }  
+    }
 
     getValue() {
         const { fieldProps } = this.props;
@@ -65,33 +65,6 @@ export class ChoiceFieldRenderer2 extends ChoiceFieldRenderer {
             }
         }
         return null;
-    }
-
-    hasValue() {
-        return super.hasValue() && (isArray(this.getValue()) && this.getValue().length > 0);
-    }
-
-    isDirty() {
-        const { fieldProps } = this.props;
-        const { value, currentValue } = this.state;
-        if (super.isDirty()) {
-            if (fieldProps.isMultiple) {
-                if (isArray(value) && isArray(currentValue)) {
-                    if (value.length !== currentValue.length) return true;
-                    let arr1 = value.sort((a, b) => a - b);
-                    let arr2 = currentValue.sort((a, b) => a - b);
-                    for (var i = 0; i < arr1.length; i++) {
-                        if (arr1[i] !== arr2[i]) return true;
-                    }
-                    return false;
-                }
-            }
-            if(value === -1){
-                return currentValue !== -1 && currentValue !== null && currentValue !== undefined;
-            }
-            return value !== currentValue;
-        }
-        return false;
     }
 }
 

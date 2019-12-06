@@ -1,6 +1,6 @@
 import React from "react";
 import PropTypes from 'prop-types';
-import { DetailsList, DetailsListLayoutMode, Selection, SelectionMode, ColumnActionsMode } from 'office-ui-fabric-react/lib/DetailsList';
+import { /*DetailsList, DetailsListLayoutMode,*/ Selection, SelectionMode, ColumnActionsMode } from 'office-ui-fabric-react/lib/DetailsList';
 import { ShimmeredDetailsList } from 'office-ui-fabric-react/lib/ShimmeredDetailsList';
 import { DirectionalHint, ContextualMenu } from 'office-ui-fabric-react/lib/ContextualMenu';
 //import { Spinner, SpinnerSize } from 'office-ui-fabric-react/lib/Spinner';

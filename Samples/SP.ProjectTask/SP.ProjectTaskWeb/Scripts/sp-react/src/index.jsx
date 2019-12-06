@@ -112,9 +112,11 @@ window._spPageContextInfo = window._spPageContextInfo ||
             Login: "i:0i.t|00000003-0000-0ff1-ce00-000000000000|app@sharepoint",
             Email: ""
         },
-        webAbsoluteUrl: "",
+        webAbsoluteUrl: "https://bpasolutionssa1400.sharepoint.com/sites/predev/rp/qua",
         webLanguage: 1033,
         webServerRelativeUrl: "",
+        layoutsUrl : "_layouts/15",
         webTitle: "",
-        webUIVersion: 15
+        webUIVersion: 15,
+        BASE_PATH: (window._spPageContextInfo == undefined ? "https://localhost:44318" : "")
     };

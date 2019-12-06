@@ -121,8 +121,15 @@ export class ChoiceFieldRenderer extends BaseFieldRenderer {
     }
 
     hasValue() {
-        return super.hasValue() && (isArray(this.getValue()) && this.getValue().length > 0);
-    }
+        if (super.hasValue()) {
+            let value = this.getValue();
+            if (isArray(value)) {
+                return value.length > 0;
+            }
+            return true;
+        }
+        return false;
+    }  
 
     isDirty() {
         const { fieldProps } = this.props;

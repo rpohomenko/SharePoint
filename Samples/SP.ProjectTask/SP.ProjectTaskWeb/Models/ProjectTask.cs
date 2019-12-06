@@ -3,6 +3,8 @@ using SP.Client.Linq;
 using SP.Client.Linq.Attributes;
 using SP.Client.Linq.Provisioning;
 using System;
+using System.Linq;
+using System.Collections.Generic;
 using System.Runtime.Serialization;
 
 namespace SP.ProjectTaskWeb.Models
@@ -93,12 +95,34 @@ namespace SP.ProjectTaskWeb.Models
             protected set;
         }
 
-        [DataMember]
-        [Field(Name = "AssignedTo", DataType = FieldType.User, Behavior = ProvisionBehavior.None)]
-        public virtual FieldLookupValue AssignedTo
+        //[DataMember]
+        [LookupField(Name = "AssignedTo", DataType = FieldType.User, Behavior = ProvisionBehavior.None, IsMultiple = true)]
+        public virtual ICollection<FieldUserValue> AssignedToValue
         {
             get;
             set;
+        }
+
+        [DataMember]
+        public ICollection<LookupValue> AssignedTo
+        {
+            get
+            {
+                return AssignedToValue != null
+                    ? AssignedToValue.Select(lookupValue => new LookupValue() { Id = lookupValue.LookupId, Value = lookupValue.LookupValue }).ToArray()
+                    : null;
+            }
+            set
+            {
+                if (value != null)
+                {
+                    AssignedToValue = value.Select(lookup => new FieldUserValue() { LookupId = lookup.Id }).ToArray();
+                }
+                else
+                {
+                    AssignedToValue = null;
+                }
+            }
         }
 
         [DataMember]

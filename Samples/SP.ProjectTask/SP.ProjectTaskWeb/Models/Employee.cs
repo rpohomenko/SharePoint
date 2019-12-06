@@ -152,6 +152,7 @@ namespace SP.ProjectTaskWeb.Models
             get;
             set;
         }
+
         [DataMember]
         [Field(Name = "pt_Email", Title = "Email", DataType = FieldType.Text, Indexed = true, EnforceUniqueValues = true, Order = 5)]
         public string Email

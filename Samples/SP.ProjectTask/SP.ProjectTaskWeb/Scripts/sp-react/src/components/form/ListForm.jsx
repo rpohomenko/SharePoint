@@ -418,7 +418,7 @@ export class ListForm extends React.Component {
         return isValid && isDirty;
     }
 
-    getFieldForm(fieldName) {
+    getFormField(fieldName) {
         if (this._formFields) {
             for (let i = 0; i < this._formFields.length; i++) {
                 if (this._formFields[i].getFieldName() === fieldName) {
