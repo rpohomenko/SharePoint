@@ -27,7 +27,7 @@ export class RichTextFieldRenderer extends BaseFieldRenderer {
     }
 
     _renderDispForm() {
-        return <div dangerouslySetInnerHTML={{__html: this.props.currentValue }} />;
+        return <div dangerouslySetInnerHTML={{ __html: this.props.currentValue }} />;
     }
 
     _renderNewOrEditForm() {

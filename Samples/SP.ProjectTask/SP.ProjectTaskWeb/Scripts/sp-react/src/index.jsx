@@ -1,16 +1,17 @@
 import React from "react";
 import ReactDOM from "react-dom";
-import App from './App';
-import { AppService } from "./services/AppService";
-
 /* IE -- start */
 import 'promise-polyfill/src/polyfill';
 import 'whatwg-fetch';
 import 'url-polyfill';
 import 'abortcontroller-polyfill/dist/polyfill-patch-fetch';
 import "babel-polyfill";
+require('es6-shim');
 /* IE -- end */
 //require("bootstrap");
+
+import App from './App';
+import { AppService } from "./services/AppService";
 
 const service = new AppService();
 ReactDOM.render(<App service={service} />, document.querySelector("#app-container"));
@@ -112,11 +113,11 @@ window._spPageContextInfo = window._spPageContextInfo ||
             Login: "i:0i.t|00000003-0000-0ff1-ce00-000000000000|app@sharepoint",
             Email: ""
         },
-        webAbsoluteUrl: "https://bpasolutionssa1400.sharepoint.com/sites/predev/rp/qua",
+        webAbsoluteUrl: "",
         webLanguage: 1033,
         webServerRelativeUrl: "",
         layoutsUrl : "_layouts/15",
-        webTitle: "",
+        webTitle: "Project Task",
         webUIVersion: 15,
         BASE_PATH: (window._spPageContextInfo == undefined ? "https://localhost:44318" : "")
     };
