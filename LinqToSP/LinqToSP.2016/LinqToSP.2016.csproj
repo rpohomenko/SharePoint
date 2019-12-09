@@ -75,6 +75,7 @@
     <Compile Include="..\LinqToSP\Attributes\FieldAttribute.cs" />
     <Compile Include="..\LinqToSP\Attributes\DependentLookupFieldAttribute.cs" />
     <Compile Include="..\LinqToSP\Attributes\LookupFieldAttribute.cs" />
+    <Compile Include="..\LinqToSP\Attributes\UserFieldAttribute.cs" />
     <Compile Include="..\LinqToSP\Attributes\RemovedFieldAttribute.cs" />
     <Compile Include="..\LinqToSP\Attributes\ChoiceFieldAttribute.cs" />
     <Compile Include="..\LinqToSP\Attributes\NoteFieldAttribute.cs" />
