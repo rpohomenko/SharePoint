@@ -48,7 +48,8 @@ export class TaskForm extends ListForm {
             required: true,
             renderListView: (ref, commandItems, onSelect, onSaving, onDeleting, onSaved, onDeleted) =>
                 this._renderProjectListView(ref, false, commandItems, onSelect, onSaving, onDeleting, onSaved, onDeleted),
-            renderListForm: (ref) => this._renderProjectListForm(ref)
+            renderListForm: (ref) => this._renderProjectListForm(ref),
+            getItems: (searchTerm, limitResults, options)=>{ return this._service.getProjects(limitResults, null, "Title", false, `Title.Contains("${searchTerm}")`, options);}
         },
         {
             key: 'assignedTo',
@@ -59,7 +60,7 @@ export class TaskForm extends ListForm {
             isMultiple: true,
             limitResults: 5,
             itemLimit: 5,
-            getUsers: (searchTerm, limitResults, options)=>{ return this._service.getUsers(searchTerm, limitResults, options);}
+            getPersonas: (searchTerm, limitResults, options)=>{ return this._service.getUsers(searchTerm, limitResults, options);}
         },
         {
             key: 'status',

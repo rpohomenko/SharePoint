@@ -1,12 +1,13 @@
 import React from "react";
 import ReactDOM from "react-dom";
 /* IE -- start */
-import 'promise-polyfill/src/polyfill';
+require('es6-shim');
+//import 'promise-polyfill/src/polyfill';
 import 'whatwg-fetch';
 import 'url-polyfill';
 import 'abortcontroller-polyfill/dist/polyfill-patch-fetch';
 import "babel-polyfill";
-require('es6-shim');
+
 /* IE -- end */
 //require("bootstrap");
 

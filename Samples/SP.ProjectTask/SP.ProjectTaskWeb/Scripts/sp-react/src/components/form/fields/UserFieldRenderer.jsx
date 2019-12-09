@@ -48,7 +48,7 @@ export class UserFieldRenderer extends BaseFieldRenderer {
     }
 
     _renderNewOrEditForm() {
-        const { fieldProps, currentValue, disabled, resultsMaximumNumber, RESOLVE_DELAY } = this.props;
+        const { fieldProps, currentValue, disabled, resultsMaximumNumber, RESOLVE_DELAY, itemLimit, readonly } = this.props;
         const { item, value } = this.state;
         const suggestionProps = {
             suggestionsHeaderText: fieldProps.suggestionsHeaderText || 'Suggested People',
@@ -60,6 +60,7 @@ export class UserFieldRenderer extends BaseFieldRenderer {
             suggestionsAvailableAlertText: fieldProps.suggestionsAvailableAlertText || 'People Picker Suggestions available',
             suggestionsContainerAriaLabel: fieldProps.suggestionsContainerAriaLabel || 'Suggested contacts'
         };
+        let defaultVisibleValue = isArray(value) && value.length > 0 ? "" : this._getPlaceholder();
         return (
             <NormalPeoplePicker
                 onResolveSuggestions={this._onFilterChanged}
@@ -73,19 +74,56 @@ export class UserFieldRenderer extends BaseFieldRenderer {
                 onValidateInput={this._validateInput}
                 removeButtonAriaLabel={''}
                 inputProps={{
+                    ref: (ref) => this._input = ref,
+                    disabled: true,
+                    readonly: readonly,
+                    onClick: (ev) => {
+                        ev.target.readOnly = readonly;
+                        ev.target.value = "";
+                        ev.target.defaultValue = "";
+                        if (this._input) {
+                            this._input._value = "";
+                        }
+                    },
+                    onBlur: (ev) => {
+                        ev.target.defaultValue = defaultVisibleValue;
+                        if (this._input) {
+                            this._input._value = defaultVisibleValue;
+                        }
+                    },
+                    onFocus: (ev) => {
+                        ev.target.readOnly = readonly;
+                        ev.target.value = "";
+                        ev.target.defaultValue = "";                        
+                        if (this._input) {
+                            this._input._value = "";
+                        }
+                    },
+                    defaultVisibleValue: defaultVisibleValue,
+                    "aria-label": defaultVisibleValue
                 }}
                 componentRef={this._picker}
                 onInputChange={this._onInputChange}
                 resolveDelay={fieldProps.resolveDelay || RESOLVE_DELAY}
-                itemLimit={fieldProps.isMultiple ? fieldProps.itemLimit || 10 : 1}
+                itemLimit={fieldProps.isMultiple ? fieldProps.itemLimit || itemLimit : 1}
                 disabled={disabled}
                 selectedItems={value}
                 onChange={(items) => this._onChange(items)}
             />);
     }
 
+    _getPlaceholder = () => {
+        const { fieldProps } = this.props;
+        return fieldProps.isMultiple ? "Enter a name or email address..." : "Enter a name or email address...";
+    }
+
     _onChange = (items) => {
         this.setValue(items);
+        if (this._input) {
+            let defaultVisibleValue = isArray(items) && items.length > 0 ? "" : this._getPlaceholder();
+            this._input._value = defaultVisibleValue;
+            this._input.setState({ displayValue: defaultVisibleValue });
+        }
     }
 
     _returnMostRecentlyUsed = (currentPersonas) => {
@@ -99,7 +137,7 @@ export class UserFieldRenderer extends BaseFieldRenderer {
     }
 
     _listContainsPersona(persona, personas) {
-        return !!personas && personas.some((item) => item.text === persona.text);
+        return !!personas && personas.some((item) => item.key === persona.key);
     }
 
     _getTextFromItem(persona) {
@@ -144,7 +182,7 @@ export class UserFieldRenderer extends BaseFieldRenderer {
 
     _filterPersonasByText = async (filterText, currentPersonas, limitResults) => {
         const { fieldProps, resultsMaximumNumber } = this.props;
-        const { isLoading } = this.state;
+        //const { isLoading } = this.state;
         //if (isLoading) return null;
         this._abort();
         this.setState({
@@ -153,36 +191,39 @@ export class UserFieldRenderer extends BaseFieldRenderer {
 
         limitResults = limitResults || fieldProps.limitResults || resultsMaximumNumber;
 
-        let controller = new AbortController();
-        const promise = fieldProps.getUsers(filterText, limitResults, { signal: controller.signal });
-        this._controller = { controller: controller, promise: promise };
+        if (typeof fieldProps.getPersonas === "function") {
+            let controller = new AbortController();
+            const promise = fieldProps.getPersonas(filterText, limitResults, { signal: controller.signal });
+            this._controller = { controller: controller, promise: promise };
 
-        return await this._onPromise(promise, (personas) => {
-            this._personas = personas;
-            let filteredPersonas = personas.slice(0, limitResults > 0 ? limitResults : personas.length).map(persona => {
-                /*persona.ImageUrl = persona.ImageUrl
-                ? new URI(persona.ImageUrl || "", _spPageContextInfo.BASE_PATH || "").toString()
-                : '';*/
-                return {
-                    key: persona.Id,
-                    //imageUrl: persona.ImageUrl,
-                    //imageInitials: persona.Initials,
-                    text: persona.Name,
-                    secondaryText: persona.Email,
-                    tertiaryText: persona.Login,
-                    //optionalText: persona.IsSiteAdmin
-                };
-            });
+            return await this._onPromise(promise, (personas) => {
+                this._personas = personas;
+                let filteredPersonas = personas.slice(0, limitResults > 0 ? limitResults : personas.length).map(persona => {
+                    /*persona.ImageUrl = persona.ImageUrl
+                    ? new URI(persona.ImageUrl || "", _spPageContextInfo.BASE_PATH || "").toString()
+                    : '';*/
+                    return {
+                        key: persona.Id,
+                        //imageUrl: persona.ImageUrl,
+                        //imageInitials: persona.Initials,
+                        text: persona.Name,
+                        secondaryText: persona.Email,
+                        tertiaryText: persona.Login,
+                        //optionalText: persona.IsSiteAdmin
+                    };
+                });
 
-            filteredPersonas = this._removeDuplicates(filteredPersonas, currentPersonas);
-            return filteredPersonas;
-        }).then((result) => {
-            this.setState({
-                isLoading: false
+                filteredPersonas = this._removeDuplicates(filteredPersonas, currentPersonas);
+                return filteredPersonas;
+            }).then((result) => {
+                this.setState({
+                    isLoading: false
+                });
+                this._controller = null;
+                return result;
             });
-            this._controller = null;
-            return result;
-        });
+        }
+        return null;
     }
 
     async _abort() {
@@ -225,10 +266,10 @@ export class UserFieldRenderer extends BaseFieldRenderer {
         }
     }
 
-    getPersonaById(id){
-        if(id > 0 && isArray(this._personas)){
-            let found =this._personas.filter(persona=> persona.Id === id);
-            if(found.length > 0){
+    getPersonaById(id) {
+        if (id > 0 && isArray(this._personas)) {
+            let found = this._personas.filter(persona => persona.Id === id);
+            if (found.length > 0) {
                 return found[0];
             }
         }
@@ -297,12 +338,14 @@ export class UserFieldRenderer extends BaseFieldRenderer {
 
 UserFieldRenderer.propTypes = {
     resultsMaximumNumber: PropTypes.number,
-    RESOLVE_DELAY: PropTypes.number
+    RESOLVE_DELAY: PropTypes.number,
+    itemLimit: PropTypes.number
 }
 
 UserFieldRenderer.defaultProps = {
     resultsMaximumNumber: 10,
-    RESOLVE_DELAY: 500
+    RESOLVE_DELAY: 500,
+    itemLimit: 10
 }
 
 

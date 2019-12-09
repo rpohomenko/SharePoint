@@ -62,7 +62,7 @@ export class EmployeeForm extends ListForm {
                 title: 'Account',
                 required: true,
                 limitResults: 5,
-                getUsers: (searchTerm, limitResults, options) => { return this._service.getUsers(searchTerm, limitResults, options); },
+                getPersonas: (searchTerm, limitResults, options) => { return this._service.getUsers(searchTerm, limitResults, options); },
                 onChangeValue: (sender, value) => {
                     this._onChangeAccount(sender, value);
                 }
@@ -103,7 +103,8 @@ export class EmployeeForm extends ListForm {
                 title: 'Manager',
                 renderListView: (ref, commandItems, onSelect, onSaving, onDeleting, onSaved, onDeleted) =>
                     this._renderEmployeeListView(ref, true, commandItems, onSelect, onSaving, onDeleting, onSaved, onDeleted),
-                renderListForm: (ref) => this._renderEmployeeListForm(ref)
+                renderListForm: (ref) => this._renderEmployeeListForm(ref),
+                getItems: (searchTerm, limitResults, options)=>{ return this._service.getEmployees(limitResults, null, "Title", false, `Title.Contains("${searchTerm}")`, options);}
             },
             {
                 key: 'department',
@@ -115,7 +116,8 @@ export class EmployeeForm extends ListForm {
                 lookupField: 'Title',
                 renderListView: (ref, commandItems, onSelect, onSaving, onDeleting, onSaved, onDeleted) =>
                     this._renderDepartmentListView(ref, false, commandItems, onSelect, onSaving, onDeleting, onSaved, onDeleted),
-                renderListForm: (ref) => this._renderDepartmentListForm(ref)
+                renderListForm: (ref) => this._renderDepartmentListForm(ref),
+                getItems: (searchTerm, limitResults, options)=>{ return this._service.getDepartments(limitResults, null, "Title", false, `Title.Contains("${searchTerm}")`, options);}
             },
             {
                 key: 'description',
