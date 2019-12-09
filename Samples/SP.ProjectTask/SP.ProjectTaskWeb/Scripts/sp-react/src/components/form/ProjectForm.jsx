@@ -73,7 +73,7 @@ export class ProjectForm extends ListForm {
             renderListView: (ref, commandItems, onSelect, onSaving, onDeleting, onSaved, onDeleted) => 
                             this._renderEmployeeListView(ref, true, commandItems, onSelect, onSaving, onDeleting, onSaved, onDeleted),
             renderListForm: (ref) => this._renderEmployeeListForm(ref),
-            getItems: (searchTerm, limitResults, options)=>{ return this._service.getEmployees(limitResults, null, "Title", false, `Title.Contains("${searchTerm}")`, options);}
+            getItems: (searchTerm, limitResults, options)=>{ return this._service.getEmployees(limitResults, null, "Title", false, `Title.Contains("${searchTerm}")`, ['Id', 'Title'], options);}
         },
         {
             key: 'developer',
@@ -86,7 +86,7 @@ export class ProjectForm extends ListForm {
             renderListView: (ref, commandItems, onSelect, onSaving, onDeleting, onSaved, onDeleted) => 
                             this._renderEmployeeListView(ref, true, commandItems, onSelect, onSaving, onDeleting, onSaved, onDeleted),
             renderListForm: (ref) => this._renderEmployeeListForm(ref),
-            getItems: (searchTerm, limitResults, options)=>{ return this._service.getEmployees(limitResults, null, "Title", false, `Title.Contains("${searchTerm}")`, options);}
+            getItems: (searchTerm, limitResults, options)=>{ return this._service.getEmployees(limitResults, null, "Title", false, `Title.Contains("${searchTerm}")`, ['Id', 'Title'], options);}
         },
         {
             key: 'tester',
@@ -99,7 +99,7 @@ export class ProjectForm extends ListForm {
             renderListView: (ref, commandItems, onSelect, onSaving, onDeleting, onSaved, onDeleted) => 
                             this._renderEmployeeListView(ref, true, commandItems, onSelect, onSaving, onDeleting, onSaved, onDeleted),
             renderListForm: (ref) => this._renderEmployeeListForm(ref),
-            getItems: (searchTerm, limitResults, options)=>{ return this._service.getEmployees(limitResults, null, "Title", false, `Title.Contains("${searchTerm}")`, options);}
+            getItems: (searchTerm, limitResults, options)=>{ return this._service.getEmployees(limitResults, null, "Title", false, `Title.Contains("${searchTerm}")`, ['Id', 'Title'], options);}
         }
         ];
     }

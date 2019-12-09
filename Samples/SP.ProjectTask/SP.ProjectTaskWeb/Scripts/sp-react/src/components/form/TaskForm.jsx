@@ -49,7 +49,7 @@ export class TaskForm extends ListForm {
             renderListView: (ref, commandItems, onSelect, onSaving, onDeleting, onSaved, onDeleted) =>
                 this._renderProjectListView(ref, false, commandItems, onSelect, onSaving, onDeleting, onSaved, onDeleted),
             renderListForm: (ref) => this._renderProjectListForm(ref),
-            getItems: (searchTerm, limitResults, options)=>{ return this._service.getProjects(limitResults, null, "Title", false, `Title.Contains("${searchTerm}")`, options);}
+            getItems: (searchTerm, limitResults, options)=>{ return this._service.getProjects(limitResults, null, "Title", false, `Title.Contains("${searchTerm}")`, ['Id', 'Title'], options);}
         },
         {
             key: 'assignedTo',

@@ -104,7 +104,7 @@ export class EmployeeForm extends ListForm {
                 renderListView: (ref, commandItems, onSelect, onSaving, onDeleting, onSaved, onDeleted) =>
                     this._renderEmployeeListView(ref, true, commandItems, onSelect, onSaving, onDeleting, onSaved, onDeleted),
                 renderListForm: (ref) => this._renderEmployeeListForm(ref),
-                getItems: (searchTerm, limitResults, options)=>{ return this._service.getEmployees(limitResults, null, "Title", false, `Title.Contains("${searchTerm}")`, options);}
+                getItems: (searchTerm, limitResults, options)=>{ return this._service.getEmployees(limitResults, null, "Title", false, `Title.Contains("${searchTerm}")`, ['Id', 'Title'], options);}
             },
             {
                 key: 'department',
@@ -117,7 +117,7 @@ export class EmployeeForm extends ListForm {
                 renderListView: (ref, commandItems, onSelect, onSaving, onDeleting, onSaved, onDeleted) =>
                     this._renderDepartmentListView(ref, false, commandItems, onSelect, onSaving, onDeleting, onSaved, onDeleted),
                 renderListForm: (ref) => this._renderDepartmentListForm(ref),
-                getItems: (searchTerm, limitResults, options)=>{ return this._service.getDepartments(limitResults, null, "Title", false, `Title.Contains("${searchTerm}")`, options);}
+                getItems: (searchTerm, limitResults, options)=>{ return this._service.getDepartments(limitResults, null, "Title", false, `Title.Contains("${searchTerm}")`, ['Id', 'Title'], options);}
             },
             {
                 key: 'description',

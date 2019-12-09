@@ -122,7 +122,7 @@ export class DepartmentList extends BaseListView {
   }
 
   _fetchData = async (count, nextPageToken, sortBy, sortDesc, filter, options) => {
-    return await this._service.getDepartments(count, nextPageToken, sortBy, sortDesc, filter, options);
+    return await this._service.getDepartments(count, nextPageToken, sortBy, sortDesc, filter, null, options);
   }
 
   _onSelectionChanged(selectionItems) {

@@ -292,7 +292,7 @@ export class TaskList extends BaseListView {
   }
 
   _fetchData = async (count, nextPageToken, sortBy, sortDesc, filter, options) => {
-    return await this._service.getTasks(count, nextPageToken, sortBy, sortDesc, filter, options);
+    return await this._service.getTasks(count, nextPageToken, sortBy, sortDesc, filter, null, options);
   }
 
   _onSelectionChanged(selectionItems) {

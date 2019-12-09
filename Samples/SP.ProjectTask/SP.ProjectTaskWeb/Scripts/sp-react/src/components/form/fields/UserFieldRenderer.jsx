@@ -61,6 +61,7 @@ export class UserFieldRenderer extends BaseFieldRenderer {
             suggestionsContainerAriaLabel: fieldProps.suggestionsContainerAriaLabel || 'Suggested contacts'
         };
         let defaultVisibleValue = isArray(value) && value.length > 0 ? "" : this._getPlaceholder();
+        let isReadOnly = !isArray(value) || value.length === 0 ? true : readonly;
         return (
             <NormalPeoplePicker
                 onResolveSuggestions={this._onFilterChanged}
@@ -76,16 +77,18 @@ export class UserFieldRenderer extends BaseFieldRenderer {
                 inputProps={{
                     ref: (ref) => this._input = ref,
                     disabled: true,
-                    readonly: readonly,
+                    readOnly: isReadOnly,
                     onClick: (ev) => {
                         ev.target.readOnly = readonly;
                         ev.target.value = "";
                         ev.target.defaultValue = "";
+                    
                         if (this._input) {
                             this._input._value = "";
                         }
                     },
-                    onBlur: (ev) => {
+                    onBlur: (ev) => {         
+                        ev.target.readOnly =  true;
                         ev.target.defaultValue = defaultVisibleValue;
                         if (this._input) {
                             this._input._value = defaultVisibleValue;
@@ -94,7 +97,8 @@ export class UserFieldRenderer extends BaseFieldRenderer {
                     onFocus: (ev) => {
                         ev.target.readOnly = readonly;
                         ev.target.value = "";
-                        ev.target.defaultValue = "";                        
+                        ev.target.defaultValue = "";
+                        
                         if (this._input) {
                             this._input._value = "";
                         }

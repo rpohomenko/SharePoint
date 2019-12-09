@@ -91,6 +91,7 @@ export class LookupFieldRenderer extends BaseFieldRenderer {
         }
 
         let defaultVisibleValue = isArray(value) && value.length > 0 ? "" : this._getPlaceholder();
+        let isReadOnly = !isArray(value) || value.length === 0 ? true : readonly;
         return (<React.Fragment>
             {listView &&
                 (<Panel
@@ -127,7 +128,7 @@ export class LookupFieldRenderer extends BaseFieldRenderer {
                     inputProps={{
                         ref: (ref) => this._input = ref,
                         disabled: true,
-                        readonly: readonly,
+                        readOnly: isReadOnly,
                         onClick: (ev) => {
                             ev.target.readOnly = readonly;
                             ev.target.value = "";
@@ -137,7 +138,8 @@ export class LookupFieldRenderer extends BaseFieldRenderer {
                                 this._input._value = "";
                             }
                         },
-                        onBlur: (ev) => {
+                        onBlur: (ev) => {         
+                            ev.target.readOnly =  true;
                             ev.target.defaultValue = defaultVisibleValue;
                             if (this._input) {
                                 this._input._value = defaultVisibleValue;
@@ -344,11 +346,11 @@ export class LookupFieldRenderer extends BaseFieldRenderer {
 
     _onChange = (items) => {
         this.setValue(items);
-        if (this._input) {
+        /*if (this._input) {
             let defaultVisibleValue = isArray(items) && items.length > 0 ? "" : this._getPlaceholder();
             this._input._value = defaultVisibleValue;
             this._input.setState({ displayValue: defaultVisibleValue });
-        }
+        }*/
     }   
 
     _validate = () => {
