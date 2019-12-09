@@ -61,7 +61,6 @@ export class UserFieldRenderer extends BaseFieldRenderer {
             suggestionsContainerAriaLabel: fieldProps.suggestionsContainerAriaLabel || 'Suggested contacts'
         };
         let defaultVisibleValue = isArray(value) && value.length > 0 ? "" : this._getPlaceholder();
-        let isReadOnly = !isArray(value) || value.length === 0 ? true : readonly;
         return (
             <NormalPeoplePicker
                 onResolveSuggestions={this._onFilterChanged}
@@ -77,33 +76,18 @@ export class UserFieldRenderer extends BaseFieldRenderer {
                 inputProps={{
                     ref: (ref) => this._input = ref,
                     disabled: true,
-                    readOnly: isReadOnly,
+                    readOnly: readonly,
                     onClick: (ev) => {
-                        ev.target.readOnly = readonly;
-                        ev.target.value = "";
-                        ev.target.defaultValue = "";
-                    
-                        if (this._input) {
-                            this._input._value = "";
-                        }
+                        
                     },
                     onBlur: (ev) => {         
-                        ev.target.readOnly =  true;
-                        ev.target.defaultValue = defaultVisibleValue;
-                        if (this._input) {
-                            this._input._value = defaultVisibleValue;
-                        }
+                       
                     },
                     onFocus: (ev) => {
-                        ev.target.readOnly = readonly;
-                        ev.target.value = "";
-                        ev.target.defaultValue = "";
-                        
-                        if (this._input) {
-                            this._input._value = "";
-                        }
+                      
                     },
-                    defaultVisibleValue: defaultVisibleValue,
+                    placeholder: defaultVisibleValue,
+                    //defaultVisibleValue: defaultVisibleValue,
                     "aria-label": defaultVisibleValue
                 }}
                 componentRef={this._picker}
@@ -122,12 +106,7 @@ export class UserFieldRenderer extends BaseFieldRenderer {
     }
 
     _onChange = (items) => {
-        this.setValue(items);
-        if (this._input) {
-            let defaultVisibleValue = isArray(items) && items.length > 0 ? "" : this._getPlaceholder();
-            this._input._value = defaultVisibleValue;
-            this._input.setState({ displayValue: defaultVisibleValue });
-        }
+        this.setValue(items);       
     }
 
     _returnMostRecentlyUsed = (currentPersonas) => {
