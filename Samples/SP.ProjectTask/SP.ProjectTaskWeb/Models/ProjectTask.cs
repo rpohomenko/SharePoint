@@ -96,8 +96,8 @@ namespace SP.ProjectTaskWeb.Models
         }
 
         //[DataMember]
-        [LookupField(Name = "AssignedTo", DataType = FieldType.User, Behavior = ProvisionBehavior.None, IsMultiple = true)]
-        public virtual ICollection<FieldUserValue> AssignedToValue
+        [UserField(Name = "AssignedTo", Title = "Assigned To", Behavior = ProvisionBehavior.Overwrite, IsMultiple = true)]
+        public virtual ICollection<FieldUserValue> AssignedToLookup
         {
             get;
             set;
@@ -108,19 +108,19 @@ namespace SP.ProjectTaskWeb.Models
         {
             get
             {
-                return AssignedToValue != null
-                    ? AssignedToValue.Select(lookupValue => new LookupValue() { Id = lookupValue.LookupId, Value = lookupValue.LookupValue }).ToArray()
+                return AssignedToLookup != null
+                    ? AssignedToLookup.Select(lookupValue => new LookupValue() { Id = lookupValue.LookupId, Value = lookupValue.LookupValue }).ToArray()
                     : null;
             }
             set
             {
                 if (value != null)
                 {
-                    AssignedToValue = value.Select(lookup => new FieldUserValue() { LookupId = lookup.Id }).ToArray();
+                    AssignedToLookup = value.Select(lookup => new FieldUserValue() { LookupId = lookup.Id }).ToArray();
                 }
                 else
                 {
-                    AssignedToValue = null;
+                    AssignedToLookup = null;
                 }
             }
         }
@@ -134,7 +134,7 @@ namespace SP.ProjectTaskWeb.Models
         }
 
         [DataMember]
-        [Field(Name = "StartDate", DataType = FieldType.DateTime, Behavior = ProvisionBehavior.None)]
+        [Field(Name = "StartDate", Title = "Start Date",  DataType = FieldType.DateTime, Behavior = ProvisionBehavior.None)]
         public virtual DateTime? StartDate
         {
             get;
@@ -142,7 +142,7 @@ namespace SP.ProjectTaskWeb.Models
         }
 
         [DataMember]
-        [Field(Name = "TaskDueDate", DataType = FieldType.DateTime, Behavior = ProvisionBehavior.None)]
+        [Field(Name = "TaskDueDate", Title = "End Date", DataType = FieldType.DateTime, Behavior = ProvisionBehavior.None)]
         public virtual DateTime? DueDate
         {
             get;
@@ -150,7 +150,7 @@ namespace SP.ProjectTaskWeb.Models
         }
 
         [DataMember]
-        [ChoiceField(Name = "TaskStatus", Behavior = ProvisionBehavior.None)]
+        [ChoiceField(Name = "TaskStatus", Title = "Status", Behavior = ProvisionBehavior.None)]
         public virtual TaskStatus TaskStatus
         {
             get;
