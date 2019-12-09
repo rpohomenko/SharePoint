@@ -62,6 +62,7 @@
   <ItemGroup>
     <Compile Include="Attributes\AttributeHelper.cs" />
     <Compile Include="Attributes\ChoiceFieldAttribute.cs" />
+    <Compile Include="Attributes\UserFieldAttribute.cs" />
     <Compile Include="Attributes\TextFieldAttribute.cs" />
     <Compile Include="Attributes\NoteFieldAttribute.cs" />
     <Compile Include="Attributes\ChoiceAttribute.cs" />

@@ -191,6 +191,29 @@ namespace SP.Client.Linq.Provisioning
                         }
                         return lookupField;
                     }
+                case FieldType.User:
+                    {
+                        bool allowMultipleValues = false;
+                        FieldUserSelectionMode userSelectionMode = FieldUserSelectionMode.PeopleOnly;
+                        if (typeof(LookupFieldAttribute).IsAssignableFrom(Field.GetType()))
+                        {
+                            allowMultipleValues = (Field as LookupFieldAttribute).IsMultiple;
+                        }
+                        if (typeof(UserFieldAttribute).IsAssignableFrom(Field.GetType()))
+                        {
+                            userSelectionMode = (Field as UserFieldAttribute).UserSelectionMode;
+                        }
+                        var userField = field.Context.CastTo<FieldUser>(field);
+                        if (userField.IsPropertyAvailable("AllowMultipleValues") && userField.AllowMultipleValues != allowMultipleValues)
+                        {
+                            userField.AllowMultipleValues = allowMultipleValues;
+                        }
+                        if (userField.IsPropertyAvailable("AllowMultipleValues") && userField.SelectionMode != userSelectionMode)
+                        {
+                            userField.SelectionMode = userSelectionMode;
+                        }
+                        return userField;
+                    }
                 case FieldType.Choice:
                 case FieldType.MultiChoice:
                     {
@@ -488,6 +511,23 @@ namespace SP.Client.Linq.Provisioning
                             {
                                 field = null;
                             }
+                        }
+                        else if (Field.DataType == FieldType.User)
+                        {
+                            bool allowMultipleValues = false;
+                            if (typeof(LookupFieldAttribute).IsAssignableFrom(Field.GetType()))
+                            {
+                                allowMultipleValues = (Field as LookupFieldAttribute).IsMultiple;
+                            }
+                            if (field == null)
+                            {
+                                string fieldXml = allowMultipleValues
+                                  ? $"<Field Type='UserMulti' Name='{Field.Name}' StaticName='{Field.Name}' DisplayName='{Field.Title ?? Field.Name}' Mult='TRUE' />"
+                                  : $"<Field Type='{Field.DataType}' Name='{Field.Name}' StaticName='{Field.Name}' DisplayName='{Field.Title ?? Field.Name}' />";
+                                field = fields.AddFieldAsXml(fieldXml, true, AddFieldOptions.AddFieldInternalNameHint);
+                            }
+                            field = ApplyField(field);
+                            OnProvisioning?.Invoke(this, field);
                         }
                         else if ((Field.DataType == FieldType.Choice || Field.DataType == FieldType.MultiChoice) && _valueType.IsEnum)
                         {

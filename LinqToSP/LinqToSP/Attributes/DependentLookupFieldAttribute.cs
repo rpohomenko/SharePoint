@@ -13,8 +13,6 @@ namespace SP.Client.Linq.Attributes
 
         public DependentLookupFieldAttribute(string name) : base(name)
         {
-            Result = LookupItemResult.None;
-            Behavior = ProvisionBehavior.None;
         }
 
         public string LookupFieldName { get; set; }
