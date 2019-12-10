@@ -1,9 +1,7 @@
 import React from "react";
-
 import { ScrollablePane, ScrollbarVisibility } from 'office-ui-fabric-react/lib/ScrollablePane';
 import { Sticky, StickyPositionType } from 'office-ui-fabric-react/lib/Sticky';
-import { Link } from 'office-ui-fabric-react/lib/Link';
-import { isNumber } from "util";
+
 import BaseListView from "./BaseListView";
 import TaskCommand from "../commands/TaskCommand";
 import { ProjectFormPanel } from '../form/ProjectFormPanel';
@@ -11,6 +9,7 @@ import { LookupFieldRenderer } from '../form/fields/LookupFieldRenderer';
 import { ChoiceFieldRenderer } from '../form/fields/ChoiceFieldRenderer';
 import { UserFieldRenderer } from '../form/fields/UserFieldRenderer';
 import { DateTimeFieldRenderer } from '../form/fields/DateTimeFieldRenderer';
+import { SearchTaskFormPanel } from '../search/SearchTaskFormPanel';
 
 export class TaskList extends BaseListView {
 
@@ -47,14 +46,15 @@ export class TaskList extends BaseListView {
       }}>
         <ScrollablePane scrollbarVisibility={ScrollbarVisibility.auto}>
           <Sticky stickyPosition={StickyPositionType.Header} isScrollSynced={true}>
-            <TaskCommand ref={ref => this._command = ref} canAddListItems={canAddListItems} commandItems={commandItems} service={this._service} selection={selection} onRefresh={() => this.refresh(true)}
+            <TaskCommand ref={ref => this._command = ref} canAddListItems={canAddListItems} commandItems={commandItems} service={this._service} selection={selection} onSearch={(term) => this.search('Title', term)} onRefresh={() => this.refresh(true)} onSetFilter={() => { if (this._filter) { this._filter.showHide(); } }}
               onItemDeleted={this._onItemDeleted} onItemSaved={this._onItemSaved} onItemSaving={onItemSaving} onItemDeleting={onItemDeleting} />
           </Sticky>
           {super.render()}
         </ScrollablePane>
+        <SearchTaskFormPanel ref={ref => this._filter = ref} service={this._service} onFilter={(filter) => this._onFilter(filter)} />
       </div>
     );
-  }
+  } 
 
   _onItemDeleted = (sender, result) => {
     const { onItemDeleted } = this.props;
@@ -172,9 +172,9 @@ export class TaskList extends BaseListView {
         isPadded: false,
         getView: (value) => {
           if (value) {
-            return <UserFieldRenderer key='assignedTo' currentValue={value} fieldProps={{             
+            return <UserFieldRenderer key='assignedTo' currentValue={value} fieldProps={{
               type: 'user',
-              isMultiple: true             
+              isMultiple: true
             }}
               mode={0} />
           }
@@ -234,7 +234,7 @@ export class TaskList extends BaseListView {
         isPadded: false,
         getView: (lookupItem) => {
           if (lookupItem) {
-            return <DateTimeFieldRenderer key='startDate' currentValue={lookupItem} fieldProps={{         
+            return <DateTimeFieldRenderer key='startDate' currentValue={lookupItem} fieldProps={{
               type: 'datetime'
             }} mode={0} />
           }
@@ -247,7 +247,7 @@ export class TaskList extends BaseListView {
         fieldName: 'DueDate',
         minWidth: 210,
         maxWidth: 350,
-        isRowHeader: false,        
+        isRowHeader: false,
         isResizable: true,
         isSortable: true,
         isSorted: false,
@@ -320,6 +320,10 @@ export class TaskList extends BaseListView {
     if (this._command) {
       this._command.setState({ refreshEnabed: true });
     }
+  }
+
+  search(columnName, term) {
+    super.search(columnName, term);
   }
 }
 

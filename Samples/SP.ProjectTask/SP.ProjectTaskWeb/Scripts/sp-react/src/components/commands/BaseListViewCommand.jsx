@@ -4,6 +4,7 @@ import { CommandBar } from 'office-ui-fabric-react/lib/CommandBar';
 import { CommandBarButton } from 'office-ui-fabric-react/lib/Button';
 import { DefaultButton, PrimaryButton } from 'office-ui-fabric-react/lib/Button';
 import { Dialog, DialogFooter, DialogType } from 'office-ui-fabric-react/lib/Dialog';
+import { SearchBox } from 'office-ui-fabric-react/lib/SearchBox';
 import { isArray } from "util";
 
 import { StatusBar } from '../StatusBar';
@@ -33,6 +34,13 @@ export class BaseListViewCommand extends React.Component {
     componentWillUnmount() {
     }
 
+    _onSetFilter = () => {
+        const { onSetFilter } = this.props;
+        if (typeof onSetFilter === "function"){
+            onSetFilter();
+        }
+    }
+
     render() {
         const { canAddListItems, onItemSaving, onItemSaved, onItemDeleting, onItemDeleted } = this.props;
         const { selection, refreshEnabed, confirmDeletion, isDeleting } = this.state;
@@ -42,6 +50,17 @@ export class BaseListViewCommand extends React.Component {
                 <CommandBar ref={ref => this._commandBar = ref} styles={{ root: { paddingTop: 10 }, menuIcon: { fontSize: '16px' } }}
                     items={this._getItems()}
                     farItems={[{
+                        key: 'filter',
+                        icon: 'Filter',
+                        text: '',
+                        disabled: !refreshEnabed || isDeleting,
+                        onClick: (e, sender) => this._onSetFilter(),
+                        iconProps: {
+                            iconName: 'Filter'
+                        },
+                        ariaLabel: 'Filter'
+                    },
+                    {
                         key: 'refresh',
                         icon: 'Refresh',
                         text: '',
@@ -102,6 +121,13 @@ export class BaseListViewCommand extends React.Component {
         }
     }
 
+    async onSearch(term) {
+        const { onSearch } = this.props;
+        if (typeof onSearch === "function") {
+            await onSearch(term);
+        }
+    }
+
     _renderListFormPanel = (item, ref, service, onItemSaving, onItemSaved, onItemDeleting, onItemDeleted) => {
         throw "Method _renderListFormPanel is not yet implemented!";
     }
@@ -139,7 +165,7 @@ export class BaseListViewCommand extends React.Component {
             items = items.concat(commandItems);
         }
         let canCreate = canAddListItems,
-         canUpdate = true, canDelete = true;
+            canUpdate = true, canDelete = true;
         if (selection)
             for (let i = 0; i < selection.length; i++) {
                 if (!selection[i].CanCreate && canCreate) {
@@ -152,6 +178,7 @@ export class BaseListViewCommand extends React.Component {
                     canDelete = false;
                 }
             }
+
         items.push(
             {
                 key: 'newItem',
@@ -203,6 +230,18 @@ export class BaseListViewCommand extends React.Component {
                 ariaLabel: 'Delete'
             });
 
+        items.push({
+            key: 'search',
+            onRender: () => {
+                return (
+                    <SearchBox placeholder="Search"
+                        onClear={() => {
+                            //this.onSearch("");
+                        }}
+                        onSearch={(term) => this.onSearch(term)} />
+                );
+            }
+        });
         return items;
     }
 

@@ -11,12 +11,6 @@ import "babel-polyfill";
 /* IE -- end */
 //require("bootstrap");
 
-import App from './App';
-import { AppService } from "./services/AppService";
-
-const service = new AppService();
-ReactDOM.render(<App service={service} />, document.querySelector("#app-container"));
-
 window._currentCulture = window._currentCulture ||
     {
         abbreviatedDayNames: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
@@ -117,8 +111,15 @@ window._spPageContextInfo = window._spPageContextInfo ||
         webAbsoluteUrl: "",
         webLanguage: 1033,
         webServerRelativeUrl: "",
-        layoutsUrl : "_layouts/15",
+        layoutsUrl: "_layouts/15",
         webTitle: "Project Task",
         webUIVersion: 15,
         BASE_PATH: (window._spPageContextInfo == undefined ? "https://localhost:44318" : "")
     };
+
+import App from './App';
+import { AppService } from "./services/AppService";
+
+const service = new AppService();
+ReactDOM.render(<App service={service} />, document.querySelector("#app-container"));
+

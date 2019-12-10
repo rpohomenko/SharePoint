@@ -10,6 +10,7 @@ import { TextFieldRenderer } from './TextFieldRenderer';
 import { RichTextFieldRenderer } from './RichTextFieldRenderer';
 import { LookupFieldRenderer } from './LookupFieldRenderer';
 import { ChoiceFieldRenderer } from './ChoiceFieldRenderer';
+import { ChoiceFieldRenderer2 } from './ChoiceFieldRenderer2';
 import { DateFieldRenderer } from './DateFieldRenderer';
 import { DateTimeFieldRenderer } from './DateTimeFieldRenderer';
 import { UserFieldRenderer } from './UserFieldRenderer';
@@ -101,6 +102,9 @@ export class FormField extends React.Component {
         else if (type === 'choice') {
             field = <ChoiceFieldRenderer ref={(ref) => this._fieldControl = ref} disabled={disabled} key={fieldProps.name} currentValue={currentValue} item={item} fieldProps={fieldProps} mode={mode} onValidate={onValidate} />;
         }
+        else if (type === 'choice2') {
+            field = <ChoiceFieldRenderer2 ref={(ref) => this._fieldControl = ref} disabled={disabled} key={fieldProps.name} currentValue={currentValue} item={item} fieldProps={fieldProps} mode={mode} onValidate={onValidate} />;
+        }
         else if (type === 'date') {
             field = <DateFieldRenderer ref={(ref) => this._fieldControl = ref} disabled={disabled} key={fieldProps.name} currentValue={currentValue} item={item} fieldProps={fieldProps} mode={mode} onValidate={onValidate} />;
         }
@@ -121,7 +125,7 @@ export class FormField extends React.Component {
     getFieldValue() {
         if (this._fieldControl) {
             return this._fieldControl.getValue();
-        }
+        }        
     }
 
     setFieldValue(value) {

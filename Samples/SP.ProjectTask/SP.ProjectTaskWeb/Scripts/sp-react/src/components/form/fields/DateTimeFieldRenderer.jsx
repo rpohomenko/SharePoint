@@ -223,11 +223,14 @@ export class DateTimeFieldRenderer extends DateFieldRenderer {
     _onTimeChange = (value) => {
         if (value) {
             const { hours, minutes, meridiem } = this.state;
-            let matches = value.match(new RegExp(`(?<hours>\\d{2})${this._timeSeparator}(?<minutes>\\d{2})\\s*(?<meridiem>\\w*)`));
-            if (matches && matches.groups) {
-                let newHours = Number(matches.groups["hours"]);
-                let newMinutes = Number(matches.groups["minutes"]);
-                let newMeridiem = matches.groups["meridiem"];
+            //let regexp = `^(?<hours>\\d{2})[${this._timeSeparator}](?<minutes>\\d{2})\\s+(?<meridiem>\\w*)$`;
+            let regexp = `^(\\d{2})[${this._timeSeparator}](\\d{2})\\s+(\\w*)$`;
+
+            let matches = value.match(new RegExp(regexp));
+            if (matches && /*matches.groups*/ matches.length > 0) {
+                let newHours = Number(/*matches.groups["hours"]*/matches[1]);
+                let newMinutes = Number(/*matches.groups["minutes"]*/matches[2]);
+                let newMeridiem = matches.length > 3 ? matches[3] : null; //matches.groups["meridiem"];
 
                 let newValue;
                 if (!this._isTime24) {

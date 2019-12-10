@@ -9,8 +9,8 @@ import Employees from './lists/Employees';
 import Departments from './lists/Departments';
 
 class Content extends React.Component {
-    constructor() {
-        super()
+    constructor(props) {
+        super(props);
         this.state = {
             selectedTab: "tasks"
         }

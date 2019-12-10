@@ -68,4 +68,4 @@ export class ChoiceFieldRenderer2 extends ChoiceFieldRenderer {
     }
 }
 
-export default ChoiceFieldRenderer;
+export default ChoiceFieldRenderer2;
