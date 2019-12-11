@@ -9,6 +9,7 @@ import { EmployeeFormPanel } from '../form/EmployeeFormPanel';
 import { DepartmentFormPanel } from '../form/DepartmentFormPanel';
 import { LookupFieldRenderer } from '../form/fields/LookupFieldRenderer';
 import { ChoiceFieldRenderer } from '../form/fields/ChoiceFieldRenderer';
+import { EmployeeSearchFormPanel } from '../search/EmployeeSearchFormPanel';
 
 export class EmployeeList extends BaseListView {
 
@@ -45,10 +46,11 @@ export class EmployeeList extends BaseListView {
       }}>
         <ScrollablePane scrollbarVisibility={ScrollbarVisibility.auto}>
           <Sticky stickyPosition={StickyPositionType.Header} isScrollSynced={true}>
-            <EmployeeCommand ref={ref => this._command = ref} canAddListItems={canAddListItems} commandItems={commandItems} service={this._service} selection={selection} onSearch={(term) => this.search('Title', term)} onRefresh={() => this.refresh(true)}
+            <EmployeeCommand ref={ref => this._command = ref} canAddListItems={canAddListItems} commandItems={commandItems} service={this._service} selection={selection} onSearch={(term) => this.search('Title', term)} onRefresh={() => this.refresh(true)} onSetFilter={() => { if (this._filter) { this._filter.showHide(); } }}
               onItemDeleted={this._onItemDeleted} onItemSaved={this._onItemSaved} onItemSaving ={onItemSaving} onItemDeleting ={onItemDeleting} />
           </Sticky>{super.render()}
         </ScrollablePane>
+        <EmployeeSearchFormPanel ref={ref => this._filter = ref} service={this._service} onFilter={(filter) => this._onFilter(filter)} />
       </div>
     );
   }

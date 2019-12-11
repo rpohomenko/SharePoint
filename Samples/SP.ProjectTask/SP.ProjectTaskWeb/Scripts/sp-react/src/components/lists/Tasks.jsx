@@ -9,7 +9,7 @@ import { LookupFieldRenderer } from '../form/fields/LookupFieldRenderer';
 import { ChoiceFieldRenderer } from '../form/fields/ChoiceFieldRenderer';
 import { UserFieldRenderer } from '../form/fields/UserFieldRenderer';
 import { DateTimeFieldRenderer } from '../form/fields/DateTimeFieldRenderer';
-import { SearchTaskFormPanel } from '../search/SearchTaskFormPanel';
+import { TaskSearchFormPanel } from '../search/TaskSearchFormPanel';
 
 export class TaskList extends BaseListView {
 
@@ -51,7 +51,7 @@ export class TaskList extends BaseListView {
           </Sticky>
           {super.render()}
         </ScrollablePane>
-        <SearchTaskFormPanel ref={ref => this._filter = ref} service={this._service} onFilter={(filter) => this._onFilter(filter)} />
+        <TaskSearchFormPanel ref={ref => this._filter = ref} service={this._service} onFilter={(filter) => this._onFilter(filter)} />
       </div>
     );
   } 

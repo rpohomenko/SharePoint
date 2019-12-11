@@ -3,9 +3,8 @@ import PropTypes from 'prop-types';
 
 import { SearchForm } from './SearchForm';
 import { ProjectList } from '../lists/Projects';
-import { ProjectFormPanel } from '../form/ProjectFormPanel';
 
-export class SearchTaskForm extends SearchForm {
+export class TaskSearchForm extends SearchForm {
     constructor(props) {
         super(props);
     }
@@ -15,26 +14,26 @@ export class SearchTaskForm extends SearchForm {
             key: 'title',
             name: 'Title',
             type: 'text',
-            title: 'Title'         
+            title: 'Title'
         },
         {
             key: 'project',
-            name: 'ProjectId',
+            name: 'ProjectLookup',
             type: 'lookup',
             title: 'Project',
             lookupList: 'Projects',
             lookupField: 'Title',
-            isMultiple: false,           
+            isMultiple: true,
+            notLookupInclude: true,
             renderListView: (ref, commandItems, onSelect, onSaving, onDeleting, onSaved, onDeleted) =>
-                this._renderProjectListView(ref, false, commandItems, onSelect, onSaving, onDeleting, onSaved, onDeleted),
-            renderListForm: (ref) => this._renderProjectListForm(ref),
+                this._renderProjectListView(ref, true, commandItems, onSelect, onSaving, onDeleting, onSaved, onDeleted),
             getItems: (searchTerm, limitResults, options) => { return this._service.getProjects(limitResults, null, "Title", false, `Title.Contains("${searchTerm}")`, ['Id', 'Title'], options); }
         },
         {
             key: 'assignedTo',
-            name: 'AssignedTo',
+            name: 'AssignedToLookup',
             type: 'user',
-            title: 'Assigned To',          
+            title: 'Assigned To',
             isMultiple: true,
             limitResults: 5,
             itemLimit: 5,
@@ -45,6 +44,7 @@ export class SearchTaskForm extends SearchForm {
             name: 'TaskStatus',
             type: 'choice', //'choice2'
             title: 'Status',
+            isMultiple: true,
             choices: [
                 { value: "Not Started", key: 1 },
                 { value: "In Progress", key: 2 },
@@ -76,45 +76,28 @@ export class SearchTaskForm extends SearchForm {
     }
 
     _onChangeStartDate(startDate) {
-        let endField = this.getFormField('DueDate');
-        if (endField && endField.getControl()) {
-            let endDate = endField.getControl().getDate();
-            if (!endDate || endDate < startDate) {
-                endField.setFieldValue(startDate);
+        if (startDate) {
+            let endField = this.getSearchField('DueDate');
+            if (endField && endField.getFormField()) {
+                let endDate = endField.getFormField().getControl().getDate();
+                if (endDate && endDate < startDate) {
+                    endField.getFormField().setFieldValue(startDate);
+                }
             }
         }
     }
 
     _onChangeEndDate(endDate) {
-        let startField = this.getFormField('StartDate');
-        if (startField && startField.getControl()) {
-            let startDate = startField.getControl().getDate() || endDate;
-            if (!startDate || endDate < startDate) {
-                startField.setFieldValue(endDate);
+        if (endDate) {
+            let startField = this.getSearchField('StartDate');
+            if (startField && startField.getFormField()) {
+                let startDate = startField.getFormField().getControl().getDate() || endDate;
+                if (startDate && endDate < startDate) {
+                    startField.getFormField().setFieldValue(endDate);
+                }
             }
         }
-    }
-
-    _renderProjectListForm = (ref) => {
-        return (<ProjectFormPanel ref={ref} service={this._service}
-            viewItemHeader="View Project" editItemHeader="Edit Project" newItemHeader="New Project"
-            onItemDeleted={() => {
-                this.loadItem(this.props.item.Id);
-                if (this._status) {
-                    this._status.success("Deleted successfully.", this.props.STATUS_TIMEOUT);
-                }
-            }}
-            onItemSaved={() => {
-                this.loadItem(this.props.item.Id);
-                if (this._status) {
-                    this._status.success("Saved successfully.", this.props.STATUS_TIMEOUT);
-                }
-            }}
-            onItemLoaded={(sender, item) => {
-
-            }}
-        />);
-    }
+    }   
 
     _renderProjectListView = (ref, isMultiple, commandItems, onSelect, onSaving, onDeleting, onSaved, onDeleted) => {
         return <ProjectList ref={ref} service={this._service} pageSize={10} isMultipleSelection={isMultiple} commandItems={commandItems} emptyMessage="There are no projects." onSelect={onSelect} onItemSaving={onSaving} onItemDeleting={onDeleting} />;
@@ -122,4 +105,4 @@ export class SearchTaskForm extends SearchForm {
 
 }
 
-export default SearchTaskForm;
+export default TaskSearchForm;

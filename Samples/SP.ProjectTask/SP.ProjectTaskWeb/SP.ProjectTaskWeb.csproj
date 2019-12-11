@@ -139,9 +139,6 @@
     <Reference Include="SharePoint.Authentication.Owin, Version=1.0.3.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\SharePoint.Authentication.Owin.1.0.3\lib\net461\SharePoint.Authentication.Owin.dll</HintPath>
     </Reference>
-    <Reference Include="SP.Client, Version=1.0.0.0, Culture=neutral, PublicKeyToken=81064c3d6d46423d, processorArchitecture=MSIL">
-      <HintPath>..\packages\SP.Client.o365.1.0.3\lib\net472\SP.Client.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Data" />
@@ -291,6 +288,7 @@
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\LoginController.cs" />
     <Compile Include="Controllers\WebController.cs" />
+    <Compile Include="Extensions.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
@@ -491,6 +489,10 @@
     <ProjectReference Include="..\..\..\LinqToSP\LinqToSP\LinqToSP.csproj">
       <Project>{b1fade82-019f-4b24-bd41-99b52aeb95ee}</Project>
       <Name>LinqToSP</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\LinqToSP\SP.Client\SP.Client.csproj">
+      <Project>{802ace29-f8d3-4b15-a800-9b08818f39f7}</Project>
+      <Name>SP.Client</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

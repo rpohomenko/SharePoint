@@ -1,6 +1,7 @@
 import * as React from 'react';
 
 import { FormField } from '../form/fields/FormField';
+import { isArray } from 'util';
 
 export class SearchField extends React.Component {
 
@@ -33,21 +34,52 @@ export class SearchField extends React.Component {
                     case "text":
                         return `${fieldProps.name}.Contains("${value}")`;
                     case "choice":
+                        if (fieldProps.isMultiple) {
+                            if (isArray(value)) {
+                                return value.map(choice => (`${fieldProps.name}==${choice}`)).join(/*' && '*/' || ');
+                            }
+                        }
                         return `${fieldProps.name}==${value}`;
-                        /*value = fieldProps.choices.filter(choice => choice.key === value);
-                        if (value.length > 0) {
-                            value = value[0].value;
-                            return `${fieldProps.name}=="${value}"`;
-                        }*/
-                    case "choice2":
+                    /*value = fieldProps.choices.filter(choice => choice.key === value);
+                    if (value.length > 0) {
+                        value = value[0].value;
                         return `${fieldProps.name}=="${value}"`;
-                    case "lookup":{
+                    }*/
+                    case "choice2":
+                            if (fieldProps.isMultiple) {
+                                if (isArray(value)) {
+                                    return value.map(choice => (`${fieldProps.name}==${choice}`)).join(/*' && '*/' || ');
+                                }
+                            }
+                        return `${fieldProps.name}=="${value}"`;
+                    case "lookup": {
+                        if (fieldProps.isMultiple) {
+                            if (isArray(value)) {
+                                var lookupIds = value.map(lookup => lookup.Id);
+                                if (!!fieldProps.notLookupInclude) {
+                                    return `Extensions.Includes(${fieldProps.name},new[]{${lookupIds.join(',')}})`;
+                                }
+                                return lookupIds.map(lookupId => (`Extensions.LookupIdIncludes(${fieldProps.name},${lookupId})`)).join(/*' && '*/' || ');
+                            }
+                        }
                         return `${fieldProps.name}==${value.Id}`;
                     }
-                    case "user":{
-                        var userIds = value.map(user => user.Id);
-                        return userIds.map(userId => (`it.LookupIdIncludes(it.${fieldProps.name},${userId})`)).join(' && ');
+                    case "user": {
+                        if (fieldProps.isMultiple) {
+                            if (isArray(value)) {
+                                var userIds = value.map(user => user.Id);
+                                if (!!fieldProps.notLookupInclude) {
+                                    return `Extensions.Includes(${fieldProps.name},new[]{${userIds.join(',')}})`;
+                                }
+                                return userIds.map(userId => (`Extensions.LookupIdIncludes(${fieldProps.name},${userId})`)).join(/*' && '*/' || ');
+                            }
+                        }
+                        return `${fieldProps.name}==${value.Id}`;
                     }
+                    case "date":
+                        return `${fieldProps.name}=="${value}"`;
+                    case "datetime":
+                        return `${fieldProps.name}=="${value}"`;
                 }
             }
         }
