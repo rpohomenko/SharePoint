@@ -69,6 +69,7 @@ namespace SP.Client.Linq.Query.ExpressionVisitors
           if (dataType == Microsoft.SharePoint.Client.FieldType.DateTime)
           {
             value.IncludeTimeValue = true;
+            value.StorageTZ = true;
           }
         }
         return value;
