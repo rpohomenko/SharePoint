@@ -124,31 +124,31 @@ namespace SP.Client.Linq.Query.ExpressionVisitors
         visitor.Visit(expression);
         Operator = visitor.Operator;
       }
-      else if (node.Method.Name == "DateRangesOverlap" && typeof(ListItemEntityExtensions).IsAssignableFrom(node.Method.DeclaringType))
+      else if (node.Method.Name == "DateRangesOverlap" /*&& typeof(ListItemEntityExtensions).IsAssignableFrom(node.Method.DeclaringType)*/)
       {
         var visitor = new SpDateRangesOverlapExpressionVisitor<TContext>(SpQueryArgs);
         visitor.Visit(expression);
         Operator = visitor.Operator;
       }
-      else if (node.Method.Name == "Includes" && typeof(ListItemEntityExtensions).IsAssignableFrom(node.Method.DeclaringType))
+      else if (node.Method.Name == "Includes" /*&& typeof(ListItemEntityExtensions).IsAssignableFrom(node.Method.DeclaringType)*/)
       {
         var visitor = new SpIncludesExpressionVisitor<TContext>(SpQueryArgs);
         visitor.Visit(expression);
         Operator = visitor.Operator;
       }
-      else if ((node.Method.Name == "LookupIncludes" || node.Method.Name == "LookupIdIncludes") && typeof(ListItemEntityExtensions).IsAssignableFrom(node.Method.DeclaringType))
+      else if ((node.Method.Name == "LookupIncludes" || node.Method.Name == "LookupIdIncludes") /*&& typeof(ListItemEntityExtensions).IsAssignableFrom(node.Method.DeclaringType)*/)
       {
         var visitor = new SpLookupIncludesExpressionVisitor<TContext>(SpQueryArgs);
         visitor.Visit(expression);
         Operator = visitor.Operator;
       }
-      else if ((node.Method.Name == "LookupNotIncludes" || node.Method.Name == "LookupIdNotIncludes") && typeof(ListItemEntityExtensions).IsAssignableFrom(node.Method.DeclaringType))
+      else if ((node.Method.Name == "LookupNotIncludes" || node.Method.Name == "LookupIdNotIncludes") /*&& typeof(ListItemEntityExtensions).IsAssignableFrom(node.Method.DeclaringType)*/)
       {
         var visitor = new SpLookupNotIncludesExpressionVisitor<TContext>(SpQueryArgs);
         visitor.Visit(expression);
         Operator = visitor.Operator;
       }
-      else if ((node.Method.Name == "IsMembership") && typeof(ListItemEntityExtensions).IsAssignableFrom(node.Method.DeclaringType))
+      else if ((node.Method.Name == "IsMembership") /*&& typeof(ListItemEntityExtensions).IsAssignableFrom(node.Method.DeclaringType)*/)
       {
         var visitor = new SpIsMembershipExpressionVisitor<TContext>(SpQueryArgs);
         visitor.Visit(expression);

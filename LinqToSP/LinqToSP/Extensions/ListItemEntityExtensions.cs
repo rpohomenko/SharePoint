@@ -39,32 +39,32 @@ namespace SP.Client.Linq
 
         public static bool LookupIncludes<TEntity, TCollection>(this TEntity entity, Func<TEntity, TCollection> prop, string lookupFieldValue)
          where TEntity : class, IListItemEntity
-         where TCollection : ICollection
-        {
+         where TCollection : IEnumerable//ICollection
+    {
             //fake method.
             return false;
         }
 
         public static bool LookupIdIncludes<TEntity, TCollection>(this TEntity entity, Func<TEntity, TCollection> prop, int lookupFieldId)
         where TEntity : class, IListItemEntity
-        where TCollection : ICollection
-        {
+        where TCollection : IEnumerable//ICollection
+    {
             //fake method.
             return false;
         }
 
         public static bool LookupNotIncludes<TEntity, TCollection>(this TEntity entity, Func<TEntity, TCollection> prop, string lookupFieldValue)
         where TEntity : class, IListItemEntity
-        where TCollection : ICollection
-        {
+        where TCollection : IEnumerable//ICollection
+    {
             //fake method.
             return false;
         }
 
         public static bool LookupIdNotIncludes<TEntity, TCollection>(this TEntity entity, Func<TEntity, TCollection> prop, int lookupFieldId)
         where TEntity : class, IListItemEntity
-        where TCollection : ICollection
-        {
+        where TCollection : IEnumerable//ICollection
+    {
             //fake method.
             return false;
         }

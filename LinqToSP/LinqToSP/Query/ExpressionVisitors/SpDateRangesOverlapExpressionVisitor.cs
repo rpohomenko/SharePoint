@@ -18,12 +18,12 @@ namespace SP.Client.Linq.Query.ExpressionVisitors
 
         protected override Expression VisitMethodCall(MethodCallExpression node)
         {
-            if (node.Method.Name == "DateRangesOverlap" && typeof(ListItemEntityExtensions).IsAssignableFrom(node.Method.DeclaringType))
+            if (node.Method.Name == "DateRangesOverlap" /*&& typeof(ListItemEntityExtensions).IsAssignableFrom(node.Method.DeclaringType)*/)
             {
                 Visit(node.Object);
                 foreach (var arg in node.Arguments)
                 {
-                    if (arg.NodeType == ExpressionType.Constant || arg.NodeType == ExpressionType.Lambda)
+                    if (arg.NodeType == ExpressionType.MemberAccess || arg.NodeType == ExpressionType.Constant || arg.NodeType == ExpressionType.Lambda)
                     {
                         Visit(arg);
                     }
