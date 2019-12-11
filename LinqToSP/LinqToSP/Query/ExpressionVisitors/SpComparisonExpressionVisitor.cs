@@ -19,6 +19,7 @@ namespace SP.Client.Linq.Query.ExpressionVisitors
     protected object FieldValue { get; /*private*/ set; }
 
     protected Type FieldType { get; private set; }
+    public bool IsLookup { get; private set; }
 
     protected CamlFieldRef GetFieldRef(out FieldType dataType)
     {
@@ -37,12 +38,16 @@ namespace SP.Client.Linq.Query.ExpressionVisitors
             throw new Exception($"Field '{fieldName}' is not filterable.");
           }
           var fieldRef = new CamlFieldRef() { Name = fieldMap.Name };
-          if (fieldMap is LookupFieldAttribute)
+          if (!IsLookup && fieldMap is LookupFieldAttribute)
           {
-            if ((fieldMap as LookupFieldAttribute).Result == LookupItemResult.Id)
+            if ((fieldMap as LookupFieldAttribute).Result == LookupItemResult.Id /*|| (fieldMap as LookupFieldAttribute).Result == LookupItemResult.None*/)
             {
               fieldRef.LookupId = true;
             }
+          }
+          else
+          {
+            fieldRef.LookupId = IsLookup;
           }
           dataType = fieldMap.DataType;
           return fieldRef;
@@ -156,6 +161,8 @@ namespace SP.Client.Linq.Query.ExpressionVisitors
       FieldType = exp.Member.MemberType == System.Reflection.MemberTypes.Property
         ? (exp.Member as System.Reflection.PropertyInfo).PropertyType
         : (exp.Member as System.Reflection.FieldInfo).FieldType;
+      IsLookup = typeof(ISpEntityLookup).IsAssignableFrom(exp.Type)
+        || typeof(ISpEntityLookupCollection).IsAssignableFrom(exp.Type);
       return exp;
     }
 

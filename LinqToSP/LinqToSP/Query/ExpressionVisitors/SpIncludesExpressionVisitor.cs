@@ -45,13 +45,13 @@ namespace SP.Client.Linq.Query.ExpressionVisitors
 
     protected override Expression VisitConstant(ConstantExpression exp)
     {
-      if (typeof(string[]).IsAssignableFrom(exp.Type))
+      if (typeof(ICollection<string>).IsAssignableFrom(exp.Type))
       {
-        FieldValues = exp.Value as string[];
+        FieldValues = (exp.Value as ICollection<string>).Select(v => v as object);
       }
-      else if (typeof(int[]).IsAssignableFrom(exp.Type))
+      else if (typeof(ICollection<int>).IsAssignableFrom(exp.Type))
       {
-        FieldValues = (exp.Value as int[]).Select(v => v as object);
+        FieldValues = (exp.Value as ICollection<int>).Select(v => v as object);
       }
       return exp;
     }
