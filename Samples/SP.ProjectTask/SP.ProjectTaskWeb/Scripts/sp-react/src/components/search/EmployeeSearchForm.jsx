@@ -15,8 +15,7 @@ export class EmployeeSearchForm extends SearchForm {
             key: 'title',
             name: 'Title',
             type: 'text',
-            title: 'Title',
-            required: true
+            title: 'Title'           
         },*/
             {
                 key: 'firstName',

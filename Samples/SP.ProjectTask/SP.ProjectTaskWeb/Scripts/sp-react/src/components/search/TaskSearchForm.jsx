@@ -14,7 +14,8 @@ export class TaskSearchForm extends SearchForm {
             key: 'title',
             name: 'Title',
             type: 'text',
-            title: 'Title'
+            title: 'Title',
+            isAdvanced: true
         },
         {
             key: 'project',
@@ -25,6 +26,7 @@ export class TaskSearchForm extends SearchForm {
             lookupField: 'Title',
             isMultiple: true,
             notLookupInclude: true,
+            isAdvanced: true,
             renderListView: (ref, commandItems, onSelect, onSaving, onDeleting, onSaved, onDeleted) =>
                 this._renderProjectListView(ref, true, commandItems, onSelect, onSaving, onDeleting, onSaved, onDeleted),
             getItems: (searchTerm, limitResults, options) => { return this._service.getProjects(limitResults, null, "Title", false, `Title.Contains("${searchTerm}")`, ['Id', 'Title'], options); }
@@ -37,6 +39,7 @@ export class TaskSearchForm extends SearchForm {
             isMultiple: true,
             limitResults: 5,
             itemLimit: 5,
+            isAdvanced: true,
             getPersonas: (searchTerm, limitResults, options) => { return this._service.getUsers(searchTerm, limitResults, options); }
         },
         {
@@ -45,6 +48,7 @@ export class TaskSearchForm extends SearchForm {
             type: 'choice', //'choice2'
             title: 'Status',
             isMultiple: true,
+            isAdvanced: true,
             choices: [
                 { value: "Not Started", key: 1 },
                 { value: "In Progress", key: 2 },
@@ -55,19 +59,41 @@ export class TaskSearchForm extends SearchForm {
             ]
         },
         {
-            key: 'startDate',
+            key: 'fromStartDate',
             name: 'StartDate',
-            type: 'datetime',
-            title: 'Start Date',
+            type: 'date',
+            title: 'From: Start Date',
+            filterComparison: 7,
             onChangeValue: (sender, value) => {
                 this._onChangeStartDate(value);
             }
         },
         {
-            key: 'endDate',
+            key: 'toStartDate',
+            name: 'StartDate',
+            type: 'date',
+            title: 'To: Start Date',
+            filterComparison: 4,
+            onChangeValue: (sender, value) => {
+                this._onChangeStartDate(value);
+            }
+        },
+        {
+            key: 'fromEndDate',
             name: 'DueDate',
-            type: 'datetime',
-            title: 'End Date',
+            type: 'date',
+            title: 'From: End Date',
+            filterComparison: 7,
+            onChangeValue: (sender, value) => {
+                this._onChangeEndDate(value);
+            }
+        },
+        {
+            key: 'toEndDate',
+            name: 'DueDate',
+            type: 'date',
+            title: 'To: End Date',
+            filterComparison: 4,
             onChangeValue: (sender, value) => {
                 this._onChangeEndDate(value);
             }

@@ -46,12 +46,20 @@ export class TaskList extends BaseListView {
       }}>
         <ScrollablePane scrollbarVisibility={ScrollbarVisibility.auto}>
           <Sticky stickyPosition={StickyPositionType.Header} isScrollSynced={true}>
-            <TaskCommand ref={ref => this._command = ref} canAddListItems={canAddListItems} commandItems={commandItems} service={this._service} selection={selection} onSearch={(term) => this.search('Title', term)} onRefresh={() => this.refresh(true)} onSetFilter={() => { if (this._filter) { this._filter.showHide(); } }}
+            <TaskCommand ref={ref => this._command = ref} canAddListItems={canAddListItems} commandItems={commandItems} service={this._service} selection={selection}
+              onSearch={(term) => this.search('Title', term)} onRefresh={() => this.refresh(true)} onSetFilter={() => { if (this._filter) { this._filter.showHide(); } }}
               onItemDeleted={this._onItemDeleted} onItemSaved={this._onItemSaved} onItemSaving={onItemSaving} onItemDeleting={onItemDeleting} />
           </Sticky>
           {super.render()}
         </ScrollablePane>
-        <TaskSearchFormPanel ref={ref => this._filter = ref} service={this._service} onFilter={(filter) => this._onFilter(filter)} />
+        <TaskSearchFormPanel ref={ref => this._filter = ref} service={this._service}
+         fields={this._filterFields}
+         onFilter={(filter) =>{
+          if(filter){
+            this._filterFields = filter.fields.map(field=>field.props);     
+            this._onFilter(filter.expr);
+          }
+        }} />
       </div>
     );
   } 

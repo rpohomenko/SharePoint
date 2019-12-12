@@ -18,20 +18,13 @@ export class ListFormPanel extends React.Component {
         this._listForm = React.createRef();
     }
 
-    componentWillMount() {
-
-    }
-
-    componentDidUpdate(nextProps, nextState) {
+   componentDidUpdate(nextProps, nextState) {
         if (nextProps.item !== undefined && nextState.item !== nextProps.item) {
             this.setState({ item: nextProps.item });
         }
         if (nextProps.itemId !== undefined && nextState.itemId !== nextProps.itemId) {
             this.setState({ itemId: nextProps.itemId });
         }
-    }
-
-    componentWillUnmount() {
     }
 
     render() {
@@ -361,7 +354,7 @@ export class ListFormPanel extends React.Component {
     close() {
         const { showPanel } = this.state;
         if (showPanel) {
-            this.setState({ showPanel: false, isDirty: false, isValid: false, commandBar: undefined });
+            this.setState({ showPanel: false, isDirty: false, isValid: false, commandBar: undefined, isSaving: false, isDeleting: false, isRefreshing: false, isLoaded: false });
         }
     };
 

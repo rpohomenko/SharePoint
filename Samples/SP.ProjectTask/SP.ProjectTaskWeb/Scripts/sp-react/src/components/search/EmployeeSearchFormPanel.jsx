@@ -9,8 +9,8 @@ export class EmployeeSearchFormPanel extends SearchFormPanel {
         super(props);
     }
 
-    _renderSearchForm = (ref, service, onValidate) => {
-        return (<EmployeeSearchForm ref={ref} service={service} onValidate={onValidate} />);
+    _renderSearchForm = (ref, service, fields, onValidate) => {
+        return (<EmployeeSearchForm ref={ref} service={service} fields={fields} onValidate={onValidate} />);
     }
 }
 

@@ -252,6 +252,10 @@ export class ListForm extends React.Component {
             isLoading: true
         });
 
+        if (this._status) {
+            this._status.clear();
+        }
+
         let controller = new AbortController();
         const promise = this._fetchData(itemId, { signal: controller.signal });
         this._controllers.push({ controller: controller, promise: promise });

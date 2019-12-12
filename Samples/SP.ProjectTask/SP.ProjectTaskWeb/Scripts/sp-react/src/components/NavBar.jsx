@@ -11,7 +11,7 @@ class Account extends React.Component {
     super(props);  
     if (window._spPageContextInfo) {
       this._persona = {
-        primaryText: _spPageContextInfo.user.Name,
+        /*primaryText*/ text: _spPageContextInfo.user.Name,
         secondaryText: _spPageContextInfo.user.Email || _spPageContextInfo.user.Login,
         tertiaryText: '',
         optionalText: _spPageContextInfo.user.Login,

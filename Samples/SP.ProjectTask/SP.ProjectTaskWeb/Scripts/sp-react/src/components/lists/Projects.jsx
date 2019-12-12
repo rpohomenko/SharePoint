@@ -1,7 +1,8 @@
 import React from "react";
-import BaseListView from "./BaseListView";
 import { ScrollablePane, ScrollbarVisibility } from 'office-ui-fabric-react/lib/ScrollablePane';
 import { Sticky, StickyPositionType } from 'office-ui-fabric-react/lib/Sticky';
+
+import BaseListView from "./BaseListView";
 import ProjectCommand from "../commands/ProjectCommand";
 import { EmployeeFormPanel } from '../form/EmployeeFormPanel';
 import { LookupFieldRenderer } from '../form/fields/LookupFieldRenderer';
@@ -42,12 +43,20 @@ export class ProjectList extends BaseListView {
       }}>
         <ScrollablePane scrollbarVisibility={ScrollbarVisibility.auto}>
           <Sticky stickyPosition={StickyPositionType.Header} isScrollSynced={true}>
-            <ProjectCommand ref={ref => this._command = ref} canAddListItems={canAddListItems} commandItems={commandItems} service={this._service} selection={selection} onSearch={(term) => this.search('Title', term)} onRefresh={() => this.refresh(true)} onSetFilter={() => { if (this._filter) { this._filter.showHide(); } }}
+            <ProjectCommand ref={ref => this._command = ref} canAddListItems={canAddListItems} commandItems={commandItems} service={this._service} selection={selection}
+              onSearch={(term) => this.search('Title', term)} onRefresh={() => this.refresh(true)} onSetFilter={() => { if (this._filter) { this._filter.showHide(); } }}
               onItemDeleted={this._onItemDeleted} onItemSaved={this._onItemSaved} onItemSaving={onItemSaving} onItemDeleting={onItemDeleting} />
           </Sticky>
           {super.render()}
         </ScrollablePane>
-        <ProjectSearchFormPanel ref={ref => this._filter = ref} service={this._service} onFilter={(filter) => this._onFilter(filter)} />
+        <ProjectSearchFormPanel ref={ref => this._filter = ref} service={this._service}
+        fields={this._filterFields}
+        onFilter={(filter) =>{
+         if(filter){
+           this._filterFields = filter.fields;     
+           this._onFilter(filter.expr);
+         }
+       }} />
       </div>
     );
   }

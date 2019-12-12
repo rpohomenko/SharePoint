@@ -36,7 +36,7 @@ export class BaseListViewCommand extends React.Component {
 
     _onSetFilter = () => {
         const { onSetFilter } = this.props;
-        if (typeof onSetFilter === "function"){
+        if (typeof onSetFilter === "function") {
             onSetFilter();
         }
     }
@@ -52,7 +52,8 @@ export class BaseListViewCommand extends React.Component {
                     farItems={[{
                         key: 'filter',
                         icon: 'Filter',
-                        text: '',
+                        text: 'Open Filter',
+                        iconOnly: true,
                         disabled: !refreshEnabed || isDeleting,
                         onClick: (e, sender) => this._onSetFilter(),
                         iconProps: {
@@ -63,7 +64,8 @@ export class BaseListViewCommand extends React.Component {
                     {
                         key: 'refresh',
                         icon: 'Refresh',
-                        text: '',
+                        text: 'Refresh',
+                        iconOnly: true,
                         disabled: !refreshEnabed || isDeleting,
                         onClick: (e, sender) => this.refresh(),
                         iconProps: {
@@ -183,7 +185,8 @@ export class BaseListViewCommand extends React.Component {
             {
                 key: 'newItem',
                 icon: 'Add',
-                text: '',
+                text: 'New Item',
+                iconOnly: true,
                 disabled: !canCreate || isDeleting || !newItemEnabled,
                 onClick: (e, sender) => this._onNewItem(),
                 iconProps: {
@@ -192,11 +195,25 @@ export class BaseListViewCommand extends React.Component {
                 ariaLabel: 'New'
             });
 
+        items.push({
+            key: 'search',
+            onRender: () => {
+                return (
+                    <SearchBox placeholder="Search" style={{minWidth: '80px', width: '100px'}}
+                        onClear={() => {
+                            //this.onSearch("");
+                        }}
+                        onSearch={(term) => this.onSearch(term)} underlined disableAnimation/>
+                );
+            }
+        });
+
         items.push(
             {
                 key: 'viewItem',
                 icon: 'View',
-                text: '',
+                text: 'View Item',
+                iconOnly: true,
                 disabled: isDeleting || (!selection || selection.length !== 1),
                 onClick: (e, sender) => this._onViewItem(selection[0]),
                 iconProps: {
@@ -208,7 +225,8 @@ export class BaseListViewCommand extends React.Component {
             {
                 key: 'editItem',
                 icon: 'Edit',
-                text: '',
+                text: 'Edit Item',
+                iconOnly: true,
                 disabled: !canUpdate || isDeleting || (!selection || selection.length !== 1),
                 onClick: (e, sender) => this._onEditItem(selection[0]),
                 iconProps: {
@@ -221,7 +239,8 @@ export class BaseListViewCommand extends React.Component {
             {
                 key: 'deleteItem',
                 icon: 'Delete',
-                text: '',
+                text: 'Delete Item(s)',
+                iconOnly: true,
                 disabled: !canDelete || isDeleting || (!selection || selection.length === 0),
                 onClick: (e, sender) => this.deleteItem(selection),
                 iconProps: {
@@ -229,19 +248,6 @@ export class BaseListViewCommand extends React.Component {
                 },
                 ariaLabel: 'Delete'
             });
-
-        items.push({
-            key: 'search',
-            onRender: () => {
-                return (
-                    <SearchBox placeholder="Search"
-                        onClear={() => {
-                            //this.onSearch("");
-                        }}
-                        onSearch={(term) => this.onSearch(term)} />
-                );
-            }
-        });
         return items;
     }
 

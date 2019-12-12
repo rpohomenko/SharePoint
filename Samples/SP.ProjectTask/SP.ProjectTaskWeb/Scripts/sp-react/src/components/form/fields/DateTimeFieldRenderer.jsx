@@ -81,7 +81,7 @@ export class DateTimeFieldRenderer extends DateFieldRenderer {
         let value = this._formatTime(hours, minutes, meridiem);
 
         return <Stack tokens={{ childrenGap: 2 }} horizontal>
-            {super._renderNewOrEditForm()}
+            <div style={{ width: '100%' }}>{super._renderNewOrEditForm()}</div>
             <Stack tokens={{ childrenGap: 2 }} horizontal>
                 <MaskedTextField
                     disabled={disabled}
@@ -102,8 +102,12 @@ export class DateTimeFieldRenderer extends DateFieldRenderer {
             {showTime && (
                 <Callout
                     setInitialFocus={true}
+                    shouldRestoreFocus={true}
+                    isBeakVisible={false}
+                    preventDismissOnScroll={true}
+                    preventDismissOnResize={true}
                     target={'#' + this._timeButtonId}
-                    onDismiss={() => this.setState({ showTime: false })}
+                    onDismiss={() => { this.setState({ showTime: false }); if (this._timeField) { this._timeField.focus(); } }}
                     role="alertdialog">
                     <div className="time-picker" style={{ margin: '10px', fontSize: '14pt' }}>
                         <Stack tokens={{ childrenGap: 4 }} horizontal>

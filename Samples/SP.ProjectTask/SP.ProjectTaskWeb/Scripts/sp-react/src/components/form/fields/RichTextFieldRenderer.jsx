@@ -12,9 +12,7 @@ export class RichTextFieldRenderer extends BaseFieldRenderer {
         this.state = {
             ...this.state,
             editorMode: 0,
-            value: props.currentValue
-                ? RichTextEditor.createValueFromString(props.currentValue, 'html')
-                : RichTextEditor.createEmptyValue()
+            value: this.parseStringValue(props.currentValue)
         };
     }
 
@@ -58,7 +56,7 @@ export class RichTextFieldRenderer extends BaseFieldRenderer {
                     disabled={disabled}
                     multiline
                     onChange={(ev, newValue) => {
-                        this.setValue(newValue);
+                        this.setValue(this.parseStringValue(newValue));
                     }}
                     value={this.getValue()}
                 />)}
@@ -111,13 +109,14 @@ export class RichTextFieldRenderer extends BaseFieldRenderer {
         return value;
     }
 
-    setValue(value) {
-        if (isString(value)) {
-            value = value
-                ? RichTextEditor.createValueFromString(value, 'html')
-                : RichTextEditor.createEmptyValue();
-        }
+    setValue(value) {        
         super.setValue(value);
+    }
+
+    parseStringValue(value){
+       return value
+       ? RichTextEditor.createValueFromString(value, 'html')
+       : RichTextEditor.createEmptyValue();
     }
 
     isDirty() {

@@ -16,7 +16,7 @@ export class SearchFormPanel extends React.Component {
     }
 
     render() {
-        const { onRenderSearchForm, service } = this.props;
+        const { onRenderSearchForm, service, fields } = this.props;
         const { confirmClosePanel, showPanel, isDirty } = this.state;
         let searchForm;
         let renderSearchForm = this._renderSearchForm;
@@ -28,6 +28,7 @@ export class SearchFormPanel extends React.Component {
             searchForm = renderSearchForm(
                 this._searchForm,
                 service,
+                fields,
                 (sender, isValid, isDirty) => this._validate(isValid, isDirty));
 
             return (
@@ -123,7 +124,7 @@ export class SearchFormPanel extends React.Component {
         if (this.state.isValid !== isValid || this.state.isDirty !== isDirty) {
             this.setState({ isValid: isValid, isDirty: isDirty });
         }
-    }
+    }   
 }
 
 SearchFormPanel.propTypes = {

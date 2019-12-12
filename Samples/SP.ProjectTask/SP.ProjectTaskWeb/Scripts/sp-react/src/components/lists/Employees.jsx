@@ -1,5 +1,4 @@
 import React from "react";
-
 import { ScrollablePane, ScrollbarVisibility } from 'office-ui-fabric-react/lib/ScrollablePane';
 import { Sticky, StickyPositionType } from 'office-ui-fabric-react/lib/Sticky';
 
@@ -46,11 +45,20 @@ export class EmployeeList extends BaseListView {
       }}>
         <ScrollablePane scrollbarVisibility={ScrollbarVisibility.auto}>
           <Sticky stickyPosition={StickyPositionType.Header} isScrollSynced={true}>
-            <EmployeeCommand ref={ref => this._command = ref} canAddListItems={canAddListItems} commandItems={commandItems} service={this._service} selection={selection} onSearch={(term) => this.search('Title', term)} onRefresh={() => this.refresh(true)} onSetFilter={() => { if (this._filter) { this._filter.showHide(); } }}
+            <EmployeeCommand ref={ref => this._command = ref} canAddListItems={canAddListItems} commandItems={commandItems} service={this._service} selection={selection}
+              onSearch={(term) => this.search('Title', term)} onRefresh={() => this.refresh(true)} onSetFilter={() => { if (this._filter) { this._filter.showHide(); } }}
               onItemDeleted={this._onItemDeleted} onItemSaved={this._onItemSaved} onItemSaving ={onItemSaving} onItemDeleting ={onItemDeleting} />
-          </Sticky>{super.render()}
+          </Sticky>
+          {super.render()}
         </ScrollablePane>
-        <EmployeeSearchFormPanel ref={ref => this._filter = ref} service={this._service} onFilter={(filter) => this._onFilter(filter)} />
+        <EmployeeSearchFormPanel ref={ref => this._filter = ref} service={this._service} 
+        fields={this._filterFields}
+        onFilter={(filter) =>{
+         if(filter){
+           this._filterFields = filter.fields;     
+           this._onFilter(filter.expr);
+         }
+       }} />
       </div>
     );
   }

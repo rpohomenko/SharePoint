@@ -1,6 +1,7 @@
 import * as React from 'react';
 import PropTypes from 'prop-types';
 import { SearchField } from './SearchField';
+import { isArray } from 'util';
 
 export class SearchForm extends React.Component {
 
@@ -15,15 +16,11 @@ export class SearchForm extends React.Component {
         this._container = React.createRef();
     }
 
-    componentDidMount() {
-        const { fields } = this.state;
-        if (!fields) {
-            this.setState({ fields: this._getFields() });
-        }
-    }
-
     render() {
-        const { fields } = this.state;
+        let { fields } = this.props;
+        if (!fields || !isArray(fields)) {
+            fields = this._getFields();
+        }
         this._searchFields = null;
         if (fields) {
             return (
@@ -35,7 +32,7 @@ export class SearchForm extends React.Component {
                                 this._searchFields.push(ref);
                             }
                         }}
-                            key={field.key || field.name} fieldProps={field} onValidate={(fieldControl, isValid) => this._onValidate(fieldControl, isValid)} />))
+                        key={field.key || field.name} fieldProps={field} onValidate={(fieldControl, isValid) => this._onValidate(fieldControl, isValid)} />))
                     }
                 </div >
             );
@@ -51,7 +48,8 @@ export class SearchForm extends React.Component {
                 if (this._searchFields[i].getFormField() && !this._searchFields[i].getFormField().isValid()) {
                     isValid = false;
                 }
-                if (this._searchFields[i].getFormField() && this._searchFields[i].getFormField().isDirty()) {
+                if ((this._searchFields[i].getComparison() === 8 || this._searchFields[i].getComparison() === 9)
+                    || (this._searchFields[i].getFormField() && this._searchFields[i].getFormField().isDirty())) {
                     isDirty = true;
                 }
             }
@@ -108,16 +106,22 @@ export class SearchForm extends React.Component {
     }
 
     getFilter(appendOr) {
-        let filter = null;
-        if (this._getFields) {
+        let filter = { fields: [], expr: null };
+        if (this._searchFields) {
             for (let i = 0; i < this._searchFields.length; i++) {
-                let fieldFilter = this._searchFields[i].getFilter();
-                if (fieldFilter) {
-                    if (filter) {
-                        filter += ` ${!!appendOr ? "||" : "&&"} ${fieldFilter}`;
+                const fieldFilter = {
+                    props: this._searchFields[i].getFieldProps(),
+                    expr: this._searchFields[i].getFilterExpr()
+                }
+
+                filter.fields.push(fieldFilter);
+
+                if (fieldFilter.expr) {
+                    if (filter.expr) {
+                        filter.expr += ` ${!!appendOr ? "||" : "&&"} ${fieldFilter.expr}`;
                     }
                     else {
-                        filter = `${fieldFilter}`;
+                        filter.expr = `${fieldFilter.expr}`;
                     }
                 }
             }

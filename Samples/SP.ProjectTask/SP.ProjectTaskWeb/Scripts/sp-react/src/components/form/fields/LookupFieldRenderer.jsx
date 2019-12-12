@@ -70,7 +70,7 @@ export class LookupFieldRenderer extends BaseFieldRenderer {
     _renderNewOrEditForm() {
         let { fieldProps, disabled, headerText, itemLimit, resultsMaximumNumber, RESOLVE_DELAY, readonly } = this.props;
         const { value, showListView } = this.state;
-        
+
         let listView = null;
         if (typeof fieldProps.renderListView === "function") {
             listView = fieldProps.renderListView(
@@ -106,42 +106,44 @@ export class LookupFieldRenderer extends BaseFieldRenderer {
                     {listView}
                 </Panel>)}
             <Stack tokens={{ childrenGap: 2 }} horizontal>
-                <TagPicker componentRef={this._picker}
-                    onResolveSuggestions={this._onFilterChanged}
-                    onEmptyInputFocus={this._returnMostRecentlyUsed}
-                    onZeroQuerySuggestion={this._returnMostRecentlyUsed}
-                    onRemoveSuggestion={this._onRemoveSuggestion}
-                    selectedItems={value}
-                    onChange={(items) => this._onChange(items)}
-                    getTextFromItem={this._getTextFromItem}
-                    pickerSuggestionsProps={{
-                        suggestionsHeaderText: fieldProps.suggestionsHeaderText || 'Suggested Items',
-                        noResultsFoundText: fieldProps.noResultsFoundText || 'No items found',
-                        loadingText: 'Loading',
-                        showRemoveButtons: false,
-                        resultsMaximumNumber: fieldProps.limitResults || resultsMaximumNumber,
-                    }}
-                    resolveDelay={fieldProps.resolveDelay || RESOLVE_DELAY}
-                    disabled={disabled}
-                    itemLimit={fieldProps.isMultiple ? fieldProps.itemLimit || itemLimit : 1}
-                    inputProps={{
-                        ref: (ref) => this._input = ref,
-                        disabled: true,
-                        readOnly: readonly,
-                        onClick: (ev) => {
-                            
-                        },
-                        onBlur: (ev) => {         
-                           
-                        },
-                        onFocus: (ev) => {
-                          
-                        },
-                        placeholder: defaultVisibleValue,
-                        //defaultVisibleValue: defaultVisibleValue,
-                        "aria-label": defaultVisibleValue
-                    }}
-                />
+                <div style={{ width: '100%' }}>
+                    <TagPicker componentRef={this._picker}
+                        onResolveSuggestions={this._onFilterChanged}
+                        onEmptyInputFocus={this._returnMostRecentlyUsed}
+                        onZeroQuerySuggestion={this._returnMostRecentlyUsed}
+                        onRemoveSuggestion={this._onRemoveSuggestion}
+                        selectedItems={value || []}
+                        onChange={(items) => this._onChange(items)}
+                        getTextFromItem={this._getTextFromItem}
+                        pickerSuggestionsProps={{
+                            suggestionsHeaderText: fieldProps.suggestionsHeaderText || 'Suggested Items',
+                            noResultsFoundText: fieldProps.noResultsFoundText || 'No items found',
+                            loadingText: 'Loading',
+                            showRemoveButtons: false,
+                            resultsMaximumNumber: fieldProps.limitResults || resultsMaximumNumber,
+                        }}
+                        resolveDelay={fieldProps.resolveDelay || RESOLVE_DELAY}
+                        disabled={disabled}
+                        itemLimit={fieldProps.isMultiple ? fieldProps.itemLimit || itemLimit : 1}
+                        inputProps={{
+                            ref: (ref) => this._input = ref,
+                            disabled: true,
+                            readOnly: readonly,
+                            onClick: (ev) => {
+
+                            },
+                            onBlur: (ev) => {
+
+                            },
+                            onFocus: (ev) => {
+
+                            },
+                            placeholder: defaultVisibleValue,
+                            //defaultVisibleValue: defaultVisibleValue,
+                            "aria-label": defaultVisibleValue
+                        }}
+                    />
+                </div>
                 {listView && <IconButton iconProps={{ iconName: 'More' }} disabled={disabled} onClick={(e) => this._showListView()} />}
             </Stack>
         </React.Fragment>);
@@ -329,8 +331,8 @@ export class LookupFieldRenderer extends BaseFieldRenderer {
     }
 
     _onChange = (items) => {
-        this.setValue(items);        
-    }   
+        this.setValue(items);
+    }
 
     _validate = () => {
         let { isValid, validationErrors } = {};
@@ -361,7 +363,7 @@ export class LookupFieldRenderer extends BaseFieldRenderer {
             return true;
         }
         return false;
-    }   
+    }
 
     getValue() {
         const { fieldProps } = this.props;

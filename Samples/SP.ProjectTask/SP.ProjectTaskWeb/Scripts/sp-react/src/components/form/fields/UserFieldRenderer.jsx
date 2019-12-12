@@ -95,7 +95,7 @@ export class UserFieldRenderer extends BaseFieldRenderer {
                 resolveDelay={fieldProps.resolveDelay || RESOLVE_DELAY}
                 itemLimit={fieldProps.isMultiple ? fieldProps.itemLimit || itemLimit : 1}
                 disabled={disabled}
-                selectedItems={value}
+                selectedItems={value || []}
                 onChange={(items) => this._onChange(items)}
             />);
     }

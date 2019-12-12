@@ -66,7 +66,7 @@ export class ChoiceFieldRenderer extends BaseFieldRenderer {
         return (fieldProps.isMultiple
             ? <Dropdown
                 ref={ref => this._choiceField = ref}
-                placeholder={fieldProps.placeholder}
+                placeholder={fieldProps.placeholder || "Select options..."}
                 selectedKeys={selectedKeys}
                 onChange={(ev, item) => this._onChange(item)}
                 multiSelect
@@ -76,7 +76,7 @@ export class ChoiceFieldRenderer extends BaseFieldRenderer {
             />
             : <Dropdown
                 ref={ref => this._choiceField = ref}
-                placeholder={fieldProps.placeholder}
+                placeholder={fieldProps.placeholder || "Select an option..."}
                 selectedKey={value}
                 onChange={(ev, item) => this._onChange(item)}
                 options={options}

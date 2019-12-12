@@ -46,9 +46,9 @@ export class FormField extends React.Component {
     };
 
     _renderField = () => {
-        const { fieldProps } = this.props;
+        const { fieldProps, onRenderField } = this.props;
         //const { field } = this.state;
-        const field = this._getFieldRenderer(fieldProps.type);
+        const field = typeof onRenderField === "function" ? onRenderField(() => this._getFieldRenderer(fieldProps.type)) : this._getFieldRenderer(fieldProps.type);
         return (
             <div className="form-field">
                 <Stack horizontal verticalAlign="center" styles={{ root: { padding: 2 } }}>
@@ -87,8 +87,8 @@ export class FormField extends React.Component {
 
     _getFieldRenderer = (type) => {
         const { fieldProps, mode, item, onValidate, disabled } = this.props;
-       
-        let currentValue = item ? item[fieldProps.name] : undefined;
+
+        let currentValue = item ? item[fieldProps.name] : fieldProps.value;
         let field;
         if (type === 'text') {
             field = <TextFieldRenderer ref={(ref) => this._fieldControl = ref} disabled={disabled} key={fieldProps.name} currentValue={currentValue} item={item} fieldProps={fieldProps} mode={mode} onValidate={onValidate} />;
@@ -125,7 +125,7 @@ export class FormField extends React.Component {
     getFieldValue() {
         if (this._fieldControl) {
             return this._fieldControl.getValue();
-        }        
+        }
     }
 
     setFieldValue(value) {
@@ -136,7 +136,7 @@ export class FormField extends React.Component {
 
     getFieldName() {
         const { fieldProps } = this.props;
-        if(fieldProps){
+        if (fieldProps) {
             return fieldProps.name;
         }
         return null;
@@ -148,14 +148,14 @@ export class FormField extends React.Component {
         if (this._fieldControl) {
             isDirty = this._fieldControl.isDirty();
         }
-        if(isDirty === undefined) {
+        if (isDirty === undefined) {
             if (mode === 2) isDirty = true;
             else isDirty = false;
         }
         return isDirty;
     }
 
-    isValid() {      
+    isValid() {
         let isValid = undefined;
         if (this._fieldControl) {
             isValid = this._fieldControl.isValid();

@@ -9,8 +9,8 @@ export class TaskSearchFormPanel extends SearchFormPanel {
         super(props);
     }
 
-    _renderSearchForm = (ref, service, onValidate) => {
-        return (<TaskSearchForm ref={ref} service={service} onValidate={onValidate} />);
+    _renderSearchForm = (ref, service, fields, onValidate) => {
+        return (<TaskSearchForm ref={ref} service={service} fields={fields} onValidate={onValidate} />);
     }
 }
 

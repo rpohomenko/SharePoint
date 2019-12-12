@@ -9,8 +9,8 @@ export class ProjectSearchFormPanel extends SearchFormPanel {
         super(props);
     }
 
-    _renderSearchForm = (ref, service, onValidate) => {
-        return (<ProjectSearchForm ref={ref} service={service} onValidate={onValidate} />);
+    _renderSearchForm = (ref, service, fields, onValidate) => {
+        return (<ProjectSearchForm ref={ref} service={service} fields={fields} onValidate={onValidate} />);
     }
 }
 

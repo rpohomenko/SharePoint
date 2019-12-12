@@ -304,7 +304,7 @@ export class BaseListView extends React.Component {
         /*let { items, isLoading, isLoaded, nextPageToken } = this.state;
         if (nextPageToken && index >= items.length - 1) {
             if (isLoading || !isLoaded || this._controllers.length > 0) return null;           
-            this.loadItems(null, nextPageToken);
+            this.loadItems();
 
         }*/
         return null;
@@ -382,37 +382,42 @@ export class BaseListView extends React.Component {
             columns: columns,
             filter: filter
         });
-        return await this.loadItems(null, null);
+        return await this.loadItems(null, true/*, ""*/);
     }
 
-    search(columnName, term) {
-        this._onFilter(columnName && term ? `${columnName}.Contains("${term}")` : null);
+    async search(columnName, term) {
+       return await this._onFilter(columnName && term ? `${columnName}.Contains("${term}")` : "");
     }
 
-    _onFilter = (filter) => {
-        this.setState({ filter: filter }, () => {
-            this._abort().then(() => this.loadItems());
-        });
+    _onFilter = async (filter) => {
+        await this._abort();
+        return await this.loadItems(null, true, filter);
     }
 
-    async loadItems(sortColumn = null, pageToken = null) {
+    async loadItems(sortColumn = null, reload = false, newFilter = null) {
 
         let { count, filter, sortBy, sortDesc, nextPageToken, items, selection } = this.state;
 
-        if (sortColumn) {
+        if (sortColumn !== null) {
             sortBy = sortColumn.sortFieldName || sortColumn.fieldName;
             sortDesc = sortColumn.isSortedDescending;
         }
-        if (pageToken) {
-            nextPageToken = pageToken
+        if (reload) {
+            nextPageToken = null;
+        }
+        if (newFilter !== null) {
+            filter = newFilter;           
         }
 
         this.setState({
             isLoading: true,
             isLoaded: false,
             nextPageToken: nextPageToken,
-            error: undefined
+            filter: filter
         });
+        if (this._status) {
+            this._status.clear();
+        }
         if (!nextPageToken) {
             this.setState({
                 items: []
