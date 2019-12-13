@@ -9,7 +9,9 @@ export class SearchFormPanel extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            ...props
+            ...props,
+            isDirty : true,
+            isValid: true
         };
         this._searchForm = React.createRef();
         this._onFilterClick = this._onFilterClick.bind(this);

@@ -37,7 +37,7 @@ export class EmployeeList extends BaseListView {
 
   render() {
     const { onItemSaving, onItemSaved, onItemDeleting, onItemDeleted, commandItems, style } = this.props;
-    const { selection, canAddListItems } = this.state;
+    const { selection, canAddListItems, filter } = this.state;
     return (
       <div className="employees-container" style={{
         height: 'calc(100vh - 160px)',
@@ -46,19 +46,42 @@ export class EmployeeList extends BaseListView {
         <ScrollablePane scrollbarVisibility={ScrollbarVisibility.auto}>
           <Sticky stickyPosition={StickyPositionType.Header} isScrollSynced={true}>
             <EmployeeCommand ref={ref => this._command = ref} canAddListItems={canAddListItems} commandItems={commandItems} service={this._service} selection={selection}
-              onSearch={(term) => this.search('Title', term)} onRefresh={() => this.refresh(true)} onSetFilter={() => { if (this._filter) { this._filter.showHide(); } }}
-              onItemDeleted={this._onItemDeleted} onItemSaved={this._onItemSaved} onItemSaving ={onItemSaving} onItemDeleting ={onItemDeleting} />
+              clearFilterShown={!!filter}
+              onSearch={(expr, props) => {
+                if (props) {
+                }
+                if (!expr) {
+                  expr = "";
+                  this._filterFields = null;
+                }
+                else if (filter) {
+                  expr = `${expr} && ${filter}`;
+                }
+                this._onFilter(expr);
+              }}
+              searchField={
+                {
+                  key: 'title',
+                  name: 'Title',
+                  filterComparison: 3,
+                  value: ''
+                }
+              }
+              onSetFilter={() => { if (this._filter) { this._filter.showHide(); } }}
+              onClearFilter={() => { this._filterFields = null; this._onFilter(""); }}
+              onRefresh={() => this.refresh(true)}
+              onItemDeleted={this._onItemDeleted} onItemSaved={this._onItemSaved} onItemSaving={onItemSaving} onItemDeleting={onItemDeleting} />
           </Sticky>
           {super.render()}
         </ScrollablePane>
-        <EmployeeSearchFormPanel ref={ref => this._filter = ref} service={this._service} 
-        fields={this._filterFields}
-        onFilter={(filter) =>{
-         if(filter){
-           this._filterFields = filter.fields;     
-           this._onFilter(filter.expr);
-         }
-       }} />
+        <EmployeeSearchFormPanel ref={ref => this._filter = ref} service={this._service}
+          fields={this._filterFields}
+          onFilter={(filter) => {
+            if (filter) {
+              this._filterFields = filter.fields.map(field => field.props);
+              this._onFilter(filter.expr || "");
+            }
+          }} />
       </div>
     );
   }
@@ -89,7 +112,7 @@ export class EmployeeList extends BaseListView {
 
   _onItemSaved = (sender, result) => {
     const { onItemSaved } = this.props;
-    if (result.ok && result.data) {     
+    if (result.ok && result.data) {
       this.refresh();
       if (typeof onItemSaved === "function") {
         onItemSaved(sender, result);
@@ -114,11 +137,11 @@ export class EmployeeList extends BaseListView {
         sortDescendingAriaLabel: 'Z to A',
         onColumnClick: this._onColumnClick,
         data: 'string',
-        isPadded: false        
+        isPadded: false
       },
       {
         key: 'position',
-        name: 'Position',        
+        name: 'Position',
         fieldName: 'Position',
         isSortable: false,
         minWidth: 210,
@@ -134,16 +157,16 @@ export class EmployeeList extends BaseListView {
         isPadded: false,
         getView: (lookupItem) => {
           if (lookupItem) {
-              return <ChoiceFieldRenderer key='position' currentValue={lookupItem} fieldProps={{              
-                type: 'choice',
-                isMultiple: true,              
-                choices: [
-                    { value: "Web developer", key: 1 },
-                    { value: "Project manager", key: 2 },
-                    { value: "Software tester", key: 4 },
-                    { value: "Technical consultant", key: 8 },
-                    { value: "Business analyst", key: 16 }
-                ]
+            return <ChoiceFieldRenderer key='position' currentValue={lookupItem} fieldProps={{
+              type: 'choice',
+              isMultiple: true,
+              choices: [
+                { value: "Web developer", key: 1 },
+                { value: "Project manager", key: 2 },
+                { value: "Software tester", key: 4 },
+                { value: "Technical consultant", key: 8 },
+                { value: "Business analyst", key: 16 }
+              ]
             }} mode={0} />
           }
           return '';
@@ -151,7 +174,7 @@ export class EmployeeList extends BaseListView {
       },
       {
         key: 'manager',
-        name: 'Manager',        
+        name: 'Manager',
         fieldName: 'Manager',
         isSortable: false,
         minWidth: 210,
@@ -167,15 +190,15 @@ export class EmployeeList extends BaseListView {
         isPadded: false,
         getView: (lookupItem) => {
           if (lookupItem) {
-              return <LookupFieldRenderer key='manager' currentValue={lookupItem} fieldProps={{
-                key: 'manager',
-                name: 'Manager',
-                type: 'lookup',
-                title: 'Manager',
-                lookupList: 'Employees',
-                lookupField: 'Title',
-                isMultiple: true,                         
-                renderListForm: (ref) => this._renderEmployeeListForm(ref)
+            return <LookupFieldRenderer key='manager' currentValue={lookupItem} fieldProps={{
+              key: 'manager',
+              name: 'Manager',
+              type: 'lookup',
+              title: 'Manager',
+              lookupList: 'Employees',
+              lookupField: 'Title',
+              isMultiple: true,
+              renderListForm: (ref) => this._renderEmployeeListForm(ref)
             }} mode={0} />
           }
           return '';
@@ -200,15 +223,15 @@ export class EmployeeList extends BaseListView {
         isPadded: false,
         getView: (lookupItem) => {
           if (lookupItem) {
-              return <LookupFieldRenderer key='department' currentValue={lookupItem} fieldProps={{
-                key: 'department',
-                name: 'Department',
-                type: 'lookup',
-                title: 'Department',
-                lookupList: 'Departments',
-                lookupField: 'Title',
-                isMultiple: true,                         
-                renderListForm: (ref) => this._renderDepartmentListForm(ref)
+            return <LookupFieldRenderer key='department' currentValue={lookupItem} fieldProps={{
+              key: 'department',
+              name: 'Department',
+              type: 'lookup',
+              title: 'Department',
+              lookupList: 'Departments',
+              lookupField: 'Title',
+              isMultiple: true,
+              renderListForm: (ref) => this._renderDepartmentListForm(ref)
             }} mode={0} />
           }
           return '';

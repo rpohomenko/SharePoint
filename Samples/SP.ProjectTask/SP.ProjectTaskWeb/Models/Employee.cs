@@ -255,6 +255,13 @@ namespace SP.ProjectTaskWeb.Models
         {
             get;
         }
+
+        [LookupField(Name = "pt_Department", Behavior =  ProvisionBehavior.None)]
+        public FieldLookupValue DepartmentValue
+        {
+            get;
+        }
+
         [DataMember]
         [NoteField(Name = "pt_Description", Title = "Description", Order = 8, RichText = true, RestrictedMode = true)]
         public string Description

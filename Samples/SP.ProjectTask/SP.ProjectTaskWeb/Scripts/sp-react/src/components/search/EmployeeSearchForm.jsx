@@ -80,7 +80,7 @@ export class EmployeeSearchForm extends SearchForm {
             },
             {
                 key: 'department',
-                name: 'DepartmentLookup',
+                name: 'DepartmentValue',
                 type: 'lookup',
                 isMultiple: true,
                 notLookupInclude: true,

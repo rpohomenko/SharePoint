@@ -10,14 +10,20 @@ export class SearchForm extends React.Component {
         this._service = props.service;
         this._controllers = [];
         this.state = {
-            ...props
+            ...props,
+            isDirty: true
         };
 
         this._container = React.createRef();
     }
 
+    componentDidMount() {
+        this.validate();
+    }
+
     render() {
         let { fields } = this.props;
+        const { isDirty } = this.state;
         if (!fields || !isArray(fields)) {
             fields = this._getFields();
         }
@@ -32,7 +38,10 @@ export class SearchForm extends React.Component {
                                 this._searchFields.push(ref);
                             }
                         }}
-                        key={field.key || field.name} fieldProps={field} onValidate={(fieldControl, isValid) => this._onValidate(fieldControl, isValid)} />))
+                            key={field.key || field.name}
+                            fieldProps={field}
+                            isDirty={isDirty}
+                            onValidate={(fieldControl, isValid) => this._onValidate(fieldControl, isValid)} />))
                     }
                 </div >
             );
@@ -41,10 +50,10 @@ export class SearchForm extends React.Component {
     }
 
     _onValidate = (fieldControl, isValid) => {
-        let isDirty = fieldControl.isDirty();
-        if (this._searchFields && this._searchFields.length > 0) {
+        let isDirty = true;//fieldControl.isDirty();
+        if (!isDirty && this._searchFields && this._searchFields.length > 0) {
             for (let i = 0; i < this._searchFields.length; i++) {
-                if (this._searchFields[i].getFormField() && fieldControl === this._searchFields[i].getFormField().getControl()) continue;
+                //if (this._searchFields[i].getFormField() && fieldControl === this._searchFields[i].getFormField().getControl()) continue;
                 if (this._searchFields[i].getFormField() && !this._searchFields[i].getFormField().isValid()) {
                     isValid = false;
                 }
@@ -53,15 +62,16 @@ export class SearchForm extends React.Component {
                     isDirty = true;
                 }
             }
-            const { onValidate } = this.props;
-            if (this.isDirty() !== isDirty || this.isValid() !== isValid) {
-                this.setState({ isValid: isValid, isDirty: isDirty }, () => {
-                    if (typeof onValidate === "function") {
-                        onValidate(this, isValid, isDirty);
-                    }
-                });
-            }
         }
+        const { onValidate } = this.props;
+        if (this.isDirty() !== isDirty || this.isValid() !== isValid) {
+            this.setState({ isValid: isValid, isDirty: isDirty }, () => {
+                if (typeof onValidate === "function") {
+                    onValidate(this, isValid, isDirty);
+                }
+            });
+        }
+
     }
 
     _getFields = () => {
@@ -114,7 +124,9 @@ export class SearchForm extends React.Component {
                     expr: this._searchFields[i].getFilterExpr()
                 }
 
-                filter.fields.push(fieldFilter);
+                if (fieldFilter.props) {
+                    filter.fields.push(fieldFilter);
+                }
 
                 if (fieldFilter.expr) {
                     if (filter.expr) {

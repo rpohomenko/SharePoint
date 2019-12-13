@@ -1,19 +1,14 @@
 import * as React from 'react';
 import PropTypes from 'prop-types';
-//import { Spinner, SpinnerSize } from 'office-ui-fabric-react/lib/Spinner';
-//import { Stack } from 'office-ui-fabric-react/lib/Stack';
 import { ProgressIndicator } from 'office-ui-fabric-react/lib/ProgressIndicator';
-//import { CommandBar } from 'office-ui-fabric-react/lib/CommandBar';
 import { CommandBarButton } from 'office-ui-fabric-react/lib/Button';
-//import { ScrollablePane, ScrollbarVisibility } from 'office-ui-fabric-react/lib/ScrollablePane';
-//import { Sticky, StickyPositionType } from 'office-ui-fabric-react/lib/Sticky';
 import { Callout } from 'office-ui-fabric-react';
 import { DefaultButton, PrimaryButton } from 'office-ui-fabric-react/lib/Button';
 import { Dialog, DialogFooter, DialogType } from 'office-ui-fabric-react/lib/Dialog';
 import { isArray } from 'util';
 
-import { FormField } from './fields/FormField';
 import { StatusBar } from '../StatusBar';
+import { FormField } from './fields/FormField';
 
 export class ListForm extends React.Component {
 
@@ -31,9 +26,6 @@ export class ListForm extends React.Component {
 
     async componentDidMount() {
         const { item, itemId, mode, fields } = this.state;
-        if (!fields) {
-            this.setState({ fields: this._getFields() });
-        }
         if (!item && mode < 2 && itemId > 0) {
             await this.loadItem(itemId);
         }
@@ -47,8 +39,11 @@ export class ListForm extends React.Component {
     }
 
     render() {
-        const { commandItems } = this.props;
-        const { isLoading, mode, item, fields, confirmDeletion, isDeleting, isSaving, onRenderCommandBar } = this.state;
+        let { commandItems, fields } = this.props;
+        const { isLoading, mode, item, confirmDeletion, isDeleting, isSaving, onRenderCommandBar } = this.state;
+        if (!fields || !isArray(fields)) {
+            fields = this._getFields();
+        }
         this._formFields = null;
         if (fields) {
             let _progressIndicator = this._getProgressIndicator();
@@ -57,9 +52,6 @@ export class ListForm extends React.Component {
                 commandBar = onRenderCommandBar(isArray(commandItems) ? commandItems : /*this._getCommandItems()*/[], this._onRenderCommandItem);
             }
             else {
-                /* commandBar = (<CommandBar ref={ref => this._commandBar = ref} styles={{ root: { paddingTop: 10 }, menuIcon: { fontSize: '16px' } }}
-                     items={isArray(commandItems) ? commandItems : this._getCommandItems()}
-                     onRenderItem={this._onRenderCommandItem} />);*/
             }
             return (
                 <div className='form-container' ref={this._container}>
@@ -153,60 +145,7 @@ export class ListForm extends React.Component {
         if (promises.length > 0) {
             return await Promise.all(promises);
         }
-    }
-
-    /* _getCommandItems() {
-          const { mode, item, isDeleting, isSaving, isValid, isDirty } = this.state;
-          let items = [];
-  
-          if (item && mode === 0) {
-              items.push(
-                  {
-                      key: 'editItem',
-                      icon: 'Edit',
-                      text: '',
-                      disabled: isDeleting,
-                      onClick: (e, sender) => this.changeMode(1),
-                      iconProps: {
-                          iconName: 'Edit'
-                      },
-                      ariaLabel: 'Edit'
-                  });
-              items.push(
-                  {
-                      key: 'deleteItem',
-                      icon: 'Delete',
-                      text: '',
-                      disabled: isDeleting || isSaving,
-                      onClick: (e, sender) => {
-                          //this.deleteItem();
-                          this.setState({ confirmDeletion: true });
-                      },
-                      iconProps: {
-                          iconName: 'Delete'
-                      },
-                      ariaLabel: 'Delete'
-                  });
-          }
-          else if (mode === 2 || (item && mode === 1)) {
-              items.push(
-                  {
-                      key: 'saveItem',
-                      icon: 'Save',
-                      text: '',
-                      disabled: isDeleting || isSaving || !(isValid && isDirty),
-                      onClick: (e, sender) => {
-                          this.saveItem();
-                      },
-                      iconProps: {
-                          iconName: 'Save'
-                      },
-                      ariaLabel: 'Save'
-                  });
-          }
-  
-          return items;
-      }*/
+    }   
 
     _onRenderCommandItem = (item) => {
         return (

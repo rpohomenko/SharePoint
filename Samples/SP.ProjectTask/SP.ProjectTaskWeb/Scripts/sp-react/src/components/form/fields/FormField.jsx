@@ -14,6 +14,7 @@ import { ChoiceFieldRenderer2 } from './ChoiceFieldRenderer2';
 import { DateFieldRenderer } from './DateFieldRenderer';
 import { DateTimeFieldRenderer } from './DateTimeFieldRenderer';
 import { UserFieldRenderer } from './UserFieldRenderer';
+import { SearchFieldRenderer } from './SearchFieldRenderer';
 
 export class FormField extends React.Component {
 
@@ -51,7 +52,8 @@ export class FormField extends React.Component {
         const field = typeof onRenderField === "function" ? onRenderField(() => this._getFieldRenderer(fieldProps.type)) : this._getFieldRenderer(fieldProps.type);
         return (
             <div className="form-field">
-                <Stack horizontal verticalAlign="center" styles={{ root: { padding: 2 } }}>
+                {fieldProps.title &&
+                (<Stack horizontal verticalAlign="center" styles={{ root: { padding: 2 } }}>
                     <Label className="form-field-label" required={fieldProps.required}>{fieldProps.title}</Label>
                     {fieldProps.description &&
                         (<IconButton
@@ -60,7 +62,7 @@ export class FormField extends React.Component {
                             title="Info"
                             ariaLabel="Info"
                             onClick={this._onIconClick} />)}
-                </Stack>
+                </Stack>)}
                 {this.state.isCalloutVisible && (
                     <Callout
                         setInitialFocus={true}
@@ -113,6 +115,9 @@ export class FormField extends React.Component {
         }
         else if (type === 'user') {
             field = <UserFieldRenderer ref={(ref) => this._fieldControl = ref} disabled={disabled} key={fieldProps.name} currentValue={currentValue} item={item} fieldProps={fieldProps} mode={mode} onValidate={onValidate} />;
+        }
+        else if (type === 'search') {
+            field = <SearchFieldRenderer ref={(ref) => this._fieldControl = ref} disabled={disabled} key={fieldProps.name} currentValue={currentValue} item={item} fieldProps={fieldProps} mode={mode} onValidate={onValidate} />;
         }
         if (field) {
             return field;

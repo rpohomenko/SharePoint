@@ -4,10 +4,10 @@ import { CommandBar } from 'office-ui-fabric-react/lib/CommandBar';
 import { CommandBarButton } from 'office-ui-fabric-react/lib/Button';
 import { DefaultButton, PrimaryButton } from 'office-ui-fabric-react/lib/Button';
 import { Dialog, DialogFooter, DialogType } from 'office-ui-fabric-react/lib/Dialog';
-import { SearchBox } from 'office-ui-fabric-react/lib/SearchBox';
 import { isArray } from "util";
 
 import { StatusBar } from '../StatusBar';
+import { SearchField } from '../search/SearchField';
 
 export class BaseListViewCommand extends React.Component {
 
@@ -40,9 +40,14 @@ export class BaseListViewCommand extends React.Component {
             onSetFilter();
         }
     }
-
+    _onClearFilter = () => {
+        const { onClearFilter } = this.props;
+        if (typeof onClearFilter === "function") {
+            onClearFilter();
+        }
+    }
     render() {
-        const { canAddListItems, onItemSaving, onItemSaved, onItemDeleting, onItemDeleted } = this.props;
+        const { canAddListItems, onItemSaving, onItemSaved, onItemDeleting, onItemDeleted, clearFilterShown } = this.props;
         const { selection, refreshEnabed, confirmDeletion, isDeleting } = this.state;
         let item = selection && selection.length > 0 ? selection[0] : undefined;
         return (
@@ -60,6 +65,18 @@ export class BaseListViewCommand extends React.Component {
                             iconName: 'Filter'
                         },
                         ariaLabel: 'Filter'
+                    },
+                    {
+                        key: 'clearFilter',
+                        icon: 'ClearFilter',
+                        text: 'Clear Filter',
+                        iconOnly: true,
+                        disabled: !clearFilterShown,
+                        onClick: (e, sender) => this._onClearFilter(),
+                        iconProps: {
+                            iconName: 'ClearFilter'
+                        },
+                        ariaLabel: 'Clear Filter'
                     },
                     {
                         key: 'refresh',
@@ -123,10 +140,10 @@ export class BaseListViewCommand extends React.Component {
         }
     }
 
-    async onSearch(term) {
+    _onSearch(expr, field) {
         const { onSearch } = this.props;
         if (typeof onSearch === "function") {
-            await onSearch(term);
+            onSearch(expr, field);
         }
     }
 
@@ -160,7 +177,7 @@ export class BaseListViewCommand extends React.Component {
     };
 
     _getItems() {
-        const { commandItems, canAddListItems } = this.props;
+        const { commandItems, canAddListItems, searchField } = this.props;
         const { selection, isDeleting, newItemEnabled } = this.state;
         let items = []
         if (isArray(commandItems)) {
@@ -194,19 +211,27 @@ export class BaseListViewCommand extends React.Component {
                 },
                 ariaLabel: 'New'
             });
-
-        items.push({
-            key: 'search',
-            onRender: () => {
-                return (
-                    <SearchBox placeholder="Search" style={{minWidth: '80px', width: '100px'}}
-                        onClear={() => {
-                            //this.onSearch("");
-                        }}
-                        onSearch={(term) => this.onSearch(term)} underlined disableAnimation/>
-                );
-            }
-        });
+        if (searchField) {
+            items.push({
+                key: 'search',
+                onRender: () => {
+                    return (
+                        <SearchField ref={ref => this._searchField = ref}
+                            key={"searchField"}
+                            fieldProps={{
+                                ...searchField,  
+                                type: 'search',
+                                onSearch: (term) => {
+                                    if (this._searchField) {
+                                        this._onSearch(this._searchField.getFilterExpr(), this._searchField.getFieldProps());
+                                    }
+                                }
+                            }}
+                        />
+                    );
+                }
+            });
+        }
 
         items.push(
             {

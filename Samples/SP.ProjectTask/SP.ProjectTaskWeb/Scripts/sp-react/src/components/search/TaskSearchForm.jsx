@@ -19,7 +19,7 @@ export class TaskSearchForm extends SearchForm {
         },
         {
             key: 'project',
-            name: 'ProjectLookup',
+            name: 'ProjectValue',
             type: 'lookup',
             title: 'Project',
             lookupList: 'Projects',

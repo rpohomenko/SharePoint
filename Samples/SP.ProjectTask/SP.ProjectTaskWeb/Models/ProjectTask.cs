@@ -38,6 +38,12 @@ namespace SP.ProjectTaskWeb.Models
             get;
         }
 
+        [LookupField(Name = "pt_Project", Behavior = ProvisionBehavior.None)]
+        public FieldLookupValue ProjectValue
+        {
+            get;
+        }
+
         [IgnoreDataMember]
         public Project ProjectEntity
         {

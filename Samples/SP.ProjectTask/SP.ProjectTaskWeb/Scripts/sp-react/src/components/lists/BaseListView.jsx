@@ -60,48 +60,47 @@ export class BaseListView extends React.Component {
         let { columns, items, contextualMenuProps, nextPageToken, isLoading, isLoaded, count } = this.state;
         return (
             <div className="list-view-container" ref={this._container}>
-
-                <StatusBar ref={ref => this._status = ref} />
-                {isLoading &&
-                    (<Callout
-                        target={this._container.current}
-                        setInitialFocus={true}>
-                        <Stack horizontalAlign="start" styles={{ root: { padding: 10 } }}>
-                            <ProgressIndicator label={"Loading..."} />
-                        </Stack>
-                    </Callout>)}
                 <FocusZone>
-                    <MarqueeSelection selection={this._selection}>
-                        <ShimmeredDetailsList
-                            listProps={{ ref: this._list }}
-                            items={items}
-                            setKey="items"
-                            compact={false}
-                            columns={columns}
-                            selection={this._selection}
-                            selectionMode={isMultipleSelection ? SelectionMode.multiple : SelectionMode.single}
-                            onItemInvoked={this._onItemInvoked}
-                            onItemContextMenu={this._onItemContextMenu}
-                            onRenderMissingItem={this._renderMissingItem}
-                            onRenderCustomPlaceholder={this._renderCustomPlaceholder}
-                            enableShimmer={(!isLoaded && items.length === 0)}
-                            onRenderDetailsHeader={this._renderDetailsHeader}
-                            onRenderItemColumn={this._renderItemColumn}
-                        />
-                    </MarqueeSelection>
-                </FocusZone>
-                {isLoaded && items.length === 0 && !isLoading && (<Stack horizontalAlign="center" styles={{ root: { padding: 10 } }}>{emptyMessage}</Stack>)}
-                {contextualMenuProps && <ContextualMenu {...contextualMenuProps} />}
-                {isLoaded && nextPageToken && (<TooltipHost
-                    content={`Next ${count} item(s)`}
-                    id={this._nextActionHostId}
-                    calloutProps={{ gapSpace: 0 }}
-                    styles={{ root: { display: 'inline-block' } }}>
-                    <ActionButton iconProps={{ iconName: 'Next' }} aria-describedby={this._nextActionHostId} onClick={() =>
-                        this._waitAll().then(() => this.loadItems())} />
-                </TooltipHost>)
+                    <StatusBar ref={ref => this._status = ref} />
+                    {isLoading &&
+                        (<Callout
+                            target={this._container.current}
+                            setInitialFocus={true}>
+                            <Stack horizontalAlign="start" styles={{ root: { padding: 10 } }}>
+                                <ProgressIndicator label={"Loading..."} />
+                            </Stack>
+                        </Callout>)}
+                    {items.length > 0 &&
+                        (<MarqueeSelection selection={this._selection}>
+                            <ShimmeredDetailsList
+                                listProps={{ ref: this._list }}
+                                items={items}
+                                setKey="items"
+                                compact={false}
+                                columns={columns}
+                                selection={this._selection}
+                                selectionMode={isMultipleSelection ? SelectionMode.multiple : SelectionMode.single}
+                                onItemInvoked={this._onItemInvoked}
+                                onItemContextMenu={this._onItemContextMenu}
+                                onRenderMissingItem={this._renderMissingItem}
+                                onRenderCustomPlaceholder={this._renderCustomPlaceholder}
+                                enableShimmer={(!isLoaded && items.length === 0)}
+                                onRenderDetailsHeader={this._renderDetailsHeader}
+                                onRenderItemColumn={this._renderItemColumn}
+                            />
+                        </MarqueeSelection>)}
+                    {isLoaded && items.length === 0 && !isLoading && (<Stack horizontalAlign="start" styles={{ root: { padding: 10 } }}>{emptyMessage}</Stack>)}
+                    {contextualMenuProps && <ContextualMenu {...contextualMenuProps} />}
+                    {isLoaded && nextPageToken && (<TooltipHost
+                        content={`Next ${count} item(s)`}
+                        id={this._nextActionHostId}
+                        calloutProps={{ gapSpace: 0 }}
+                        styles={{ root: { display: 'inline-block' } }}>
+                        <ActionButton iconProps={{ iconName: 'Next' }} aria-describedby={this._nextActionHostId} onClick={() =>
+                            this._waitAll().then(() => this.loadItems())} />
+                    </TooltipHost>)
                   /*isLoading && (<Stack horizontalAlign="center" styles={{ root: { padding: 10 } }}><Spinner size={SpinnerSize.medium} /></Stack>)*/}
-            </div>
+                </FocusZone></div>
         );
     }
 
@@ -385,10 +384,6 @@ export class BaseListView extends React.Component {
         return await this.loadItems(null, true/*, ""*/);
     }
 
-    async search(columnName, term) {
-       return await this._onFilter(columnName && term ? `${columnName}.Contains("${term}")` : "");
-    }
-
     _onFilter = async (filter) => {
         await this._abort();
         return await this.loadItems(null, true, filter);
@@ -406,7 +401,8 @@ export class BaseListView extends React.Component {
             nextPageToken = null;
         }
         if (newFilter !== null) {
-            filter = newFilter;           
+            nextPageToken = null;
+            filter = newFilter;
         }
 
         this.setState({

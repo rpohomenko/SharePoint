@@ -23,10 +23,6 @@ class Account extends React.Component {
     }
   }
 
-  componentDidMount() {
-
-  }
-
   render() {
     const { open } = this.state;
     return (

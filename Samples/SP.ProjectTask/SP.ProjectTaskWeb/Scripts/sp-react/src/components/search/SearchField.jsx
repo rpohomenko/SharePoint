@@ -38,32 +38,57 @@ export class SearchField extends React.Component {
                     selectedComparison = comparison.key;
                 }
             }
-            return <FormField ref={ref => this._formField = ref} disabled={(selectedComparison === 8 || selectedComparison === 9)} mode={1} fieldProps={fieldProps} onValidate={onValidate}
+            return <FormField ref={ref => this._formField = ref} disabled={(selectedComparison === 8 || selectedComparison === 9)} mode={2} fieldProps={fieldProps} onValidate={onValidate}
                 onRenderField={(renderField) => this._onRenderField(renderField, selectedComparison, fieldProps.isAdvanced, fieldProps.type)} />;
         }
         return null;
     }
 
-    _onRenderField(renderField, selectedComparison, isAdvanced, type) {
+    _onRenderField(renderField, comparisonKey, isAdvanced, type) {
         if (isAdvanced) {
-            const options = this._getAvailableComparisons(type);
+            const { fieldProps } = this.props;
+            const availableComparisons = this._getAvailableComparisons(type);
+            let comparison = availableComparisons[0];
+            if (!isNaN(comparisonKey)) {
+                comparison = availableComparisons[comparisonKey];
+            }
+            const options = availableComparisons.map((option) => {
+                return { key: option.key, label: option.text, text: `${option.text} ${option.label}` }
+            });
             return (<Stack horizontal styles={{ root: { padding: 2 } }}>
                 <Dropdown
                     ref={ref => this._choiceField = ref}
                     placeholder={"Select a filter..."}
-                    selectedKey={selectedComparison}
+
+                    title={comparison ? comparison.label : undefined}
+                    selectedKey={comparisonKey}
+                    onRenderTitle={(items) => {
+                        if (isArray(items)) {
+                            return items.map(i => i.label).join(', ');
+                        }
+                    }}
+                    dropdownWidth={200}
+                    //styles={{ dropdown: { width: 300 } }}
                     onChange={(ev, item) => {
                         if (item) {
-                            this.setState({ selectedComparison: item.key }, ()=>{
-                                if(this.getFormField()){
-                                    this.getFormField().setFieldValue(null);
+                            let selectedComparison = item.key;
+                            this.setState({ selectedComparison: selectedComparison }, () => {
+                                if (this.getFormField()) {
+                                    //this.getFormField().getControl().validate(false);
+                                    //this.getFormField().setFieldValue(fieldProps.isMultiple ? [] : null);
+                                    /*if((selectedComparison === 8 || selectedComparison === 9)){
+                                       this.getFormField().setFieldValue(fieldProps.isMultiple ? [] : null);
+                                    }
+                                    else{
+                                        this.getFormField().getControl().validate(false);
+                                    }*/
                                 }
                             });
                         }
                     }}
                     options={options}
                 />
-                <div style={{width: '100%'}}>{renderField()}</div>
+                <div style={{ width: '100%' }}>{renderField()}</div>
             </Stack>);
         }
         return renderField();
@@ -74,9 +99,11 @@ export class SearchField extends React.Component {
     }
 
     _getAvailableComparisons(fieldType) {
+        const { fieldProps } = this.props;
         let availableComparisons = [];
         switch (fieldType) {
             case "text":
+            case "search":
                 availableComparisons.push(this._filterComparisons[0]);
                 availableComparisons.push(this._filterComparisons[1]);
                 availableComparisons.push(this._filterComparisons[2]);
@@ -157,11 +184,13 @@ export class SearchField extends React.Component {
             let comparison = isNaN(selectedComparison)
                 ? this._getComparison(fieldProps.filterComparison, fieldProps.type)
                 : this._getComparison(selectedComparison, fieldProps.type);
-            if (comparison) {
-                fieldProps.filterComparison = comparison.key;
-                fieldProps.value = this.getFormField().getFieldValue();
-                return fieldProps;
-            }
+            let props = {
+                ...fieldProps,
+                filterComparison: comparison ? comparison.key : null,
+                value: this.getFormField().getFieldValue(),
+
+            };
+            return props;
         }
         return null;
     }
@@ -169,155 +198,201 @@ export class SearchField extends React.Component {
     getFilterExpr() {
         const { fieldProps } = this.props;
         const { selectedComparison } = this.state;
+        let expr = null;
         if (fieldProps && this.getFormField()) {
             let comparison = isNaN(selectedComparison)
                 ? this._getComparison(fieldProps.filterComparison, fieldProps.type)
                 : this._getComparison(selectedComparison, fieldProps.type);
             if (comparison) {
                 let value = this.getFormField().getFieldValue();
-                if (value) {
+                if (value && !(comparison.key === 8 || comparison.key === 9)) {
                     switch (fieldProps.type) {
                         case "text":
+                        case "search":
                             switch (comparison.key) {
                                 case 0:
-                                    return `${fieldProps.name} == "${value}"`;
+                                    expr = `${fieldProps.name} == "${value}"`; break;
                                 case 1:
-                                    return `${fieldProps.name} != "${value}"`;
+                                    expr = `${fieldProps.name} != "${value}"`; break;
                                 case 2:
-                                    return `${fieldProps.name}.StartsWith("${value}")`;
+                                    expr = `${fieldProps.name}.StartsWith("${value}")`; break;
                                 case 3:
-                                    return `${fieldProps.name}.Contains("${value}")`;
+                                    expr = `${fieldProps.name}.Contains("${value}")`; break;
                             }
+                            break;
                         case "choice":
                             switch (comparison.key) {
                                 case 0:
-                                    if (fieldProps.isMultiple) {
-                                        if (isArray(value)) {
-                                            return value.map(choice => (`${fieldProps.name} == ${choice}`)).join(' || ');
+                                    if (fieldProps.isMultiple && isArray(value)) {
+                                        expr = value.map(choice => (`${fieldProps.name} == ${choice}`)).join(' || ');
+                                        if (value.length > 1) {
+                                            expr = `(${expr})`;
                                         }
                                     }
-                                    return `${fieldProps.name} == ${value}`;
+                                    else {
+                                        expr = `${fieldProps.name} == ${value}`;
+                                    }
+                                    break;
                                 case 1:
-                                    if (fieldProps.isMultiple) {
-                                        if (isArray(value)) {
-                                            return value.map(choice => (`${fieldProps.name} != ${choice}`)).join(' && ');
+                                    if (fieldProps.isMultiple && isArray(value)) {
+                                        expr = value.map(choice => (`${fieldProps.name} != ${choice}`)).join(' && ');
+                                        if (value.length > 1) {
+                                            expr = `(${expr})`;
                                         }
                                     }
-                                    return `${fieldProps.name} != ${value}`;
+                                    else {
+                                        expr = `${fieldProps.name} != ${value}`;
+                                    }
+                                    break;
                             }
-
+                            break;
                         case "choice2":
                             switch (comparison.key) {
                                 case 0:
-                                    if (fieldProps.isMultiple) {
-                                        if (isArray(value)) {
-                                            return value.map(choice => (`${fieldProps.name} == ${choice}`)).join(' || ');
+                                    if (fieldProps.isMultiple && isArray(value)) {
+                                        expr = value.map(choice => (`${fieldProps.name} == ${choice}`)).join(' || ');
+                                        if (value.length > 1) {
+                                            expr = `(${expr})`;
                                         }
                                     }
-                                    return `${fieldProps.name} == "${value}"`;
+                                    expr = `${fieldProps.name} == "${value}"`;
+                                    break;
                                 case 1:
-                                    if (fieldProps.isMultiple) {
-                                        if (isArray(value)) {
-                                            return value.map(choice => (`${fieldProps.name} != ${choice}`)).join(' && ');
+                                    if (fieldProps.isMultiple && isArray(value)) {
+                                        expr = value.map(choice => (`${fieldProps.name} != ${choice}`)).join(' && ');
+                                        if (value.length > 1) {
+                                            expr = `(${expr})`;
                                         }
                                     }
-                                    return `${fieldProps.name} != "${value}"`;
+                                    else {
+                                        expr = `${fieldProps.name} != "${value}"`;
+                                    }
+                                    break;
                             }
-                        case "lookup": {
+                            break;
+                        case "lookup":
                             switch (comparison.key) {
                                 case 0:
-                                    if (fieldProps.isMultiple) {
-                                        if (isArray(value)) {
-                                            var lookupIds = value.map(lookup => lookup.Id);
-                                            if (!!fieldProps.notLookupInclude) {
-                                                return `Extensions.Includes(${fieldProps.name}, new[] { ${lookupIds.join(',')} })`;
+                                    if (fieldProps.isMultiple && isArray(value)) {
+                                        var lookupIds = value.map(lookup => lookup.Id);
+                                        if (!!fieldProps.notLookupInclude) {
+                                            expr = `Extensions.Includes(${fieldProps.name}, new[] { ${lookupIds.join(',')} })`;
+                                        }
+                                        else {
+                                            expr = lookupIds.map(lookupId => (`Extensions.LookupIdIncludes(${fieldProps.name}, ${lookupId})`)).join(' || ');
+                                            if (lookupIds.length > 1) {
+                                                expr = `(${expr})`;
                                             }
-                                            return lookupIds.map(lookupId => (`Extensions.LookupIdIncludes(${fieldProps.name}, ${lookupId})`)).join(' || ');
                                         }
                                     }
-                                    return `${fieldProps.name}==${value.Id}`;
+                                    else {
+                                        expr = `${fieldProps.name}==${value.Id}`;
+                                    }
+                                    break;
                                 case 1:
-                                    if (fieldProps.isMultiple) {
-                                        if (isArray(value)) {
-                                            var lookupIds = value.map(lookup => lookup.Id);
-                                            if (!!fieldProps.notLookupInclude) {
-                                                return lookupIds.map(lookupId => (`${fieldProps.name} != ${lookupId}`)).join(' && ');
-                                            }
-                                            return lookupIds.map(lookupId => (`Extensions.LookupIdNotIncludes(${fieldProps.name}, ${lookupId})`)).join(' && ');
+                                    if (fieldProps.isMultiple && isArray(value)) {
+                                        var lookupIds = value.map(lookup => lookup.Id);
+                                        if (!!fieldProps.notLookupInclude) {
+                                            expr = lookupIds.map(lookupId => (`${fieldProps.name} != ${lookupId}`)).join(' && ');
+                                        }
+                                        else {
+                                            expr = lookupIds.map(lookupId => (`Extensions.LookupIdNotIncludes(${fieldProps.name}, ${lookupId})`)).join(' && ');
+                                        }
+                                        if (lookupIds.length > 1) {
+                                            expr = `(${expr})`;
                                         }
                                     }
-                                    return `${fieldProps.name}!=${value.Id}`;
+                                    else {
+                                        expr = `${fieldProps.name}!=${value.Id}`;
+                                    }
+                                    break;
                             }
-                        }
-                        case "user": {
+                            break;
+                        case "user":
                             switch (comparison.key) {
                                 case 0:
-                                    if (fieldProps.isMultiple) {
-                                        if (isArray(value)) {
-                                            var userIds = value.map(user => user.Id);
-                                            if (!!fieldProps.notLookupInclude) {
-                                                return `Extensions.Includes(${fieldProps.name}, new[] { ${userIds.join(',')} })`;
-                                            }
-                                            return userIds.map(userId => (`Extensions.LookupIdIncludes(${fieldProps.name}, ${userId})`)).join(' || ');
+                                    if (fieldProps.isMultiple && isArray(value)) {
+                                        var userIds = value.map(user => user.Id);
+                                        if (!!fieldProps.notLookupInclude) {
+                                            expr = `Extensions.Includes(${fieldProps.name}, new[] { ${userIds.join(',')} })`;
                                         }
+                                        else {
+                                            expr = userIds.map(userId => (`Extensions.LookupIdIncludes(${fieldProps.name}, ${userId})`)).join(' || ');
+                                            if (userIds.length > 1) {
+                                                expr = `(${expr})`;
+                                            }
+                                        }
+
                                     }
-                                    return `${fieldProps.name}==${value.Id}`;
+                                    else {
+                                        expr = `${fieldProps.name}==${value.Id}`;
+                                    }
+                                    break;
                                 case 1:
-                                    if (fieldProps.isMultiple) {
-                                        if (isArray(value)) {
-                                            var userIds = value.map(user => user.Id);
-                                            if (!!fieldProps.notLookupInclude) {
-                                                return userIds.map(userId => (`${fieldProps.name} != ${userId}`)).join(' && ');
-                                            }
-                                            return userIds.map(userId => (`Extensions.LookupIdNotIncludes(${fieldProps.name}, ${userId})`)).join(' && ');
+                                    if (fieldProps.isMultiple && isArray(value)) {
+                                        var userIds = value.map(user => user.Id);
+                                        if (!!fieldProps.notLookupInclude) {
+                                            expr = userIds.map(userId => (`${fieldProps.name} != ${userId}`)).join(' && ');
+                                        }
+                                        else {
+                                            expr = userIds.map(userId => (`Extensions.LookupIdNotIncludes(${fieldProps.name}, ${userId})`)).join(' && ');
+                                        }
+                                        if (userIds.length > 1) {
+                                            expr = `(${expr})`;
                                         }
                                     }
-                                    return `${fieldProps.name}!=${value.Id}`;
+                                    else {
+                                        expr = `${fieldProps.name}!=${value.Id}`;
+                                    }
+                                    break;
                             }
-                        }
+                            break;
                         case "date":
                         case "datetime":
                             switch (comparison.key) {
                                 case 0:
-                                    return `${fieldProps.name} == "${value}"`;
+                                    expr = `${fieldProps.name} == "${value}"`; break;
                                 case 1:
-                                    return `${fieldProps.name} != "${value}"`;
+                                    expr = `${fieldProps.name} != "${value}"`; break;
                                 case 4:
-                                    return `${fieldProps.name} < "${value}"`;
+                                    expr = `${fieldProps.name} < "${value}"`; break;
                                 case 5:
-                                    return `${fieldProps.name} <= "${value}"`;
+                                    expr = `${fieldProps.name} <= "${value}"`; break;
                                 case 6:
-                                    return `${fieldProps.name} > "${value}"`;
+                                    expr = `${fieldProps.name} > "${value}"`; break;
                                 case 7:
-                                    return `${fieldProps.name} >= "${value}"`;
+                                    expr = `${fieldProps.name} >= "${value}"`; break;
                             }
+                            break;
                         case "number":
                             switch (comparison.key) {
                                 case 0:
-                                    return `${fieldProps.name} == ${value}`;
+                                    expr = `${fieldProps.name} == ${value}`; break;
                                 case 1:
-                                    return `${fieldProps.name} != ${value}`;
+                                    expr = `${fieldProps.name} != ${value}`; break;
                                 case 4:
-                                    return `${fieldProps.name} < ${value}`;
+                                    expr = `${fieldProps.name} < ${value}`; break;
                                 case 5:
-                                    return `${fieldProps.name} <= ${value}`;
+                                    expr = `${fieldProps.name} <= ${value}`; break;
                                 case 6:
-                                    return `${fieldProps.name} > ${value}`;
+                                    expr = `${fieldProps.name} > ${value}`; break;
                                 case 7:
-                                    return `${fieldProps.name} >= ${value}`;
+                                    expr = `${fieldProps.name} >= ${value}`; break;
                             }
+                            break;
                     }
                 }
                 else {
                     switch (comparison.key) {
                         case 8:
-                            return `${fieldProps.name} == null`;
+                            expr = `${fieldProps.name} == null`; break;
                         case 9:
-                            return `${fieldProps.name} != null`;
+                            expr = `${fieldProps.name} != null`; break;
                     }
                 }
             }
         }
+        return expr;
     }
 }
 
