@@ -163,7 +163,7 @@ export class ProjectList extends BaseListView {
               lookupList: 'Employees',
               lookupField: 'Title',
               isMultiple: true,
-              renderListForm: (ref) => this._renderEmployeeListForm(ref)
+              renderListForm: (ref, itemId) => this._renderEmployeeListForm(ref, itemId)
             }} mode={0} />
           }
           return '';
@@ -195,7 +195,7 @@ export class ProjectList extends BaseListView {
               lookupList: 'Employees',
               lookupField: 'Title',
               isMultiple: true,
-              renderListForm: (ref) => this._renderEmployeeListForm(ref)
+              renderListForm: (ref, itemId) => this._renderEmployeeListForm(ref, itemId)
             }} mode={0} />
           }
           return '';
@@ -227,7 +227,7 @@ export class ProjectList extends BaseListView {
               lookupList: 'Employees',
               lookupField: 'Title',
               isMultiple: true,
-              renderListForm: (ref) => this._renderEmployeeListForm(ref)
+              renderListForm: (ref, itemId) => this._renderEmployeeListForm(ref, itemId)
             }} mode={0} />
           }
           return '';
@@ -237,8 +237,8 @@ export class ProjectList extends BaseListView {
     return columns;
   }
 
-  _renderEmployeeListForm = (ref) => {
-    return <EmployeeFormPanel ref={ref} service={this.props.service}
+  _renderEmployeeListForm = (ref, itemId) => {
+    return <EmployeeFormPanel itemId={itemId} ref={ref} service={this.props.service}
       viewItemHeader="View Employee" editItemHeader="Edit Employee" newItemHeader="New Employee"
       onItemDeleted={() => {
         this.refresh();

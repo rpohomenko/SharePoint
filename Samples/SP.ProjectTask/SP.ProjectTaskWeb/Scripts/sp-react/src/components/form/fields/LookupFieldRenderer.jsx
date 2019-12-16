@@ -43,10 +43,11 @@ export class LookupFieldRenderer extends BaseFieldRenderer {
 
     _renderDispForm() {
         const { fieldProps, currentValue } = this.props;
+        const { formLookupId } = this.state;
         if (currentValue) {
             let listForm = null;
             if (typeof fieldProps.renderListForm === "function") {
-                listForm = fieldProps.renderListForm(this._listForm);
+                listForm = fieldProps.renderListForm(this._listForm, formLookupId);
             }
 
             if (isArray(currentValue)) {
@@ -323,7 +324,7 @@ export class LookupFieldRenderer extends BaseFieldRenderer {
     _showForm = (itemId) => {
         if (this._listForm.current) {
             if (isNumber(itemId)) {
-                this._listForm.current.setState({ itemId: itemId, item: undefined }, () => {
+                this.setState({ formLookupId: itemId }, () => {
                     this._listForm.current.open(0);
                 });
             }

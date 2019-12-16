@@ -25,7 +25,8 @@ export class ListForm extends React.Component {
     }
 
     async componentDidMount() {
-        const { item, itemId, mode, fields } = this.state;
+        const { itemId } = this.props;
+        const { mode, item } = this.state;
         if (!item && mode < 2 && itemId > 0) {
             await this.loadItem(itemId);
         }

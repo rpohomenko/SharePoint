@@ -473,7 +473,7 @@ namespace SP.ProjectTaskWeb.Controllers
           source = source.Take(count);
         }
 
-        if (fields != null)
+        if (fields != null && fields.Length > 0)
         {
           var param = Expression.Parameter(typeof(TEntity), "entity");
           var props = fields.Select(field => Expression.PropertyOrField(param, field));

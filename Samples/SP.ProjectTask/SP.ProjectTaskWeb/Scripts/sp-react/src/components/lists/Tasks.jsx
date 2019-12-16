@@ -178,7 +178,7 @@ export class TaskList extends BaseListView {
               lookupField: 'Title',
               isMultiple: false,
               required: true,
-              renderListForm: (ref) => this._renderProjectListForm(ref)
+              renderListForm: (ref, itemId) => this._renderProjectListForm(ref, itemId)
             }} mode={0} />
           }
           return '';
@@ -301,8 +301,8 @@ export class TaskList extends BaseListView {
     return columns;
   }
 
-  _renderProjectListForm = (ref) => {
-    return <ProjectFormPanel ref={ref} service={this.props.service}
+  _renderProjectListForm = (ref, itemId) => {
+    return <ProjectFormPanel ref={ref} itemId={itemId} service={this.props.service}
       viewItemHeader="View Project" editItemHeader="Edit Project" newItemHeader="New Project"
       onItemDeleted={() => {
         this.refresh();

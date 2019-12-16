@@ -28,6 +28,7 @@ export class ProjectSearchForm extends SearchForm {
             lookupList: 'Employees',
             lookupField: 'Title',
             isMultiple: true,
+            isAdvanced: true,
             renderListView: (ref, commandItems, onSelect, onSaving, onDeleting, onSaved, onDeleted) => 
                             this._renderEmployeeListView(ref, true, commandItems, onSelect, onSaving, onDeleting, onSaved, onDeleted),
             renderListForm: (ref) => this._renderEmployeeListForm(ref),
@@ -41,6 +42,7 @@ export class ProjectSearchForm extends SearchForm {
             lookupList: 'Employees',
             lookupField: 'Title',
             isMultiple: true,
+            isAdvanced: true,
             renderListView: (ref, commandItems, onSelect, onSaving, onDeleting, onSaved, onDeleted) => 
                             this._renderEmployeeListView(ref, true, commandItems, onSelect, onSaving, onDeleting, onSaved, onDeleted),
             renderListForm: (ref) => this._renderEmployeeListForm(ref),
@@ -54,6 +56,7 @@ export class ProjectSearchForm extends SearchForm {
             lookupList: 'Employees',
             lookupField: 'Title',
             isMultiple: true,
+            isAdvanced: true,
             renderListView: (ref, commandItems, onSelect, onSaving, onDeleting, onSaved, onDeleted) => 
                             this._renderEmployeeListView(ref, true, commandItems, onSelect, onSaving, onDeleting, onSaved, onDeleted),
             getItems: (searchTerm, limitResults, options)=>{ return this._service.getEmployees(limitResults, null, "Title", false, `Title.Contains("${searchTerm}")`, ['Id', 'Title'], options);}

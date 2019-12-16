@@ -417,15 +417,16 @@ export class BaseListView extends React.Component {
         if (!nextPageToken) {
             this.setState({
                 items: []
+            }, () => {
+                this._selection.setItems(items, true);
+                this._onSelectionChanged([]);
             });
         }
         else {
             this.setState({
                 items: items.concat(new Array(count))
-            }, () => {
-                //this._selection.setItems(items, true);
             });
-        }
+        }        
         let controller = new AbortController();
         const promise = this._fetchData(count, nextPageToken, sortBy, sortDesc, filter, { signal: controller ? controller.signal : null });
         this._controllers.push({ controller: controller, promise: promise });

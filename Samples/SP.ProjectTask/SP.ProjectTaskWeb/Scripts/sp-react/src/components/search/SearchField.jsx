@@ -250,9 +250,11 @@ export class SearchField extends React.Component {
                             switch (comparison.key) {
                                 case 0:
                                     if (fieldProps.isMultiple && isArray(value)) {
-                                        expr = value.map(choice => (`${fieldProps.name} == ${choice}`)).join(' || ');
-                                        if (value.length > 1) {
-                                            expr = `(${expr})`;
+                                        if (value.length > 0) {
+                                            expr = value.map(choice => (`${fieldProps.name} == ${choice}`)).join(' || ');
+                                            if (value.length > 1) {
+                                                expr = `(${expr})`;
+                                            }
                                         }
                                     }
                                     expr = `${fieldProps.name} == "${value}"`;
@@ -274,36 +276,44 @@ export class SearchField extends React.Component {
                             switch (comparison.key) {
                                 case 0:
                                     if (fieldProps.isMultiple && isArray(value)) {
-                                        var lookupIds = value.map(lookup => lookup.Id);
-                                        if (!!fieldProps.notLookupInclude) {
-                                            expr = `Extensions.Includes(${fieldProps.name}, new[] { ${lookupIds.join(',')} })`;
+                                        if (value.length > 0) {
+                                            var lookupIds = value.map(lookup => lookup.Id);
+                                            if (!!fieldProps.notLookupInclude) {
+                                                expr = `Extensions.Includes(${fieldProps.name}, new[] { ${lookupIds.join(',')} })`;
+                                            }
+                                            else {
+                                                expr = lookupIds.map(lookupId => (`Extensions.LookupIdIncludes(${fieldProps.name}, ${lookupId})`)).join(' || ');
+                                                if (lookupIds.length > 1) {
+                                                    expr = `(${expr})`;
+                                                }
+                                            }
                                         }
-                                        else {
-                                            expr = lookupIds.map(lookupId => (`Extensions.LookupIdIncludes(${fieldProps.name}, ${lookupId})`)).join(' || ');
+                                    }
+                                    else {
+                                        // expr = `${fieldProps.name}==${value.Id}`;
+                                        expr = `Extensions.Equals(${fieldProps.name}, ${value.Id})`;
+                                    }
+                                    break;
+                                case 1:
+                                    if (fieldProps.isMultiple && isArray(value)) {
+                                        if (value.length > 0) {
+                                            var lookupIds = value.map(lookup => lookup.Id);
+                                            if (!!fieldProps.notLookupInclude) {
+                                                //expr = lookupIds.map(lookupId => (`${fieldProps.name} != ${lookupId}`)).join(' && ');
+                                                //expr = lookupIds.map(lookupId => (`Extensions.NotEquals(${fieldProps.name}, ${lookupId})`)).join(' && ');
+                                                expr = lookupIds.map(lookupId => (`Extensions.NotEquals(${fieldProps.name}, ${lookupId})`)).join(' && ');
+                                            }
+                                            else {
+                                                expr = lookupIds.map(lookupId => (`Extensions.LookupIdNotIncludes(${fieldProps.name}, ${lookupId})`)).join(' && ');
+                                            }
                                             if (lookupIds.length > 1) {
                                                 expr = `(${expr})`;
                                             }
                                         }
                                     }
                                     else {
-                                        expr = `${fieldProps.name}==${value.Id}`;
-                                    }
-                                    break;
-                                case 1:
-                                    if (fieldProps.isMultiple && isArray(value)) {
-                                        var lookupIds = value.map(lookup => lookup.Id);
-                                        if (!!fieldProps.notLookupInclude) {
-                                            expr = lookupIds.map(lookupId => (`${fieldProps.name} != ${lookupId}`)).join(' && ');
-                                        }
-                                        else {
-                                            expr = lookupIds.map(lookupId => (`Extensions.LookupIdNotIncludes(${fieldProps.name}, ${lookupId})`)).join(' && ');
-                                        }
-                                        if (lookupIds.length > 1) {
-                                            expr = `(${expr})`;
-                                        }
-                                    }
-                                    else {
-                                        expr = `${fieldProps.name}!=${value.Id}`;
+                                        //expr = `${fieldProps.name} != ${value.Id}`;
+                                        expr = `Extensions.NotEquals(${fieldProps.name}, ${value.Id})`;
                                     }
                                     break;
                             }
@@ -311,7 +321,7 @@ export class SearchField extends React.Component {
                         case "user":
                             switch (comparison.key) {
                                 case 0:
-                                    if (fieldProps.isMultiple && isArray(value)) {
+                                    if (fieldProps.isMultiple && isArray(value) && value.length > 0) {
                                         var userIds = value.map(user => user.Id);
                                         if (!!fieldProps.notLookupInclude) {
                                             expr = `Extensions.Includes(${fieldProps.name}, new[] { ${userIds.join(',')} })`;
@@ -330,15 +340,18 @@ export class SearchField extends React.Component {
                                     break;
                                 case 1:
                                     if (fieldProps.isMultiple && isArray(value)) {
-                                        var userIds = value.map(user => user.Id);
-                                        if (!!fieldProps.notLookupInclude) {
-                                            expr = userIds.map(userId => (`${fieldProps.name} != ${userId}`)).join(' && ');
-                                        }
-                                        else {
-                                            expr = userIds.map(userId => (`Extensions.LookupIdNotIncludes(${fieldProps.name}, ${userId})`)).join(' && ');
-                                        }
-                                        if (userIds.length > 1) {
-                                            expr = `(${expr})`;
+                                        if (value.length > 0) {
+                                            var userIds = value.map(user => user.Id);
+                                            if (!!fieldProps.notLookupInclude) {
+                                                //expr = userIds.map(userId => (`${fieldProps.name} != ${userId}`)).join(' && ');
+                                                expr = userIds.map(userId => (`Extensions.NotEquals(${fieldProps.name}, ${userId})`)).join(' && ');
+                                            }
+                                            else {
+                                                expr = userIds.map(userId => (`Extensions.LookupIdNotIncludes(${fieldProps.name}, ${userId})`)).join(' && ');
+                                            }
+                                            if (userIds.length > 1) {
+                                                expr = `(${expr})`;
+                                            }
                                         }
                                     }
                                     else {

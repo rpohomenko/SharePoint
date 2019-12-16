@@ -17,19 +17,10 @@ export class ListFormPanel extends React.Component {
         };
         this._listForm = React.createRef();
     }
-
-   componentDidUpdate(nextProps, nextState) {
-        if (nextProps.item !== undefined && nextState.item !== nextProps.item) {
-            this.setState({ item: nextProps.item });
-        }
-        if (nextProps.itemId !== undefined && nextState.itemId !== nextProps.itemId) {
-            this.setState({ itemId: nextProps.itemId });
-        }
-    }
-
+   
     render() {
-        const { onRenderListForm, onItemSaving, onItemSaved, onItemDeleting, onItemDeleted, onItemLoaded } = this.props;
-        const { mode, item, itemId, confirmClosePanel, showPanel, isDirty } = this.state;
+        const { onRenderListForm, item, itemId, onItemSaving, onItemSaved, onItemDeleting, onItemDeleted, onItemLoaded } = this.props;
+        const { mode, confirmClosePanel, showPanel, isDirty } = this.state;
         let listForm;
         let renderListForm = this._renderListForm;
 
@@ -134,16 +125,7 @@ export class ListFormPanel extends React.Component {
         throw "Method _renderListForm is not yet implemented!";
     }
     _renderCommandBar(items, renderCommandItem) {
-        return null;
-        /*let { commandBar } = this.state;
-        if (!commandBar) {
-            commandBar = (<CommandBar className="sticky-top" ref={ref => this._commandBar = ref} styles={{ root: { paddingTop: 10 }, menuIcon: { fontSize: '16px' } }}
-                items={items}
-                onRenderItem={renderCommandItem} />);
-            //TODO: Warning: Cannot update during an existing state transition (such as within `render`). Render methods should be a pure function of props and state.
-            //this.setState({ commandBar: commandBar });
-        }
-        return commandBar;*/
+        return null;       
     }
 
     _renderPanelHeader = (
@@ -189,8 +171,9 @@ export class ListFormPanel extends React.Component {
     }
 
     _refresh = async () => {
-        const { itemId, item } = this.state;
+        const { itemId } = this.props;
         if (this._listForm.current) {
+            let item = this._listForm.current.state.item;
             this.setState({ isDirty: false, isRefreshing: true });
             return await this._listForm.current.loadItem(item ? item.Id : itemId).then((result) => {
                 this.setState({ isRefreshing: false });
@@ -199,8 +182,11 @@ export class ListFormPanel extends React.Component {
     }
 
     _onRenderFooterContent = () => {
-        const { canAddListItems } = this.props;
-        const { isValid, isDirty, mode, item, isDeleting, isSaving, isRefreshing } = this.state;
+        let { canAddListItems, item } = this.props;
+        const { isValid, isDirty, mode, isDeleting, isSaving, isRefreshing } = this.state;
+        if (this._listForm.current) {
+            item = this._listForm.current.state.item;
+        }
         let canSave = false;
         if (mode === 2) {
             canSave = canAddListItems;
@@ -224,12 +210,16 @@ export class ListFormPanel extends React.Component {
     }
 
     _getCommandItems() {
-        const { canAddListItems } = this.props;
-        const { item, mode, isValid, isDirty, isSaving, isDeleting, isRefreshing, isLoaded } = this.state;
+        let { canAddListItems, item } = this.props;
+        const { mode, isValid, isDirty, isSaving, isDeleting, isRefreshing, isLoaded } = this.state;
         /*if (this._listForm.current) {
             isSaving = this._listForm.current.state.isSaving;
             isDeleting = this._listForm.current.state.isDeleting;
         }*/
+
+        if (this._listForm.current) {
+            item = this._listForm.current.state.item;
+        }
 
         let canSave = false, canEdit, canDelete = false;
         if (mode === 2) {
@@ -299,7 +289,11 @@ export class ListFormPanel extends React.Component {
     }
 
     _getCommandFarItems() {
-        const { item, mode, isRefreshing, isDeleting, isSaving, isLoaded } = this.state;
+        let { item } = this.props;
+        const { mode, isRefreshing, isDeleting, isSaving, isLoaded } = this.state;
+        if (this._listForm.current) {
+            item = this._listForm.current.state.item;
+        }
         //let isLoading = false;
         //if (this._listForm.current) {
         //isSaving = this._listForm.current.state.isSaving;

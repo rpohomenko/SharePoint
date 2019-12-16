@@ -36,6 +36,7 @@ export class EmployeeSearchForm extends SearchForm {
                 type: 'user',
                 title: 'Account',              
                 limitResults: 5,
+                isAdvanced: true,
                 isMultiple: true,
                 notLookupInclude: true,
                 getPersonas: (searchTerm, limitResults, options) => { return this._service.getUsers(searchTerm, limitResults, options); },
@@ -45,6 +46,7 @@ export class EmployeeSearchForm extends SearchForm {
                 name: 'EmployeePosition',
                 type: 'choice',
                 isMultiple: true,
+                isAdvanced: true,
                 title: 'Position',
                 choices: [
                     { value: "Web developer", key: 1 },
@@ -58,19 +60,22 @@ export class EmployeeSearchForm extends SearchForm {
                 key: 'phone',
                 name: 'Phone',
                 type: 'text',
-                title: 'Phone'
+                title: 'Phone',
+                isAdvanced: true
             },
             {
                 key: 'email',
                 name: 'Email',
                 type: 'text',
-                title: 'Email'
+                title: 'Email',
+                isAdvanced: true
             },
             {
                 key: 'manager',
                 name: 'Managers',
                 type: 'lookup',
                 isMultiple: true,
+                isAdvanced: true,
                 lookupList: 'Employees',
                 lookupField: 'Title',
                 title: 'Manager',
@@ -84,6 +89,7 @@ export class EmployeeSearchForm extends SearchForm {
                 type: 'lookup',
                 isMultiple: true,
                 notLookupInclude: true,
+                isAdvanced: true,
                 title: 'Department',
                 lookupList: 'Departments',
                 lookupField: 'Title',
