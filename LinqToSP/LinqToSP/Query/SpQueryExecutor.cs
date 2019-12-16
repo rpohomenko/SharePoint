@@ -169,6 +169,8 @@ namespace SP.Client.Linq.Query
         {
             lock (_lock)
             {
+                IEnumerable<TResult> results = null;
+
                 if (SpQueryArgs == null) return Enumerable.Empty<TResult>();
 
                 var spView = GetView(queryModel);
@@ -178,15 +180,23 @@ namespace SP.Client.Linq.Query
                     return Enumerable.Empty<TResult>();
                 }
 
-                var results = _manager.GetEntities(spView);
+                var entities = _manager.GetEntities(spView);
 
                 foreach (var resultOperator in queryModel.ResultOperators)
                 {
                     if (resultOperator is ReverseResultOperator)
-                        results = results.Reverse();
+                        entities = entities.Reverse();
                 }
 
-                return results.Cast<TResult>();
+                if (typeof(TEntity).IsAssignableFrom(typeof(TResult)))
+                {
+                    results = entities.Cast<TResult>();
+                }
+                else if (typeof(TResult) == typeof(bool))
+                {
+                    results = entities.Select(result => result.Id > 0).Cast<TResult>();
+                }
+                return results;
             }
         }
 

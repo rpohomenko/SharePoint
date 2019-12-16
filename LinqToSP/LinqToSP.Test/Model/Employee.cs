@@ -112,7 +112,7 @@ namespace LinqToSP.Test.Model
       set;
     }
 
-    [UserField(Name = "Emp_Manager", Title = "Manager", Order = 6, /*Overwrite = true,*/ IsMultiple = true, Behavior = ProvisionBehavior.Overwrite)]
+    [LookupField(Name = "Emp_Manager", Title = "Manager", Order = 6, /*Overwrite = true,*/ IsMultiple = true, Behavior = ProvisionBehavior.Overwrite)]
     public ISpEntityLookupCollection<Employee> ManagerLookup
     {
       get;

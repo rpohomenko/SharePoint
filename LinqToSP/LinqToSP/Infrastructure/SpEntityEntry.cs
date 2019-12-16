@@ -82,7 +82,18 @@ namespace SP.Client.Linq.Infrastructure
                             || (value.Key is PropertyInfo && (value.Key as PropertyInfo).CanWrite))
                             && !Equals(default, value.Value))
                         {
-                            OriginalValues[value.Key.Name] = value.Value;
+                            if (typeof(ISpEntityLookup).IsAssignableFrom(value.Key.GetMemberType()))
+                            {
+                                OriginalValues[value.Key.Name] = (value.Value as ISpEntityLookup).Clone();
+                            }
+                            else if (typeof(ISpEntityLookupCollection).IsAssignableFrom(value.Key.GetMemberType()))
+                            {
+                                OriginalValues[value.Key.Name] = (value.Value as ISpEntityLookupCollection).Clone();
+                            }
+                            else
+                            {
+                                OriginalValues[value.Key.Name] = value.Value;
+                            }
                         }
                     }
                 }
@@ -432,7 +443,6 @@ namespace SP.Client.Linq.Infrastructure
 
         private void Merge(string propKey, TEntity fromEntity)
         {
-
             TEntity toEntity = Entity;
             if (!string.IsNullOrEmpty(propKey) && fromEntity != null && toEntity != null)
             {
@@ -447,6 +457,21 @@ namespace SP.Client.Linq.Infrastructure
                 else
                 {
                     object value = prop.GetValue(fromEntity);
+                    if (value != null)
+                    {
+                        if (typeof(ISpEntityLookup).IsAssignableFrom(prop.GetMemberType()))
+                        {
+                            var lookupValue = prop.GetValue(toEntity) as ISpEntityLookup;
+                            if (lookupValue != null)
+                                lookupValue.EntityId = (value as ISpEntityLookup).EntityId;
+                        }
+                        if (typeof(ISpEntityLookupCollection).IsAssignableFrom(prop.GetMemberType()))
+                        {
+                            var lookupValues = prop.GetValue(toEntity) as ISpEntityLookupCollection;
+                            if (lookupValues != null)
+                                lookupValues.EntityIds = (value as ISpEntityLookupCollection).EntityIds;
+                        }
+                    }
                     if (prop.CanWrite)
                     {
                         prop.SetValue(toEntity, value);

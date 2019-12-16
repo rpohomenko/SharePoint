@@ -208,7 +208,8 @@ namespace SP.Client.Linq.Provisioning
                         {
                             userField.AllowMultipleValues = allowMultipleValues;
                         }
-                        if (userField.IsPropertyAvailable("AllowMultipleValues") && userField.SelectionMode != userSelectionMode)
+                        if (userField.IsPropertyAvailable("AllowMultipleValues")
+                            && userField.IsPropertyAvailable("SelectionMode") && userField.SelectionMode != userSelectionMode)
                         {
                             userField.SelectionMode = userSelectionMode;
                         }

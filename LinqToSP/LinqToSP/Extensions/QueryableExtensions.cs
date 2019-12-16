@@ -339,7 +339,10 @@ namespace SP.Client.Linq
                 else
                 {
                     var entry = existEntity != null ? GetEntry(source, existEntity) : source.NewEntry();
-                    entry.EntityId = entityId;
+                    if (!checkExisting && entityId > 0)
+                    {
+                        entry.EntityId = entityId;
+                    }
                     entry.Merge(entity);
                     entry.AutoUpdateLookups = autoUpdateLookups;
                     entry.Update();

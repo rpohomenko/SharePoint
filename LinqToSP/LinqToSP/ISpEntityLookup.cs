@@ -1,27 +1,28 @@
-﻿using SP.Client.Linq.Infrastructure;
-using SP.Client.Linq.Query;
+﻿using SP.Client.Linq.Query;
 using System;
 
 namespace SP.Client.Linq
 {
-  public interface ISpEntityLookup
-  {
-    SpQueryArgs<ISpEntryDataContext> SpQueryArgs { get; }
+    public interface ISpEntityLookup: ICloneable
+    {
+        SpQueryArgs<ISpEntryDataContext> SpQueryArgs { get; }
 
-    ISpEntryDataContext Context { get; }
+        ISpEntryDataContext Context { get; }
 
-    int EntityId { get; set; }
+        int EntityId { get; set; }
 
-    Type EntityType { get; }
+        Type EntityType { get; }
 
-    bool Update();
-  }
+        bool Update();
+    }
 
-  public interface ISpEntityLookup<TEntity> : ISpEntityLookup
-   where TEntity : class, IListItemEntity, new()
-  {
-    //SpEntityEntry<TEntity, ISpEntryDataContext> Entry { get; }
-    TEntity GetEntity();
-    void SetEntity(TEntity entity);
-  }
+    public interface ISpEntityLookup<TEntity> : ISpEntityLookup
+     where TEntity : class, IListItemEntity, new()
+    {
+        TEntity GetEntity();
+        void SetEntity(TEntity entity);
+        bool NotEquals(int entityId);
+
+        bool Equals(int entityId);
+    }
 }

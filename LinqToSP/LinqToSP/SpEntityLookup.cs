@@ -217,5 +217,38 @@ namespace SP.Client.Linq
 
             return false;
         }
+
+        public static bool operator ==(int entityId, SpEntityLookup<TEntity> entityLookup) { return false; }
+        public static bool operator !=(int entityId, SpEntityLookup<TEntity> entityLookup) { return false; }
+        public static bool operator ==(SpEntityLookup<TEntity> entityLookup, int entityId) { return false; }
+        public static bool operator !=(SpEntityLookup<TEntity> entityLookup, int entityId) { return false; }
+
+        public static implicit operator int(SpEntityLookup<TEntity> entityLookup) { return entityLookup.EntityId; }
+        public static explicit operator SpEntityLookup<TEntity>(int entityId) => new SpEntityLookup<TEntity>() { EntityId = entityId };
+
+        public bool NotEquals(int entityId)
+        {
+            return this.EntityId != entityId;
+        }
+
+        public bool Equals(int entityId)
+        {
+            return this.EntityId == entityId;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return this.EntityId.Equals(((SpEntityLookup<TEntity>)obj).EntityId);
+        }
+
+        public override int GetHashCode()
+        {
+            return this.EntityId.GetHashCode();
+        }
+
+        public object Clone()
+        {
+            return this.MemberwiseClone();
+        }
     }
 }

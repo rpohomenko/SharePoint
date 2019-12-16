@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace SP.Client.Linq
 {
-    public interface ISpEntityLookupCollection : IEnumerable<ISpEntityLookup>
+    public interface ISpEntityLookupCollection : IEnumerable<ISpEntityLookup>, ICloneable
     {
         SpQueryArgs<ISpEntryDataContext> SpQueryArgs { get; }
 
@@ -205,6 +205,11 @@ namespace SP.Client.Linq
                 updated = lookupItem.Update() || updated;
             }
             return updated;
+        }
+
+        public object Clone()
+        {
+            return this.MemberwiseClone();
         }
     }
 }

@@ -99,6 +99,21 @@ namespace SP.Client.Linq.Query.ExpressionVisitors
 
                 Operator = new Caml.Operators.Eq(fieldRef, value);
             }
+            else if (node.Method.Name == "NotEquals")
+            {
+                Visit(node.Object);
+                foreach (var arg in node.Arguments)
+                {
+                    Visit(arg);
+                }
+
+                FieldType dataType;
+                CamlFieldRef fieldRef = GetFieldRef(out dataType);
+                CamlValue value = GetValue(dataType);
+
+                Operator = new Caml.Operators.Neq(fieldRef, value);
+                //return null;
+            }
             return expression;
         }
 
