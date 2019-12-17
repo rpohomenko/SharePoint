@@ -1,14 +1,17 @@
 import * as React from 'react';
-import RichTextEditor from 'react-rte';
+//import RichTextEditor from 'react-rte';
+import { EditorState, convertToRaw, ContentState } from 'draft-js';
+import { Editor } from 'react-draft-wysiwyg';
+import draftToHtml from 'draftjs-to-html';
+import htmlToDraft from 'html-to-draftjs';
 //import { Dropdown } from 'office-ui-fabric-react/lib/Dropdown';
 import { TextField } from 'office-ui-fabric-react/lib/TextField';
 import { ChoiceGroup } from 'office-ui-fabric-react/lib/ChoiceGroup';
 import { BaseFieldRenderer } from './BaseFieldRenderer';
-import { isString } from 'util';
 
 export class RichTextFieldRenderer extends BaseFieldRenderer {
     constructor(props) {
-        super(props);
+        super(props);       
         this.state = {
             ...this.state,
             editorMode: 0,
@@ -34,23 +37,20 @@ export class RichTextFieldRenderer extends BaseFieldRenderer {
         return (<>
             {this._getChoiceControl(editorMode)}
             {editorMode === 0 &&
-                (<RichTextEditor
+                /*(<RichTextEditor
                     ref={ref => this._richTextField = ref}
                     value={value}
                     disabled={!!disabled}
                     onChange={(newValue) => {
                         this.setValue(newValue)
-                    }}
-                    customControls={[
-                        //this._getChoiceControl(editorMode)
-                        /*<Dropdown                                          
-                            selectedKey={editorMode}
-                            onChange={(ev, item) => this.setState({ editorMode: item.key })}
-                            options={[{ key: 0, text: "Editor" }, { key: 1, text: "Source" }]}
-                            disabled={disabled} />*/
-
-                    ]}
-                />)}
+                    }}                  
+                />)*/
+                (<Editor
+                    editorState={value}
+                    wrapperClassName="rte-editor-wrapper"
+                    editorClassName="rte-editor"
+                    onEditorStateChange={(value)=>this.setValue(value)}
+                  />)}
             {editorMode === 1 &&
                 (<TextField
                     disabled={disabled}
@@ -61,7 +61,7 @@ export class RichTextFieldRenderer extends BaseFieldRenderer {
                     value={this.getValue()}
                 />)}
         </>);
-    }
+    }   
 
     _getChoiceControl(editorMode) {
         return <ChoiceGroup
@@ -104,7 +104,8 @@ export class RichTextFieldRenderer extends BaseFieldRenderer {
     getValue() {
         let value = super.getValue();
         if (value) {
-            return value.toString('html');
+            return draftToHtml(convertToRaw(value.getCurrentContent()));
+            //return value.toString('html');
         }
         return value;
     }
@@ -114,9 +115,16 @@ export class RichTextFieldRenderer extends BaseFieldRenderer {
     }
 
     parseStringValue(value){
-       return value
+        value = htmlToDraft(value);
+        if (value) {
+          const contentState = ContentState.createFromBlockArray(value.contentBlocks);
+          value = EditorState.createWithContent(contentState);
+        }
+        return value;
+       /*return value
        ? RichTextEditor.createValueFromString(value, 'html')
-       : RichTextEditor.createEmptyValue();
+       : RichTextEditor.createEmptyValue();*/
+
     }
 
     isDirty() {

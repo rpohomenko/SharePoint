@@ -1,4 +1,5 @@
-@import "office-ui-fabric-react/dist/sass/Fabric.scss";
-@import "./navbar.scss";
-@import "./sidebar.scss";
-@import "./content.scss";
+@import "office-ui-fabric-react/dist/sass/Fabric";
+@import "react-draft-wysiwyg/dist/react-draft-wysiwyg";
+@import "./navbar";
+@import "./sidebar";
+@import "./content";

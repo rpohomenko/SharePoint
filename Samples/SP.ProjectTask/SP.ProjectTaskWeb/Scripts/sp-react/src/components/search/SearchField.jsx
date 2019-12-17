@@ -321,18 +321,19 @@ export class SearchField extends React.Component {
                         case "user":
                             switch (comparison.key) {
                                 case 0:
-                                    if (fieldProps.isMultiple && isArray(value) && value.length > 0) {
-                                        var userIds = value.map(user => user.Id);
-                                        if (!!fieldProps.notLookupInclude) {
-                                            expr = `Extensions.Includes(${fieldProps.name}, new[] { ${userIds.join(',')} })`;
-                                        }
-                                        else {
-                                            expr = userIds.map(userId => (`Extensions.LookupIdIncludes(${fieldProps.name}, ${userId})`)).join(' || ');
-                                            if (userIds.length > 1) {
-                                                expr = `(${expr})`;
+                                    if (fieldProps.isMultiple && isArray(value)) {
+                                        if (value.length > 0) {
+                                            var userIds = value.map(user => user.Id);
+                                            if (!!fieldProps.notLookupInclude) {
+                                                expr = `Extensions.Includes(${fieldProps.name}, new[] { ${userIds.join(',')} })`;
+                                            }
+                                            else {
+                                                expr = userIds.map(userId => (`Extensions.LookupIdIncludes(${fieldProps.name}, ${userId})`)).join(' || ');
+                                                if (userIds.length > 1) {
+                                                    expr = `(${expr})`;
+                                                }
                                             }
                                         }
-
                                     }
                                     else {
                                         expr = `${fieldProps.name}==${value.Id}`;

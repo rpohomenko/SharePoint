@@ -55,45 +55,47 @@ export class ListForm extends React.Component {
             else {
             }
             return (
-                <div className='form-container' ref={this._container}>
-                    <div ref={this._commandNode}>
-                        {commandBar}
-                        <StatusBar ref={ref => this._status = ref} />
-                        {_progressIndicator}
+                <form>
+                    <div className='form-container' ref={this._container}>
+                        <div ref={this._commandNode}>
+                            {commandBar}
+                            <StatusBar ref={ref => this._status = ref} />
+                            {_progressIndicator}
+                        </div>
+                        {
+                            isLoading ? (<ProgressIndicator label={"Loading..."} />)
+                                : fields.map((field, i) =>
+                                    (<FormField ref={ref => {
+                                        if (ref != null) {
+                                            let formFields = this._formFields = this._formFields || [];
+                                            formFields.push(ref);
+                                        }
+                                    }} disabled={isLoading || isDeleting || isSaving} key={field.key || field.name} item={item} fieldProps={field} mode={mode} onValidate={(fieldControl, isValid) => this._onValidate(fieldControl, isValid)} />))
+                        }
+                        {confirmDeletion &&
+                            (<Dialog
+                                hidden={!confirmDeletion}
+                                onDismiss={() => this.setState({ confirmDeletion: false })}
+                                dialogContentProps={{
+                                    type: DialogType.normal,
+                                    title: 'Delete?',
+                                    subText: 'Are you sure you want to delete the item(s)?'
+                                }}
+                                modalProps={{
+                                    isBlocking: true,
+                                    styles: { main: { maxWidth: 450 } }
+                                }}>
+                                <DialogFooter>
+                                    <PrimaryButton onClick={() => {
+                                        this.deleteItem();
+                                        this.setState({ confirmDeletion: false });
+                                    }} text="Yes" />
+                                    <DefaultButton onClick={() => this.setState({ confirmDeletion: false })} text="No" />
+                                </DialogFooter>
+                            </Dialog>)
+                        }
                     </div>
-                    {
-                        isLoading ? (<ProgressIndicator label={"Loading..."} />)
-                            : fields.map((field, i) =>
-                                (<FormField ref={ref => {
-                                    if (ref != null) {
-                                        let formFields = this._formFields = this._formFields || [];
-                                        formFields.push(ref);
-                                    }
-                                }} disabled={isLoading || isDeleting || isSaving} key={field.key || field.name} item={item} fieldProps={field} mode={mode} onValidate={(fieldControl, isValid) => this._onValidate(fieldControl, isValid)} />))
-                    }
-                    {confirmDeletion &&
-                        (<Dialog
-                            hidden={!confirmDeletion}
-                            onDismiss={() => this.setState({ confirmDeletion: false })}
-                            dialogContentProps={{
-                                type: DialogType.normal,
-                                title: 'Delete?',
-                                subText: 'Are you sure you want to delete the item(s)?'
-                            }}
-                            modalProps={{
-                                isBlocking: true,
-                                styles: { main: { maxWidth: 450 } }
-                            }}>
-                            <DialogFooter>
-                                <PrimaryButton onClick={() => {
-                                    this.deleteItem();
-                                    this.setState({ confirmDeletion: false });
-                                }} text="Yes" />
-                                <DefaultButton onClick={() => this.setState({ confirmDeletion: false })} text="No" />
-                            </DialogFooter>
-                        </Dialog>)
-                    }
-                </div >
+                </form>
             );
         }
         return null;

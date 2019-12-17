@@ -415,10 +415,11 @@ export class BaseListView extends React.Component {
             this._status.clear();
         }
         if (!nextPageToken) {
+            items = [];
             this.setState({
-                items: []
+                items: items.concat(new Array(count))
             }, () => {
-                this._selection.setItems(items, true);
+                this._selection.setItems([], true);
                 this._onSelectionChanged([]);
             });
         }
@@ -432,10 +433,10 @@ export class BaseListView extends React.Component {
         this._controllers.push({ controller: controller, promise: promise });
 
         return await this._onPromise(promise, (json) => {
-            let { items } = this.state;
+            //let { items } = this.state;
             let itemsCopy = [];
             if (json) {
-                itemsCopy = (nextPageToken ? items.splice(0, items.length - count) : items.splice(0, items.length)).concat(json.items);
+                itemsCopy = (nextPageToken ? items : items.splice(0, items.length)).concat(json.items);
 
                 if (this._controllers.filter(c => c.controller == controller) === 0) return;
                 this.setState({
