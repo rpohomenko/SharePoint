@@ -277,10 +277,14 @@ namespace SP.Client.Linq.Infrastructure
                 }
                 else
                 {
+                    currentValue = (currentValue as ISpEntityLookup).EntityId;
                     if (EntityId <= 0)
                     {
-                        currentValue = (currentValue as ISpEntityLookup).EntityId;
                         isChanged = !Equals(default(int), currentValue);
+                    }
+                    else
+                    {
+                        isChanged = originalValue != default;
                     }
                 }
             }
@@ -317,17 +321,21 @@ namespace SP.Client.Linq.Infrastructure
                 }
                 else
                 {
+                    if ((currentValue as ISpEntityLookupCollection).EntityIds == null)
+                    {
+                        currentValue = default(int[]);
+                    }
+                    else
+                    {
+                        currentValue = (currentValue as ISpEntityLookupCollection).EntityIds.Where(entityId => entityId > 0).ToArray();
+                    }
                     if (EntityId <= 0)
                     {
-                        if ((currentValue as ISpEntityLookupCollection).EntityIds == null)
-                        {
-                            currentValue = default(int[]);
-                        }
-                        else
-                        {
-                            currentValue = (currentValue as ISpEntityLookupCollection).EntityIds.Where(entityId => entityId > 0).ToArray();
-                        }
                         isChanged = !Equals(default(int[]), currentValue);
+                    }
+                    else
+                    {
+                        isChanged = originalValue != default;
                     }
                 }
             }
