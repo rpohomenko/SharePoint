@@ -4,7 +4,7 @@
     <!--*-->
     <id>SP.Client.2016</id>
     <!--*-->
-    <version>1.0.2</version>
+    <version>1.0.3</version>
     <title>SP.Client.2016</title>
     <!--*-->
     <authors>Ruslan Pakhomenka</authors>
@@ -19,7 +19,7 @@
 SharePoint 2016
         </description>
     <!--*-->
-    <releaseNotes>bug fixing</releaseNotes>
+    <releaseNotes>TZ</releaseNotes>
     <copyright>Copyright ©  2019</copyright>
     <tags>
     </tags>

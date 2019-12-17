@@ -4,7 +4,7 @@
     <!--*-->
     <id>LinqToSP.2016</id>
     <!--*-->
-    <version>1.0.3</version>
+    <version>1.0.4</version>
     <title>Linq To SharePoint (2016) Framework</title>
     <!--*-->
     <authors>Ruslan Pakhomenka</authors>
@@ -24,7 +24,7 @@
     <dependencies>
       <dependency id="Microsoft.SharePoint2016.CSOM" version="16.0.4690.1000" />
       <dependency id="Remotion.Linq" version="2.2.0" />
-      <dependency id="SP.Client.2016" version="1.0.2" />
+      <dependency id="SP.Client.2016" version="1.0.3" />
     </dependencies>
   </metadata>
 </package>

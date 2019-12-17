@@ -4,7 +4,7 @@
     <!--*-->
     <id>LinqToSP.o365</id>
     <!--*-->
-    <version>1.1.1</version>
+    <version>1.1.2</version>
     <title>Linq To SharePoint (o365) Framework</title>
     <!--*-->
     <authors>Ruslan Pakhomenka</authors>
@@ -24,7 +24,7 @@
     <dependencies>
       <dependency id="Microsoft.SharePointOnline.CSOM" version="16.1.19404.12000" />
       <dependency id="Remotion.Linq" version="2.2.0" />
-      <dependency id="SP.Client.o365" version="1.0.3" />
+      <dependency id="SP.Client.o365" version="1.0.4" />
     </dependencies>
   </metadata>
 </package>
