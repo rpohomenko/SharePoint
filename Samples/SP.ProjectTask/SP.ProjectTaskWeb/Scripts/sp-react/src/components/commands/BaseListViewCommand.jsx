@@ -46,50 +46,16 @@ export class BaseListViewCommand extends React.Component {
             onClearFilter();
         }
     }
+
     render() {
-        const { canAddListItems, onItemSaving, onItemSaved, onItemDeleting, onItemDeleted, clearFilterShown } = this.props;
-        const { selection, refreshEnabed, confirmDeletion, isDeleting } = this.state;
+        const { canAddListItems, onItemSaving, onItemSaved, onItemDeleting, onItemDeleted } = this.props;
+        const { selection, confirmDeletion } = this.state;
         let item = selection && selection.length > 0 ? selection[0] : undefined;
         return (
             <div className="command-container" ref={this._container}>
                 <CommandBar ref={ref => this._commandBar = ref} styles={{ root: { paddingTop: 10 }, menuIcon: { fontSize: '16px' } }}
                     items={this._getItems()}
-                    farItems={[{
-                        key: 'filter',
-                        icon: 'Filter',
-                        text: 'Open Filter',
-                        iconOnly: true,
-                        disabled: !refreshEnabed || isDeleting,
-                        onClick: (e, sender) => this._onSetFilter(),
-                        iconProps: {
-                            iconName: 'Filter'
-                        },
-                        ariaLabel: 'Filter'
-                    },
-                    {
-                        key: 'clearFilter',
-                        icon: 'ClearFilter',
-                        text: 'Clear Filter',
-                        iconOnly: true,
-                        disabled: !clearFilterShown,
-                        onClick: (e, sender) => this._onClearFilter(),
-                        iconProps: {
-                            iconName: 'ClearFilter'
-                        },
-                        ariaLabel: 'Clear Filter'
-                    },
-                    {
-                        key: 'refresh',
-                        icon: 'Refresh',
-                        text: 'Refresh',
-                        iconOnly: true,
-                        disabled: !refreshEnabed || isDeleting,
-                        onClick: (e, sender) => this.refresh(),
-                        iconProps: {
-                            iconName: 'Refresh'
-                        },
-                        ariaLabel: 'Refresh'
-                    }]}
+                    farItems={this._getFarItems()}
                     onRenderOverflowButton={this._renderOverflowButton}
                     onRenderItem={this._renderItem} />
                 <Dialog
@@ -133,10 +99,11 @@ export class BaseListViewCommand extends React.Component {
         }
     }
 
-    async refresh() {
+    refresh() {
         const { onRefresh } = this.props;
+        this._onClearSelection();
         if (typeof onRefresh === "function") {
-            await onRefresh();
+            onRefresh();
         }
     }
 
@@ -175,6 +142,77 @@ export class BaseListViewCommand extends React.Component {
             />
         );
     };
+
+    _onClearSelection = () => {
+        const { onClearSelection } = this.props;
+        this.setState({ selection: null }, () => {
+            if (typeof onClearSelection === "function") {
+                onClearSelection();
+            }
+        });
+    }
+
+    _getFarItems() {
+        const { clearFilterShown } = this.props;
+        const { selection, isDeleting, refreshEnabed } = this.state;
+        let items = [];
+        if (selection && selection.length > 0) {
+            items.push({
+                key: 'clear',
+                icon: 'Clear',
+                text: "{0} selected".format(selection.length),
+                iconOnly: false,
+                disabled: selection.length === 0,
+                onClick: (e, sender) => this._onClearSelection(),
+                iconProps: {
+                    iconName: 'Clear'
+                },
+                ariaLabel: 'Clear'
+            });
+        }
+
+        items.push({
+            key: 'filter',
+            icon: 'Filter',
+            text: 'Open Filter',
+            iconOnly: true,
+            disabled: !refreshEnabed || isDeleting,
+            onClick: (e, sender) => this._onSetFilter(),
+            iconProps: {
+                iconName: 'Filter'
+            },
+            ariaLabel: 'Filter'
+        });
+
+        if (clearFilterShown) {
+            items.push({
+                key: 'clearFilter',
+                icon: 'ClearFilter',
+                text: 'Clear Filter',
+                iconOnly: true,
+                disabled: !clearFilterShown,
+                onClick: (e, sender) => this._onClearFilter(),
+                iconProps: {
+                    iconName: 'ClearFilter'
+                },
+                ariaLabel: 'Clear Filter'
+            });
+        }
+        items.push(
+            {
+                key: 'refresh',
+                icon: 'Refresh',
+                text: 'Refresh',
+                iconOnly: true,
+                disabled: !refreshEnabed || isDeleting,
+                onClick: (e, sender) => this.refresh(),
+                iconProps: {
+                    iconName: 'Refresh'
+                },
+                ariaLabel: 'Refresh'
+            });
+        return items;
+    }
 
     _getItems() {
         const { commandItems, canAddListItems, searchField } = this.props;
@@ -219,7 +257,7 @@ export class BaseListViewCommand extends React.Component {
                         <SearchField ref={ref => this._searchField = ref}
                             key={"searchField"}
                             fieldProps={{
-                                ...searchField,  
+                                ...searchField,
                                 type: 'search',
                                 onSearch: (term) => {
                                     if (this._searchField) {

@@ -103,7 +103,7 @@ export class EmployeeForm extends ListForm {
                 title: 'Manager',
                 renderListView: (ref, commandItems, onSelect, onSaving, onDeleting, onSaved, onDeleted) =>
                     this._renderEmployeeListView(ref, true, commandItems, onSelect, onSaving, onDeleting, onSaved, onDeleted),
-                renderListForm: (ref) => this._renderEmployeeListForm(ref),
+                renderListForm: (ref, itemId) => this._renderEmployeeListForm(ref, itemId),
                 getItems: (searchTerm, limitResults, options)=>{ return this._service.getEmployees(limitResults, null, "Title", false, `Title.Contains("${searchTerm}")`, ['Id', 'Title'], options);}
             },
             {
@@ -116,7 +116,7 @@ export class EmployeeForm extends ListForm {
                 lookupField: 'Title',
                 renderListView: (ref, commandItems, onSelect, onSaving, onDeleting, onSaved, onDeleted) =>
                     this._renderDepartmentListView(ref, false, commandItems, onSelect, onSaving, onDeleting, onSaved, onDeleted),
-                renderListForm: (ref) => this._renderDepartmentListForm(ref),
+                renderListForm: (ref, itemId) => this._renderDepartmentListForm(ref, itemId),
                 getItems: (searchTerm, limitResults, options)=>{ return this._service.getDepartments(limitResults, null, "Title", false, `Title.Contains("${searchTerm}")`, ['Id', 'Title'], options);}
             },
             {
@@ -165,8 +165,8 @@ export class EmployeeForm extends ListForm {
         }
     }
 
-    _renderEmployeeListForm = (ref) => {
-        return (<EmployeeFormPanel ref={ref} service={this._service}
+    _renderEmployeeListForm = (ref, itemId) => {
+        return (<EmployeeFormPanel itemId={itemId} ref={ref} service={this._service}
             viewItemHeader="View Employee" editItemHeader="Edit Employee" newItemHeader="New Employee"
             onItemDeleted={() => {
                 this.loadItem(this.props.item.Id);
@@ -174,10 +174,12 @@ export class EmployeeForm extends ListForm {
                     this._status.success("Deleted successfully.", this.props.STATUS_TIMEOUT);
                 }
             }}
-            onItemSaved={() => {
-                this.loadItem(this.props.item.Id);
-                if (this._status) {
-                    this._status.success("Saved successfully.", this.props.STATUS_TIMEOUT);
+            onItemSaved={(e, result) => {
+                if (result.ok) {
+                    this.loadItem(result.data.Id);
+                    if (this._status) {
+                        this._status.success("Saved successfully.", this.props.STATUS_TIMEOUT);
+                    }
                 }
             }}
         />);
@@ -187,8 +189,8 @@ export class EmployeeForm extends ListForm {
         return <EmployeeList ref={ref} service={this._service} pageSize={10} isMultipleSelection={isMultiple} commandItems={commandItems} emptyMessage="There are no employees." onSelect={onSelect} onItemSaving={onSaving} onItemDeleting={onDeleting} />;
     }
 
-    _renderDepartmentListForm = (ref) => {
-        return (<DepartmentFormPanel ref={ref} service={this._service}
+    _renderDepartmentListForm = (ref, itemId) => {
+        return (<DepartmentFormPanel itemId={itemId} ref={ref} service={this._service}
             viewItemHeader="View Department" editItemHeader="Edit Department" newItemHeader="New Department"
             onItemDeleted={() => {
                 this.loadItem(this.props.item.Id);
@@ -196,10 +198,12 @@ export class EmployeeForm extends ListForm {
                     this._status.success("Deleted successfully.", this.props.STATUS_TIMEOUT);
                 }
             }}
-            onItemSaved={() => {
-                this.loadItem(this.props.item.Id);
-                if (this._status) {
-                    this._status.success("Saved successfully.", this.props.STATUS_TIMEOUT);
+            onItemSaved={(e, result) => {
+                if (result.ok) {
+                    this.loadItem(result.data.Id);
+                    if (this._status) {
+                        this._status.success("Saved successfully.", this.props.STATUS_TIMEOUT);
+                    }
                 }
             }}
         />);

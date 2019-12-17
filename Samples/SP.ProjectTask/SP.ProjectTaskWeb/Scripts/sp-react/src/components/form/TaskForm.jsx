@@ -48,7 +48,7 @@ export class TaskForm extends ListForm {
             required: true,
             renderListView: (ref, commandItems, onSelect, onSaving, onDeleting, onSaved, onDeleted) =>
                 this._renderProjectListView(ref, false, commandItems, onSelect, onSaving, onDeleting, onSaved, onDeleted),
-            renderListForm: (ref) => this._renderProjectListForm(ref),
+            renderListForm: (ref, itemId) => this._renderProjectListForm(ref, itemId),
             getItems: (searchTerm, limitResults, options)=>{ return this._service.getProjects(limitResults, null, "Title", false, `Title.Contains("${searchTerm}")`, ['Id', 'Title'], options);}
         },
         {
@@ -120,8 +120,8 @@ export class TaskForm extends ListForm {
         }
     }
 
-    _renderProjectListForm = (ref) => {
-        return (<ProjectFormPanel ref={ref} service={this._service}
+    _renderProjectListForm = (ref, itemId) => {
+        return (<ProjectFormPanel itemId={itemId} ref={ref} service={this._service}
             viewItemHeader="View Project" editItemHeader="Edit Project" newItemHeader="New Project"
             onItemDeleted={() => {
                 this.loadItem(this.props.item.Id);
@@ -129,10 +129,12 @@ export class TaskForm extends ListForm {
                     this._status.success("Deleted successfully.", this.props.STATUS_TIMEOUT);
                 }
             }}
-            onItemSaved={() => {
-                this.loadItem(this.props.item.Id);
-                if (this._status) {
-                    this._status.success("Saved successfully.", this.props.STATUS_TIMEOUT);
+            onItemSaved={(e, result) => {
+                if (result.ok) {
+                    this.loadItem(result.data.Id);
+                    if (this._status) {
+                        this._status.success("Saved successfully.", this.props.STATUS_TIMEOUT);
+                    }
                 }
             }}
             onItemLoaded={(sender, item) => {

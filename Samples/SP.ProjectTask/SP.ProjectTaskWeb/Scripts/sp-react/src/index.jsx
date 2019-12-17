@@ -10,6 +10,7 @@ import "babel-polyfill";
 
 /* IE -- end */
 //require("bootstrap");
+import "./Prototypes";
 
 window._currentCulture = window._currentCulture ||
     {

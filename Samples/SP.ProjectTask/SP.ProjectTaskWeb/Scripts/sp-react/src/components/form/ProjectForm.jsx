@@ -29,8 +29,8 @@ export class ProjectForm extends ListForm {
         return super.render();
     }
 
-    _renderEmployeeListForm = (ref) => {
-        return (<EmployeeFormPanel ref={ref} service={this._service}
+    _renderEmployeeListForm = (ref, itemId) => {
+        return (<EmployeeFormPanel itemId={itemId} ref={ref} service={this._service}
             viewItemHeader="View Employee" editItemHeader="Edit Employee" newItemHeader="New Employee"
             onItemDeleted={() => {
                 this.loadItem(this.props.item.Id);
@@ -38,10 +38,12 @@ export class ProjectForm extends ListForm {
                     this._status.success("Deleted successfully.", this.props.STATUS_TIMEOUT);
                 }
             }}
-            onItemSaved={() => {
-                this.loadItem(this.props.item.Id);
-                if (this._status) {
-                    this._status.success("Saved successfully.", this.props.STATUS_TIMEOUT);
+            onItemSaved={(e, result) => {
+                if (result.ok) {
+                    this.loadItem(result.data.Id);
+                    if (this._status) {
+                        this._status.success("Saved successfully.", this.props.STATUS_TIMEOUT);
+                    }
                 }
             }}
             onItemLoaded={(sender, item) => {
@@ -72,7 +74,7 @@ export class ProjectForm extends ListForm {
             isMultiple: true,
             renderListView: (ref, commandItems, onSelect, onSaving, onDeleting, onSaved, onDeleted) => 
                             this._renderEmployeeListView(ref, true, commandItems, onSelect, onSaving, onDeleting, onSaved, onDeleted),
-            renderListForm: (ref) => this._renderEmployeeListForm(ref),
+            renderListForm: (ref, itemId) => this._renderEmployeeListForm(ref, itemId),
             getItems: (searchTerm, limitResults, options)=>{ return this._service.getEmployees(limitResults, null, "Title", false, `Title.Contains("${searchTerm}")`, ['Id', 'Title'], options);}
         },
         {
@@ -85,7 +87,7 @@ export class ProjectForm extends ListForm {
             isMultiple: true,
             renderListView: (ref, commandItems, onSelect, onSaving, onDeleting, onSaved, onDeleted) => 
                             this._renderEmployeeListView(ref, true, commandItems, onSelect, onSaving, onDeleting, onSaved, onDeleted),
-            renderListForm: (ref) => this._renderEmployeeListForm(ref),
+            renderListForm: (ref, itemId) => this._renderEmployeeListForm(ref, itemId),
             getItems: (searchTerm, limitResults, options)=>{ return this._service.getEmployees(limitResults, null, "Title", false, `Title.Contains("${searchTerm}")`, ['Id', 'Title'], options);}
         },
         {
@@ -98,7 +100,7 @@ export class ProjectForm extends ListForm {
             isMultiple: true,
             renderListView: (ref, commandItems, onSelect, onSaving, onDeleting, onSaved, onDeleted) => 
                             this._renderEmployeeListView(ref, true, commandItems, onSelect, onSaving, onDeleting, onSaved, onDeleted),
-            renderListForm: (ref) => this._renderEmployeeListForm(ref),
+            renderListForm: (ref, itemId) => this._renderEmployeeListForm(ref, itemId),
             getItems: (searchTerm, limitResults, options)=>{ return this._service.getEmployees(limitResults, null, "Title", false, `Title.Contains("${searchTerm}")`, ['Id', 'Title'], options);}
         }
         ];

@@ -47,6 +47,12 @@ export class TaskList extends BaseListView {
         <ScrollablePane scrollbarVisibility={ScrollbarVisibility.auto}>
           <Sticky stickyPosition={StickyPositionType.Header} isScrollSynced={true}>
             <TaskCommand ref={ref => this._command = ref} canAddListItems={canAddListItems} commandItems={commandItems} service={this._service} selection={selection}
+              onClearSelection={()=>{
+                //this._onSelectionChanged(null);
+                if (this._selection) {
+                  this._selection.setItems(this._selection.getItems(), true);
+                }
+              }}
               clearFilterShown={!!filter}
               onSearch={(expr, props) => {
                 if (props) {
@@ -328,7 +334,9 @@ export class TaskList extends BaseListView {
 
   _onSelectionChanged(selectionItems) {
     super._onSelectionChanged(selectionItems);
-    this._command.setState({ selection: selectionItems });
+    if(this._command){
+      this._command.setState({ selection: selectionItems });
+    }
   }
 
   _onItemInvoked = (item) => {
