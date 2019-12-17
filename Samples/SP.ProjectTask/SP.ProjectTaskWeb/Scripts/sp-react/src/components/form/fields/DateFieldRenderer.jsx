@@ -3,12 +3,6 @@ import { DatePicker, DayOfWeek } from 'office-ui-fabric-react/lib/DatePicker';
 import { BaseFieldRenderer } from './BaseFieldRenderer';
 var moment = require('moment');
 
-String.prototype.replaceAll = String.prototype.replaceAll ||
-function (search, replacement) {
-    var target = this;
-    return target.split(search).join(replacement);
-};
-
 export class DateFieldRenderer extends BaseFieldRenderer {
 
     constructor(props) {

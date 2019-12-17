@@ -70,12 +70,19 @@ namespace SP.Client.Linq.Query.ExpressionVisitors
                     FieldValue = EnumExtensions.GetChoiceValueString(valueType, FieldValue);
                 }
                 var value = FieldValue is CamlValue ? (CamlValue)FieldValue : new CamlValue(FieldValue, dataType);
-                if (value != null && !(FieldValue is CamlValue.DateCamlValue))
+                if (value != null)
                 {
                     if (dataType == Microsoft.SharePoint.Client.FieldType.DateTime)
                     {
-                        value.IncludeTimeValue = true;
-                        value.StorageTZ = true;
+                        if (!(FieldValue is CamlValue.DateCamlValue))
+                        {
+                            value.IncludeTimeValue = true;
+                            value.StorageTZ = true;
+                        }
+                    }
+                    else if (dataType == Microsoft.SharePoint.Client.FieldType.Text && value.Value is string)
+                    {
+                        value.Value = (FieldValue as string).Replace("&quot;", "\"");
                     }
                 }
                 return value;

@@ -453,7 +453,7 @@ namespace SP.ProjectTaskWeb.Controllers
         IQueryable<TEntity> source = projectTaskContext.List<TEntity>();
         if (!string.IsNullOrWhiteSpace(where))
         {
-          source = source.Where(where);
+          source = source.Where(where/*.Replace("&quot;", "\"")*/);
         }
         if (!string.IsNullOrWhiteSpace(sortBy))
         {

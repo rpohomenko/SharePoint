@@ -114,17 +114,18 @@ export class RichTextFieldRenderer extends BaseFieldRenderer {
         super.setValue(value);
     }
 
-    parseStringValue(value){
-        value = htmlToDraft(value);
+    parseStringValue(value) {
         if (value) {
-          const contentState = ContentState.createFromBlockArray(value.contentBlocks);
-          value = EditorState.createWithContent(contentState);
+            value = htmlToDraft(value);
+            if (value) {
+                const contentState = ContentState.createFromBlockArray(value.contentBlocks);
+                return EditorState.createWithContent(contentState);
+            }
         }
-        return value;
-       /*return value
-       ? RichTextEditor.createValueFromString(value, 'html')
-       : RichTextEditor.createEmptyValue();*/
-
+        return "";
+        /*return value
+        ? RichTextEditor.createValueFromString(value, 'html')
+        : RichTextEditor.createEmptyValue();*/
     }
 
     isDirty() {

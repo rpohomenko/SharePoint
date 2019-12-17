@@ -30,8 +30,7 @@ export class TextFieldRenderer extends BaseFieldRenderer {
             onChange={(ev, newValue) => {
                 this.setValue(newValue);
             }}
-            value={value || ''}
-            defaultValue={currentValue}
+            value={value || ''}           
         />);
     }
 

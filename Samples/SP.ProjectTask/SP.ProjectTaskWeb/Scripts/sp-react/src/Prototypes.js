@@ -18,3 +18,9 @@ String.prototype.format = String.prototype.format || function() {
     }
     return fmt;
 }
+
+String.prototype.replaceAll = String.prototype.replaceAll ||
+function (search, replacement) {
+    var target = this;
+    return target.split(search).join(replacement);
+};
