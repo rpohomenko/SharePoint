@@ -19,7 +19,9 @@ import "./assets/scss/admin.scss";
 
 import { initializeIcons } from '@uifabric/icons';
 
-initializeIcons(undefined, { disableWarnings: true });
+initializeIcons(
+    `${document.currentScript.src.substr(0, document.currentScript.src.lastIndexOf('/'))}/../fonts/`,
+ { disableWarnings: true });
 
 const service = new AppService();
 ReactDOM.render(

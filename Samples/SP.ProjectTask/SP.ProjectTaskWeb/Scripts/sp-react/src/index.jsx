@@ -7,7 +7,7 @@ import 'whatwg-fetch';
 import 'url-polyfill';
 import 'abortcontroller-polyfill/dist/polyfill-patch-fetch';
 import "babel-polyfill";
-
+import "current-script-polyfill";
 /* IE -- end */
 //require("bootstrap");
 import "./Prototypes";

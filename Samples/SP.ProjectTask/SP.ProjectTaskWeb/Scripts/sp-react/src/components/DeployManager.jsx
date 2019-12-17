@@ -8,7 +8,7 @@ export class DeployManager extends React.Component {
         super(props);
         this._service = props.service;
         this.state = {
-            appInstalled: _isAppInstalled
+            appInstalled: window._isAppInstalled
         };
     }
 

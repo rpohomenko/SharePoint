@@ -9,7 +9,9 @@ import ErrorBoundary from './ErrorBoundary'
 import "./assets/scss/main.scss";
 import { initializeIcons } from '@uifabric/icons';
 
-initializeIcons(undefined, { disableWarnings: true });
+initializeIcons(
+    `${document.currentScript.src.substr(0, document.currentScript.src.lastIndexOf('/'))}/../fonts/`,
+ { disableWarnings: true });
 
 export class App extends React.Component {
     constructor(props) {
