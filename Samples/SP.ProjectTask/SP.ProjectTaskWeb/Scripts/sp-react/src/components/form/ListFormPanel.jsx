@@ -1,6 +1,7 @@
 import React from "react";
 import PropTypes from 'prop-types';
 import { CommandBar } from 'office-ui-fabric-react/lib/CommandBar';
+import { Stack } from 'office-ui-fabric-react/lib/Stack';
 import { CommandBarButton } from 'office-ui-fabric-react/lib/Button';
 import { DefaultButton, PrimaryButton } from 'office-ui-fabric-react/lib/Button';
 import { Dialog, DialogFooter, DialogType } from 'office-ui-fabric-react/lib/Dialog';
@@ -148,15 +149,23 @@ export class ListFormPanel extends React.Component {
                 headerText = newItemHeader
                 break;
         }
-        props.headerText = headerText;
-
-        return (<div>
-            {defaultRender(props, defaultRender, headerTextId)}
+        if(headerText){
+           props.headerText = String(headerText).trunc(50);
+        }
+        let farItems = this._getCommandItems().concat(this._getCommandFarItems());
+        return (<>
             <CommandBar ref={ref => this._commandBar = ref} styles={{ root: { paddingTop: 10 }, menuIcon: { fontSize: '16px' } }}
-                items={this._getCommandItems()}
-                farItems={this._getCommandFarItems()}
+                items={[
+                    {
+                        key: 'header',
+                        onRender: () => {
+                            return <div style={{ whiteSpace: 'nowrap' }}>{defaultRender(props, defaultRender, headerTextId)}</div>;
+                        }
+                    }
+                ]}
+                farItems={farItems}
                 onRenderItem={this._onRenderCommandItem} />
-        </div>);
+        </>);
     };
 
     _onSaveClick = async () => {
@@ -236,7 +245,6 @@ export class ListFormPanel extends React.Component {
         }
 
         let items = [];
-
         if (item && mode === 0) {
             items.push(
                 {

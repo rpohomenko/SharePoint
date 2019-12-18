@@ -44,7 +44,7 @@ export class TaskList extends BaseListView {
         height: '100%',
         position: 'relative'
       }}>
-        <ScrollablePane scrollbarVisibility={ScrollbarVisibility.auto}>
+        <ScrollablePane scrollbarVisibility={ScrollbarVisibility.auto} style={{minHeight: "300px", position: "relative"}}>
           <Sticky stickyPosition={StickyPositionType.Header} isScrollSynced={true}>
             <TaskCommand ref={ref => this._command = ref} canAddListItems={canAddListItems} commandItems={commandItems} service={this._service} selection={selection}
               onClearSelection={() => {

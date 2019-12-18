@@ -5,16 +5,15 @@ import { ShimmeredDetailsList } from 'office-ui-fabric-react/lib/ShimmeredDetail
 import { DirectionalHint, ContextualMenu } from 'office-ui-fabric-react/lib/ContextualMenu';
 //import { Spinner, SpinnerSize } from 'office-ui-fabric-react/lib/Spinner';
 import { Stack } from 'office-ui-fabric-react/lib/Stack';
-import { ScrollablePane, ScrollbarVisibility } from 'office-ui-fabric-react/lib/ScrollablePane';
 import { MarqueeSelection } from 'office-ui-fabric-react/lib/MarqueeSelection';
 import { ActionButton, IIconProps } from 'office-ui-fabric-react';
 import { TooltipHost } from 'office-ui-fabric-react/lib/Tooltip';
 import { getId } from 'office-ui-fabric-react/lib/Utilities';
 import { Sticky, StickyPositionType } from 'office-ui-fabric-react/lib/Sticky';
-import { FocusZone } from 'office-ui-fabric-react/lib/FocusZone';
 import { Callout } from 'office-ui-fabric-react';
 import { ProgressIndicator } from 'office-ui-fabric-react/lib/ProgressIndicator';
 import { StatusBar } from '../StatusBar';
+import InfiniteScroll from 'react-infinite-scroller';
 
 export class BaseListView extends React.Component {
 
@@ -60,8 +59,7 @@ export class BaseListView extends React.Component {
         let { emptyMessage, isMultipleSelection } = this.props;
         let { columns, items, contextualMenuProps, nextPageToken, isLoading, isLoaded, count } = this.state;
         return (
-            <div className="list-view-container" ref={this._container}>
-                
+            <div className="list-view-container" ref={this._container}>                
                     <StatusBar ref={ref => this._status = ref} />
                     {isLoading &&
                         (<Callout
@@ -76,7 +74,10 @@ export class BaseListView extends React.Component {
                             <ShimmeredDetailsList
                                 listProps={{
                                     ref: this._list,
-                                    onRenderPage: (props, defaultRender)=> this._onRenderPage(props, defaultRender)
+                                    onRenderPage: (props, defaultRender)=> this._onRenderPage(props, defaultRender),
+                                    getItemCountForPage: () => { 
+                                        return count; 
+                                    }
                                 }}
                                 items={items}
                                 setKey="items"
@@ -109,11 +110,23 @@ export class BaseListView extends React.Component {
     }
 
     _onRenderPage(props, defaultRender) {
-        return (<div key={props.key} style={{
-            height: '100%',
-            position: 'relative'
-        }}>
-            {defaultRender(props, defaultRender)}
+        const { nextPageToken, isLoaded, isLoading } = this.state;
+        let hasMore = !!nextPageToken /*&& !isLoading && isLoaded*/;
+
+        return (<div key={props.key} ref={(ref) => this.scrollParentRef = ref}>
+            {!!nextPageToken && (
+                <InfiniteScroll
+                    pageStart={0}
+                    loadMore={() => {
+                        this._waitAll().then(() => this.loadItems())
+                    }}
+                    hasMore={hasMore}
+                    loader={null}
+                    useWindow={false}
+                    getScrollParent={() => this.scrollParentRef}>
+                    {defaultRender(props, defaultRender)}
+                </InfiniteScroll>)
+                || defaultRender(props, defaultRender)}
         </div>);
     }
 
@@ -166,6 +179,7 @@ export class BaseListView extends React.Component {
     }
 
     _abort = async () => {
+        this._isLoading = false;
         if (this._controllers != null) {
             try {
                 this._controllers.forEach(c => {
@@ -401,8 +415,10 @@ export class BaseListView extends React.Component {
     }
 
     async loadItems(sortColumn = null, reload = false, newFilter = null) {
+        
+        let { count, filter, sortBy, sortDesc, nextPageToken, items, isLoading } = this.state;
 
-        let { count, filter, sortBy, sortDesc, nextPageToken, items, selection } = this.state;
+        if(this._isLoading || isLoading ) return;
 
         if (sortColumn !== null) {
             sortBy = sortColumn.sortFieldName || sortColumn.fieldName;
@@ -416,6 +432,7 @@ export class BaseListView extends React.Component {
             filter = newFilter;
         }
 
+        this._isLoading = true;
         this.setState({
             isLoading: true,
             isLoaded: false,
@@ -445,6 +462,10 @@ export class BaseListView extends React.Component {
 
         return await this._onPromise(promise, (json) => {
             //let { items } = this.state;
+            this.setState({
+                isLoading: false,
+                isLoaded: true
+            });
             let itemsCopy = [];
             if (json) {
                 itemsCopy = (nextPageToken ? items : items.splice(0, items.length)).concat(json.items);
@@ -456,14 +477,12 @@ export class BaseListView extends React.Component {
                     canAddListItems: json._canAddListItems
                 });
                 //this._selection.setItems(itemsCopy);
-            }
-            this.setState({
-                isLoaded: true
-            });
+            }           
 
             this._controllers = this._controllers.filter(c => c.controller !== controller);
             return { ok: true, data: itemsCopy }; // OK
         }).then((result) => {
+            this._isLoading = false;
             this.setState({
                 isLoading: false
             });

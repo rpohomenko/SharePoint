@@ -39,11 +39,8 @@ export class EmployeeList extends BaseListView {
     const { onItemSaving, onItemSaved, onItemDeleting, onItemDeleted, commandItems } = this.props;
     const { selection, canAddListItems, filter } = this.state;
     return (
-      <div className="employees-container" style={{
-        height: '100%',
-        position: 'relative'
-      }}>
-        <ScrollablePane scrollbarVisibility={ScrollbarVisibility.auto}>
+      <div className="employees-container" >
+        <ScrollablePane scrollbarVisibility={ScrollbarVisibility.auto} style={{height: "80vh", position: "relative"}}>
           <Sticky stickyPosition={StickyPositionType.Header} isScrollSynced={true}>
             <EmployeeCommand ref={ref => this._command = ref} canAddListItems={canAddListItems} commandItems={commandItems} service={this._service} selection={selection}
               onClearSelection={() => {

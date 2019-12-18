@@ -37,10 +37,7 @@ export class ProjectList extends BaseListView {
     const { onItemSaving, onItemSaved, onItemDeleting, onItemDeleted, commandItems, style } = this.props;
     const { selection, canAddListItems, filter } = this.state;
     return (
-      <div className="projects-container" style={{
-        height: '100%',
-        position: 'relative'
-      }}>
+      <div className="projects-container" style={{minHeight: "300px", position: "relative"}}>
         <ScrollablePane scrollbarVisibility={ScrollbarVisibility.auto}>
           <Sticky stickyPosition={StickyPositionType.Header} isScrollSynced={true}>
             <ProjectCommand ref={ref => this._command = ref} canAddListItems={canAddListItems} commandItems={commandItems} service={this._service} selection={selection}
