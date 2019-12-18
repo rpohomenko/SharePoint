@@ -36,14 +36,14 @@ export class DepartmentList extends BaseListView {
     const { selection, canAddListItems, filter } = this.state;
     return (
       <div className="departments-container" style={{
-        height: 'calc(100vh - 160px)',
+        height: '100%',
         position: 'relative'
       }}>
         <ScrollablePane scrollbarVisibility={ScrollbarVisibility.auto}>
           <Sticky stickyPosition={StickyPositionType.Header} isScrollSynced={true}>
             <DepartmentCommand ref={ref => this._command = ref} canAddListItems={canAddListItems} commandItems={commandItems} service={this._service}
               selection={selection}
-              onClearSelection={()=>{
+              onClearSelection={() => {
                 //this._onSelectionChanged(null);
                 if (this._selection) {
                   this._selection.setItems(this._selection.getItems(), true);
@@ -77,13 +77,13 @@ export class DepartmentList extends BaseListView {
           </Sticky>{super.render()}
         </ScrollablePane>
         <DepartmentSearchFormPanel ref={ref => this._filter = ref} service={this._service}
-         fields={this._filterFields}
-         onFilter={(filter) =>{
-          if(filter){
-            this._filterFields = filter.fields;     
-            this._onFilter(filter.expr);
-          }
-        }} />
+          fields={this._filterFields}
+          onFilter={(filter) => {
+            if (filter) {
+              this._filterFields = filter.fields;
+              this._onFilter(filter.expr);
+            }
+          }} />
       </div>
     );
   }
@@ -168,7 +168,7 @@ export class DepartmentList extends BaseListView {
 
   _onSelectionChanged(selectionItems) {
     super._onSelectionChanged(selectionItems);
-    if(this._command){
+    if (this._command) {
       this._command.setState({ selection: selectionItems });
     }
   }

@@ -5,6 +5,7 @@ import { ShimmeredDetailsList } from 'office-ui-fabric-react/lib/ShimmeredDetail
 import { DirectionalHint, ContextualMenu } from 'office-ui-fabric-react/lib/ContextualMenu';
 //import { Spinner, SpinnerSize } from 'office-ui-fabric-react/lib/Spinner';
 import { Stack } from 'office-ui-fabric-react/lib/Stack';
+import { ScrollablePane, ScrollbarVisibility } from 'office-ui-fabric-react/lib/ScrollablePane';
 import { MarqueeSelection } from 'office-ui-fabric-react/lib/MarqueeSelection';
 import { ActionButton, IIconProps } from 'office-ui-fabric-react';
 import { TooltipHost } from 'office-ui-fabric-react/lib/Tooltip';
@@ -60,7 +61,7 @@ export class BaseListView extends React.Component {
         let { columns, items, contextualMenuProps, nextPageToken, isLoading, isLoaded, count } = this.state;
         return (
             <div className="list-view-container" ref={this._container}>
-                <FocusZone>
+                
                     <StatusBar ref={ref => this._status = ref} />
                     {isLoading &&
                         (<Callout
@@ -73,7 +74,10 @@ export class BaseListView extends React.Component {
                     {items.length > 0 &&
                         (<MarqueeSelection selection={this._selection}>
                             <ShimmeredDetailsList
-                                listProps={{ ref: this._list }}
+                                listProps={{
+                                    ref: this._list,
+                                    onRenderPage: (props, defaultRender)=> this._onRenderPage(props, defaultRender)
+                                }}
                                 items={items}
                                 setKey="items"
                                 compact={false}
@@ -89,19 +93,28 @@ export class BaseListView extends React.Component {
                                 onRenderItemColumn={this._renderItemColumn}
                             />
                         </MarqueeSelection>)}
-                    {isLoaded && items.length === 0 && !isLoading && (<Stack horizontalAlign="start" styles={{ root: { padding: 10 } }}>{emptyMessage}</Stack>)}
-                    {contextualMenuProps && <ContextualMenu {...contextualMenuProps} />}
-                    {isLoaded && nextPageToken && (<TooltipHost
-                        content={`Next ${count} item(s)`}
-                        id={this._nextActionHostId}
-                        calloutProps={{ gapSpace: 0 }}
-                        styles={{ root: { display: 'inline-block' } }}>
-                        <ActionButton iconProps={{ iconName: 'Next' }} aria-describedby={this._nextActionHostId} onClick={() =>
-                            this._waitAll().then(() => this.loadItems())} />
-                    </TooltipHost>)
+                {isLoaded && items.length === 0 && !isLoading && (<Stack horizontalAlign="start" styles={{ root: { padding: 10 } }}>{emptyMessage}</Stack>)}
+                {contextualMenuProps && <ContextualMenu {...contextualMenuProps} />}
+                {isLoaded && nextPageToken && (<TooltipHost
+                    content={"Next {0} item(s)".format(count)}
+                    id={this._nextActionHostId}
+                    calloutProps={{ gapSpace: 0 }}
+                    styles={{ root: { display: 'inline-block' } }}>
+                    <ActionButton iconProps={{ iconName: 'Next' }} aria-describedby={this._nextActionHostId} onClick={() =>
+                        this._waitAll().then(() => this.loadItems())}>{"Next {0}".format(count)}</ActionButton>
+                </TooltipHost>)
                   /*isLoading && (<Stack horizontalAlign="center" styles={{ root: { padding: 10 } }}><Spinner size={SpinnerSize.medium} /></Stack>)*/}
-                </FocusZone></div>
+            </div>
         );
+    }
+
+    _onRenderPage(props, defaultRender) {
+        return (<div key={props.key} style={{
+            height: '100%',
+            position: 'relative'
+        }}>
+            {defaultRender(props, defaultRender)}
+        </div>);
     }
 
     _renderItemColumn(item, index, column) {
@@ -124,13 +137,11 @@ export class BaseListView extends React.Component {
     }
 
     _renderDetailsHeader = (props, defaultRender) => {
-        return (
-            <Sticky stickyPosition={StickyPositionType.Header} isScrollSynced={true}>
-                {defaultRender({
-                    ...props
-                })}
-            </Sticky>
-        );
+        return (<Sticky stickyPosition={StickyPositionType.Header} isScrollSynced={true}>
+            {defaultRender({
+                ...props
+            })}
+        </Sticky>);
     }
 
     _getColumns = () => {

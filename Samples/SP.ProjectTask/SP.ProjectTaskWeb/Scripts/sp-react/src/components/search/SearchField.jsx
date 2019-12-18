@@ -206,7 +206,9 @@ export class SearchField extends React.Component {
             if (comparison) {
                 let value = this.getFormField().getFieldValue();
                 if (value && !(comparison.key === 8 || comparison.key === 9)) {
-                    value = value.replaceAll('"',"&quot;");
+                    if(!isArray(value)){
+                      value = value.replaceAll('"',"&quot;");
+                    }
                     switch (fieldProps.type) {
                         case "text":
                         case "search":

@@ -38,13 +38,13 @@ export class ProjectList extends BaseListView {
     const { selection, canAddListItems, filter } = this.state;
     return (
       <div className="projects-container" style={{
-        height: 'calc(100vh - 160px)',
+        height: '100%',
         position: 'relative'
       }}>
         <ScrollablePane scrollbarVisibility={ScrollbarVisibility.auto}>
           <Sticky stickyPosition={StickyPositionType.Header} isScrollSynced={true}>
             <ProjectCommand ref={ref => this._command = ref} canAddListItems={canAddListItems} commandItems={commandItems} service={this._service} selection={selection}
-               onClearSelection={()=>{
+              onClearSelection={() => {
                 //this._onSelectionChanged(null);
                 if (this._selection) {
                   this._selection.setItems(this._selection.getItems(), true);
@@ -271,7 +271,7 @@ export class ProjectList extends BaseListView {
 
   _onSelectionChanged(selectionItems) {
     super._onSelectionChanged(selectionItems);
-    if(this._command){
+    if (this._command) {
       this._command.setState({ selection: selectionItems });
     }
   }

@@ -10,7 +10,7 @@ export class SearchFormPanel extends React.Component {
         super(props);
         this.state = {
             ...props,
-            isDirty : true,
+            isDirty: true,
             isValid: true
         };
         this._searchForm = React.createRef();
@@ -86,10 +86,12 @@ export class SearchFormPanel extends React.Component {
         const { isValid, isDirty, onFilter } = this.state;
         if (this._searchForm.current && isValid && isDirty) {
             let filter = this._searchForm.current.getFilter();
-            this.close();
-            if (typeof onFilter === "function") {
-                onFilter(filter);
-            }
+            this.setState({ isDirty: false }, () => {
+                this.close();
+                if (typeof onFilter === "function") {
+                    onFilter(filter);
+                }
+            });
         }
     }
 
@@ -126,7 +128,7 @@ export class SearchFormPanel extends React.Component {
         if (this.state.isValid !== isValid || this.state.isDirty !== isDirty) {
             this.setState({ isValid: isValid, isDirty: isDirty });
         }
-    }   
+    }
 }
 
 SearchFormPanel.propTypes = {

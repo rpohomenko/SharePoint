@@ -40,13 +40,13 @@ export class EmployeeList extends BaseListView {
     const { selection, canAddListItems, filter } = this.state;
     return (
       <div className="employees-container" style={{
-        height: 'calc(100vh - 160px)',
+        height: '100%',
         position: 'relative'
       }}>
         <ScrollablePane scrollbarVisibility={ScrollbarVisibility.auto}>
           <Sticky stickyPosition={StickyPositionType.Header} isScrollSynced={true}>
             <EmployeeCommand ref={ref => this._command = ref} canAddListItems={canAddListItems} commandItems={commandItems} service={this._service} selection={selection}
-               onClearSelection={()=>{
+              onClearSelection={() => {
                 //this._onSelectionChanged(null);
                 if (this._selection) {
                   this._selection.setItems(this._selection.getItems(), true);
@@ -295,7 +295,7 @@ export class EmployeeList extends BaseListView {
 
   _onSelectionChanged(selectionItems) {
     super._onSelectionChanged(selectionItems);
-    if(this._command){
+    if (this._command) {
       this._command.setState({ selection: selectionItems });
     }
   }

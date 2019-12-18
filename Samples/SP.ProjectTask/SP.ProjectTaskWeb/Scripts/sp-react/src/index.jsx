@@ -10,7 +10,6 @@ import "babel-polyfill";
 import "current-script-polyfill";
 /* IE -- end */
 //require("bootstrap");
-import "./Prototypes";
 
 window._currentCulture = window._currentCulture ||
     {
@@ -118,6 +117,7 @@ window._spPageContextInfo = window._spPageContextInfo ||
         BASE_PATH: (window._spPageContextInfo == undefined ? "https://localhost:44318" : "")
     };
 
+import "./Prototypes";
 import App from './App';
 import { AppService } from "./services/AppService";
 

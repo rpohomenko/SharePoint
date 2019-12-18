@@ -26,12 +26,24 @@
 }
 
 .ms-CommandBar {
-    padding: 0.5rem;
+    margin-top: 5px;
+    height: 45px;
+    padding: 0;   
+    background-color: rgb(248, 249, 250);
+    border-top :rgb(237, 235, 233) solid 1px;
+    border-bottom :rgb(237, 235, 233) solid 1px;
+
+    .ms-OverflowSet{
+        height: 100%;
+
+        button:not(:hover){
+            background-color: inherit;
+        }
+    }
 }
 
-.breadcrumbs {
-    margin: 0;
-    height: 40px;
+.breadcrumbs {    
+    height: 45px;
 }
 
 [role="main"] {
@@ -48,9 +60,19 @@
     }
 }
 
-.command-container 
-.form-field {
-    padding: 0;   
+.command-container{   
+
+    .form-field{
+        padding: 0;
+    }
+
+    .ms-SearchBox{
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        background-color: inherit;
+        border: 0;
+    }
 }
 
 .time-picker {
