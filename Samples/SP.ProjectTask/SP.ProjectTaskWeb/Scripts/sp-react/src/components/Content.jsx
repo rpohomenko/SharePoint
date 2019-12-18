@@ -100,7 +100,7 @@ class Content extends React.Component {
                     "departments": (<Departments service={service} />)
                 };
 
-                content = (<>
+                content = (<div className="pivot">
                     <Pivot selectedKey={selectedTab} onLinkClick={this._onPivotHandle} headersOnly={true} getTabId={this._getTabId}>
                         <PivotItem headerText="Tasks" itemKey="tasks" />
                         <PivotItem headerText="Projects" itemKey="projects" />
@@ -108,7 +108,7 @@ class Content extends React.Component {
                         <PivotItem headerText="Departments" itemKey="departments" />
                     </Pivot>
                     {pivotContent[selectedTab]}
-                </>);
+                </div>);
                 break;
         }
         return content;

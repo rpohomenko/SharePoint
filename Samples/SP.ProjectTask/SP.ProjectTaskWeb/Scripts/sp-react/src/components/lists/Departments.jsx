@@ -35,7 +35,7 @@ export class DepartmentList extends BaseListView {
     const { onItemSaving, onItemSaved, onItemDeleting, onItemDeleted, commandItems } = this.props;
     const { selection, canAddListItems, filter } = this.state;
     return (
-      <div className="departments-container" style={{height: "80vh", position: "relative"}}>
+      <div className="departments-container">
         <ScrollablePane scrollbarVisibility={ScrollbarVisibility.auto}>
           <Sticky stickyPosition={StickyPositionType.Header} isScrollSynced={true}>
             <DepartmentCommand ref={ref => this._command = ref} canAddListItems={canAddListItems} commandItems={commandItems} service={this._service}
@@ -194,7 +194,7 @@ export class DepartmentList extends BaseListView {
 }
 
 const Departments = (props) => {
-  return (<DepartmentList service={props.service} pageSize={10} emptyMessage="There are no departments." />);
+  return (<DepartmentList service={props.service} pageSize={(props.pageSize || window._isMobile ? 10: 20)} emptyMessage="There are no departments." />);
 };
 
 export default Departments;

@@ -1,13 +1,20 @@
 [role="main"] {
     padding-top: 0px;
+    height: calc(100vh - 80px);
     /* Space for fixed navbar */
+    .content {
+        height: calc(100vh - 140px);
+        position: relative;
+    }
 }
 
 @media (min-width: 768px) {
     [role="main"] {
+        height: 100vh;
         padding-top: 40px;
+
         .content {
-            height: calc(80vh - 10px);
+            height: calc(100vh - 100px);
         }
     }
 }
@@ -29,45 +36,39 @@
 .ms-CommandBar {
     margin-top: 5px;
     height: 45px;
-    padding: 0;   
+    padding: 0;
     background-color: rgb(248, 249, 250);
-    border-top :rgb(237, 235, 233) solid 1px;
-    border-bottom :rgb(237, 235, 233) solid 1px;
+    border-top: rgb(237, 235, 233) solid 1px;
+    border-bottom: rgb(237, 235, 233) solid 1px;
 
-    .ms-OverflowSet{
+    .ms-OverflowSet {
         height: 100%;
 
-        button:not(:hover){
+        button:not(:hover) {
             background-color: inherit;
         }
     }
 }
 
-.breadcrumbs {    
+.breadcrumbs {
     height: 45px;
-}
-
-[role="main"] {
-    height: 100vh;
-    .content {
-        position: relative;
-    }
 }
 
 .form-field {
     padding: 5px 5px;
+
     .form-field-label {
         color: darkgrey;
     }
 }
 
-.command-container{   
+.command-container {
 
-    .form-field{
+    .form-field {
         padding: 0;
     }
 
-    .ms-SearchBox{
+    .ms-SearchBox {
         height: 100%;
         margin: 0;
         padding: 0;
@@ -80,5 +81,50 @@
     input {
         width: 2em;
         font-size: 16pt;
+    }
+}
+
+.departments-container,
+.tasks-container,
+.projects-container,
+.employees-container {
+    position: relative;
+    height: calc(100vh - 140px);
+
+    .ms-ScrollablePane:first {
+        position: absolute;
+    }
+}
+
+.pivot {
+
+    .departments-container,
+    .tasks-container,
+    .projects-container,
+    .employees-container {
+        position: relative;
+        height: calc(100vh - 190px);
+    }
+}
+
+
+@media (min-width: 768px) {
+
+    .departments-container,
+    .tasks-container,
+    .projects-container,
+    .employees-container {
+        position: relative;
+        height: calc(100vh - 100px);       
+    }
+
+    .pivot {
+        .departments-container,
+        .tasks-container,
+        .projects-container,
+        .employees-container {
+            position: relative;
+            height: calc(100vh - 150px);
+        }
     }
 }

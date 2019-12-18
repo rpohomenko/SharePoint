@@ -37,7 +37,7 @@ export class ProjectList extends BaseListView {
     const { onItemSaving, onItemSaved, onItemDeleting, onItemDeleted, commandItems, style } = this.props;
     const { selection, canAddListItems, filter } = this.state;
     return (
-      <div className="projects-container" style={{minHeight: "300px", position: "relative"}}>
+      <div className="projects-container">
         <ScrollablePane scrollbarVisibility={ScrollbarVisibility.auto}>
           <Sticky stickyPosition={StickyPositionType.Header} isScrollSynced={true}>
             <ProjectCommand ref={ref => this._command = ref} canAddListItems={canAddListItems} commandItems={commandItems} service={this._service} selection={selection}
@@ -297,7 +297,7 @@ export class ProjectList extends BaseListView {
 }
 
 const Projects = (props) => {
-  return (<ProjectList service={props.service} pageSize={10} emptyMessage="There are no projects." />);
+  return (<ProjectList service={props.service} pageSize={(props.pageSize || window._isMobile ? 10: 20)} emptyMessage="There are no projects." />);
 };
 
 export default Projects;

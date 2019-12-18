@@ -40,11 +40,8 @@ export class TaskList extends BaseListView {
     const { onItemSaving, onItemSaved, onItemDeleting, onItemDeleted, commandItems } = this.props;
     const { selection, canAddListItems, filter } = this.state;
     return (
-      <div className="tasks-container" style={{
-        height: '100%',
-        position: 'relative'
-      }}>
-        <ScrollablePane scrollbarVisibility={ScrollbarVisibility.auto} style={{minHeight: "300px", position: "relative"}}>
+      <div className="tasks-container">
+        <ScrollablePane scrollbarVisibility={ScrollbarVisibility.auto}>
           <Sticky stickyPosition={StickyPositionType.Header} isScrollSynced={true}>
             <TaskCommand ref={ref => this._command = ref} canAddListItems={canAddListItems} commandItems={commandItems} service={this._service} selection={selection}
               onClearSelection={() => {
@@ -368,7 +365,7 @@ export class TaskList extends BaseListView {
 }
 
 const Tasks = (props) => {
-  return (<TaskList service={props.service} pageSize={10} emptyMessage="There are no tasks." />);
+  return (<TaskList service={props.service} pageSize={(props.pageSize || window._isMobile ? 10: 20)} emptyMessage="There are no tasks." />);
 };
 
 export default Tasks;
