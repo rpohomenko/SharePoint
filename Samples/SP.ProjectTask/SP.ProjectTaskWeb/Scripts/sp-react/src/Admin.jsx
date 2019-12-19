@@ -19,8 +19,12 @@ import "./assets/scss/admin.scss";
 
 import { initializeIcons } from '@uifabric/icons';
 
+let baseIconPath = document.currentScript.src.substr(0, document.currentScript.src.lastIndexOf('/'));
+if(baseIconPath){
+    baseIconPath = baseIconPath.substr(0, baseIconPath.lastIndexOf('/'));
+}
 initializeIcons(
-    `${document.currentScript.src.substr(0, document.currentScript.src.lastIndexOf('/'))}/../fonts/`,
+    `${baseIconPath}/fonts/`,
  { disableWarnings: true });
 
 const service = new AppService();

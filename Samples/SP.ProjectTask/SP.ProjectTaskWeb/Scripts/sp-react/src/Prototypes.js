@@ -1,5 +1,5 @@
 String.prototype.format = String.prototype.format ||
-    function () {
+    function() {
         let fmt = this;
         let args = arguments;
         if (fmt) {
@@ -21,12 +21,13 @@ String.prototype.format = String.prototype.format ||
     }
 
 String.prototype.replaceAll = String.prototype.replaceAll ||
-    function (search, replacement) {
+    function(search, replacement) {
         var target = this;
         return target.split(search).join(replacement);
     };
 
 String.prototype.trunc = String.prototype.trunc ||
-    function (n) {
-        return (this.length > n) ? this.substr(0, n - 1) + '...' : this;
+    function(n) {
+        var target = this;
+        return String(target.length > n ? target.substring(0, n - 1) + '...' : target);
     };

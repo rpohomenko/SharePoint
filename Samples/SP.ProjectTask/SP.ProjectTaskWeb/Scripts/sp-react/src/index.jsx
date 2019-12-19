@@ -1,6 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom";
 /* IE -- start */
+import 'react-app-polyfill/ie11';
 require('es6-shim');
 //import 'promise-polyfill/src/polyfill';
 import 'whatwg-fetch';

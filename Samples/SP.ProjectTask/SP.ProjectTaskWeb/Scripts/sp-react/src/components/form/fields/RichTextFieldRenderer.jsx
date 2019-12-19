@@ -1,9 +1,11 @@
 import * as React from 'react';
 //import RichTextEditor from 'react-rte';
-import { EditorState, convertToRaw, ContentState } from 'draft-js';
-import { Editor } from 'react-draft-wysiwyg';
-import draftToHtml from 'draftjs-to-html';
-import htmlToDraft from 'html-to-draftjs';
+//import { EditorState, convertToRaw, ContentState } from 'draft-js';
+//import { Editor } from 'react-draft-wysiwyg';
+//import draftToHtml from 'draftjs-to-html';
+//import htmlToDraft from 'html-to-draftjs';
+import CKEditor from '@ckeditor/ckeditor5-react';
+import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
 //import { Dropdown } from 'office-ui-fabric-react/lib/Dropdown';
 import { TextField } from 'office-ui-fabric-react/lib/TextField';
 import { ChoiceGroup } from 'office-ui-fabric-react/lib/ChoiceGroup';
@@ -45,12 +47,30 @@ export class RichTextFieldRenderer extends BaseFieldRenderer {
                         this.setValue(newValue)
                     }}                  
                 />)*/
-                (<Editor
+                /*(<Editor
                     editorState={value}
                     wrapperClassName="rte-editor-wrapper"
                     editorClassName="rte-editor"
                     onEditorStateChange={(value)=>this.setValue(value)}
-                  />)}
+                />)*/
+                ( <CKEditor
+                    editor={ ClassicEditor }
+                    data={value}
+                    disabled={!!disabled}
+                    onInit={ editor => {
+                      
+                    } }
+                    onChange={ ( event, editor ) => {
+                        const newValue = editor.getData();
+                        this.setValue(newValue);
+                    } }
+                    onBlur={ ( event, editor ) => {
+                       
+                    } }
+                    onFocus={ ( event, editor ) => {
+                      
+                    } }
+                />)}
             {editorMode === 1 &&
                 (<TextField
                     disabled={disabled}
@@ -104,7 +124,7 @@ export class RichTextFieldRenderer extends BaseFieldRenderer {
     getValue() {
         let value = super.getValue();
         if (value) {
-            return draftToHtml(convertToRaw(value.getCurrentContent()));
+            //return draftToHtml(convertToRaw(value.getCurrentContent()));
             //return value.toString('html');
         }
         return value;
@@ -115,14 +135,15 @@ export class RichTextFieldRenderer extends BaseFieldRenderer {
     }
 
     parseStringValue(value) {
-        if (value) {
+        return value;
+        /*if (value) {
             value = htmlToDraft(value);
             if (value) {
                 const contentState = ContentState.createFromBlockArray(value.contentBlocks);
                 return EditorState.createWithContent(contentState);
             }
         }
-        return "";
+        return "";*/
         /*return value
         ? RichTextEditor.createValueFromString(value, 'html')
         : RichTextEditor.createEmptyValue();*/

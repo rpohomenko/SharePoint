@@ -8,7 +8,8 @@ export class ApiService {
         options.headers = {
             'Accept': 'application/json',
             'Content-Type': 'application/json',
-            'Cache-Control': 'no-cache'
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache'
         };
         options.method = 'GET';
         options.cache = "no-cache";
@@ -23,7 +24,8 @@ export class ApiService {
         //options.mode = 'cors'; // no-cors, cors, *same-origin
         options.headers = {
             'Accept': 'application/json',
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Pragma': 'no-cache'
         };
         if (data) {
             options.body = JSON.stringify(data);
@@ -37,7 +39,8 @@ export class ApiService {
         options.headers = {
             'Accept': 'application/json',
             'Content-Type': 'application/json',
-            'Cache-Control': 'no-cache'
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache'
         };
         options.cache = "no-cache";
         //options.mode = 'cors'; // no-cors, cors, *same-origin

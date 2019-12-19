@@ -133,10 +133,10 @@ export class ListFormPanel extends React.Component {
         props,
         defaultRender,
         headerTextId
-    ) => {
+    ) => {        
         const { newItemHeader, editItemHeader, viewItemHeader } = this.props;
         const { mode } = this.state;
-        props = Object.assign({}, props);
+        props = {...{}, ...props}; //Object.assign({}, props);
         let headerText;
         switch (mode) {
             case 0:
@@ -150,8 +150,9 @@ export class ListFormPanel extends React.Component {
                 break;
         }
         if(headerText){
-           props.headerText = String(headerText).trunc(50);
-        }
+           headerText = headerText.trunc(50);          
+           props.headerText = headerText;
+        }      
         let farItems = this._getCommandItems().concat(this._getCommandFarItems());
         return (<>
             <CommandBar ref={ref => this._commandBar = ref} styles={{ root: { paddingTop: 10 }, menuIcon: { fontSize: '16px' } }}
@@ -297,6 +298,7 @@ export class ListFormPanel extends React.Component {
     }
 
     _getCommandFarItems() {
+        let items = [];
         let { item } = this.props;
         const { mode, isRefreshing, isDeleting, isSaving, isLoaded } = this.state;
         if (this._listForm.current) {
@@ -308,8 +310,9 @@ export class ListFormPanel extends React.Component {
         //isDeleting = this._listForm.current.state.isDeleting;
         //isLoading = this._listForm.current.state.isLoading;
         //}
+       
         if (item && (mode === 0 || mode === 1)) {
-            return [{
+            items.push({
                 key: 'refresh',
                 icon: 'Refresh',
                 text: '',
@@ -319,8 +322,9 @@ export class ListFormPanel extends React.Component {
                     iconName: 'Refresh'
                 },
                 ariaLabel: 'Refresh'
-            }];
+            });
         }
+        return items;
     }
 
     _onRenderCommandItem = (item) => {
