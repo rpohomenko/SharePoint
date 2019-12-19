@@ -4,6 +4,7 @@ using SP.Client.Linq.Infrastructure;
 using SP.Client.Linq.Provisioning;
 using System;
 using System.ComponentModel;
+using System.Reflection;
 using System.Runtime.Serialization;
 
 namespace SP.Client.Linq
@@ -124,7 +125,7 @@ namespace SP.Client.Linq
 
         #region Methods
 
-        public bool DetectChanges(string propKey, FieldAttribute field, object originalValue, ref object currentValue)
+        public bool DetectChanges(MemberInfo member, FieldAttribute field, object originalValue, ref object currentValue)
         {
             return !Equals(originalValue, currentValue);
         }
