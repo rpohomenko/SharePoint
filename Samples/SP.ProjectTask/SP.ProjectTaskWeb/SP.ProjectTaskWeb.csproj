@@ -474,6 +474,25 @@
     <Content Include="Scripts\popper.js.map" />
     <Content Include="Scripts\popper-utils.min.js.map" />
     <Content Include="Scripts\popper-utils.js.map" />
+    <Content Include="Scripts\sp-react\dist\fonts\fabric-icons-0-467ee27f.woff" />
+    <Content Include="Scripts\sp-react\dist\fonts\fabric-icons-1-4d521695.woff" />
+    <Content Include="Scripts\sp-react\dist\fonts\fabric-icons-10-c4ded8e4.woff" />
+    <Content Include="Scripts\sp-react\dist\fonts\fabric-icons-11-2a8393d6.woff" />
+    <Content Include="Scripts\sp-react\dist\fonts\fabric-icons-12-7e945a1e.woff" />
+    <Content Include="Scripts\sp-react\dist\fonts\fabric-icons-13-c3989a02.woff" />
+    <Content Include="Scripts\sp-react\dist\fonts\fabric-icons-14-5cf58db8.woff" />
+    <Content Include="Scripts\sp-react\dist\fonts\fabric-icons-15-3807251b.woff" />
+    <Content Include="Scripts\sp-react\dist\fonts\fabric-icons-16-9cf93f3b.woff" />
+    <Content Include="Scripts\sp-react\dist\fonts\fabric-icons-17-0c4ed701.woff" />
+    <Content Include="Scripts\sp-react\dist\fonts\fabric-icons-2-63c99abf.woff" />
+    <Content Include="Scripts\sp-react\dist\fonts\fabric-icons-3-089e217a.woff" />
+    <Content Include="Scripts\sp-react\dist\fonts\fabric-icons-4-a656cc0a.woff" />
+    <Content Include="Scripts\sp-react\dist\fonts\fabric-icons-5-f95ba260.woff" />
+    <Content Include="Scripts\sp-react\dist\fonts\fabric-icons-6-ef6fd590.woff" />
+    <Content Include="Scripts\sp-react\dist\fonts\fabric-icons-7-2b97bb99.woff" />
+    <Content Include="Scripts\sp-react\dist\fonts\fabric-icons-8-6fdf1528.woff" />
+    <Content Include="Scripts\sp-react\dist\fonts\fabric-icons-9-c6162b42.woff" />
+    <Content Include="Scripts\sp-react\dist\fonts\fabric-icons-a13498cf.woff" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

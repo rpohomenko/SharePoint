@@ -9,12 +9,13 @@ import ErrorBoundary from './ErrorBoundary'
 import "./assets/scss/main.scss";
 import { initializeIcons } from '@uifabric/icons';
 
-let baseIconPath = document.currentScript.src.substr(0, document.currentScript.src.lastIndexOf('/'));
-if(baseIconPath){
+let baseIconPath;
+//document.currentScript.src.substr(0, document.currentScript.src.lastIndexOf('/'));
+/*if(baseIconPath){
     baseIconPath = baseIconPath.substr(0, baseIconPath.lastIndexOf('/'));
-}
-initializeIcons(
-    `${baseIconPath}/fonts/`,
+}*/
+baseIconPath ="/scripts/sp-react/dist/fonts/"; //"../fonts/";
+initializeIcons(baseIconPath,
  { disableWarnings: true });
 
 export class App extends React.Component {
