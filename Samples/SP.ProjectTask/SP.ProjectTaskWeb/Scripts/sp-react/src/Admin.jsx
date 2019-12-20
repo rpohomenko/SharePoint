@@ -19,12 +19,8 @@ import "./assets/scss/admin.scss";
 
 import { initializeIcons } from '@uifabric/icons';
 
-let baseIconPath = document.currentScript.src.substr(0, document.currentScript.src.lastIndexOf('/'));
-if(baseIconPath){
-    baseIconPath = baseIconPath.substr(0, baseIconPath.lastIndexOf('/'));
-}
-initializeIcons(
-    `${baseIconPath}/fonts/`,
+let baseIconPath = window.location.port === "3000" ? "../fonts/" : "/scripts/sp-react/dist/fonts/";
+initializeIcons(baseIconPath,
  { disableWarnings: true });
 
 const service = new AppService();

@@ -24,7 +24,7 @@ export class SearchFieldRenderer extends BaseFieldRenderer {
         const { fieldProps, disabled, style } = this.props;
         const { value } = this.state;
         return (
-            <SearchBox placeholder="Search" style={style || { minWidth: '80px', width: '100px' }}
+            <SearchBox placeholder="Search..." style={style || { minWidth: '80px', width: '100px' }}
                 disabled={disabled}
                 onClear={() => {
                     this.setValue('');

@@ -9,23 +9,30 @@ import ErrorBoundary from './ErrorBoundary'
 import "./assets/scss/main.scss";
 import { initializeIcons } from '@uifabric/icons';
 
+import {
+    loadTheme
+} from "office-ui-fabric-react";
+
+import { lightTheme } from "./theme/Themes";
+
 let baseIconPath;
 //document.currentScript.src.substr(0, document.currentScript.src.lastIndexOf('/'));
 /*if(baseIconPath){
     baseIconPath = baseIconPath.substr(0, baseIconPath.lastIndexOf('/'));
 }*/
-baseIconPath ="/scripts/sp-react/dist/fonts/"; //"../fonts/";
+baseIconPath = window.location.port === "3000" ? "../fonts/" : "/scripts/sp-react/dist/fonts/";
 initializeIcons(baseIconPath,
- { disableWarnings: true });
+    { disableWarnings: true });
 
 export class App extends React.Component {
     constructor(props) {
         super(props);
-
         this.state = {
             contentId: null
         };
 
+        this._currentTheme = lightTheme;
+        loadTheme(this._currentTheme);
     }
 
     render() {
@@ -36,8 +43,8 @@ export class App extends React.Component {
             this._sidebar.setState({ isOpen: false });
         };
         return (<ErrorBoundary>
-            <Fabric className="app">             
-                <NavBar />               
+            <Fabric className="app">
+                <NavBar />
                 <div className="container-fluid">
                     <div className="row">
                         <div className="col-md-2 d-md-block bg-light sidebar sticky-top">
