@@ -33,16 +33,16 @@ export class ProjectCommand extends BaseListViewCommand {
     _renderListFormPanel = (item, ref, service, canAddListItems, onItemSaving, onItemSaved, onItemDeleting, onItemDeleted) => {
         return (<ProjectFormPanel item={item} service={service} canAddListItems={canAddListItems} ref={ref} onRenderListForm={this._renderListForm}
             onItemSaving={onItemSaving} onItemSaved={(sender, result) => {
-                if(this._status){
-                  this._status.success("Saved successfully.", this.props.STATUS_TIMEOUT);
+                if (this._status) {
+                    this._status.success("Saved successfully.", this.props.STATUS_TIMEOUT);
                 }
                 if (typeof onItemSaved === "function") {
                     onItemSaved(sender, result);
                 }
             }}
             onItemDeleting={onItemDeleting} onItemDeleted={(sender, result) => {
-                if(this._status){
-                  this._status.success("Deleted successfully.", this.props.STATUS_TIMEOUT);
+                if (this._status) {
+                    this._status.success("Deleted successfully.", this.props.STATUS_TIMEOUT);
                 }
                 if (typeof onItemDeleted === "function") {
                     onItemDeleted(sender, result);
@@ -88,6 +88,60 @@ export class ProjectCommand extends BaseListViewCommand {
     _getItems() {
         let commands = super._getItems();
         return commands;
+    }
+
+    _getFarItems() {
+        const { isCompactList } = this.state;
+        let commands = super._getFarItems();
+        commands.push(
+            {
+                key: 'view',
+                icon: isCompactList ? 'AlignRight' : 'ListMirrored',
+                text: 'View',
+                iconOnly: true,
+                subMenuProps: {
+                    items: [
+                        {
+                            key: 'list',
+                            text: 'List',
+                            canCheck: true,
+                            icon: 'ListMirrored',
+                            isChecked: !isCompactList,
+                            iconProps: {
+                                iconName: 'ListMirrored'
+                            },
+                            onClick: () => { this._onViewChanged(false); }
+                        },
+                        {
+                            key: 'compactlist',
+                            text: 'Compact List',
+                            canCheck: true,
+                            icon: 'AlignRight',
+                            isChecked: isCompactList,
+                            iconProps: {
+                                iconName: 'AlignRight'
+                            },
+                            onClick: () => { this._onViewChanged(true); }
+                        }]
+                },
+                iconProps: {
+                    iconName: isCompactList ? 'AlignRight' : 'ListMirrored'
+                },
+                ariaLabel: 'List'
+            });
+        return commands;
+    }
+
+    _onViewChanged = (changedCompactList) => {
+        const { onViewChanged } = this.props;
+        const { isCompactList } = this.state;
+        if (isCompactList !== changedCompactList) {
+            this.setState({ isCompactList: changedCompactList }, () => {
+                if (typeof onViewChanged === "function") {
+                    onViewChanged(changedCompactList);
+                }
+            });
+        }
     }
 }
 

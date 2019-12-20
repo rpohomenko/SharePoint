@@ -70,6 +70,7 @@ export class DepartmentList extends BaseListView {
               onSetFilter={() => { if (this._filter) { this._filter.showHide(); } }}
               onClearFilter={() => { this._filterFields = null; this._onFilter(""); }}
               onRefresh={() => this.refresh(true)}
+              onViewChanged={(isCompact) => this.setState({isCompact: isCompact})}
               onItemDeleted={this._onItemDeleted} onItemSaved={this._onItemSaved} onItemSaving={onItemSaving} onItemDeleting={onItemDeleting} />
           </Sticky>{super.render()}
         </ScrollablePane>

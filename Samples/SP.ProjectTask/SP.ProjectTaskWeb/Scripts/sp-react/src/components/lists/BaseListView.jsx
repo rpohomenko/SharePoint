@@ -57,7 +57,7 @@ export class BaseListView extends React.Component {
 
     render() {
         let { emptyMessage, isMultipleSelection } = this.props;
-        let { columns, items, contextualMenuProps, nextPageToken, isLoading, isLoaded, count } = this.state;
+        let { columns, items, contextualMenuProps, nextPageToken, isLoading, isLoaded, count, isCompact } = this.state;
         return (
             <div className="list-view-container" ref={this._container}>                
                     <StatusBar ref={ref => this._status = ref} />
@@ -81,7 +81,7 @@ export class BaseListView extends React.Component {
                                 }}
                                 items={items}
                                 setKey="items"
-                                compact={false}
+                                compact={isCompact}
                                 columns={columns}
                                 selection={this._selection}
                                 selectionMode={isMultipleSelection ? SelectionMode.multiple : SelectionMode.single}
