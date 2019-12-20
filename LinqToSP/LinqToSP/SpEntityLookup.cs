@@ -73,7 +73,10 @@ namespace SP.Client.Linq
 
         private void Entry_OnAfterSaveChanges(SpEntityEntry<TEntity, ISpEntryDataContext> entry, ListItem item)
         {
-            EntityId = item.Id;
+            if (item.IsPropertyAvailable("Id"))
+            {
+                EntityId = item.Id;
+            }
             entry.OnAfterSaveChanges -= Entry_OnAfterSaveChanges;
         }
 
