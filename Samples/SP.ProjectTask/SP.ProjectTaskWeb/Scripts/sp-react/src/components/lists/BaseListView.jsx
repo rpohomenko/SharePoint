@@ -6,7 +6,7 @@ import { DirectionalHint, ContextualMenu } from 'office-ui-fabric-react/lib/Cont
 //import { Spinner, SpinnerSize } from 'office-ui-fabric-react/lib/Spinner';
 import { Stack } from 'office-ui-fabric-react/lib/Stack';
 import { MarqueeSelection } from 'office-ui-fabric-react/lib/MarqueeSelection';
-import { ActionButton, IIconProps } from 'office-ui-fabric-react';
+import { ActionButton } from 'office-ui-fabric-react';
 import { TooltipHost } from 'office-ui-fabric-react/lib/Tooltip';
 import { getId } from 'office-ui-fabric-react/lib/Utilities';
 import { Sticky, StickyPositionType } from 'office-ui-fabric-react/lib/Sticky';

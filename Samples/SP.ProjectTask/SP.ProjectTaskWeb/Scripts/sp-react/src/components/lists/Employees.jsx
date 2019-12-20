@@ -322,7 +322,7 @@ export class EmployeeList extends BaseListView {
 }
 
 const Employees = (props) => {
-  return (<EmployeeList service={props.service} pageSize={(props.pageSize || window._isMobile ? 10: 7)} emptyMessage="There are no employees." />);
+  return (<EmployeeList service={props.service} pageSize={(props.pageSize || window._isMobile ? 10: 20)} emptyMessage="There are no employees." />);
 };
 
 export default Employees;

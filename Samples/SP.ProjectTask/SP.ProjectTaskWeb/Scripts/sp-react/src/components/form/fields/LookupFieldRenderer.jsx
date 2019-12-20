@@ -6,7 +6,9 @@ import { Stack } from 'office-ui-fabric-react/lib/Stack';
 import { TagPicker } from 'office-ui-fabric-react/lib/Pickers';
 import { DefaultButton, PrimaryButton, IconButton } from 'office-ui-fabric-react/lib/Button';
 import { Panel, PanelType } from 'office-ui-fabric-react/lib/Panel';
+import { TooltipHost } from 'office-ui-fabric-react/lib/Tooltip';
 import { isArray, isNumber } from "util";
+import { getId } from 'office-ui-fabric-react/lib/Utilities';
 
 import { BaseFieldRenderer } from './BaseFieldRenderer';
 
@@ -31,6 +33,7 @@ export class LookupFieldRenderer extends BaseFieldRenderer {
         this._picker = React.createRef();
         this._listForm = React.createRef();
         this._listView = React.createRef();
+        this._moreHost = getId('moreHost');
     }
 
     _renderNewForm() {
@@ -145,7 +148,15 @@ export class LookupFieldRenderer extends BaseFieldRenderer {
                         }}
                     />
                 </div>
-                {listView && <IconButton iconProps={{ iconName: 'More' }} disabled={disabled} onClick={(e) => this._showListView()} />}
+                {listView && (
+                      <TooltipHost
+                      content="More"                     
+                      id={this._moreHost}
+                      calloutProps={{ gapSpace: 0 }}
+                      styles={{ root: { display: 'inline-block' } }}
+                    >                    
+                    <IconButton iconProps={{ iconName: 'More' }} aria-describedby={this._moreHost}  disabled={disabled} onClick={(e) => this._showListView()} />
+                </TooltipHost>)}
             </Stack>
         </React.Fragment>);
     }
