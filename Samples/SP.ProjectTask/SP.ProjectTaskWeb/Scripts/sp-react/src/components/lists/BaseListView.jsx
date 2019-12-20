@@ -56,77 +56,64 @@ export class BaseListView extends React.Component {
     }
 
     render() {
-        let { emptyMessage, isMultipleSelection } = this.props;
-        let { columns, items, contextualMenuProps, nextPageToken, isLoading, isLoaded, count, isCompact } = this.state;
+        let { isMultipleSelection } = this.props;
+        let { columns, contextualMenuProps, items, isLoading, isLoaded, count, isCompact } = this.state;
         return (
-            <div className="list-view-container" ref={this._container}>                
-                    <StatusBar ref={ref => this._status = ref} />
-                    {isLoading &&
-                        (<Callout
-                            target={this._container.current}
-                            setInitialFocus={true}>
-                            <Stack horizontalAlign="start" styles={{ root: { padding: 10 } }}>
-                                <ProgressIndicator label={"Loading..."} />
-                            </Stack>
-                        </Callout>)}
-                    {items.length > 0 &&
-                        (<MarqueeSelection selection={this._selection}>
-                            <ShimmeredDetailsList
-                                listProps={{
-                                    ref: this._list,
-                                    onRenderPage: (props, defaultRender)=> this._onRenderPage(props, defaultRender),
-                                    getItemCountForPage: () => { 
-                                        return count; 
-                                    }
-                                }}
-                                items={items}
-                                setKey="items"
-                                compact={isCompact}
-                                columns={columns}
-                                selection={this._selection}
-                                selectionMode={isMultipleSelection ? SelectionMode.multiple : SelectionMode.single}
-                                onItemInvoked={this._onItemInvoked}
-                                onItemContextMenu={this._onItemContextMenu}
-                                onRenderMissingItem={this._renderMissingItem}
-                                onRenderCustomPlaceholder={this._renderCustomPlaceholder}
-                                enableShimmer={(!isLoaded && items.length === 0)}
-                                onRenderDetailsHeader={this._renderDetailsHeader}
-                                onRenderItemColumn={this._renderItemColumn}
-                            />
-                        </MarqueeSelection>)}
-                {isLoaded && items.length === 0 && !isLoading && (<Stack horizontalAlign="start" styles={{ root: { padding: 10 } }}>{emptyMessage}</Stack>)}
+            <div className="list-view-container" ref={this._container}>
+                <StatusBar ref={ref => this._status = ref} />
+                {isLoading &&
+                    (<Callout
+                        target={this._container.current}
+                        setInitialFocus={true}>
+                        <Stack horizontalAlign="start" styles={{ root: { padding: 10 } }}>
+                            <ProgressIndicator label={"Loading..."} />
+                        </Stack>
+                    </Callout>)}
+                <MarqueeSelection selection={this._selection}>
+                    <ShimmeredDetailsList
+                        listProps={{
+                            ref: this._list,
+                            onRenderPage: (props, defaultRender) => this._onRenderPage(props, defaultRender),
+                            getItemCountForPage: () => {
+                                return count;
+                            }
+                        }}
+                        items={items}
+                        setKey="items"
+                        compact={isCompact}
+                        columns={columns}
+                        selection={this._selection}
+                        selectionMode={isMultipleSelection ? SelectionMode.multiple : SelectionMode.single}
+                        onItemInvoked={this._onItemInvoked}
+                        onItemContextMenu={this._onItemContextMenu}
+                        onRenderMissingItem={this._renderMissingItem}
+                        onRenderCustomPlaceholder={this._renderCustomPlaceholder}
+                        enableShimmer={(!isLoaded && items.length === 0)}
+                        onRenderDetailsHeader={this._renderDetailsHeader}
+                        onRenderItemColumn={this._renderItemColumn}
+                        onRenderDetailsFooter={this._renderDetailsFooter}
+                    />
+                </MarqueeSelection>
                 {contextualMenuProps && <ContextualMenu {...contextualMenuProps} />}
-                {isLoaded && nextPageToken && (<TooltipHost
-                    content={"Next {0} item(s)".format(count)}
-                    id={this._nextActionHostId}
-                    calloutProps={{ gapSpace: 0 }}
-                    styles={{ root: { display: 'inline-block' } }}>
-                    <ActionButton iconProps={{ iconName: 'Next' }} aria-describedby={this._nextActionHostId} onClick={() =>
-                        this._waitAll().then(() => this.loadItems())}>{"Next {0}".format(count)}</ActionButton>
-                </TooltipHost>)
-                  /*isLoading && (<Stack horizontalAlign="center" styles={{ root: { padding: 10 } }}><Spinner size={SpinnerSize.medium} /></Stack>)*/}
             </div>
         );
     }
 
     _onRenderPage(props, defaultRender) {
         const { nextPageToken, isLoaded, isLoading } = this.state;
-        let hasMore = !!nextPageToken /*&& !isLoading && isLoaded*/;
-
-        return (<div key={props.key} ref={(ref) => this.scrollParentRef = ref}>
-            {!!nextPageToken && (
-                <InfiniteScroll
-                    pageStart={0}
-                    loadMore={() => {
-                        this._waitAll().then(() => this.loadItems())
-                    }}
-                    hasMore={hasMore}
-                    loader={null}
-                    useWindow={false}
-                    getScrollParent={() => this.scrollParentRef}>
-                    {defaultRender(props, defaultRender)}
-                </InfiniteScroll>)
-                || defaultRender(props, defaultRender)}
+        let hasMore = !!nextPageToken /*!isLoading && isLoaded*/;
+        return (<div key={props.key} style={{ overflow: 'auto' }} ref={(ref) => this.scrollParentRef = ref}>
+            <InfiniteScroll
+                pageStart={0}
+                loadMore={(e) => this.loadItems()}
+                threshold={5}
+                isReverse={false}
+                hasMore={hasMore}
+                loader={null}
+                useWindow={false}
+                getScrollParent={() => this.scrollParentRef}>
+                {defaultRender(props, defaultRender)}
+            </InfiniteScroll>
         </div>);
     }
 
@@ -155,6 +142,22 @@ export class BaseListView extends React.Component {
                 ...props
             })}
         </Sticky>);
+    }
+
+    _renderDetailsFooter = (props) => {
+        let { emptyMessage } = this.props;
+        let { items, nextPageToken, isLoading, isLoaded, count } = this.state;
+        return (<>
+            {isLoaded && items.length === 0 && !isLoading && (<Stack horizontalAlign="start" styles={{ root: { padding: 10 } }}>{emptyMessage}</Stack>)}
+            {isLoaded && nextPageToken && (<TooltipHost
+                content={"Next {0} item(s)".format(count)}
+                id={this._nextActionHostId}
+                calloutProps={{ gapSpace: 0 }}
+                styles={{ root: { display: 'inline-block' } }}>
+                <ActionButton iconProps={{ iconName: 'Refresh' }} aria-describedby={this._nextActionHostId} onClick={() =>
+                    this._waitAll().then(() => this.loadItems())}>{"Next {0}".format(count)}</ActionButton>
+            </TooltipHost>)}
+        </>)
     }
 
     _getColumns = () => {
@@ -484,7 +487,7 @@ export class BaseListView extends React.Component {
         }).then((result) => {
             this._isLoading = false;
             this.setState({
-                isLoading: false
+                isLoading: false                
             });
             return result;
         });
