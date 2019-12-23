@@ -18,64 +18,10 @@ export class ProjectList extends BaseListView {
     };
   }
 
-  async componentDidMount() {
-    await super.componentDidMount();
-    if (this._command) {
-      const { isLoading, isLoaded } = this.state;
-      let newItemEnabled = isLoaded;
-      if (newItemEnabled !== this._command.state.newItemEnabled) {
-        this._command.setState({ newItemEnabled: newItemEnabled });
-      }
-      let refreshEnabed = !isLoading;
-      if (refreshEnabed !== this._command.state.refreshEnabed) {
-        this._command.setState({ refreshEnabed: refreshEnabed });
-      }
-    }
-  }
-
   render() {
-    const { onItemSaving, onItemSaved, onItemDeleting, onItemDeleted, commandItems, style } = this.props;
-    const { selection, canAddListItems, filter } = this.state;
     return (
       <div className="projects-container">
-        <ScrollablePane scrollbarVisibility={ScrollbarVisibility.auto}>
-          <Sticky stickyPosition={StickyPositionType.Header} isScrollSynced={true}>
-            <ProjectCommand ref={ref => this._command = ref} canAddListItems={canAddListItems} commandItems={commandItems} service={this._service} selection={selection}
-              onClearSelection={() => {
-                //this._onSelectionChanged(null);
-                if (this._selection) {
-                  this._selection.setItems(this._selection.getItems(), true);
-                }
-              }}
-              clearFilterShown={!!filter}
-              onSearch={(expr, props) => {
-                if (props) {
-                }
-                if (!expr) {
-                  expr = "";
-                  this._filterFields = null;
-                }
-                else if (filter) {
-                  expr = `${expr} && ${filter}`;
-                }
-                this._onFilter(expr);
-              }}
-              searchField={
-                {
-                  key: 'title',
-                  name: 'Title',
-                  filterComparison: 3,
-                  value: ''
-                }
-              }
-              onSetFilter={() => { if (this._filter) { this._filter.showHide(); } }}
-              onClearFilter={() => { this._filterFields = null; this._onFilter(""); }}
-              onRefresh={() => this.refresh(true)}
-              onViewChanged={(isCompact) => this.setState({isCompact: isCompact})}
-              onItemDeleted={this._onItemDeleted} onItemSaved={this._onItemSaved} onItemSaving={onItemSaving} onItemDeleting={onItemDeleting} />
-          </Sticky>
-          {super.render()}
-        </ScrollablePane>
+        {super.render()}
         <ProjectSearchFormPanel ref={ref => this._filter = ref} service={this._service}
           fields={this._filterFields}
           onFilter={(filter) => {
@@ -85,6 +31,47 @@ export class ProjectList extends BaseListView {
             }
           }} />
       </div>
+    );
+  }
+
+  _renderHeader = () => {
+    const { onItemSaving, onItemSaved, onItemDeleting, onItemDeleted, commandItems, style } = this.props;
+    const { selection, canAddListItems, filter } = this.state;
+    return (<Sticky stickyPosition={StickyPositionType.Header} isScrollSynced={true}>
+      <ProjectCommand ref={ref => this._command = ref} canAddListItems={canAddListItems} commandItems={commandItems} service={this._service} selection={selection}
+        onClearSelection={() => {
+          //this._onSelectionChanged(null);
+          if (this._selection) {
+            this._selection.setItems(this._selection.getItems(), true);
+          }
+        }}
+        clearFilterShown={!!filter}
+        onSearch={(expr, props) => {
+          if (props) {
+          }
+          if (!expr) {
+            expr = "";
+            this._filterFields = null;
+          }
+          else if (filter) {
+            expr = `${expr} && ${filter}`;
+          }
+          this._onFilter(expr);
+        }}
+        searchField={
+          {
+            key: 'title',
+            name: 'Title',
+            filterComparison: 3,
+            value: ''
+          }
+        }
+        onSetFilter={() => { if (this._filter) { this._filter.showHide(); } }}
+        onClearFilter={() => { this._filterFields = null; this._onFilter(""); }}
+        onRefresh={() => this.refresh(true)}
+        onViewChanged={(isCompact) => this.setState({ isCompact: isCompact })}
+        onItemDeleted={this._onItemDeleted} onItemSaved={this._onItemSaved} onItemSaving={onItemSaving} onItemDeleting={onItemDeleting} />
+    </Sticky>
     );
   }
 
@@ -295,10 +282,29 @@ export class ProjectList extends BaseListView {
       this._command.setState({ refreshEnabed: true });
     }
   }
+
+  async loadItems(sortColumn, reload, newFilter) {
+    if (this._command) {
+      this._command.setState({ refreshEnabed: false });
+    }
+    return await super.loadItems(sortColumn, reload, newFilter).then(result => {
+      if (this._command) {
+        const { isLoading, isLoaded } = this.state;
+        let newItemEnabled = isLoaded;
+        if (newItemEnabled !== this._command.state.newItemEnabled) {
+          this._command.setState({ newItemEnabled: newItemEnabled });
+        }
+        let refreshEnabed = !isLoading;
+        if (refreshEnabed !== this._command.state.refreshEnabed) {
+          this._command.setState({ refreshEnabed: refreshEnabed });
+        }
+      }
+    });
+  }
 }
 
 const Projects = (props) => {
-  return (<ProjectList service={props.service} pageSize={(props.pageSize || window._isMobile ? 10: 20)} emptyMessage="There are no projects." />);
+  return (<ProjectList service={props.service} pageSize={(props.pageSize || window._isMobile ? 10 : 20)} emptyMessage="There are no projects." />);
 };
 
 export default Projects;

@@ -57,6 +57,7 @@ export class SearchField extends React.Component {
             });
             return (<Stack horizontal styles={{ root: { padding: 2 } }}>
                 <Dropdown
+                    className="filter-type"
                     ref={ref => this._choiceField = ref}
                     placeholder={"Select a filter..."}
 

@@ -6,6 +6,8 @@ import { DirectionalHint, ContextualMenu } from 'office-ui-fabric-react/lib/Cont
 //import { Spinner, SpinnerSize } from 'office-ui-fabric-react/lib/Spinner';
 import { Stack } from 'office-ui-fabric-react/lib/Stack';
 import { MarqueeSelection } from 'office-ui-fabric-react/lib/MarqueeSelection';
+import { FocusZone, FocusZoneDirection } from 'office-ui-fabric-react/lib/FocusZone';
+import { ScrollablePane, ScrollbarVisibility } from 'office-ui-fabric-react/lib/ScrollablePane';
 import { ActionButton } from 'office-ui-fabric-react';
 import { TooltipHost } from 'office-ui-fabric-react/lib/Tooltip';
 import { getId } from 'office-ui-fabric-react/lib/Utilities';
@@ -13,7 +15,6 @@ import { Sticky, StickyPositionType } from 'office-ui-fabric-react/lib/Sticky';
 import { Callout } from 'office-ui-fabric-react';
 import { ProgressIndicator } from 'office-ui-fabric-react/lib/ProgressIndicator';
 import { StatusBar } from '../StatusBar';
-import InfiniteScroll from 'react-infinite-scroller';
 
 export class BaseListView extends React.Component {
 
@@ -57,64 +58,62 @@ export class BaseListView extends React.Component {
 
     render() {
         let { isMultipleSelection } = this.props;
-        let { columns, contextualMenuProps, items, isLoading, isLoaded, count, isCompact } = this.state;
+        let { columns, contextualMenuProps, items, isLoading, isLoaded, count, isCompact, nextPageToken } = this.state;
         return (
-            <div className="list-view-container" ref={this._container}>
-                <StatusBar ref={ref => this._status = ref} />
-                {isLoading &&
-                    (<Callout
-                        target={this._container.current}
-                        setInitialFocus={true}>
-                        <Stack horizontalAlign="start" styles={{ root: { padding: 10 } }}>
-                            <ProgressIndicator label={"Loading..."} />
-                        </Stack>
-                    </Callout>)}
-                <MarqueeSelection selection={this._selection}>
-                    <ShimmeredDetailsList
-                        listProps={{
-                            ref: this._list,
-                            onRenderPage: (props, defaultRender) => this._onRenderPage(props, defaultRender),
-                            getItemCountForPage: () => {
-                                return count;
-                            }
-                        }}
-                        items={items}
-                        setKey="items"
-                        compact={isCompact}
-                        columns={columns}
-                        selection={this._selection}
-                        selectionMode={isMultipleSelection ? SelectionMode.multiple : SelectionMode.single}
-                        onItemInvoked={this._onItemInvoked}
-                        onItemContextMenu={this._onItemContextMenu}
-                        onRenderMissingItem={this._renderMissingItem}
-                        onRenderCustomPlaceholder={this._renderCustomPlaceholder}
-                        enableShimmer={(!isLoaded && items.length === 0)}
-                        onRenderDetailsHeader={this._renderDetailsHeader}
-                        onRenderItemColumn={this._renderItemColumn}
-                        onRenderDetailsFooter={this._renderDetailsFooter}
-                    />
-                </MarqueeSelection>
-                {contextualMenuProps && <ContextualMenu {...contextualMenuProps} />}
+            <div className="list-view-container" ref={this._container} ref={(ref) => this._scrollParentRef = ref}>
+                <ScrollablePane scrollbarVisibility={ScrollbarVisibility.auto}>
+                    {this._renderHeader()}
+                    <StatusBar ref={ref => this._status = ref} />
+                    {isLoading &&
+                        (<Callout
+                            target={this._container.current}
+                            setInitialFocus={true}>
+                            <Stack horizontalAlign="start" styles={{ root: { padding: 10 } }}>
+                                <ProgressIndicator label={"Loading..."} />
+                            </Stack>
+                        </Callout>)}
+                    <MarqueeSelection selection={this._selection}>
+                        <ShimmeredDetailsList
+                            listProps={{
+                                ref: this._list,
+                                onRenderPage: (props, defaultRender) => this._renderPage(props, defaultRender),
+                                getItemCountForPage: () => {
+                                    return count;
+                                }
+                            }}
+                            items={items}
+                            setKey="items"
+                            compact={isCompact}
+                            columns={columns}
+                            selection={this._selection}
+                            selectionMode={isMultipleSelection ? SelectionMode.multiple : SelectionMode.single}
+                            onItemInvoked={this._onItemInvoked}
+                            onItemContextMenu={this._onItemContextMenu}
+                            onRenderMissingItem={this._renderMissingItem}
+                            onRenderCustomPlaceholder={this._renderCustomPlaceholder}
+                            enableShimmer={(!isLoaded && items.length === 0)}
+                            onRenderDetailsHeader={this._renderDetailsHeader}
+                            onRenderItemColumn={this._renderItemColumn}
+                            onRenderDetailsFooter={this._renderDetailsFooter}
+                            onRenderRow={this._renderRow}
+                        />
+                    </MarqueeSelection>
+                    {contextualMenuProps && <ContextualMenu {...contextualMenuProps} />}
+                </ScrollablePane>
             </div>
         );
     }
 
-    _onRenderPage(props, defaultRender) {
-        const { nextPageToken, isLoaded, isLoading } = this.state;
-        let hasMore = !!nextPageToken /*!isLoading && isLoaded*/;
-        return (<div key={props.key} style={{ overflow: 'auto' }} ref={(ref) => this.scrollParentRef = ref}>
-            <InfiniteScroll
-                pageStart={0}
-                loadMore={(e) => this.loadItems()}
-                threshold={5}
-                isReverse={false}
-                hasMore={hasMore}
-                loader={null}
-                useWindow={false}
-                getScrollParent={() => this.scrollParentRef}>
-                {defaultRender(props, defaultRender)}
-            </InfiniteScroll>
-        </div>);
+    _renderHeader = () => {
+
+    }
+
+    _renderRow = (props, defaultRender) => {
+        return defaultRender(props);
+    }
+
+    _renderPage(props, defaultRender) {
+        return defaultRender(props, defaultRender);
     }
 
     _renderItemColumn(item, index, column) {
@@ -147,7 +146,7 @@ export class BaseListView extends React.Component {
     _renderDetailsFooter = (props) => {
         let { emptyMessage } = this.props;
         let { items, nextPageToken, isLoading, isLoaded, count } = this.state;
-        return (<>
+        return (<Sticky stickyPosition={StickyPositionType.Footer} isScrollSynced={true}>
             {isLoaded && items.length === 0 && !isLoading && (<Stack horizontalAlign="start" styles={{ root: { padding: 10 } }}>{emptyMessage}</Stack>)}
             {isLoaded && nextPageToken && (<TooltipHost
                 content={"Next {0} item(s)".format(count)}
@@ -157,7 +156,7 @@ export class BaseListView extends React.Component {
                 <ActionButton iconProps={{ iconName: 'Refresh' }} aria-describedby={this._nextActionHostId} onClick={() =>
                     this._waitAll().then(() => this.loadItems())}>{"Next {0}".format(count)}</ActionButton>
             </TooltipHost>)}
-        </>)
+        </Sticky>)
     }
 
     _getColumns = () => {
@@ -418,10 +417,10 @@ export class BaseListView extends React.Component {
     }
 
     async loadItems(sortColumn = null, reload = false, newFilter = null) {
-        
+
         let { count, filter, sortBy, sortDesc, nextPageToken, items, isLoading } = this.state;
 
-        if(this._isLoading || isLoading ) return;
+        if (this._isLoading || isLoading) return;
 
         if (sortColumn !== null) {
             sortBy = sortColumn.sortFieldName || sortColumn.fieldName;
@@ -458,36 +457,40 @@ export class BaseListView extends React.Component {
             this.setState({
                 items: items.concat(new Array(count))
             });
-        }        
+        }
         let controller = new AbortController();
         const promise = this._fetchData(count, nextPageToken, sortBy, sortDesc, filter, { signal: controller ? controller.signal : null });
         this._controllers.push({ controller: controller, promise: promise });
 
         return await this._onPromise(promise, (json) => {
-            //let { items } = this.state;
             this.setState({
                 isLoading: false,
                 isLoaded: true
             });
-            let itemsCopy = [];
+            let itemsCopy = [...items];
             if (json) {
-                itemsCopy = (nextPageToken ? items : items.splice(0, items.length)).concat(json.items);
+                itemsCopy = (!!nextPageToken ? itemsCopy.splice(0, items.length - 1) : []).concat(json.items);
 
                 if (this._controllers.filter(c => c.controller == controller) === 0) return;
+
+                if (!!json._nextPageToken) {
+                    itemsCopy.push(null);
+                }
+
                 this.setState({
                     items: itemsCopy,
                     nextPageToken: json._nextPageToken,
                     canAddListItems: json._canAddListItems
                 });
                 //this._selection.setItems(itemsCopy);
-            }           
+            }
 
             this._controllers = this._controllers.filter(c => c.controller !== controller);
             return { ok: true, data: itemsCopy }; // OK
         }).then((result) => {
             this._isLoading = false;
             this.setState({
-                isLoading: false                
+                isLoading: false
             });
             return result;
         });

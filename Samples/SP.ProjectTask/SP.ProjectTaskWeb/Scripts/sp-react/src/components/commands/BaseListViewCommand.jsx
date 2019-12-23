@@ -190,7 +190,7 @@ export class BaseListViewCommand extends React.Component {
                 icon: 'ClearFilter',
                 text: 'Clear Filter',
                 iconOnly: true,
-                disabled: !clearFilterShown,
+                disabled:  !refreshEnabed || !clearFilterShown,
                 onClick: (e, sender) => this._onClearFilter(),
                 iconProps: {
                     iconName: 'ClearFilter'
