@@ -57,8 +57,8 @@ export class BaseListView extends React.Component {
     }
 
     render() {
-        let { isMultipleSelection } = this.props;
-        let { columns, contextualMenuProps, items, isLoading, isLoaded, count, isCompact, nextPageToken } = this.state;
+        const { isMultipleSelection } = this.props;
+        const { columns, contextualMenuProps, items, isLoading, isLoaded, count, isCompact } = this.state;
         return (
             <div className="list-view-container" ref={this._container} ref={(ref) => this._scrollParentRef = ref}>
                 <ScrollablePane scrollbarVisibility={ScrollbarVisibility.auto}>
@@ -136,6 +136,8 @@ export class BaseListView extends React.Component {
     }
 
     _renderDetailsHeader = (props, defaultRender) => {
+        const { items, isLoaded } = this.state;
+        if(isLoaded && items.length === 0) return null;
         return (<Sticky stickyPosition={StickyPositionType.Header} isScrollSynced={true}>
             {defaultRender({
                 ...props
@@ -144,8 +146,8 @@ export class BaseListView extends React.Component {
     }
 
     _renderDetailsFooter = (props) => {
-        let { emptyMessage } = this.props;
-        let { items, nextPageToken, isLoading, isLoaded, count } = this.state;
+        const { emptyMessage } = this.props;
+        const { items, nextPageToken, isLoading, isLoaded, count } = this.state;
         return (<Sticky stickyPosition={StickyPositionType.Footer} isScrollSynced={true}>
             {isLoaded && items.length === 0 && !isLoading && (<Stack horizontalAlign="start" styles={{ root: { padding: 10 } }}>{emptyMessage}</Stack>)}
             {isLoaded && nextPageToken && (<TooltipHost
