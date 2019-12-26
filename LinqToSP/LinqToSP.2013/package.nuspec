@@ -4,7 +4,7 @@
     <!--*-->
     <id>LinqToSP.2013</id>
     <!--*-->
-    <version>1.0.6</version>
+    <version>1.0.7</version>
     <title>Linq To SharePoint (2013) Framework</title>
     <!--*-->
     <authors>Ruslan Pakhomenka</authors>
@@ -16,7 +16,7 @@
     <!--*-->
     <description>Linq To SharePoint (2013) Framework.</description>
     <!--*-->
-    <releaseNotes>bug fixes</releaseNotes>
+    <releaseNotes>-bug fixes</releaseNotes>
     <copyright>Copyright ©  2019</copyright>
     <tags>
             Linq,SharePoint
