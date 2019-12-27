@@ -200,6 +200,8 @@ export class EmployeeList extends BaseListView {
         name: 'Department',
         fieldName: 'Department',
         sortFieldName: 'DepartmentTitle',
+        groupFieldName: 'DepartmentTitle',
+        isGroupingEnabled: true,
         minWidth: 210,
         maxWidth: 350,
         isSortable: true,
@@ -213,7 +215,7 @@ export class EmployeeList extends BaseListView {
         data: 'string',
         isPadded: false,
         getView: (lookupItem) => {
-          if (lookupItem) {
+          if (lookupItem && lookupItem.Id) {
             return <LookupFieldRenderer key='department' currentValue={lookupItem} fieldProps={{
               key: 'department',
               name: 'Department',
@@ -225,7 +227,7 @@ export class EmployeeList extends BaseListView {
               renderListForm: (ref, itemId) => this._renderDepartmentListForm(ref, itemId)
             }} mode={0} />
           }
-          return '';
+          return lookupItem;
         }
       },
     ];
@@ -274,8 +276,8 @@ export class EmployeeList extends BaseListView {
     />;
   }
 
-  _fetchData = async (count, nextPageToken, sortBy, sortDesc, filter, options) => {
-    return await this._service.getEmployees(count, nextPageToken, sortBy, sortDesc, filter, null, options);
+  _fetchData = async (count, nextPageToken, sortBy, groupBy, filter, options) => {
+    return await this._service.getEmployees(count, nextPageToken, sortBy, groupBy, filter, null, options);
   }
 
   _onSelectionChanged(selectionItems) {

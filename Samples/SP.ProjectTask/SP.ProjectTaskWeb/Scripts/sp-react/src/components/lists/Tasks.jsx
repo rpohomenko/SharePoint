@@ -149,6 +149,8 @@ export class TaskList extends BaseListView {
         name: 'Project',
         fieldName: 'Project',
         sortFieldName: 'ProjectTitle',
+        groupFieldName: 'ProjectTitle',
+        isGroupingEnabled: true,
         minWidth: 210,
         maxWidth: 350,
         isRowHeader: false,
@@ -162,7 +164,7 @@ export class TaskList extends BaseListView {
         data: 'string',
         isPadded: false,
         getView: (lookupItem) => {
-          if (lookupItem) {
+          if (lookupItem && lookupItem.Id) {
             return <LookupFieldRenderer key='project' currentValue={lookupItem} fieldProps={{
               key: 'project',
               name: 'Project',
@@ -175,14 +177,14 @@ export class TaskList extends BaseListView {
               renderListForm: (ref, itemId) => this._renderProjectListForm(ref, itemId)
             }} mode={0} />
           }
-          return '';
+          return lookupItem;
         }
       },
 
       {
         key: 'assignedTo',
         name: 'Assigned To',
-        fieldName: 'AssignedTo',
+        fieldName: 'AssignedTo',     
         minWidth: 210,
         maxWidth: 350,
         isRowHeader: false,
@@ -215,6 +217,7 @@ export class TaskList extends BaseListView {
         fieldName: 'TaskStatus',
         minWidth: 210,
         maxWidth: 350,
+        isGroupingEnabled: true,
         isRowHeader: false,
         isResizable: true,
         isSortable: true,
@@ -317,8 +320,8 @@ export class TaskList extends BaseListView {
     />;
   }
 
-  _fetchData = async (count, nextPageToken, sortBy, sortDesc, filter, options) => {
-    return await this._service.getTasks(count, nextPageToken, sortBy, sortDesc, filter, null, options);
+  _fetchData = async (count, nextPageToken, sortBy, groupBy, filter, options) => {
+    return await this._service.getTasks(count, nextPageToken, sortBy, groupBy, filter, null, options);
   }
 
   _onSelectionChanged(selectionItems) {

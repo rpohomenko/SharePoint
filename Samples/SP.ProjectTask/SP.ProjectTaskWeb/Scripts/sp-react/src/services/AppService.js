@@ -13,8 +13,8 @@ export class AppService extends ApiService {
         super(BASE_PATH);
     }
 
-    _getQuery = (count, nextPageToken, sortBy, sortDesc, filter, fields) => {
-        let query = `count=${count}&pagingToken=${encodeURIComponent(nextPageToken || "")}&where=${encodeURIComponent(filter || "")}&sortBy=${encodeURIComponent(sortBy || "")}&sortDesc=${!!sortDesc || false}`;
+    _getQuery = (count, nextPageToken, sortBy, groupBy, filter, fields) => {
+        let query = `count=${count}&pagingToken=${encodeURIComponent(nextPageToken || "")}&where=${encodeURIComponent(filter || "")}&sortBy=${encodeURIComponent(sortBy || "")}&groupBy=${encodeURIComponent(groupBy || "")}`;
         if (isArray(fields)) {
             query += "&" + fields.map(field => `fields=${field}`).join('&');
         }
@@ -23,8 +23,8 @@ export class AppService extends ApiService {
 
     // Tasks
 
-    getTasks = async (count, nextPageToken, sortBy, sortDesc, filter, fields, options) => {
-        return await this.get(`/api/web/tasks?${this._getQuery(count, nextPageToken, sortBy, sortDesc, filter, fields)}`, options);
+    getTasks = async (count, nextPageToken, sortBy, groupBy, filter, fields, options) => {
+        return await this.get(`/api/web/tasks?${this._getQuery(count, nextPageToken, sortBy, groupBy, filter, fields)}`, options);
     }
 
     getTask = async (id, options) => {
@@ -44,8 +44,8 @@ export class AppService extends ApiService {
 
     // Projects
 
-    getProjects = async (count, nextPageToken, sortBy, sortDesc, filter, fields, options) => {
-        return await this.get(`/api/web/projects?${this._getQuery(count, nextPageToken, sortBy, sortDesc, filter, fields)}`, options);
+    getProjects = async (count, nextPageToken, sortBy, groupBy, filter, fields, options) => {
+        return await this.get(`/api/web/projects?${this._getQuery(count, nextPageToken, sortBy, groupBy, filter, fields)}`, options);
     }
 
     getProject = async (id, options) => {
@@ -65,8 +65,8 @@ export class AppService extends ApiService {
 
     // Employees
 
-    getEmployees = async (count, nextPageToken, sortBy, sortDesc, filter, fields, options) => {
-        return await this.get(`/api/web/employees?${this._getQuery(count, nextPageToken, sortBy, sortDesc, filter, fields)}`, options);
+    getEmployees = async (count, nextPageToken, sortBy, groupBy, filter, fields, options) => {
+        return await this.get(`/api/web/employees?${this._getQuery(count, nextPageToken, sortBy, groupBy, filter, fields)}`, options);
     }
 
     getEmployee = async (id, options) => {
@@ -87,8 +87,8 @@ export class AppService extends ApiService {
 
     // Departments
 
-    getDepartments = async (count, nextPageToken, sortBy, sortDesc, filter, fields, options) => {
-        return await this.get(`/api/web/departments?${this._getQuery(count, nextPageToken, sortBy, sortDesc, filter, fields)}`, options);
+    getDepartments = async (count, nextPageToken, sortBy, groupBy, filter, fields, options) => {
+        return await this.get(`/api/web/departments?${this._getQuery(count, nextPageToken, sortBy, groupBy, filter, fields)}`, options);
     }
 
     getDepartment = async (id, options) => {

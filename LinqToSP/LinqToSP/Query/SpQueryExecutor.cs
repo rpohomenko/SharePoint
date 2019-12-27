@@ -123,6 +123,21 @@ namespace SP.Client.Linq.Query
             var queryVisitor = new SpGeneratorQueryModelVisitor<TContext, TEntity>(SpQueryArgs, spView);
             queryVisitor.VisitQueryModel(queryModel);
 
+            if (spView.Query.GroupBy != null && spView.Query.OrderBy != null)
+            {
+                foreach (var gfieldRef in spView.Query.GroupBy.FieldRefs)
+                {
+                    foreach (var ofieldRef in spView.Query.OrderBy.FieldRefs)
+                    {
+                        if (gfieldRef.Name == ofieldRef.Name || gfieldRef.Id == ofieldRef.Id)
+                        {
+                            gfieldRef.Ascending = ofieldRef.Ascending;
+                            break;
+                        }
+                    }
+                }
+            }
+
             var contentType = AttributeHelper.GetCustomAttributes<TEntity, ContentTypeAttribute>(true).LastOrDefault();
             if (contentType != null && !string.IsNullOrWhiteSpace(contentType.Id) && contentType.Id != "0x01")
             {

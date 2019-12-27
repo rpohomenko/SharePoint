@@ -79,7 +79,7 @@ namespace SP.ProjectTaskWeb.Models
             }
         }
 
-        //[DataMember]
+        [DataMember]
         [LookupField(Name = "pt_Project", Result = LookupItemResult.Id)]
         public int ProjectId
         {
@@ -93,7 +93,7 @@ namespace SP.ProjectTaskWeb.Models
             }
         }
 
-        //[DataMember]
+        [DataMember]
         [LookupField(Name = "pt_Project", Result = LookupItemResult.Value)]
         public string ProjectTitle
         {

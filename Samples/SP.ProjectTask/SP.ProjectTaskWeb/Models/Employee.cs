@@ -236,6 +236,7 @@ namespace SP.ProjectTaskWeb.Models
             set { DepartmentLookup.SetEntity(value); }
         }
 
+        [DataMember]
         [LookupField(Name = "pt_Department", Result = LookupItemResult.Id)]
         public int DepartmentId
         {
@@ -243,6 +244,7 @@ namespace SP.ProjectTaskWeb.Models
             set { DepartmentLookup.EntityId = value; }
         }
 
+        [DataMember]
         [LookupField(Name = "pt_Department", Result = LookupItemResult.Value)]
         public string DepartmentTitle
         {
@@ -256,7 +258,7 @@ namespace SP.ProjectTaskWeb.Models
             get;
         }
 
-        [LookupField(Name = "pt_Department", Behavior =  ProvisionBehavior.None)]
+        [LookupField(Name = "pt_Department", Behavior = ProvisionBehavior.None)]
         public FieldLookupValue DepartmentValue
         {
             get;

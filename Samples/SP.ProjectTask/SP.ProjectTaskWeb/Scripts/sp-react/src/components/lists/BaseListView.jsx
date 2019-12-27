@@ -58,7 +58,7 @@ export class BaseListView extends React.Component {
 
     render() {
         const { isMultipleSelection } = this.props;
-        const { columns, contextualMenuProps, items, isLoading, isLoaded, count, isCompact } = this.state;
+        const { columns, contextualMenuProps, items, groups, isLoading, isLoaded, count, isCompact } = this.state;
         return (
             <div className="list-view-container" ref={this._container} ref={(ref) => this._scrollParentRef = ref}>
                 <ScrollablePane scrollbarVisibility={ScrollbarVisibility.auto}>
@@ -82,6 +82,10 @@ export class BaseListView extends React.Component {
                                 }
                             }}
                             items={items}
+                            groups={groups}
+                            groupProps={{
+                                onRenderHeader: this._renderGroupHeader                           
+                              }}
                             setKey="items"
                             compact={isCompact}
                             columns={columns}
@@ -105,7 +109,10 @@ export class BaseListView extends React.Component {
     }
 
     _renderHeader = () => {
+    }
 
+    _renderGroupHeader = (props, defaultRender) => {
+        return defaultRender(props);
     }
 
     _renderRow = (props, defaultRender) => {
@@ -301,7 +308,7 @@ export class BaseListView extends React.Component {
 
     async sortColumn(column, isSortedDescending) {
         column.isSortedDescending = isSortedDescending;
-        return await this._setTimeout(() => {
+        return await this._setTimeout(async() =>{
             const { columns, items } = this.state;
             const newColumns = columns.slice();
             const currColumn = newColumns.filter(currCol => column.key === currCol.key)[0];
@@ -314,17 +321,37 @@ export class BaseListView extends React.Component {
                     newCol.isSortedDescending = true;
                 }
             });
-
-            return this._abort().then(() => {
-                this.setState({
-                    columns: newColumns,
-                    items: [],
-                    nextPageToken: null,
-                    sortBy: column.sortFieldName || column.fieldName,
-                    sortDesc: column.isSortedDescending
-                });
-                return this.loadItems(column, null);
+            this.setState({
+                columns: newColumns,
+                /*items: [],
+                nextPageToken: null,*/
+                sortBy: column.sortFieldName || column.fieldName,
+                sortDesc: column.isSortedDescending
             });
+            await this._abort();
+            return await this.loadItems(column, null);
+        }, this.props.RELOAD_DELAY);
+    }
+
+    async groupColumn(column) {
+        return await this._setTimeout(async() => {
+            const { columns, groupBy } = this.state;
+            const newColumns = columns.slice();
+            const currColumn = newColumns.filter(currCol => column.key === currCol.key)[0];
+            newColumns.forEach((newCol) => {
+                if (newCol === currColumn) {                    
+                    currColumn.isGrouped = (groupBy === (column.groupFieldName || column.fieldName)) ? false : true;
+                } else {
+                    newCol.isGrouped = false;
+                }
+            });
+            this.setState({
+                columns: newColumns,
+                groupColumn: column,
+                groupBy: (groupBy === (column.groupFieldName || column.fieldName)) ? null : (column.groupFieldName || column.fieldName)
+            });
+            await this._abort();
+            return await this.loadItems(null, null, null, column);
         }, this.props.RELOAD_DELAY);
     }
 
@@ -364,6 +391,16 @@ export class BaseListView extends React.Component {
                 onClick: () => this.sortColumn(column, true)
             }
         ];
+        if(column.isGroupingEnabled){
+            items.push({
+                key: 'groupBy',
+                name: 'Group By',
+                iconProps: { iconName: 'GroupList' },
+                canCheck: true,             
+                checked: column.isGrouped,
+                onClick: () => this.groupColumn(column)
+            });
+        }
         return {
             items: items,
             target: ev.currentTarget,
@@ -380,16 +417,16 @@ export class BaseListView extends React.Component {
         });
     };
 
-    _fetchData = (count, nextPageToken, sortBy, sortDesc, filter, options) => {
+    _fetchData = (count, nextPageToken, sortBy, groupBy, filter, options) => {
         throw "Method _fetchData is not yet implemented!";
     }
 
-    async refresh(resetSorting, resetFiltering) {
+    async refresh(resetSorting, resetFiltering, resetGrouping) {
         //await this._setTimeout(null, this.props.RELOAD_DELAY);
         await this._abort();
         const { isLoading } = this.state;
         if (isLoading) return;
-        let { columns, sortBy, sortDesc, filter } = this.state;
+        let { columns, sortBy, sortDesc, groupBy, filter } = this.state;
         if (resetSorting) {
             columns = columns.slice();
             columns.forEach((newCol) => {
@@ -400,17 +437,25 @@ export class BaseListView extends React.Component {
             sortDesc = undefined;
         }
         if (resetFiltering) {
-            filter = null;
+            filter = undefined;
+        }
+        if(resetGrouping){
+            columns = columns.slice();
+            columns.forEach((newCol) => {
+                newCol.isGrouped = false;               
+            });
+            groupBy = undefined;
         }
         this.setState({
             items: [],
             nextPageToken: undefined,
-            sortBy: sortBy,
+            sortBy: sortBy,            
             sortDesc: sortDesc,
+            groupBy: groupBy,
             columns: columns,
             filter: filter
         });
-        return await this.loadItems(null, true/*, ""*/);
+        return await this.loadItems(null, true, null, null);
     }
 
     _onFilter = async (filter) => {
@@ -418,15 +463,18 @@ export class BaseListView extends React.Component {
         return await this.loadItems(null, true, filter);
     }
 
-    async loadItems(sortColumn = null, reload = false, newFilter = null) {
+    async loadItems(sortColumn = null, reload = false, newFilter = null, groupColumn = null) {
 
-        let { count, filter, sortBy, sortDesc, nextPageToken, items, isLoading } = this.state;
+        let { count, filter, sortBy, sortDesc, groupBy, nextPageToken, items, isLoading } = this.state;
 
         if (this._isLoading || isLoading) return;
 
         if (sortColumn !== null) {
             sortBy = sortColumn.sortFieldName || sortColumn.fieldName;
             sortDesc = sortColumn.isSortedDescending;
+        }
+        if (groupColumn !== null) {
+            groupBy = groupColumn.groupFieldName || groupColumn.fieldName;           
         }
         if (reload) {
             nextPageToken = null;
@@ -449,7 +497,8 @@ export class BaseListView extends React.Component {
         if (!nextPageToken) {
             items = [];
             this.setState({
-                items: items.concat(new Array(count))
+                items: items.concat(new Array(count)),
+                groups: null
             }, () => {
                 this._selection.setItems([], true);
                 this._onSelectionChanged([]);
@@ -457,11 +506,12 @@ export class BaseListView extends React.Component {
         }
         else {
             this.setState({
-                items: items.concat(new Array(count))
+                items: items.concat(new Array(count)),
+                groups: null
             });
         }
         let controller = new AbortController();
-        const promise = this._fetchData(count, nextPageToken, sortBy, sortDesc, filter, { signal: controller ? controller.signal : null });
+        const promise = this._fetchData(count, nextPageToken, sortBy ? `${sortBy}${(sortDesc ? ' DESC' : '')}` : null, groupBy, filter, { signal: controller ? controller.signal : null });
         this._controllers.push({ controller: controller, promise: promise });
 
         return await this._onPromise(promise, (json) => {
@@ -484,6 +534,38 @@ export class BaseListView extends React.Component {
                     nextPageToken: json._nextPageToken,
                     canAddListItems: json._canAddListItems
                 });
+
+                if (!!groupBy) {
+                    const { groupColumn } = this.state;
+                    let groupedItems = this._generateGroupsFromArray(itemsCopy, groupBy);
+                    let groups = [];
+
+                    for (let i = 0; i < itemsCopy.length; i++) {
+                        let item = itemsCopy[i];
+                        for (let groupKey in groupedItems) {
+                            if (groups.filter(group => group.key === groupKey).length === 0) {
+                                let group = groupedItems[groupKey];
+                                if (group.indexOf(item) > -1) {
+                                    let groupName = groupKey;
+                                    if (typeof groupColumn.getView === "function") {
+                                        groupName = groupColumn.getView(item[groupBy]);
+                                    }
+                                    groups.push({
+                                        key: groupKey,
+                                        name: groupName,
+                                        startIndex: i,
+                                        count: group.length,
+                                        isCollapsed: /*true*/ false
+                                    });                                   
+                                }
+                            }
+                        }
+                    }
+                
+                    this.setState({
+                        groups: groups
+                    });
+                }
                 //this._selection.setItems(itemsCopy);
             }
 
@@ -496,6 +578,13 @@ export class BaseListView extends React.Component {
             });
             return result;
         });
+    }
+
+    _generateGroupsFromArray = (items, groupBy) => {
+        return items.reduce((groups, item, index) => {
+            (groups[item[groupBy]] = groups[item[groupBy]] || []).push(item);                 
+            return groups;        
+        }, {});
     }
 
     _onPromise = async (promise, onSuccess) => {

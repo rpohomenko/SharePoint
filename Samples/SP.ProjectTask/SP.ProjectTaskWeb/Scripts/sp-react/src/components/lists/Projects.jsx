@@ -250,8 +250,8 @@ export class ProjectList extends BaseListView {
   }
 
 
-  _fetchData = async (count, nextPageToken, sortBy, sortDesc, filter, options) => {
-    return await this._service.getProjects(count, nextPageToken, sortBy, sortDesc, filter, null, options);
+  _fetchData = async (count, nextPageToken, sortBy, groupBy, filter, options) => {
+    return await this._service.getProjects(count, nextPageToken, sortBy, groupBy, filter, null, options);
   }
 
   _onSelectionChanged(selectionItems) {
