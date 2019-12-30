@@ -13,7 +13,7 @@ namespace SP.ProjectTaskWeb
             await context.ExecuteQueryAsync();
             if (web.AllProperties.FieldValues.ContainsKey(Constants.Installed_WEB_PROP))
             {
-                return System.Convert.ToBoolean(web.AllProperties[Constants.Installed_WEB_PROP]);
+                return Convert.ToBoolean(web.AllProperties[Constants.Installed_WEB_PROP]);
             }
             return false;
         }

@@ -1,0 +1,8 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Elements xmlns="http://schemas.microsoft.com/sharepoint/">
+    <ClientWebPart Name="ProjectTaskWebPart" Title="Project Task" Description="" DefaultWidth="1024" DefaultHeight="800">
+        <Content Type="html" Src="~remoteAppUrl/?{StandardTokens}&amp;IsWebPart=1&amp;editMode=_editMode_" />
+        <Properties>
+        </Properties>
+    </ClientWebPart>
+</Elements>

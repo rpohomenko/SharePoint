@@ -53,6 +53,9 @@
     <Content Include="Package\Package.Template.xml">
       <DependentUpon>Package.package</DependentUpon>
     </Content>
+    <Content Include="ProjectTaskWebPart\Elements.xml">
+      <OpcRelationship>feature-elementmanifest</OpcRelationship>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <AppManifestFile Include="AppManifest.xml">
@@ -77,6 +80,9 @@
     </None>
     <None Include="Package\Package.package">
       <PackageId>{046fb186-75b8-4eff-86b3-c140a6219761}</PackageId>
+    </None>
+    <None Include="ProjectTaskWebPart\SharePointProjectItem.spdata">
+      <SharePointProjectItemId>{044b36aa-3daa-4898-9923-d501c1482725}</SharePointProjectItemId>
     </None>
     <None Include="SharePointProjectItem.spdata">
       <SharePointProjectItemId>{4a8e9e79-1d53-4f66-9c5f-a29e6c734b31}</SharePointProjectItemId>
