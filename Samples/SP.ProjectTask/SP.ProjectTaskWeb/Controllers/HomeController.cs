@@ -48,7 +48,7 @@ namespace SP.ProjectTaskWeb.Controllers
       {
         using (ClientContext context = new Authentication.LowTrustTokenHelper(_lowTrustTokenHelper).GetAppOnlyClienContext(userContext.Url))
         {
-          ViewBag.IsAppInstalled = true;
+          ViewBag.IsAppInstalled = await Helper.IsAppInstalled(context);
           await LoadData(userContext);
           return View();
           //if (await Helper.IsAppInstalled(context))
