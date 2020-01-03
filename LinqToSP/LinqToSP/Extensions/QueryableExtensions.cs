@@ -129,13 +129,28 @@ namespace SP.Client.Linq
                 if (executor != null)
                 {
                     var list = executor.GetList(true);
-                    if(list != null)
+                    if (list != null)
                     {
                         return list.EffectiveBasePermissions.Has(permission);
                     }
                 }
             }
             return false;
+        }
+
+        public static List GetSpList<TEntity>(this IQueryable<TEntity> source)
+           where TEntity : class, IListItemEntity, new()
+        {
+            Check.NotNull(source, nameof(source));
+            if (source is SpEntityQueryable<TEntity, ISpEntryDataContext>)
+            {
+                var executor = (source as SpEntityQueryable<TEntity, ISpEntryDataContext>).GetExecutor();
+                if (executor != null)
+                {
+                    return executor.GetListNoExecute();
+                }
+            }
+            return null;
         }
 
         public static IQueryable<TEntity> WithQuery<TEntity>(this IQueryable<TEntity> source, string queryXml)

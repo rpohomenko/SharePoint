@@ -266,6 +266,11 @@ namespace SP.Client.Linq.Query
             return list;
         }
 
+        public List GetListNoExecute()
+        {
+            return _manager.GetList();
+        }
+
         #endregion
     }
 
