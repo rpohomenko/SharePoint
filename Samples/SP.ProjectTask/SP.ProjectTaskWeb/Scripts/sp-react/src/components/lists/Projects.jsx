@@ -1,6 +1,7 @@
 import React from "react";
 import { ScrollablePane, ScrollbarVisibility } from 'office-ui-fabric-react/lib/ScrollablePane';
 import { Sticky, StickyPositionType } from 'office-ui-fabric-react/lib/Sticky';
+import Fullscreen from "react-full-screen";
 
 import BaseListView from "./BaseListView";
 import ProjectCommand from "../commands/ProjectCommand";
@@ -19,7 +20,13 @@ export class ProjectList extends BaseListView {
   }
 
   render() {
-    return (
+    return (<Fullscreen
+      enabled={this.state.isFullScreen}
+      onChange={isFullScreen => {
+        if (this._command) {
+          this._command.fullScreen(isFullScreen);
+        }
+      }}>
       <div className="projects-container">
         {super.render()}
         <ProjectSearchFormPanel ref={ref => this._filter = ref} service={this._service}
@@ -30,7 +37,7 @@ export class ProjectList extends BaseListView {
               this._onFilter(filter.expr || "");
             }
           }} />
-      </div>
+      </div></Fullscreen>
     );
   }
 
@@ -69,6 +76,7 @@ export class ProjectList extends BaseListView {
         onSetFilter={() => { if (this._filter) { this._filter.showHide(); } }}
         onClearFilter={() => { this._filterFields = null; this._onFilter(""); }}
         onRefresh={() => this.refresh(true)}
+        onFullScreen = {(enabled)=> this.setState({isFullScreen: enabled})}
         onViewChanged={(isCompact) => this.setState({ isCompact: isCompact })}
         onItemDeleted={this._onItemDeleted} onItemSaved={this._onItemSaved} onItemSaving={onItemSaving} onItemDeleting={onItemDeleting} />
     </Sticky>

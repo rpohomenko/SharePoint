@@ -1,3 +1,9 @@
+.webpart {
+    .sidebar {
+        padding-top: 0 !important;
+    }
+}
+
 .sidebar {
     top: 0;
     bottom: 0;
@@ -35,7 +41,7 @@
 .sidebar-menu {
     position: relative;
     top: 0;
-    height: calc(50vh - 42px);   
+    height: calc(50vh - 42px);
     overflow-x: hidden;
     overflow-y: auto;
     border: none;

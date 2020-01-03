@@ -29,7 +29,7 @@
                     // Filters out anchors and urls with other unsupported protocols.
                     return false;
                 }
-                return authority.toUpperCase() == currentAuthority;
+                return authority && authority.toUpperCase() == currentAuthority;
             })
             .each(function () {
                 if (!getSPHostUrlFromQueryString(this.search)) {

@@ -6,6 +6,20 @@
     /* Space for fixed navbar */
 }
 
+.webpart {
+    [role="main"] {
+        padding-top: 0 !important;
+    }
+
+    .navbar-dark {
+        display: none;
+    }
+
+    .sidebar {
+        padding-top: 0 !important;
+    }
+}
+
 @media (min-width: 768px) {
     [role="main"] {
         padding-top: 40px;

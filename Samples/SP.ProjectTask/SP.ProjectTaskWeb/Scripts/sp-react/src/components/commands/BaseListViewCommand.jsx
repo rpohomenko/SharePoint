@@ -107,6 +107,15 @@ export class BaseListViewCommand extends React.Component {
         }
     }
 
+    fullScreen(enabled) {
+        const { onFullScreen } = this.props;
+        this.setState({ fullScreenEnabed: enabled }, () => {
+            if (typeof onFullScreen === "function") {
+                onFullScreen(enabled);
+            }
+        });
+    }
+
     _onSearch(expr, field) {
         const { onSearch } = this.props;
         if (typeof onSearch === "function") {
@@ -154,7 +163,7 @@ export class BaseListViewCommand extends React.Component {
 
     _getFarItems() {
         const { clearFilterShown } = this.props;
-        const { selection, isDeleting, refreshEnabed } = this.state;
+        const { selection, isDeleting, refreshEnabed, fullScreenEnabed } = this.state;
         let items = [];
         if (selection && selection.length > 0) {
             items.push({
@@ -190,7 +199,7 @@ export class BaseListViewCommand extends React.Component {
                 icon: 'ClearFilter',
                 text: 'Clear Filter',
                 iconOnly: true,
-                disabled:  !refreshEnabed || !clearFilterShown,
+                disabled: !refreshEnabed || !clearFilterShown,
                 onClick: (e, sender) => this._onClearFilter(),
                 iconProps: {
                     iconName: 'ClearFilter'
@@ -211,6 +220,36 @@ export class BaseListViewCommand extends React.Component {
                 },
                 ariaLabel: 'Refresh'
             });
+
+        if (!fullScreenEnabed) {
+            items.push(
+                {
+                    key: 'fullScreen',
+                    icon: 'FullScreen',
+                    text: 'FullScreen',
+                    iconOnly: true,
+                    onClick: (e, sender) => this.fullScreen(true),
+                    iconProps: {
+                        iconName: 'FullScreen'
+                    },
+                    ariaLabel: 'FullScreen'
+                });
+        }
+        else {
+            items.push(
+                {
+                    key: 'backToWindow',
+                    icon: 'BackToWindow',
+                    text: 'BackToWindow',
+                    iconOnly: true,
+                    onClick: (e, sender) => this.fullScreen(false),
+                    iconProps: {
+                        iconName: 'BackToWindow'
+                    },
+                    ariaLabel: 'BackToWindow'
+                });
+        }
+
         return items;
     }
 

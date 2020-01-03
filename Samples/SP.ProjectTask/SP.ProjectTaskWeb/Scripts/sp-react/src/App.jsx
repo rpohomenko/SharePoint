@@ -42,8 +42,12 @@ export class App extends React.Component {
             this.setState({ contentId: Number(key || -1) });
             this._sidebar.setState({ isOpen: false });
         };
+        let className = "app";
+        if(_spPageContextInfo && _spPageContextInfo.isWebPart){
+            className += " webpart"
+        }
         return (<ErrorBoundary>
-            <Fabric className="app">
+            <Fabric className={className}>
                 <NavBar />
                 <div className="container-fluid">
                     <div className="row">
