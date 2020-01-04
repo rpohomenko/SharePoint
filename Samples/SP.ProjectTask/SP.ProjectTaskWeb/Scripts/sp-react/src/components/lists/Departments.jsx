@@ -18,14 +18,7 @@ export class DepartmentList extends BaseListView {
   }
 
   render() {
-    return (<Fullscreen
-      enabled={this.state.isFullScreen}
-      onChange={isFullScreen => {
-        if (this._command) {
-          this._command.fullScreen(isFullScreen);
-        }
-      }}>
-      <div className="departments-container">
+    return (<div className="departments-container">
         {super.render()}
         <DepartmentSearchFormPanel ref={ref => this._filter = ref} service={this._service}
           fields={this._filterFields}
@@ -35,17 +28,15 @@ export class DepartmentList extends BaseListView {
               this._onFilter(filter.expr);
             }
           }} />
-      </div>
-    </Fullscreen>
-    );
+      </div>);
   }
 
   _renderHeader = () => {
-    const { onItemSaving, onItemSaved, onItemDeleting, onItemDeleted, commandItems } = this.props;
+    const { onItemSaving, onItemSaved, onItemDeleting, onItemDeleted, commandItems, isFullScreen, onFullScreen } = this.props;
     const { selection, canAddListItems, filter } = this.state;
 
     return (<Sticky stickyPosition={StickyPositionType.Header} isScrollSynced={true}>
-      <DepartmentCommand ref={ref => this._command = ref} canAddListItems={canAddListItems} commandItems={commandItems} service={this._service}
+      <DepartmentCommand ref={ref => this._command = ref} fullScreenEnabed={isFullScreen} canAddListItems={canAddListItems} commandItems={commandItems} service={this._service}
         selection={selection}
         onClearSelection={() => {
           //this._onSelectionChanged(null);
@@ -77,7 +68,11 @@ export class DepartmentList extends BaseListView {
         onSetFilter={() => { if (this._filter) { this._filter.showHide(); } }}
         onClearFilter={() => { this._filterFields = null; this._onFilter(""); }}
         onRefresh={() => this.refresh(true)}
-        onFullScreen = {(enabled)=> this.setState({isFullScreen: enabled})}
+        onFullScreen={(enabled) => {
+          if (typeof (onFullScreen) === "function") {
+            onFullScreen(enabled);
+          }
+        }}
         onViewChanged={(isCompact) => this.setState({ isCompact: isCompact })}
         onItemDeleted={this._onItemDeleted} onItemSaved={this._onItemSaved} onItemSaving={onItemSaving} onItemDeleting={onItemDeleting} />
     </Sticky>
@@ -212,7 +207,7 @@ export class DepartmentList extends BaseListView {
 }
 
 const Departments = (props) => {
-  return (<DepartmentList service={props.service} pageSize={(props.pageSize || window._isMobile ? 10 : 20)} emptyMessage="There are no departments." />);
+  return (<DepartmentList {...props} pageSize={(props.pageSize || window._isMobile ? 10 : 20)} emptyMessage="There are no departments." />);
 };
 
 export default Departments;

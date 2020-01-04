@@ -24,7 +24,7 @@ export class BaseListViewCommand extends React.Component {
             refreshEnabed: false,
             newItemEnabled: false,
             isDeleting: false,
-            confirmDeletion: false
+            confirmDeletion: false,
         };
 
         this._container = React.createRef();

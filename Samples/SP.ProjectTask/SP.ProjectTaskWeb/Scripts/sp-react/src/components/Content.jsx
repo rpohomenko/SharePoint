@@ -22,15 +22,15 @@ class Content extends React.Component {
 
     render() {
         const { contentId, maxBreadcrumbs, service } = this.props;
-        const { selectedTab } = this.state;
+        const { selectedTab, isFullScreen } = this.state;
 
         return (
             <>
-                <Breadcrumb className="breadcrumbs" items={this._getBreadcrumbs(contentId)}
+                {!isFullScreen && (<Breadcrumb className="breadcrumbs" items={this._getBreadcrumbs(contentId)}
                     maxDisplayedItems={maxBreadcrumbs}
-                />
+                />)}
                 <div className="content">
-                    {this._getContent(contentId, selectedTab, service)}
+                    {this._getContent(contentId, selectedTab, service, isFullScreen)}
                 </div>
             </>
         );
@@ -77,27 +77,27 @@ class Content extends React.Component {
         return breadcrumbs;
     }
 
-    _getContent = (contentId, selectedTab, service) => {
+    _getContent = (contentId, selectedTab, service, isFullScreen) => {        
         let content;
         switch (contentId) {
             case 0:
-                content = (<Tasks service={service}></Tasks>);
+                content = (<Tasks service={service} isFullScreen={isFullScreen} onFullScreen={this._onFullScreen} />);
                 break;
             case 1:
-                content = (<Projects service={service}></Projects>);
+                content = (<Projects service={service} isFullScreen={isFullScreen} onFullScreen={this._onFullScreen} />);
                 break;
             case 2:
-                content = (<Employees service={service}></Employees>);
+                content = (<Employees service={service} isFullScreen={isFullScreen} onFullScreen={this._onFullScreen} />);
                 break;
             case 3:
-                content = (<Departments service={service} />);
+                content = (<Departments service={service} isFullScreen={isFullScreen} onFullScreen={this._onFullScreen} />);
                 break;
             default:
                 const pivotContent = {
-                    "tasks": (<Tasks service={service} />),
-                    "projects": (<Projects service={service} />),
-                    "employees": (<Employees service={service} />),
-                    "departments": (<Departments service={service} />)
+                    "tasks": (<Tasks service={service} isFullScreen={isFullScreen} onFullScreen={this._onFullScreen} />),
+                    "projects": (<Projects service={service} isFullScreen={isFullScreen} onFullScreen={this._onFullScreen} />),
+                    "employees": (<Employees service={service} isFullScreen={isFullScreen} onFullScreen={this._onFullScreen} />),
+                    "departments": (<Departments service={service} isFullScreen={isFullScreen} onFullScreen={this._onFullScreen} />)
                 };
 
                 content = (<div className="pivot">
@@ -112,6 +112,15 @@ class Content extends React.Component {
                 break;
         }
         return content;
+    }
+
+    _onFullScreen = (enabled) => {
+        const {onFullScreen} = this.props;
+        this.setState({isFullScreen: enabled}, ()=>{
+            if(typeof(onFullScreen) === "function"){
+                onFullScreen(enabled);
+            }
+        })
     }
 }
 

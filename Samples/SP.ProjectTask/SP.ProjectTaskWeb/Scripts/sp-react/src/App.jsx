@@ -37,25 +37,32 @@ export class App extends React.Component {
 
     render() {
         const { service } = this.props;
-        const { contentId } = this.state;
+        const { contentId, isFullScreen } = this.state;
         const onRoute = (key) => {
             this.setState({ contentId: Number(key || -1) });
             this._sidebar.setState({ isOpen: false });
         };
         let className = "app";
-        if(_spPageContextInfo && _spPageContextInfo.isWebPart){
-            className += " webpart"
+        if (_spPageContextInfo && _spPageContextInfo.isWebPart) {
+            className += " webpart";
         }
+
+        if (isFullScreen) {
+            className += " fullscreen";
+        }
+
         return (<ErrorBoundary>
             <Fabric className={className}>
                 <NavBar />
                 <div className="container-fluid">
                     <div className="row">
-                        <div className="col-md-2 d-md-block bg-light sidebar sticky-top">
-                            {<SidebarMenu ref={(ref) => this._sidebar = ref} className="col-md-2 d-none d-md-block bg-light sidebar" selectedKey={contentId} onRoute={onRoute} isOpen={false} />}
+                        {!isFullScreen && (<div className="col-md-2 d-md-block bg-light sidebar sticky-top">
+                            <SidebarMenu ref={(ref) => this._sidebar = ref} className="col-md-2 d-none d-md-block bg-light sidebar" selectedKey={contentId} onRoute={onRoute} isOpen={false} />
                         </div>
-                        <div role="main" className="col-md-9 ml-sm-auto col-md-10 px-2">
-                            <Content service={service} contentId={contentId} onRoute={onRoute} />
+                        )}
+                        <div role="main" className={`col-md-${isFullScreen ? 12 : 9} ml-sm-auto col-md-10 px-2`}>
+                            <Content service={service} contentId={contentId} onRoute={onRoute}
+                                onFullScreen={(enabled) => this.setState({ isFullScreen: enabled })} />
                         </div>
                     </div>
                 </div>

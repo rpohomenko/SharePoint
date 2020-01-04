@@ -8,10 +8,15 @@
     }
 }
 
+.fullscreen {
+    [role="main"] {
+        padding-top: 40px !important;
+    }
+}
+
 [role="main"] {
     padding-top: 0px;
     height: calc(100vh - 80px);
-
     /* Space for fixed navbar */
     .content {
         height: calc(100vh - 140px);
@@ -23,7 +28,6 @@
     [role="main"] {
         height: 100vh;
         padding-top: 40px;
-
         .content {
             height: calc(100vh - 100px);
         }
@@ -51,10 +55,8 @@
     background-color: rgb(248, 249, 250);
     border-top: rgb(237, 235, 233) solid 1px;
     border-bottom: rgb(237, 235, 233) solid 1px;
-
     .ms-OverflowSet {
         height: 100%;
-
         button:not(:hover) {
             background-color: inherit;
         }
@@ -67,16 +69,13 @@
 
 .form-field {
     padding: 5px 5px;
-
     .form-field-label {
         color: darkgrey;
     }
-
     .ms-BasePicker-text,
     .ms-BasePicker-input {
         border: none;
     }
-
     .filter-type .ms-Dropdown .ms-Dropdown-title {
         border: none;
     }
@@ -86,7 +85,6 @@
     .form-field {
         padding: 0;
     }
-
     .ms-SearchBox {
         height: 100%;
         margin: 0;
@@ -109,14 +107,12 @@
 .employees-container {
     position: relative;
     height: calc(100vh - 140px);
-
     .ms-ScrollablePane:first {
         position: absolute;
     }
 }
 
 .pivot {
-
     .departments-container,
     .tasks-container,
     .projects-container,
@@ -127,7 +123,6 @@
 }
 
 @media (min-width: 768px) {
-
     .departments-container,
     .tasks-container,
     .projects-container,
@@ -135,9 +130,7 @@
         position: relative;
         height: calc(100vh - 100px);
     }
-
     .pivot {
-
         .departments-container,
         .tasks-container,
         .projects-container,

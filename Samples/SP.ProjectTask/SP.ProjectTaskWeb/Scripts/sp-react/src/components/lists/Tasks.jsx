@@ -1,7 +1,7 @@
 import React from "react";
 import { ScrollablePane, ScrollbarVisibility } from 'office-ui-fabric-react/lib/ScrollablePane';
 import { Sticky, StickyPositionType } from 'office-ui-fabric-react/lib/Sticky';
-import Fullscreen from "react-full-screen";
+//import Fullscreen from "react-full-screen";
 
 import BaseListView from "./BaseListView";
 import TaskCommand from "../commands/TaskCommand";
@@ -26,7 +26,7 @@ export class TaskList extends BaseListView {
     await super.componentDidMount();   
   }
 
-  render() {
+ /* render() {
     return (
       <Fullscreen
         enabled={this.state.isFullScreen}
@@ -48,13 +48,29 @@ export class TaskList extends BaseListView {
         </div>
       </Fullscreen>
     );
+  }*/
+
+  render() {
+    return (
+      <div className="tasks-container">
+        {super.render()}
+        <TaskSearchFormPanel ref={ref => this._filter = ref} service={this._service}
+          fields={this._filterFields}
+          onFilter={(filter) => {
+            if (filter) {
+              this._filterFields = filter.fields.map(field => field.props);
+              this._onFilter(filter.expr || "");
+            }
+          }} />
+      </div>
+    );
   }
 
   _renderHeader = () => {
-    const { onItemSaving, onItemSaved, onItemDeleting, onItemDeleted, commandItems } = this.props;
+    const { onItemSaving, onItemSaved, onItemDeleting, onItemDeleted, commandItems, isFullScreen, onFullScreen } = this.props;
     const { selection, canAddListItems, filter } = this.state;
     return (<Sticky stickyPosition={StickyPositionType.Header} isScrollSynced={true}>
-      <TaskCommand ref={ref => this._command = ref} canAddListItems={canAddListItems} commandItems={commandItems} service={this._service} selection={selection}
+      <TaskCommand ref={ref => this._command = ref} fullScreenEnabed={isFullScreen} canAddListItems={canAddListItems} commandItems={commandItems} service={this._service} selection={selection}
         onClearSelection={() => {
           //this._onSelectionChanged(null);
           if (this._selection) {
@@ -85,7 +101,11 @@ export class TaskList extends BaseListView {
         onSetFilter={() => { if (this._filter) { this._filter.showHide(); } }}
         onClearFilter={() => { this._filterFields = null; this._onFilter(""); }}
         onRefresh={() => this.refresh(true)}
-        onFullScreen = {(enabled)=> this.setState({isFullScreen: enabled})}
+        onFullScreen={(enabled) => {/*this.setState({isFullScreen: enabled})*/
+          if (typeof (onFullScreen) === "function") {
+            onFullScreen(enabled);
+          }
+        }}
         onViewChanged={(isCompact) => this.setState({ isCompact: isCompact })}
         onItemDeleted={this._onItemDeleted} onItemSaved={this._onItemSaved} onItemSaving={onItemSaving} onItemDeleting={onItemDeleting} />
     </Sticky>);
@@ -388,7 +408,7 @@ export class TaskList extends BaseListView {
 }
 
 const Tasks = (props) => {
-  return (<TaskList service={props.service} pageSize={(props.pageSize || window._isMobile ? 10 : 20)} emptyMessage="There are no tasks." />);
+  return (<TaskList {...props} pageSize={(props.pageSize || window._isMobile ? 10 : 20)} emptyMessage="There are no tasks." />);
 };
 
 export default Tasks;
