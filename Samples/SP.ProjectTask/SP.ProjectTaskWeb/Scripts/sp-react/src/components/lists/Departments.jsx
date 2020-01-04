@@ -1,7 +1,5 @@
 import React from "react";
-import { ScrollablePane, ScrollbarVisibility } from 'office-ui-fabric-react/lib/ScrollablePane';
 import { Sticky, StickyPositionType } from 'office-ui-fabric-react/lib/Sticky';
-import Fullscreen from "react-full-screen";
 
 import BaseListView from "./BaseListView";
 import DepartmentCommand from "../commands/DepartmentCommand";

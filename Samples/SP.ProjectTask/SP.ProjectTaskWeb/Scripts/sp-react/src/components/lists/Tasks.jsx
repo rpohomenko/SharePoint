@@ -1,7 +1,5 @@
 import React from "react";
-import { ScrollablePane, ScrollbarVisibility } from 'office-ui-fabric-react/lib/ScrollablePane';
 import { Sticky, StickyPositionType } from 'office-ui-fabric-react/lib/Sticky';
-//import Fullscreen from "react-full-screen";
 
 import BaseListView from "./BaseListView";
 import TaskCommand from "../commands/TaskCommand";
@@ -25,31 +23,7 @@ export class TaskList extends BaseListView {
   async componentDidMount() {
     await super.componentDidMount();   
   }
-
- /* render() {
-    return (
-      <Fullscreen
-        enabled={this.state.isFullScreen}
-        onChange={isFullScreen => {
-          if (this._command) {
-            this._command.fullScreen(isFullScreen);
-          }
-        }}>
-        <div className="tasks-container">
-          {super.render()}
-          <TaskSearchFormPanel ref={ref => this._filter = ref} service={this._service}
-            fields={this._filterFields}
-            onFilter={(filter) => {
-              if (filter) {
-                this._filterFields = filter.fields.map(field => field.props);
-                this._onFilter(filter.expr || "");
-              }
-            }} />
-        </div>
-      </Fullscreen>
-    );
-  }*/
-
+ 
   render() {
     return (
       <div className="tasks-container">
