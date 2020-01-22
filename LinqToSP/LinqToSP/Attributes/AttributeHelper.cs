@@ -5,7 +5,7 @@ using System.Reflection;
 
 namespace SP.Client.Linq.Attributes
 {
-    internal static class AttributeHelper
+    public static class AttributeHelper
     {
         public static IEnumerable<TAttribute> GetCustomAttributes<TEntity, TAttribute>(bool inherit)
           where TAttribute : Attribute
@@ -196,7 +196,7 @@ namespace SP.Client.Linq.Attributes
                 }
         }
 
-        private static bool IsAssignableToGenericType(Type givenType, Type genericType)
+        public static bool IsAssignableToGenericType(Type givenType, Type genericType)
         {
             var interfaceTypes = givenType.GetInterfaces();
 

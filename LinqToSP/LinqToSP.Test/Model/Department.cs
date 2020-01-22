@@ -1,6 +1,7 @@
 ﻿using Microsoft.SharePoint.Client;
 using SP.Client.Linq;
 using SP.Client.Linq.Attributes;
+using SP.Client.Linq.Model;
 using SP.Client.Linq.Provisioning;
 using System.Linq;
 
@@ -8,7 +9,7 @@ namespace LinqToSP.Test.Model
 {
     [ContentType(Name = "Department", Id = "0x01004BF822E9207E43869D826290F33C909C", Level = ProvisionLevel.List, Behavior = ProvisionBehavior.Default)]
     [List(Title = "Departments", Url = "Lists/Departments", Behavior = ProvisionBehavior.Default)]
-    public class Department : ListItemEntity
+    public class Department : ListItemEntity, IEntityEntry
     {
         private SpEntitySet<Employee> _employees;
 
@@ -44,5 +45,7 @@ namespace LinqToSP.Test.Model
                 return _employees.Where(employee => employee.DepartmentId == this.Id).ToEntitySet();
             }
         }
+
+        public long Key { get; set; }
     }
 }
