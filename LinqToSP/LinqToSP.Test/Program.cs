@@ -4,6 +4,7 @@ using SP.Client.Linq;
 using SP.Client.Linq.Provisioning;
 using System;
 using System.Configuration;
+using System.Data.Entity;
 using System.Diagnostics;
 using System.Linq;
 using System.Security;
@@ -37,18 +38,40 @@ namespace LinqToSP.Test
                 {
                     //Deploy(ctx, true);
 
-                    ImportData(ctx, false);
+                    //ImportData(ctx, false);
 
                     var departments = ctx.List<Department>().Where(i => i.Id > 0).ToArray();
 
-                    var employees = departments.First().Employees.ToArray();
+                    //var employees = departments.First().Employees.ToArray();
 
-                    if (!employees.Any())
+                    //if (!employees.Any())
+                    //{
+                    //    employees = ctx.List<Employee>().ToArray();
+                    //}
+
+                    //var managers = employees.First().Managers;
+
+
+                    using (var context = new MyContext())
                     {
-                        employees = ctx.List<Employee>().ToArray();
+                        //var a = context.Departments.ToArray();
+
+                        foreach (var d in departments)
+                        {
+                            if (context.Departments.AsNoTracking().FirstOrDefault(i => i.Id == d.Id) == null)
+                            {
+                                context.Departments.Add(d);
+                            }
+                            else
+                            {
+                                context.Set<Department>().Attach(d);
+                                context.Entry(d).State = EntityState.Modified;
+                            }
+                        }
+
+                        context.SaveChanges();
                     }
 
-                    var managers = employees.First().Managers;
                     Debugger.Break();
                     Console.ForegroundColor = ConsoleColor.Green;
                     //Console.WriteLine("Done!");

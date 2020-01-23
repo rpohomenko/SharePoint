@@ -38,3 +38,5 @@
 /Samples/SP.ProjectTask/SP.ProjectTask/pkg/Release
 /LinqToSP/SP.Client.SP2013/bin/
 /LinqToSP/SP.Client.SP2013/obj
+/LinqToSP/LinqToSP.EF/bin
+/LinqToSP/LinqToSP.EF/obj

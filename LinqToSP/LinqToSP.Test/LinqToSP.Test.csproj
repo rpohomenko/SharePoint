@@ -102,7 +102,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Model\DbContext.cs" />
+    <Compile Include="Model\MyContext.cs" />
     <Compile Include="Model\Department.cs" />
     <Compile Include="Model\DepartmentMap.cs" />
     <Compile Include="Model\EmployeeProvisionModel.cs" />

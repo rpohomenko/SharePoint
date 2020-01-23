@@ -23,7 +23,7 @@ namespace SP.Client.Linq
         #region Properties
 
         [DataMember]
-        public int Id { get; internal set; }
+        public virtual int Id { get; protected set; }
 
         [DataMember]
         [Field("Title", FieldType.Text, Required = true, Behavior = ProvisionBehavior.None)]

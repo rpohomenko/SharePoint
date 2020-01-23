@@ -354,14 +354,17 @@ namespace SP.Client.Linq
                 else
                 {
                     var entry = existEntity != null ? GetEntry(source, existEntity) : source.NewEntry();
-                    if (!checkExisting && entityId > 0)
+                    if (entry != null)
                     {
-                        entry.EntityId = entityId;
+                        if (!checkExisting && entityId > 0)
+                        {
+                            entry.EntityId = entityId;
+                        }
+                        entry.Merge(entity);
+                        entry.AutoUpdateLookups = autoUpdateLookups;
+                        entry.Update();
+                        return entry;
                     }
-                    entry.Merge(entity);
-                    entry.AutoUpdateLookups = autoUpdateLookups;
-                    entry.Update();
-                    return entry;
                 }
             }
             return null;

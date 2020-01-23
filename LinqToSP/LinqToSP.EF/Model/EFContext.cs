@@ -9,12 +9,18 @@ namespace SP.Client.Linq.Model
 {
     public abstract class EFContext : DbContext
     {
-        public EFContext() : base("DefaultConnection")
+        //public EFContext() : base("DefaultConnection")
+        //{
+        //}
+
+        protected EFContext(string nameOrConnectionString) : base(nameOrConnectionString)
         {
         }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
+            //Database.SetInitializer<EFContext>(null);
+
             var mapTypes = this.GetMapTypes();
 
             foreach (var mapType in mapTypes.Where(t => t.BaseType != null && t.BaseType.IsGenericType && AttributeHelper.IsAssignableToGenericType(t.BaseType, typeof(EntityTypeConfiguration<>))))

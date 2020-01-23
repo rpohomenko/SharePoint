@@ -18,6 +18,16 @@ namespace LinqToSP.Test.Model
             _employees = new SpEntitySet<Employee>();
         }
 
+        public override int Id
+        {
+            get => base.Id;
+            protected set
+            {
+                base.Id = value;
+                Key = value;
+            }
+        }
+
         public override string ContentTypeId
         {
             get

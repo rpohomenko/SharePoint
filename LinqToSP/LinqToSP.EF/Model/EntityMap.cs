@@ -33,7 +33,7 @@ namespace SP.Client.Linq.Model
 
             //HasKey(p => p.Id);
             Property(p => p.Id).IsRequired().HasColumnName("ListItemId");
-            Property(p => p.ContentTypeId).HasColumnName("ContentTypeId");
+            Property(p => p.ContentTypeId).HasMaxLength(1024).HasColumnName("ContentTypeId");
             Property(p => p.Version).HasColumnName("Version");
 
             HasKey(p => p.Key);
