@@ -1,4 +1,5 @@
 ﻿using SP.Client.Linq.Attributes;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Entity.ModelConfiguration;
 using System.Linq;
 
@@ -37,7 +38,7 @@ namespace SP.Client.Linq.Model
             Property(p => p.Version).HasColumnName("Version");
 
             HasKey(p => p.Key);
-            Property(p => p.Key).HasColumnName("Id");
+            Property(p => p.Key).HasColumnName("Id").HasDatabaseGeneratedOption(DatabaseGeneratedOption.None); ;
         }
     }
 }

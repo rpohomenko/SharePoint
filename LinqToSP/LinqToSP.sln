@@ -17,6 +17,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LinqToSP.2016", "LinqToSP.2
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SP.Client.2016", "SP.Client.2016\SP.Client.2016.csproj", "{F89DA745-A48A-41C2-82C6-3C90C8520150}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LinqToSP.EF", "LinqToSP.EF\LinqToSP.EF.csproj", "{0E924C67-5433-42C1-BA59-462E362DCEBD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -51,6 +53,10 @@ Global
 		{F89DA745-A48A-41C2-82C6-3C90C8520150}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F89DA745-A48A-41C2-82C6-3C90C8520150}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F89DA745-A48A-41C2-82C6-3C90C8520150}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0E924C67-5433-42C1-BA59-462E362DCEBD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0E924C67-5433-42C1-BA59-462E362DCEBD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0E924C67-5433-42C1-BA59-462E362DCEBD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0E924C67-5433-42C1-BA59-462E362DCEBD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

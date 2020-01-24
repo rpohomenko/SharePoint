@@ -2,6 +2,6 @@
 {
     public interface IEntityEntry
     {
-        long Key { get; set; }
+        int Key { get; set; }
     }
 }

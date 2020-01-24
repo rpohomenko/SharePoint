@@ -1,15 +1,17 @@
 ﻿using Microsoft.SharePoint.Client;
 using SP.Client.Linq;
 using SP.Client.Linq.Attributes;
+using SP.Client.Linq.Model;
 using SP.Client.Linq.Provisioning;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace LinqToSP.Test.Model
 {
   [ContentType(Id = "0x0100E565C775F9444F2A854437781B8D2749", Name = "Employee", ParentId = "0x01", Level = ProvisionLevel.List, Behavior = ProvisionBehavior.Default)]
   [List(Title = "Employees", Url = "Lists/Employees", Behavior = ProvisionBehavior.Default)]
-  public class Employee : ListItemEntity
+  public class Employee : ListItemEntity, IEntityEntry
   {
     //private SpEntitySet<Employee> _managers;
 
@@ -136,11 +138,19 @@ namespace LinqToSP.Test.Model
       set { DepartmentLookup.SetEntity(value); }
     }
 
+    //[ForeignKey("DepartmentId")]
+    //public Department Department
+    //{
+    //  get;
+    //  set;
+    //}
+
     [LookupField(Name = "Emp_Department", Result = LookupItemResult.Id)]
-    public int DepartmentId
+
+    public int? DepartmentId
     {
-      get { return DepartmentLookup.EntityId; }
-      set { DepartmentLookup.EntityId = value; }
+      get { return DepartmentLookup.EntityId == 0 ? (int?)null : DepartmentLookup.EntityId; }
+      set { DepartmentLookup.EntityId = value ?? 0 ; }
     }
 
     [LookupField(Name = "Emp_Department", Result = LookupItemResult.Value)]
@@ -169,9 +179,20 @@ namespace LinqToSP.Test.Model
       get;
       set;
     }
+    public int Key { get; set; }
+
+    public override int Id
+    {
+      get => base.Id;
+      protected set
+      {
+        base.Id = value;
+        Key = value;
+      }
+    }
   }
 
-  [Flags]
+    [Flags]
   public enum EmployeePosition
   {
     None = 0,
