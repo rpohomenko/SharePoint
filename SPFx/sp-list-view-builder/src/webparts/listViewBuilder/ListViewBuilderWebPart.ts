@@ -117,7 +117,7 @@ export default class ListViewBuilderWebPart extends BaseClientSideWebPart<IListV
   }
 
   private onPropertyChange(propertyPath: string, newValue: any, index?: number): void {
-    debugger;
+    //debugger;
     let selected = this._configurations[index];
     // store new value in web part properties
     update(this.properties, propertyPath, (): any => { return newValue; });

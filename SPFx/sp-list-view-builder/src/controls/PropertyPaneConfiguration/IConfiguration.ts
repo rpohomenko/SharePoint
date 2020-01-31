@@ -4,7 +4,7 @@ import { Guid } from '@microsoft/sp-core-library';
 
 export interface IConfiguration {
 
-  ListId: Guid;
+  ListId: string;
   ViewFields: Array<IViewField>
 
  //TODO: properties

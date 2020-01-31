@@ -39,7 +39,7 @@ export default class AsyncDropdown extends React.Component<IAsyncDropdownProps, 
       <div>
         <Dropdown label={this.props.label}
           disabled={this.props.disabled || this.state.loading || this.state.error !== undefined}
-          onChanged={this.onChanged.bind(this)}
+          onChange={this.onChanged.bind(this)}
           selectedKey={this.selectedKey}
           options={this.state.options}
           {...loading ? { onRenderCaretDown: () => <Spinner /> } : {}} />
@@ -71,7 +71,7 @@ export default class AsyncDropdown extends React.Component<IAsyncDropdownProps, 
       });
   }
 
-  private onChanged(option: IDropdownOption, index?: number): void {
+  private onChanged(e, option: IDropdownOption, index?: number): void {
     this.selectedKey = option.key;
     // reset previously selected options
     const options: IDropdownOption[] = this.state.options;
@@ -83,9 +83,10 @@ export default class AsyncDropdown extends React.Component<IAsyncDropdownProps, 
     this.setState((prevState: IAsyncDropdownState, props: IAsyncDropdownProps): IAsyncDropdownState => {
       prevState.options = options;
       return prevState;
+    }, () => {
+      if (typeof this.props.onChanged === "function") {
+        this.props.onChanged(option, index);
+      }
     });
-    if (this.props.onChanged) {
-      this.props.onChanged(option, index);
-    }
   }
 }
