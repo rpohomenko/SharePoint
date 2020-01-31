@@ -102,6 +102,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Model\EmployeeMap.cs" />
     <Compile Include="Model\MyContext.cs" />
     <Compile Include="Model\Department.cs" />
     <Compile Include="Model\DepartmentMap.cs" />
