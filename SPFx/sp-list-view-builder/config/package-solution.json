@@ -1,0 +1,13 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx-build/package-solution.schema.json",
+  "solution": {
+    "name": "splistviewbuilder-client-side-solution",
+    "id": "ae71211d-9034-48b0-96e9-faf786e8ca0f",
+    "version": "1.0.0.0",
+    "includeClientSideAssets": true,
+    "isDomainIsolated": false
+  },
+  "paths": {
+    "zippedPackage": "solution/splistviewbuilder.sppkg"
+  }
+}

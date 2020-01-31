@@ -1,0 +1,18 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx-build/config.2.0.schema.json",
+  "version": "2.0",
+  "bundles": {
+    "list-view-builder-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/listViewBuilder/ListViewBuilderWebPart.js",
+          "manifest": "./src/webparts/listViewBuilder/ListViewBuilderWebPart.manifest.json"
+        }
+      ]
+    }
+  },
+  "externals": {},
+  "localizedResources": {
+    "ListViewBuilderWebPartStrings": "lib/webparts/listViewBuilder/loc/{locale}.js"
+  }
+}
