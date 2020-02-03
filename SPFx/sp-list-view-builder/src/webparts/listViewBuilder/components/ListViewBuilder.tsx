@@ -12,7 +12,7 @@ import "@pnp/sp/lists";
 import { ICamlQuery } from "@pnp/sp/lists";
 import "@pnp/sp/items";
 
-import { IConfiguration } from '../../../controls/PropertyPaneConfiguration/IConfiguration';
+import { IConfiguration } from '../IConfiguration';
 import CamlBuilder from 'camljs';
 import { ListViewBuilderEditor } from './ListViewBuilderEditor';
 
@@ -50,9 +50,9 @@ export default class ListViewBuilder extends React.Component<IListViewBuilderPro
     const environmentType: EnvironmentType = Environment.type;
     let { configuration } = this.state;
 
-    if (inDesignMode) {
+    /*if (inDesignMode) {
       return <ListViewBuilderEditor configurationId={configurationId} configuration={configuration} configListTitle={this.props.configListTitle} />;
-    }
+    }*/
 
     return (
       <div className={styles.listViewBuilder}>

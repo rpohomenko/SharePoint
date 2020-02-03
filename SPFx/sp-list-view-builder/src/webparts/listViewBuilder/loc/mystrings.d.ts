@@ -4,6 +4,8 @@ declare interface IListViewBuilderWebPartStrings {
   BasicGroupName: string;
   DescriptionFieldLabel: string;
   ConfigurationIdFieldLabel: string;
+  ListIdFieldLabel: string;
+  ViewFieldsFieldLabel: string;
 }
 
 declare module 'ListViewBuilderWebPartStrings' {

@@ -20,7 +20,7 @@ import "@pnp/sp/lists";
 import "@pnp/sp/items";
 import "@pnp/sp/views";
 
-import { IConfiguration } from '../../../controls/PropertyPaneConfiguration/IConfiguration';
+import { IConfiguration } from '../IConfiguration';
 
 import * as strings from 'ListViewBuilderWebPartStrings';
 
@@ -101,7 +101,7 @@ export class ListViewBuilderEditor extends React.Component<IListViewBuilderEdito
                   <DefaultButton text="Save" onClick={() => this.saveConfiguration(this.props.configurationId, configuration, this.props.configListTitle)} allowDisabledFocus disabled={this.props.configurationId < 1} />
                 </Stack.Item>
               </Stack>
-              <AddViewFieldsForm ref={this._addViewFieldsForm} listId ={ this.props.configuration ? this.props.configuration.ListId : null} />
+              <AddViewFieldsForm ref={this._addViewFieldsForm} listId ={ configuration ? configuration.ListId : null} />
             </div>
           </div>
         </div>
@@ -144,6 +144,9 @@ export class ListViewBuilderEditor extends React.Component<IListViewBuilderEdito
 
   private onListChanged(option: IDropdownOption, index?: number): void {
     let { configuration } = this.state;
+    if(!configuration){
+      configuration = {} as IConfiguration;
+    }
     configuration.ListId = option.key as string;
     configuration.ViewFields = [];
     this.setState({ configuration: configuration });

@@ -3,7 +3,6 @@ import { IPropertyPaneCustomFieldProps } from "@microsoft/sp-property-pane";
 import { Guid } from '@microsoft/sp-core-library';
 
 export interface IConfiguration {
-
   ListId: string;
   ViewFields: Array<IViewField>
 

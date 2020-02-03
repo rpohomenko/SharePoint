@@ -17,7 +17,7 @@ import "@pnp/sp/items";
 import "@pnp/sp/views";
 import "@pnp/sp/fields";
 
-import { IViewField } from '../../../controls/PropertyPaneConfiguration/IConfiguration';
+import { IViewField } from '../IConfiguration';
 import AsyncDropdown from '../../../controls/components/AsyncDropdown';
 
 export class AddViewFieldsForm extends React.Component<{

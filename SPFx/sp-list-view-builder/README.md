@@ -29,8 +29,14 @@ gulp bundle
 # create SharePoint package
 gulp package-solution
 
+# configure Proxy
+npm run proxy
+
 # accept SSL Certificate
 gulp trust-dev-cert
+
+# local DEV
+npm run serve
 ```
 
 These commands produce the following:

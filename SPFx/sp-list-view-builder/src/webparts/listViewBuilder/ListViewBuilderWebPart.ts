@@ -7,6 +7,8 @@ import {
 } from '@microsoft/sp-property-pane';
 import { BaseClientSideWebPart } from '@microsoft/sp-webpart-base';
 
+import { DefaultButton, Stack, IDropdownOption } from 'office-ui-fabric-react';
+
 import { setup as pnpSetup, isArray } from "@pnp/common";
 import { sp } from "@pnp/sp";
 import "@pnp/sp/webs";
@@ -17,8 +19,11 @@ import "@pnp/sp/items";
 import * as strings from 'ListViewBuilderWebPartStrings';
 import ListViewBuilder from './components/ListViewBuilder';
 import { IListViewBuilderProps } from './components/IListViewBuilderProps';
-import { PropertyPaneAsyncDropdown } from '../../controls/PropertyPaneConfiguration/PropertyPaneAsyncDropdown';
-import { IConfigurationOption, IConfiguration } from '../../controls/PropertyPaneConfiguration/IConfiguration';
+
+import { PropertyPaneAsyncDropdown } from '../../controls/PropertyPane/PropertyPaneAsyncDropdown';
+import { PropertyPaneViewFieldList } from '../../controls/PropertyPane/PropertyPaneViewFieldList';
+
+import { IConfigurationOption, IViewField } from './IConfiguration';
 import { update, get } from '@microsoft/sp-lodash-subset';
 import CamlBuilder from 'camljs';
 import { proxyUrl, webRelativeUrl } from '../../settings';
@@ -26,6 +31,7 @@ import { proxyUrl, webRelativeUrl } from '../../settings';
 export interface IListViewBuilderWebPartProps {
   description: string;
   configurationId: number;
+  viewFields: string;
 }
 
 export default class ListViewBuilderWebPart extends BaseClientSideWebPart<IListViewBuilderWebPartProps> {
@@ -39,13 +45,17 @@ export default class ListViewBuilderWebPart extends BaseClientSideWebPart<IListV
     const inDesignMode: boolean = this.displayMode === DisplayMode.Edit;
     const environmentType: EnvironmentType = Environment.type;
 
+    const viewFields: IViewField[] = isArray(this.properties.viewFields)
+     ? JSON.parse(this.properties.viewFields) : [];
+
     const element: React.ReactElement<IListViewBuilderProps> = React.createElement(
       ListViewBuilder,
       {
         inDesignMode: inDesignMode,
         description: this.properties.description,
         configurationId: this.properties.configurationId,
-        configListTitle: this._configListTitle
+        configListTitle: this._configListTitle,
+        viewFields: viewFields
       }
     );
 
@@ -85,6 +95,8 @@ export default class ListViewBuilderWebPart extends BaseClientSideWebPart<IListV
   }
 
   protected getPropertyPaneConfiguration(): IPropertyPaneConfiguration {
+    const viewFields: IViewField[] = isArray(this.properties.viewFields)
+    ? JSON.parse(this.properties.viewFields) : [];
     return {
       pages: [
         {
@@ -101,13 +113,27 @@ export default class ListViewBuilderWebPart extends BaseClientSideWebPart<IListV
                 /*PropertyPaneTextField('configurationId',{
                   label: strings.ConfigurationIdFieldLabel
                 }),*/
-                new PropertyPaneAsyncDropdown('configurationId', {
+                /*new PropertyPaneAsyncDropdown('configurationId', {
                   label: strings.ConfigurationIdFieldLabel,
                   loadOptions: this.loadConfigurations.bind(this),
                   onPropertyChange: this.onPropertyChange.bind(this),
                   selectedKey: this.properties.configurationId
-                })
-
+                })*/
+                new PropertyPaneAsyncDropdown('listId', {
+                  label: strings.ListIdFieldLabel,
+                  loadOptions: this.loadLists.bind(this),
+                  onPropertyChange: this.onPropertyChange.bind(this),
+                  selectedKey: this.properties.configurationId
+                }),
+                new PropertyPaneViewFieldList('viewFields', {
+                  label: strings.ViewFieldsFieldLabel,
+                  items: viewFields,
+                  columns: [
+                    { key: 'title', name: 'Title', fieldName: 'Title', minWidth: 100, maxWidth: 200, isResizable: true },
+                    { key: 'name', name: 'Name', fieldName: 'Name', minWidth: 100, maxWidth: 200, isResizable: true }
+                  ],
+                  onPropertyChange: this.onPropertyChange.bind(this),
+                }),
               ]
             }
           ]
@@ -116,16 +142,32 @@ export default class ListViewBuilderWebPart extends BaseClientSideWebPart<IListV
     };
   }
 
+  private loadLists(): Promise<IDropdownOption[]> {
+    return new Promise<IDropdownOption[]>((resolve: (options: IDropdownOption[]) => void, reject: (error: any) => void) => {
+      try {
+        return sp.web.lists.filter('Hidden eq false').get()
+          .then((lists) => {
+            let options = lists.map((l) => ({ key: l.Id, text: l.Title }) as IDropdownOption);
+            resolve(options);
+          }).catch(e => {
+            reject(e.message);
+          });
+      } catch (error) {
+        alert(error);
+      }
+    });
+  } 
+
   private onPropertyChange(propertyPath: string, newValue: any, index?: number): void {
     //debugger;
-    let selected = this._configurations[index];
+    //let selected = this._configurations[index];
     // store new value in web part properties
     update(this.properties, propertyPath, (): any => { return newValue; });
     // refresh web part
     this.render();
   }
 
-  private loadConfigurations(): Promise<IConfigurationOption[]> {
+  /*private loadConfigurations(): Promise<IConfigurationOption[]> {
     return new Promise<IConfigurationOption[]>((resolve: (options: IConfigurationOption[]) => void, reject: (error: any) => void) => {
       try {
         //debugger;
@@ -134,7 +176,7 @@ export default class ListViewBuilderWebPart extends BaseClientSideWebPart<IListV
         };
         return sp.web.lists.getByTitle(this._configListTitle).getItemsByCAMLQuery(caml)
           .then((items) => {
-            this._configurations = items.map((i) => ({ key: i.Id, text: i.Title/*, data: i.Data*/ } as IConfigurationOption));
+            this._configurations = items.map((i) => ({ key: i.Id, text: i.Title } as IConfigurationOption));
             resolve(this._configurations);
           }).catch(e => {
             //debugger;
@@ -144,5 +186,5 @@ export default class ListViewBuilderWebPart extends BaseClientSideWebPart<IListV
         alert(error);
       }
     });
-  }
+  }*/
 }

@@ -1,4 +1,4 @@
-import { IConfiguration } from '../../../controls/PropertyPaneConfiguration/IConfiguration';
+import { IConfiguration } from '../IConfiguration';
 
 export interface IListViewBuilderEditorProps {
   configurationId: number;

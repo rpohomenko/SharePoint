@@ -4,6 +4,8 @@ define([], function() {
     "PropertyPaneDescription": "Displays the data from SharePoint list.",
     "BasicGroupName": "Settings",
     "DescriptionFieldLabel": "Description",
-    "ConfigurationIdFieldLabel": "Configuration Id"
+    "ConfigurationIdFieldLabel": "Configuration Id",
+    "ListIdFieldLabel":"List Id",
+    "ViewFieldsFieldLabel": "View Fields"
   }
 });

@@ -28,10 +28,7 @@
       "es2015.collection"
     ],
     "esModuleInterop": true
-  },
-  "include": [
-    "src/**/*.ts", "src/controls/components/AsyncDropdown.tsx"
-  ],
+  }, 
   "exclude": [
     "node_modules",
     "lib"
