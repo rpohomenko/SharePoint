@@ -7,13 +7,13 @@ import {
 } from '@microsoft/sp-property-pane';
 import { BaseClientSideWebPart } from '@microsoft/sp-webpart-base';
 
-import { DefaultButton, Stack, IDropdownOption } from 'office-ui-fabric-react';
+import { IDropdownOption } from 'office-ui-fabric-react';
 
 import { setup as pnpSetup, isArray } from "@pnp/common";
 import { sp } from "@pnp/sp";
 import "@pnp/sp/webs";
 import "@pnp/sp/lists";
-import { ICamlQuery } from "@pnp/sp/lists";
+//import { ICamlQuery } from "@pnp/sp/lists";
 import "@pnp/sp/items";
 
 import * as strings from 'ListViewBuilderWebPartStrings';
@@ -23,30 +23,31 @@ import { IListViewBuilderProps } from './components/IListViewBuilderProps';
 import { PropertyPaneAsyncDropdown } from '../../controls/PropertyPane/PropertyPaneAsyncDropdown';
 import { PropertyPaneViewFieldList } from '../../controls/PropertyPane/PropertyPaneViewFieldList';
 
-import { IConfigurationOption, IViewField } from './IConfiguration';
+import { /*IConfigurationOption,*/ IViewField } from './IConfiguration';
 import { update, get } from '@microsoft/sp-lodash-subset';
-import CamlBuilder from 'camljs';
+//import CamlBuilder from 'camljs';
 import { proxyUrl, webRelativeUrl } from '../../settings';
 
 export interface IListViewBuilderWebPartProps {
   description: string;
   configurationId: number;
-  viewFields: string;
+  listId: string;
+  viewFields: IViewField[];
 }
 
 export default class ListViewBuilderWebPart extends BaseClientSideWebPart<IListViewBuilderWebPartProps> {
 
-  private _configurations: Array<IConfigurationOption>;
+  //private _configurations: Array<IConfigurationOption>;
   private _configListTitle = "LVBuilderConfigurations";
 
   public render(): void {
 
     //debugger;
     const inDesignMode: boolean = this.displayMode === DisplayMode.Edit;
-    const environmentType: EnvironmentType = Environment.type;
+    //const environmentType: EnvironmentType = Environment.type;
 
     const viewFields: IViewField[] = isArray(this.properties.viewFields)
-     ? JSON.parse(this.properties.viewFields) : [];
+     ? this.properties.viewFields : [];
 
     const element: React.ReactElement<IListViewBuilderProps> = React.createElement(
       ListViewBuilder,
@@ -96,7 +97,7 @@ export default class ListViewBuilderWebPart extends BaseClientSideWebPart<IListV
 
   protected getPropertyPaneConfiguration(): IPropertyPaneConfiguration {
     const viewFields: IViewField[] = isArray(this.properties.viewFields)
-    ? JSON.parse(this.properties.viewFields) : [];
+    ? this.properties.viewFields : [];
     return {
       pages: [
         {
@@ -122,17 +123,15 @@ export default class ListViewBuilderWebPart extends BaseClientSideWebPart<IListV
                 new PropertyPaneAsyncDropdown('listId', {
                   label: strings.ListIdFieldLabel,
                   loadOptions: this.loadLists.bind(this),
-                  onPropertyChange: this.onPropertyChange.bind(this),
-                  selectedKey: this.properties.configurationId
+                  onPropertyChange: this.onCustomPropertyPaneFieldChanged.bind(this),
+                  selectedKey: this.properties.listId
                 }),
                 new PropertyPaneViewFieldList('viewFields', {
                   label: strings.ViewFieldsFieldLabel,
+                  listId: this.properties.listId,
                   items: viewFields,
-                  columns: [
-                    { key: 'title', name: 'Title', fieldName: 'Title', minWidth: 100, maxWidth: 200, isResizable: true },
-                    { key: 'name', name: 'Name', fieldName: 'Name', minWidth: 100, maxWidth: 200, isResizable: true }
-                  ],
-                  onPropertyChange: this.onPropertyChange.bind(this),
+                  columns: [],                  
+                  onPropertyChange: this.onCustomPropertyPaneFieldChanged.bind(this),
                 }),
               ]
             }
@@ -165,6 +164,21 @@ export default class ListViewBuilderWebPart extends BaseClientSideWebPart<IListV
     update(this.properties, propertyPath, (): any => { return newValue; });
     // refresh web part
     this.render();
+  }
+
+  private onCustomPropertyPaneFieldChanged(targetProperty: string, newValue: any) {
+    const oldValue = this.properties[targetProperty];
+    this.properties[targetProperty] = newValue;
+
+    this.onPropertyPaneFieldChanged(targetProperty, oldValue, newValue);
+
+    // NOTE: in local workbench onPropertyPaneFieldChanged method initiates re-render
+    // in SharePoint environment we need to call re-render by ourselves
+    if (Environment.type !== EnvironmentType.Local) {
+      this.render();
+    }
+
+    this.context.propertyPane.refresh();
   }
 
   /*private loadConfigurations(): Promise<IConfigurationOption[]> {

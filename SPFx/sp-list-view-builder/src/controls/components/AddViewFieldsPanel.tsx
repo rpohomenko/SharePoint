@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Separator } from 'office-ui-fabric-react/lib/Separator';
 
-import { IListViewBuilderProps } from './IListViewBuilderProps';
+import { IListViewBuilderProps } from '../../webparts/listViewBuilder/components/IListViewBuilderProps';
 
 import { Panel } from 'office-ui-fabric-react/lib/Panel';
 
@@ -17,10 +17,12 @@ import "@pnp/sp/items";
 import "@pnp/sp/views";
 import "@pnp/sp/fields";
 
-import { IViewField } from '../IConfiguration';
-import AsyncDropdown from '../../../controls/components/AsyncDropdown';
+import {FieldTypes} from "@pnp/sp/fields";
 
-export class AddViewFieldsForm extends React.Component<{
+import { IViewField, DataType } from '../../webparts/listViewBuilder/IConfiguration';
+import AsyncDropdown from './AsyncDropdown';
+
+export class AddViewFieldsPanel extends React.Component<{
   listId: string,
   isOpen?: boolean
 }, {
@@ -48,7 +50,7 @@ export class AddViewFieldsForm extends React.Component<{
 
     return (
 
-      <Panel isLightDismiss isOpen={isOpen} onDismiss={() => this.setState({ isOpen: false })} closeButtonAriaLabel="Close" headerText={"Add View Fields"}>
+      <Panel isLightDismiss isOpen={isOpen} onDismiss={() => this.setState({ isOpen: false })} closeButtonAriaLabel={"Close"} headerText={"Add Field..."}>
 
         <Stack tokens={{ childrenGap: 40 }}>
           <Stack.Item>
@@ -63,7 +65,8 @@ export class AddViewFieldsForm extends React.Component<{
                 items={fields || []}
                 columns={[
                   { key: 'title', name: 'Title', fieldName: 'Title', minWidth: 100, maxWidth: 200, isResizable: true },
-                  { key: 'name', name: 'Name', fieldName: 'Name', minWidth: 100, maxWidth: 200, isResizable: true }
+                  { key: 'name', name: 'Name', fieldName: 'Name', minWidth: 100, maxWidth: 150, isResizable: true },
+                  //{ key: 'dataType', name: 'Data Type', fieldName: 'DataType', minWidth: 50, maxWidth: 100, isResizable: true }
                 ]}
                 setKey="set"
                 layoutMode={DetailsListLayoutMode.justified}
@@ -74,6 +77,18 @@ export class AddViewFieldsForm extends React.Component<{
         </Stack>
       </Panel>
     );
+  }
+
+  public open(){
+    if (!this.state.isOpen) {
+      this.setState({ isOpen: true });
+    }
+  }
+
+  public close() {
+    if (this.state.isOpen) {
+      this.setState({ isOpen: false });
+    }
   }
 
   private loadViews(listId: string): Promise<IDropdownOption[]> {
@@ -111,11 +126,11 @@ export class AddViewFieldsForm extends React.Component<{
   private loadFields(listId: string, fieldNames: string[]): Promise<IViewField[]> {
     return new Promise<IViewField[]>((resolve: (options: IViewField[]) => void, reject: (error: any) => void) => {
       try {
-        return sp.web.lists.getById(listId).fields.select('InternalName', 'Title').filter(`${
+        return sp.web.lists.getById(listId).fields.select('InternalName', 'Title', 'FieldTypeKind').filter(`${
           fieldNames.map(field => `InternalName eq '${field}'`).join(' or ')
           }`).get()
           .then(fields => {
-            let viewFields = fields.map(f => ({ Name: f.InternalName, Title: f.Title }) as IViewField);
+            let viewFields = fields.map(f => ({ Name: f.InternalName, Title: f.Title, DataType: this.get_DataType(f.FieldTypeKind) }) as IViewField);
             resolve(viewFields);
           }).catch(e => {
             reject(e.message);
@@ -124,6 +139,26 @@ export class AddViewFieldsForm extends React.Component<{
         alert(error);
       }
     });
+  }
+
+  private get_DataType(fieldType: FieldTypes): DataType {
+    switch (fieldType) {
+      case FieldTypes.Boolean:
+        return DataType.Boolean;
+      case FieldTypes.Choice:
+        return DataType.Choice;
+      case FieldTypes.DateTime:
+        return DataType.DateTime;
+      case FieldTypes.Lookup:
+        return DataType.Lookup;
+      case FieldTypes.MultiChoice:
+        return DataType.MultiChoice;
+      case FieldTypes.Number:
+      case FieldTypes.Integer:
+      case FieldTypes.Counter:
+        return DataType.Number;
+      default: return DataType.Text;
+    }
   }
 
   private onViewChanged(option: IDropdownOption, index?: number): void {

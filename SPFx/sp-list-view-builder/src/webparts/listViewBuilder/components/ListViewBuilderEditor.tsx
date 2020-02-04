@@ -1,4 +1,4 @@
-import * as React from 'react';
+/*import * as React from 'react';
 import styles from './ListViewBuilder.module.scss';
 import { Separator } from 'office-ui-fabric-react/lib/Separator';
 
@@ -151,4 +151,4 @@ export class ListViewBuilderEditor extends React.Component<IListViewBuilderEdito
     configuration.ViewFields = [];
     this.setState({ configuration: configuration });
   } 
-}
+}*/

@@ -4,51 +4,51 @@ import { Separator } from 'office-ui-fabric-react/lib/Separator';
 
 import { IListViewBuilderProps } from './IListViewBuilderProps';
 import { escape } from '@microsoft/sp-lodash-subset';
-import { DisplayMode, Environment, EnvironmentType, Version, Guid } from '@microsoft/sp-core-library';
+//import { DisplayMode, Environment, EnvironmentType, Version, Guid } from '@microsoft/sp-core-library';
 
 import { sp } from "@pnp/sp";
 import "@pnp/sp/webs";
 import "@pnp/sp/lists";
-import { ICamlQuery } from "@pnp/sp/lists";
+//import { ICamlQuery } from "@pnp/sp/lists";
 import "@pnp/sp/items";
 
 import { IConfiguration } from '../IConfiguration';
-import CamlBuilder from 'camljs';
-import { ListViewBuilderEditor } from './ListViewBuilderEditor';
+//import CamlBuilder from 'camljs';
+//import { ListViewBuilderEditor } from './ListViewBuilderEditor';
 
 
 export default class ListViewBuilder extends React.Component<IListViewBuilderProps, {
   configuration: IConfiguration
 }> {
 
-  private _configuration: IConfiguration;
+  //private _configuration: IConfiguration;
 
   constructor(props) {
     super(props);
-    this.state = { configuration: null };
+    //this.state = { configuration: null };
   }
 
-  componentDidMount() {
+  /*componentDidMount() {
     if (this.props.configurationId > 0) {
       this.loadConfiguration(this.props.configurationId, this.props.configListTitle).then((configuration: IConfiguration) => {
         this.setState({ configuration: configuration });
       });
     }
-  }
+  }*/
 
-  componentDidUpdate(prevProps: IListViewBuilderProps) {
+  /*componentDidUpdate(prevProps: IListViewBuilderProps) {
     if (prevProps.configurationId !== this.props.configurationId && this.props.configurationId > 0) {
       this.loadConfiguration(this.props.configurationId, this.props.configListTitle).then((configuration: IConfiguration) => {
         this.setState({ configuration: configuration });
       });
     }
-  }
+  }*/
 
   public render(): React.ReactElement<IListViewBuilderProps> {
-    const inDesignMode: boolean = this.props.inDesignMode;
+    /*const inDesignMode: boolean = this.props.inDesignMode;
     const configurationId = this.props.configurationId;
     const environmentType: EnvironmentType = Environment.type;
-    let { configuration } = this.state;
+    let { configuration } = this.state;*/
 
     /*if (inDesignMode) {
       return <ListViewBuilderEditor configurationId={configurationId} configuration={configuration} configListTitle={this.props.configListTitle} />;
@@ -67,7 +67,7 @@ export default class ListViewBuilder extends React.Component<IListViewBuilderPro
     );
   }  
 
-  private loadConfiguration(configurationId: number, configListTitle: string): Promise<IConfiguration> {
+  /*private loadConfiguration(configurationId: number, configListTitle: string): Promise<IConfiguration> {
     return new Promise<IConfiguration>((resolve: (configuration: IConfiguration) => void, reject: (error: any) => void) => {
       try {
         const caml: ICamlQuery = {
@@ -85,6 +85,6 @@ export default class ListViewBuilder extends React.Component<IListViewBuilderPro
         alert(error);
       }
     });
-  }
+  }*/
 
 }
