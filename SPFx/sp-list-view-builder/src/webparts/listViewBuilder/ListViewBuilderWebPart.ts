@@ -23,7 +23,7 @@ import { IListViewBuilderProps } from './components/IListViewBuilderProps';
 import { PropertyPaneAsyncDropdown } from '../../controls/PropertyPane/PropertyPaneAsyncDropdown';
 import { PropertyPaneViewFieldList } from '../../controls/PropertyPane/PropertyPaneViewFieldList';
 
-import { /*IConfigurationOption,*/ IViewField } from './IConfiguration';
+import { IConfiguration, IViewField } from './IConfiguration';
 import { update, get } from '@microsoft/sp-lodash-subset';
 //import CamlBuilder from 'camljs';
 import { proxyUrl, webRelativeUrl } from '../../settings';
@@ -38,25 +38,23 @@ export interface IListViewBuilderWebPartProps {
 export default class ListViewBuilderWebPart extends BaseClientSideWebPart<IListViewBuilderWebPartProps> {
 
   //private _configurations: Array<IConfigurationOption>;
-  private _configListTitle = "LVBuilderConfigurations";
+  //private _configListTitle = "LVBuilderConfigurations";
 
   public render(): void {
 
     //debugger;
     const inDesignMode: boolean = this.displayMode === DisplayMode.Edit;
-    //const environmentType: EnvironmentType = Environment.type;
-
-    const viewFields: IViewField[] = isArray(this.properties.viewFields)
-      ? this.properties.viewFields : [];
-
+    //const environmentType: EnvironmentType = Environment.type; 
     const element: React.ReactElement<IListViewBuilderProps> = React.createElement(
       ListViewBuilder,
       {
         inDesignMode: inDesignMode,
         description: this.properties.description,
-        configurationId: this.properties.configurationId,
-        configListTitle: this._configListTitle,
-        viewFields: viewFields
+        //configurationId: this.properties.configurationId,
+        //configListTitle: this._configListTitle,
+        configuration: this.properties.listId
+          ? { ListId: this.properties.listId, ViewFields: this.properties.viewFields } as IConfiguration
+          : null
       }
     );
 
@@ -168,10 +166,10 @@ export default class ListViewBuilderWebPart extends BaseClientSideWebPart<IListV
   private onCustomPropertyPaneFieldChanged(targetProperty: string, newValue: any) {
     const oldValue = this.properties[targetProperty];
 
-    if (oldValue !== newValue) {    
+    if (oldValue !== newValue) {
       this.properties[targetProperty] = newValue;
 
-      if(targetProperty === "listId"){
+      if (targetProperty === "listId") {
         //this.properties.viewFields = [];
         update(this.properties, "viewFields", (): any => { return []; });
       }

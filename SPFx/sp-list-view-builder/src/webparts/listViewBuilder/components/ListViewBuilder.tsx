@@ -12,29 +12,45 @@ import "@pnp/sp/lists";
 //import { ICamlQuery } from "@pnp/sp/lists";
 import "@pnp/sp/items";
 
+import { ListView, IViewField, SelectionMode, GroupOrder, IGrouping } from "@pnp/spfx-controls-react/lib/ListView";
+
 import { IConfiguration } from '../IConfiguration';
 //import CamlBuilder from 'camljs';
 //import { ListViewBuilderEditor } from './ListViewBuilderEditor';
 
 
 export default class ListViewBuilder extends React.Component<IListViewBuilderProps, {
-  configuration: IConfiguration
+  //configuration: IConfiguration,
+  items: any[],
+  groupByFields?: IGrouping[]
 }> {
 
   //private _configuration: IConfiguration;
 
   constructor(props) {
     super(props);
-    //this.state = { configuration: null };
+    this.state = {
+      items: []
+    };
   }
 
-  /*componentDidMount() {
-    if (this.props.configurationId > 0) {
+  componentDidMount() {
+    if (this.props.configuration) {
+      this.getData().then(data => {
+        let items: any[] = [];
+        if (data) {
+          items = data.results;
+        }
+        this.setState({ items: items });
+      })
+    }
+
+    /*if (this.props.configurationId > 0) {
       this.loadConfiguration(this.props.configurationId, this.props.configListTitle).then((configuration: IConfiguration) => {
         this.setState({ configuration: configuration });
       });
-    }
-  }*/
+    }*/
+  }
 
   /*componentDidUpdate(prevProps: IListViewBuilderProps) {
     if (prevProps.configurationId !== this.props.configurationId && this.props.configurationId > 0) {
@@ -54,18 +70,32 @@ export default class ListViewBuilder extends React.Component<IListViewBuilderPro
       return <ListViewBuilderEditor configurationId={configurationId} configuration={configuration} configListTitle={this.props.configListTitle} />;
     }*/
 
+    const { configuration } = this.props;
+    const { items, groupByFields } = this.state;
+
+    if (!configuration) return (<>{"No configuration!"}</>);
+
+    const viewFields = configuration.ViewFields.map(f => { return { name: f.Name, displayName: f.Title, isResizable: true } as IViewField; });
+
     return (
       <div className={styles.listViewBuilder}>
-        <div className={styles.container}>
-          <div className={styles.row}>
-            <div className={styles.column}>
-              <p className={styles.description}>{escape(this.props.description)}</p>
-            </div>
-          </div>
-        </div>
+          <ListView
+            items={items}
+            viewFields={viewFields}
+            compact={false}
+            selectionMode={SelectionMode.multiple}
+            selection={this._getSelection}
+            showFilter={true}
+            defaultFilter=""
+            filterPlaceHolder={"Search..."}
+            groupByFields={groupByFields} />
       </div>
     );
-  }  
+  }
+
+  private _getSelection(items: any[]) {
+    console.log('Selected items:', items);
+  }
 
   /*private loadConfiguration(configurationId: number, configListTitle: string): Promise<IConfiguration> {
     return new Promise<IConfiguration>((resolve: (configuration: IConfiguration) => void, reject: (error: any) => void) => {
@@ -87,4 +117,7 @@ export default class ListViewBuilder extends React.Component<IListViewBuilderPro
     });
   }*/
 
+  private async getData() {
+    return await sp.web.lists.getById(this.props.configuration.ListId).items.top(30).getPaged();
+  }
 }

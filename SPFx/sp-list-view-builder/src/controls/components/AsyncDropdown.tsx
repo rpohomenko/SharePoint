@@ -23,8 +23,8 @@ export default class AsyncDropdown extends React.Component<IAsyncDropdownProps, 
   }
 
   public componentDidUpdate(prevProps: IAsyncDropdownProps, prevState: IAsyncDropdownState): void {
-    if (this.props.disabled !== prevProps.disabled ||
-      this.props.stateKey !== prevProps.stateKey) {
+    if (this.props.disabled !== prevProps.disabled /*||
+      this.props.stateKey !== prevProps.stateKey*/) {
       this.loadOptions();
     }
   }
