@@ -31,7 +31,7 @@ export class PropertyPaneAsyncDropdown implements IPropertyPaneField<IPropertyPa
       return;
     }
 
-    this.onRender(this.elem);
+    this.onRender(this.elem);    
   }
 
   private onRender(elem: HTMLElement): void {
@@ -52,6 +52,6 @@ export class PropertyPaneAsyncDropdown implements IPropertyPaneField<IPropertyPa
   }
 
   private onChanged(option: IDropdownOption, index?: number): void {
-    this.properties.onPropertyChange(this.targetProperty, option.key, index);
+    this.properties.onPropertyChange(this.targetProperty, option.key, index);    
   }
 }

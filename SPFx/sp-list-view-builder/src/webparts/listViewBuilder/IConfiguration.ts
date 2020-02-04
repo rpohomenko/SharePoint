@@ -26,7 +26,9 @@ export enum DataType {
   MultiLookup = 7,
   Boolean = 8,
   Choice = 9,
-  MultiChoice = 10
+  MultiChoice = 10,
+  User = 11,
+  MultiUser = 12
 }
 
 export interface IConfigurationOption extends IDropdownOption {

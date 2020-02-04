@@ -47,7 +47,7 @@ export default class ListViewBuilderWebPart extends BaseClientSideWebPart<IListV
     //const environmentType: EnvironmentType = Environment.type;
 
     const viewFields: IViewField[] = isArray(this.properties.viewFields)
-     ? this.properties.viewFields : [];
+      ? this.properties.viewFields : [];
 
     const element: React.ReactElement<IListViewBuilderProps> = React.createElement(
       ListViewBuilder,
@@ -97,7 +97,7 @@ export default class ListViewBuilderWebPart extends BaseClientSideWebPart<IListV
 
   protected getPropertyPaneConfiguration(): IPropertyPaneConfiguration {
     const viewFields: IViewField[] = isArray(this.properties.viewFields)
-    ? this.properties.viewFields : [];
+      ? this.properties.viewFields : [];
     return {
       pages: [
         {
@@ -130,9 +130,9 @@ export default class ListViewBuilderWebPart extends BaseClientSideWebPart<IListV
                   label: strings.ViewFieldsFieldLabel,
                   listId: this.properties.listId,
                   items: viewFields,
-                  columns: [],                  
+                  columns: [],
                   onPropertyChange: this.onCustomPropertyPaneFieldChanged.bind(this),
-                  noItemsMessage : "No fields."
+                  noItemsMessage: "Click on 'Add' to add fields."
                 }),
               ]
             }
@@ -156,11 +156,9 @@ export default class ListViewBuilderWebPart extends BaseClientSideWebPart<IListV
         alert(error);
       }
     });
-  } 
+  }
 
   private onPropertyChange(propertyPath: string, newValue: any, index?: number): void {
-    //debugger;
-    //let selected = this._configurations[index];
     // store new value in web part properties
     update(this.properties, propertyPath, (): any => { return newValue; });
     // refresh web part
@@ -169,17 +167,25 @@ export default class ListViewBuilderWebPart extends BaseClientSideWebPart<IListV
 
   private onCustomPropertyPaneFieldChanged(targetProperty: string, newValue: any) {
     const oldValue = this.properties[targetProperty];
-    this.properties[targetProperty] = newValue;
 
-    this.onPropertyPaneFieldChanged(targetProperty, oldValue, newValue);
+    if (oldValue !== newValue) {    
+      this.properties[targetProperty] = newValue;
 
-    // NOTE: in local workbench onPropertyPaneFieldChanged method initiates re-render
-    // in SharePoint environment we need to call re-render by ourselves
-    if (Environment.type !== EnvironmentType.Local) {
-      this.render();
+      if(targetProperty === "listId"){
+        //this.properties.viewFields = [];
+        update(this.properties, "viewFields", (): any => { return []; });
+      }
+
+      this.onPropertyPaneFieldChanged(targetProperty, oldValue, newValue);
+
+      // NOTE: in local workbench onPropertyPaneFieldChanged method initiates re-render
+      // in SharePoint environment we need to call re-render by ourselves
+      if (Environment.type !== EnvironmentType.Local) {
+        this.render();
+      }
+
+      this.context.propertyPane.refresh();
     }
-
-    this.context.propertyPane.refresh();
   }
 
   /*private loadConfigurations(): Promise<IConfigurationOption[]> {

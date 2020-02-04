@@ -26,7 +26,7 @@ export class PropertyPaneViewFieldList extends PropertyPaneList {
             }
          }
       ];
-      
+
       super(targetProperty, properties);
 
       this._listId = properties.listId;
@@ -44,17 +44,19 @@ export class PropertyPaneViewFieldList extends PropertyPaneList {
       return <>
          <CommandBar
             items={[
-               { key: 'add', text: 'Add', iconProps: { iconName: 'Add' },
-               disabled: !this._listId,
-               onClick: () => { 
-                  if(this._addViewFieldsPanel.current){
-                     this._addViewFieldsPanel.current.open();
+               {
+                  key: 'add', text: 'Add', iconProps: { iconName: 'Add' },
+                  disabled: !this._listId,
+                  onClick: () => {
+                     if (this._addViewFieldsPanel.current) {
+                        this._addViewFieldsPanel.current.open();
+                     }
                   }
-               } }
+               }
             ]}
          />
          {element}
-         <AddViewFieldsPanel ref={this._addViewFieldsPanel} listId={this._listId} />
+         <AddViewFieldsPanel ref={this._addViewFieldsPanel} listId={this._listId} onFieldsAdded={(fields) => this.set_items(fields)} />
       </>;
    }
 }
