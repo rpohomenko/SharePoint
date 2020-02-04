@@ -132,6 +132,7 @@ export default class ListViewBuilderWebPart extends BaseClientSideWebPart<IListV
                   items: viewFields,
                   columns: [],                  
                   onPropertyChange: this.onCustomPropertyPaneFieldChanged.bind(this),
+                  noItemsMessage : "No fields."
                 }),
               ]
             }

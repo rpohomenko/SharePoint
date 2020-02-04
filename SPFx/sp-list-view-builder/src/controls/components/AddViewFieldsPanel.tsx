@@ -5,7 +5,7 @@ import { IListViewBuilderProps } from '../../webparts/listViewBuilder/components
 
 import { Panel } from 'office-ui-fabric-react/lib/Panel';
 
-import { DefaultButton, Stack, IDropdownOption } from 'office-ui-fabric-react';
+import { DefaultButton, Stack, IDropdownOption, values } from 'office-ui-fabric-react';
 import {
   DetailsList, DetailsListLayoutMode, Selection, IColumn
 } from 'office-ui-fabric-react/lib/DetailsList';
@@ -17,69 +17,75 @@ import "@pnp/sp/items";
 import "@pnp/sp/views";
 import "@pnp/sp/fields";
 
-import {FieldTypes} from "@pnp/sp/fields";
+import { FieldTypes } from "@pnp/sp/fields";
 
 import { IViewField, DataType } from '../../webparts/listViewBuilder/IConfiguration';
 import AsyncDropdown from './AsyncDropdown';
+import { isArray } from '@pnp/common';
 
 export class AddViewFieldsPanel extends React.Component<{
   listId: string,
   isOpen?: boolean
 }, {
-  fields: Array<IViewField> | string[],
+  viewId?: string,
   isOpen?: boolean
 }> {
+
+  private _fields: { [viewId: string]: IViewField[] } = {};
+
   constructor(props) {
     super(props);
     this.state = {
-      fields: [],
       isOpen: props.isOpen
     };
   }
 
-  componentDidUpdate(prevProps) {
+  componentDidUpdate(prevProps: { listId: string, isOpen?: boolean }) {
     if (prevProps.isOpen !== this.props.isOpen) {
       this.setState({ isOpen: this.props.isOpen });
     }
+    if (prevProps.listId !== this.props.listId) {
+      this.setState({ viewId: null });
+    }
   }
-
 
   public render(): React.ReactElement<IListViewBuilderProps> {
     const { listId } = this.props;
-    const { isOpen, fields } = this.state;
+    const { isOpen, viewId } = this.state;
+    const fields = !!viewId ? this._fields[viewId] : null;
 
     return (
-
       <Panel isLightDismiss isOpen={isOpen} onDismiss={() => this.setState({ isOpen: false })} closeButtonAriaLabel={"Close"} headerText={"Add Field..."}>
-
         <Stack tokens={{ childrenGap: 40 }}>
           <Stack.Item>
             <span>{"View:"}</span>
-            <AsyncDropdown loadOptions={() => this.loadViews(listId)} onChanged={this.onViewChanged.bind(this)} />
+            <AsyncDropdown loadOptions={() => this.loadViews(listId)} onChanged={this.onViewChanged.bind(this)} selectedKey={viewId} />
             <Separator></Separator>
           </Stack.Item>
-          <Stack.Item>
-            <span>{"Fields:"}</span>
-            <>
-              <DetailsList
-                items={fields || []}
-                columns={[
-                  { key: 'title', name: 'Title', fieldName: 'Title', minWidth: 100, maxWidth: 200, isResizable: true },
-                  { key: 'name', name: 'Name', fieldName: 'Name', minWidth: 100, maxWidth: 150, isResizable: true },
-                  //{ key: 'dataType', name: 'Data Type', fieldName: 'DataType', minWidth: 50, maxWidth: 100, isResizable: true }
-                ]}
-                setKey="set"
-                layoutMode={DetailsListLayoutMode.justified}
-                selectionPreservedOnEmptyClick={true}
-              />
-            </>
-          </Stack.Item>
+          {fields &&
+            (<Stack.Item>
+              <span>{"Fields:"}</span>
+              <>
+                <DetailsList
+                  items={fields || []}
+                  columns={[
+                    { key: 'title', name: 'Title', fieldName: 'Title', minWidth: 100, maxWidth: 200, isResizable: true },
+                    { key: 'name', name: 'Name', fieldName: 'Name', minWidth: 100, maxWidth: 150, isResizable: true },
+                    //{ key: 'dataType', name: 'Data Type', fieldName: 'DataType', minWidth: 50, maxWidth: 100, isResizable: true }
+                  ]}
+                  setKey="set"
+                  layoutMode={DetailsListLayoutMode.justified}
+                  selectionPreservedOnEmptyClick={true}
+                />
+              </>
+            </Stack.Item>)
+          }
         </Stack>
       </Panel>
     );
   }
 
-  public open(){
+  public open() {
     if (!this.state.isOpen) {
       this.setState({ isOpen: true });
     }
@@ -163,7 +169,17 @@ export class AddViewFieldsPanel extends React.Component<{
 
   private onViewChanged(option: IDropdownOption, index?: number): void {
     const { listId } = this.props;
-    this.loadViewFields(listId, option.key as string)/*.then((fields) => this.setState({ fields: fields }))*/
-    .then((fields) => this.loadFields(listId, fields)).then((fields) => this.setState({ fields: fields }));
+    const viewId = option.key as string;
+    if (viewId !== this.state.viewId) {
+      if (isArray(this._fields[viewId])) {
+        this.setState({ viewId: viewId });
+        return;
+      }
+      this.loadViewFields(listId, option.key as string)/*.then((fields) => this.setState({ fields: fields }))*/
+        .then((fields) => this.loadFields(listId, fields)).then((fields) => {
+          this._fields[option.key] = fields;
+          this.setState({ viewId: viewId });
+        });
+    }
   }
 }

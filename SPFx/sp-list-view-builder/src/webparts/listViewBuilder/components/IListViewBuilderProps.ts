@@ -2,8 +2,8 @@ import { IViewField } from "../IConfiguration";
 
 export interface IListViewBuilderProps {
   description: string;
-  configurationId: number;
+  //configurationId: number;
   inDesignMode: boolean;
-  configListTitle: string;
+  //configListTitle: string;
   viewFields: IViewField[];
 }

@@ -10,12 +10,14 @@ import {
 } from 'office-ui-fabric-react/lib/DetailsList';
 
 import { IPropertyPaneCustomFieldProps } from "@microsoft/sp-property-pane";
+import { isArray } from '@pnp/common';
 
 export interface IPropertyPaneListProps {
   label: string;
   onPropertyChange: (propertyPath: string, newValue: any) => void;
   items: any[];
-  columns: IColumn[];
+  columns: IColumn[],
+  noItemsMessage: React.ReactElement | string;
 }
 
 export interface IPropertyPaneListInternalProps extends IPropertyPaneListProps, IPropertyPaneCustomFieldProps {
@@ -35,6 +37,7 @@ export class PropertyPaneList implements IPropertyPaneField<IPropertyPaneListPro
       items: properties.items,
       columns: properties.columns,
       onPropertyChange: properties.onPropertyChange,
+      noItemsMessage: properties.noItemsMessage,
       onRender: this.onRender.bind(this)
     };
   }
@@ -51,19 +54,22 @@ export class PropertyPaneList implements IPropertyPaneField<IPropertyPaneListPro
     if (!this.elem) {
       this.elem = elem;
     }
-    const element: React.ReactElement<IDetailsListProps> = this.onRenderElement();   
+    const element: React.ReactElement<IDetailsListProps> = this.onRenderElement();
     ReactDom.render(<><span>{this.properties.label}</span>{element}</>, elem);
   }
 
-  protected onRenderElement(): React.ReactElement{
+  protected onRenderElement(): React.ReactElement {
     const element: React.ReactElement<IDetailsListProps> = React.createElement(DetailsList, {
       items: this.properties.items,
       columns: this.properties.columns,
       setKey: "set",
       layoutMode: DetailsListLayoutMode.justified,
-      selectionPreservedOnEmptyClick: true,
+      selectionPreservedOnEmptyClick: true
     });
-  return element;
+    if (!isArray(this.properties.items) || this.properties.items.length === 0) {
+      return (<>{element}{this.properties.noItemsMessage}</>);
+    }
+    return element;
   }
 
   public set_items(items: any[]): void {
