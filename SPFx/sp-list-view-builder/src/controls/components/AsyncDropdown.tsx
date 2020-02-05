@@ -42,6 +42,7 @@ export default class AsyncDropdown extends React.Component<IAsyncDropdownProps, 
           onChange={this.onChanged.bind(this)}
           selectedKey={this.selectedKey}
           options={this.state.options}
+          placeholder={this.props.placeholder}
           {...loading ? { onRenderCaretDown: () => <Spinner /> } : {}} />
         {error}
       </div>

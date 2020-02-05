@@ -1,6 +1,10 @@
 import * as React from 'react';
 import * as ReactDom from 'react-dom';
+import styles from './PropertyPane.module.scss';
+
 import { IPropertyPaneField, PropertyPaneFieldType } from "@microsoft/sp-property-pane";
+import { Stack } from 'office-ui-fabric-react/lib/components/Stack';
+import { Separator } from 'office-ui-fabric-react/lib/components/Separator';
 
 import { IDropdownOption } from 'office-ui-fabric-react/lib/components/Dropdown';
 import { IPropertyPaneAsyncDropdownProps, IPropertyPaneAsyncDropdownInternalProps } from './IPropertyPaneAsyncDropdownProps';
@@ -31,7 +35,7 @@ export class PropertyPaneAsyncDropdown implements IPropertyPaneField<IPropertyPa
       return;
     }
 
-    this.onRender(this.elem);    
+    this.onRender(this.elem);
   }
 
   private onRender(elem: HTMLElement): void {
@@ -46,12 +50,19 @@ export class PropertyPaneAsyncDropdown implements IPropertyPaneField<IPropertyPa
       selectedKey: this.properties.selectedKey,
       disabled: this.properties.disabled,
       // required to allow the component to be re-rendered by calling this.render() externally
-      stateKey: new Date().toString()
+      stateKey: new Date().toString(),
     });
-    ReactDom.render(element, elem);
+    ReactDom.render((<div className={styles["property-pane-async-dropdown"]}>
+      <Stack tokens={{ childrenGap: 1 }}>
+        <Stack.Item>
+          <Separator />
+        </Stack.Item>
+        <Stack.Item>{element}</Stack.Item>
+      </Stack>
+    </div>), elem);
   }
 
   private onChanged(option: IDropdownOption, index?: number): void {
-    this.properties.onPropertyChange(this.targetProperty, option.key, index);    
+    this.properties.onPropertyChange(this.targetProperty, option.key, index);
   }
 }

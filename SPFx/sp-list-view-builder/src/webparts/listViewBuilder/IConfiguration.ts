@@ -1,6 +1,4 @@
 import { IDropdownOption } from 'office-ui-fabric-react/lib/components/Dropdown';
-import { IPropertyPaneCustomFieldProps } from "@microsoft/sp-property-pane";
-import { Guid } from '@microsoft/sp-core-library';
 
 export interface IConfiguration {
   ListId: string;
@@ -13,6 +11,12 @@ export interface IViewField{
    Name: string;
    Title: string;
    DataType: DataType; 
+}
+
+export interface IViewLookupField extends IViewField{  
+  LookupFieldName: string;
+  LookupListId: string;
+  LookupWebId: string; 
 }
 
 export enum DataType {

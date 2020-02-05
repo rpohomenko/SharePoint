@@ -1,6 +1,8 @@
 import * as React from 'react';
 import { Separator } from 'office-ui-fabric-react/lib/Separator';
 
+import styles from "./addViewFields.module.scss"
+
 import { IListViewBuilderProps } from '../../webparts/listViewBuilder/components/IListViewBuilderProps';
 
 import { Panel } from 'office-ui-fabric-react/lib/Panel';
@@ -9,7 +11,7 @@ import { Stack, IDropdownOption } from 'office-ui-fabric-react';
 import { DefaultButton, PrimaryButton } from 'office-ui-fabric-react/lib/Button';
 
 import {
-  DetailsList, DetailsListLayoutMode, Selection, IColumn
+  DetailsList, DetailsRow, IDetailsRowProps, IDetailsRowStyles, DetailsListLayoutMode, Selection, IColumn, CheckboxVisibility
 } from 'office-ui-fabric-react/lib/DetailsList';
 
 import { sp } from "@pnp/sp";
@@ -22,11 +24,18 @@ import { isArray } from '@pnp/common';
 
 import { FieldTypes, IFieldInfo, IField } from "@pnp/sp/fields";
 
-import { IViewField, DataType } from '../../webparts/listViewBuilder/IConfiguration';
+import { IViewField, IViewLookupField, DataType } from '../../webparts/listViewBuilder/IConfiguration';
 import AsyncDropdown from './AsyncDropdown';
+
+import { getTheme } from 'office-ui-fabric-react/lib/Styling';
+
+const theme = getTheme();
 
 interface IFieldLookupInfo extends IFieldInfo {
   AllowMultipleValues: boolean;
+  LookupField: string;
+  LookupList: string;
+  LookupWebId: string;
 }
 
 interface IFieldUserInfo extends IFieldLookupInfo {
@@ -43,10 +52,12 @@ interface IFieldDateInfo extends IFieldInfo {
 export class AddViewFieldsPanel extends React.Component<{
   listId: string,
   isOpen?: boolean,
+  fields: IViewField[],
   onFieldsAdded: (fields: IViewField[]) => void
 }, {
   viewId?: string,
-  isOpen?: boolean
+  isOpen?: boolean,
+  selection: IViewField[]
 }> {
 
   private _fields: { [viewId: string]: IViewField[] } = {};
@@ -55,10 +66,17 @@ export class AddViewFieldsPanel extends React.Component<{
   constructor(props) {
     super(props);
     this.state = {
-      isOpen: props.isOpen
+      isOpen: props.isOpen,
+      selection: []
     };
 
     this._selection = new Selection({
+      onSelectionChanged: () => {
+        const { fields } = this.props;
+        const selection: IViewField[] =
+          (this._selection.getSelection() as IViewField[]).filter(f => !fields.some(ff => ff.Name === f.Name));
+        this.setState({ selection: selection })
+      }
     });
   }
 
@@ -77,18 +95,16 @@ export class AddViewFieldsPanel extends React.Component<{
     const fields = !!viewId ? this._fields[viewId] : null;
 
     return (
-      <Panel isLightDismiss isOpen={isOpen} onDismiss={() => this.close()} closeButtonAriaLabel={"Close"} headerText={"Add Field(s)..."}
-        onRenderFooterContent={this.onRenderFooterContent}
+      <Panel className={styles.addViewFields} isLightDismiss isOpen={isOpen} onDismiss={() => this.close()} closeButtonAriaLabel={"Close"} headerText={"Add Field(s)..."}
+        onRenderFooterContent={this.renderFooterContent.bind(this)}
         isFooterAtBottom={false}>
-        <Stack tokens={{ childrenGap: 40 }}>
+        <Stack tokens={{ childrenGap: 5 }}>
           <Stack.Item>
-            <span>{"View:"}</span>
-            <AsyncDropdown loadOptions={() => this.loadViews(listId)} onChanged={this.onViewChanged.bind(this)} selectedKey={viewId} />
+            <AsyncDropdown label={"View"} placeholder={"Select View..."} loadOptions={() => this.loadViews(listId)} onChanged={this.onViewChanged.bind(this)} selectedKey={viewId} />
             <Separator></Separator>
           </Stack.Item>
           {fields &&
             (<Stack.Item>
-              <span>{"Fields:"}</span>
               <DetailsList
                 items={fields || []}
                 columns={[
@@ -100,6 +116,7 @@ export class AddViewFieldsPanel extends React.Component<{
                 layoutMode={DetailsListLayoutMode.justified}
                 selection={this._selection}
                 selectionPreservedOnEmptyClick={true}
+                onRenderRow={this.renderRow.bind(this)}
               />
             </Stack.Item>)
           }
@@ -120,15 +137,38 @@ export class AddViewFieldsPanel extends React.Component<{
     }
   }
 
-  private onRenderFooterContent = () => {
-    //const { isOpen, viewId } = this.state;
-    //const fields = !!viewId ? this._fields[viewId] : null;
+  private renderRow(props: IDetailsRowProps) {
+    const customStyles: Partial<IDetailsRowStyles> = {};
+    let selectionDisabled = false;
+    if (props) {
+      const fields = this.props.fields;
+      if (fields) {
+        if (fields.some(f => f.Name === props.item.Name)) {
+          customStyles.root = { backgroundColor: theme.palette.themeLighter };
+          selectionDisabled = true;
+          //props.checkboxVisibility= CheckboxVisibility.always;
+        }
+      }
+    }
+
+    return (
+      <span data-selection-disabled={selectionDisabled}>
+        <DetailsRow {...props} styles={customStyles} />
+      </span>
+    );
+  }
+
+  private renderFooterContent = () => {
+    const { selection } = this.state;
+
     return (<div>
-      <PrimaryButton onClick={() => {
+      <PrimaryButton disabled={selection.length === 0} onClick={() => {
+        this._selection.setItems([], true);
         this.close();
         if (typeof this.props.onFieldsAdded === "function") {
-          const fields = this._selection.getSelection() as IViewField[];
-          this.props.onFieldsAdded(fields);
+          const { fields } = this.props;
+          const addedFields: IViewField[] = selection.filter(f => !fields.some(ff => ff.Name === f.Name));
+          this.props.onFieldsAdded(addedFields);
         }
       }} styles={{ root: { marginRight: 8 } }}>
         {"Add"}
@@ -172,11 +212,11 @@ export class AddViewFieldsPanel extends React.Component<{
   private loadFields(listId: string, fieldNames: string[]): Promise<IViewField[]> {
     return new Promise<IViewField[]>((resolve: (options: IViewField[]) => void, reject: (error: any) => void) => {
       try {
-        return sp.web.lists.getById(listId).fields.select('InternalName', 'Title', 'FieldTypeKind', 'AllowMultipleValues', 'RichText', 'DisplayFormat').filter(`${
+        return sp.web.lists.getById(listId).fields.select('InternalName', 'Title', 'FieldTypeKind', 'AllowMultipleValues', 'RichText', 'DisplayFormat', 'LookupField', 'LookupList', 'LookupWebId').filter(`${
           fieldNames.map(field => `InternalName eq '${field}'`).join(' or ')
           }`).get()
           .then(fields => {
-            let viewFields = fields.map(f => ({ Name: f.InternalName, Title: f.Title, DataType: this.get_DataType(f) }) as IViewField);
+            let viewFields = fields.map(f => this.get_Field(f));
             viewFields.sort(function (a, b) {
               return fieldNames.indexOf(a.Name) - fieldNames.indexOf(b.Name);
             });
@@ -188,6 +228,19 @@ export class AddViewFieldsPanel extends React.Component<{
         alert(error);
       }
     });
+  }
+
+  private get_Field(field: IFieldInfo): IViewField {
+    let viewField = ({ Name: field.InternalName, Title: field.Title, DataType: this.get_DataType(field) }) as IViewField;
+    if (field.FieldTypeKind === FieldTypes.Lookup || field.FieldTypeKind === FieldTypes.User) {
+      viewField = ({
+        ...viewField,
+        LookupFieldName: (field as IFieldLookupInfo).LookupField,
+        LookupListId: (field as IFieldLookupInfo).LookupList,
+        LookupWebId: (field as IFieldLookupInfo).LookupWebId,
+      }) as IViewLookupField;
+    }
+    return viewField;
   }
 
   private get_DataType(field: IFieldInfo): DataType {
@@ -220,7 +273,7 @@ export class AddViewFieldsPanel extends React.Component<{
         }
         return DataType.MultiLineText;
       case FieldTypes.User:
-        if ((field as IFieldLookupInfo).AllowMultipleValues) {
+        if ((field as IFieldUserInfo).AllowMultipleValues) {
           return DataType.MultiUser;
         }
         return DataType.User;

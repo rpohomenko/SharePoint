@@ -7,4 +7,5 @@ export interface IAsyncDropdownProps {
   selectedKey?: string | number;
   disabled?: boolean;
   stateKey?: string;
+  placeholder? : string;
 }

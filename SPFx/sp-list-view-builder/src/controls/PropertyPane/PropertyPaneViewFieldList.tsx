@@ -1,4 +1,7 @@
 import * as React from 'react';
+
+import styles from './PropertyPane.module.scss';
+
 import { CommandBar, ICommandBarItemProps } from 'office-ui-fabric-react/lib/CommandBar';
 
 import { PropertyPaneList, IPropertyPaneListProps } from './PropertyPaneList';
@@ -7,6 +10,7 @@ import { AddViewFieldsPanel } from '../components/AddViewFieldsPanel';
 
 export interface IPropertyPaneViewFieldListProps extends IPropertyPaneListProps {
    listId: string;
+   items: IViewField[]
 }
 
 export class PropertyPaneViewFieldList extends PropertyPaneList {
@@ -41,7 +45,7 @@ export class PropertyPaneViewFieldList extends PropertyPaneList {
 
    protected onRenderElement(): React.ReactElement {
       const element = super.onRenderElement();
-      return <>
+      return <div className={styles.viewFieldList}>
          <CommandBar
             items={[
                {
@@ -56,7 +60,10 @@ export class PropertyPaneViewFieldList extends PropertyPaneList {
             ]}
          />
          {element}
-         <AddViewFieldsPanel ref={this._addViewFieldsPanel} listId={this._listId} onFieldsAdded={(fields) => this.set_items(fields)} />
-      </>;
+         <AddViewFieldsPanel ref={this._addViewFieldsPanel} listId={this._listId} fields={this.properties.items} onFieldsAdded={(fields) =>{ 
+           const items = [... this.properties.items, ...fields];
+           this.set_items(items);
+         }} />
+      </div>;
    }
 }

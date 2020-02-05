@@ -1,6 +1,10 @@
 import * as React from 'react';
 import * as ReactDom from 'react-dom';
+import styles from './PropertyPane.module.scss';
+
 import { IPropertyPaneField, PropertyPaneFieldType } from "@microsoft/sp-property-pane";
+import { Stack } from 'office-ui-fabric-react/lib/components/Stack';
+import { Separator } from 'office-ui-fabric-react/lib/components/Separator';
 
 import {
   IDetailsListProps,
@@ -55,7 +59,17 @@ export class PropertyPaneList implements IPropertyPaneField<IPropertyPaneListPro
       this.elem = elem;
     }
     const element: React.ReactElement<IDetailsListProps> = this.onRenderElement();
-    ReactDom.render(<><span>{this.properties.label}</span>{element}</>, elem);
+    ReactDom.render(<div className={styles["property-pane-list"]}>
+      <Stack tokens={{ childrenGap: 1 }}>
+        <Stack.Item>
+          <Separator/>
+        </Stack.Item>
+        <Stack.Item>
+          <span>{this.properties.label}</span>     
+          {element}
+        </Stack.Item>
+      </Stack>
+    </div>, elem);
   }
 
   protected onRenderElement(): React.ReactElement {

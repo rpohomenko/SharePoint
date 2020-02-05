@@ -12,9 +12,10 @@ import "@pnp/sp/lists";
 //import { ICamlQuery } from "@pnp/sp/lists";
 import "@pnp/sp/items";
 
-import { ListView, IViewField, SelectionMode, GroupOrder, IGrouping } from "@pnp/spfx-controls-react/lib/ListView";
+import { ListView, IViewField as IColumn, SelectionMode, GroupOrder, IGrouping } from "@pnp/spfx-controls-react/lib/ListView";
 
-import { IConfiguration } from '../IConfiguration';
+import { IConfiguration, IViewField, IViewLookupField, DataType } from '../IConfiguration';
+import { isArray } from '@pnp/common';
 //import CamlBuilder from 'camljs';
 //import { ListViewBuilderEditor } from './ListViewBuilderEditor';
 
@@ -22,7 +23,8 @@ import { IConfiguration } from '../IConfiguration';
 export default class ListViewBuilder extends React.Component<IListViewBuilderProps, {
   //configuration: IConfiguration,
   items: any[],
-  groupByFields?: IGrouping[]
+  groupByFields?: IGrouping[];
+  rowLimit? : number;
 }> {
 
   //private _configuration: IConfiguration;
@@ -30,13 +32,18 @@ export default class ListViewBuilder extends React.Component<IListViewBuilderPro
   constructor(props) {
     super(props);
     this.state = {
-      items: []
+      items: [],
+      rowLimit: 30
     };
   }
 
   componentDidMount() {
-    if (this.props.configuration) {
-      this.getData().then(data => {
+    const{ configuration} = this.props;
+    if (configuration && isArray(configuration.ViewFields)) {
+      const viewFields = this.get_ViewFields(configuration.ViewFields);      
+      const lookups = configuration.ViewFields.filter(f => f.DataType === DataType.Lookup).map(l => l.Name);
+      const count = this.state.rowLimit;
+      this.getData(viewFields, count, lookups).then(data => {
         let items: any[] = [];
         if (data) {
           items = data.results;
@@ -73,24 +80,60 @@ export default class ListViewBuilder extends React.Component<IListViewBuilderPro
     const { configuration } = this.props;
     const { items, groupByFields } = this.state;
 
-    if (!configuration) return (<>{"No configuration!"}</>);
+    if (!configuration || !isArray(configuration.ViewFields)) return (<>{"No configuration!"}</>);
 
-    const viewFields = configuration.ViewFields.map(f => { return { name: f.Name, displayName: f.Title, isResizable: true } as IViewField; });
-
+    const viewFields = this.get_Columns(configuration.ViewFields);
     return (
       <div className={styles.listViewBuilder}>
-          <ListView
-            items={items}
-            viewFields={viewFields}
-            compact={false}
-            selectionMode={SelectionMode.multiple}
-            selection={this._getSelection}
-            showFilter={true}
-            defaultFilter=""
-            filterPlaceHolder={"Search..."}
-            groupByFields={groupByFields} />
+        <ListView
+          items={items}
+          viewFields={viewFields}
+          compact={false}
+          selectionMode={SelectionMode.multiple}
+          selection={this._getSelection}
+          showFilter={true}
+          defaultFilter=""
+          filterPlaceHolder={"Search..."}
+          groupByFields={groupByFields} />
       </div>
     );
+  }
+
+  private get_Columns(viewFields: IViewField[]): IColumn[] {
+    let columns: IColumn[] = viewFields.map(f => this.get_Column(f));   
+    return columns;
+  }
+
+  private get_Column(viewField: IViewField): IColumn {
+    let column = { name: viewField.Name, displayName: viewField.Title, isResizable: true } as IColumn;
+    if (column.name === "LinkTitle") {
+      column.name = "Title";
+    }
+    return column;
+  }
+
+  private get_ViewFields(viewFields: IViewField[]):string[]{    
+    let fields: string[] = ["ID"];
+
+    for (let i = 0; i < viewFields.length; i++) {
+      const viewField = viewFields[i];
+      fields = fields.concat(this.get_ViewField(viewField));
+    }
+    return fields;
+  }
+
+  private get_ViewField(field: IViewField): string[] {
+    if (field.Name === "LinkTitle") {
+      return ["Title"];
+    }
+    if (field.DataType === DataType.Lookup 
+      || field.DataType === DataType.MultiLookup
+      || field.DataType === DataType.User
+      || field.DataType === DataType.MultiUser) {
+      const lookupField = field as IViewLookupField;
+      return [`${field.Name}/ID`, `${field.Name}/${lookupField.LookupFieldName}`];
+    }
+    return [field.Name];
   }
 
   private _getSelection(items: any[]) {
@@ -117,7 +160,7 @@ export default class ListViewBuilder extends React.Component<IListViewBuilderPro
     });
   }*/
 
-  private async getData() {
-    return await sp.web.lists.getById(this.props.configuration.ListId).items.top(30).getPaged();
+  private async getData(viewFields:string[], count: number, lookups: string[]) {
+    return await sp.web.lists.getById(this.props.configuration.ListId).items.top(count).select(...viewFields).expand(...lookups).getPaged();
   }
 }
