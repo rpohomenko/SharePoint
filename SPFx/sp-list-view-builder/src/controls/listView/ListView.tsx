@@ -1,8 +1,13 @@
 import * as React from 'react';
-import { DetailsList, DetailsListLayoutMode, Selection, SelectionMode, IGroup } from 'office-ui-fabric-react/lib/DetailsList';
-import { IListViewProps, IListViewState, IViewColumn, IGroupsItems, IGrouping, GroupOrder } from './IListView';
-import { IGroupRenderProps } from 'office-ui-fabric-react/lib/components/DetailsList';
-import { findIndex, has, isEqual } from '@microsoft/sp-lodash-subset';
+import { DetailsList, ColumnActionsMode, DetailsListLayoutMode, Selection, SelectionMode, IColumn, IGroup, IGroupRenderProps } from 'office-ui-fabric-react/lib/DetailsList';
+import { DirectionalHint, ContextualMenu, IContextualMenuProps } from 'office-ui-fabric-react/lib/ContextualMenu';
+import { IListViewProps, IListViewState, IViewColumn, IGrouping, GroupOrder } from './IListView';
+import { findIndex, has, isEqual, sortBy } from '@microsoft/sp-lodash-subset';
+
+interface IGroupsItems {
+    items: any[];
+    groups: IGroup[];
+}
 
 export class ListView extends React.Component<IListViewProps, IListViewState> {
     private _selection: Selection;
@@ -12,7 +17,8 @@ export class ListView extends React.Component<IListViewProps, IListViewState> {
 
         // Initialize state
         this.state = {
-            items: []
+            items: [],
+            flattenItems: []
         };
 
         if (this.props.selection) {
@@ -28,7 +34,7 @@ export class ListView extends React.Component<IListViewProps, IListViewState> {
      * Lifecycle hook when component is mounted
      */
     public componentDidMount(): void {
-
+        this.updateState(this.props.items);
     }
 
     /**
@@ -43,27 +49,145 @@ export class ListView extends React.Component<IListViewProps, IListViewState> {
             if (this._selection) {
                 this._selection.setItems(this.props.items, true);
             }
+            this.updateState(this.props.items);
         }
     }
+
+    protected updateState(items: any[]) {
+        const { columns } = this.props;
+        this.setState({
+            items: (typeof items !== 'undefined' && items !== null) ? [...items] : [],
+            flattenItems: (typeof items !== 'undefined' && items !== null) ? this._flattenItems(items) : [],
+            columns: (typeof columns !== 'undefined' && columns !== null) ? this._createColumns(columns) : []
+        });
+    }
+
+    /**
+ * Flatten all objects in every item
+ * @param items
+ */
+    private _flattenItems(items: any[]): any[] {
+        if (!items) return [];
+        // Flatten items
+        const flattenItems = items.map(item => {
+            // Flatten all objects in the item
+            return this._flattenItem(item);
+        });
+        return flattenItems;
+    }
+
+    /**
+     * Flatten all object in the item
+     * @param item
+     */
+    private _flattenItem(item: any): any {
+        let flatItem = {};
+        for (let parentPropName in item) {
+            // Check if property already exists
+            if (!item.hasOwnProperty(parentPropName)) continue;
+
+            // Check if the property is of type object
+            if ((typeof item[parentPropName]) === 'object') {
+                // Flatten every object
+                const flatObject = this._flattenItem(item[parentPropName]);
+                for (let childPropName in flatObject) {
+                    if (!flatObject.hasOwnProperty(childPropName)) continue;
+                    flatItem[`${parentPropName}.${childPropName}`] = flatObject[childPropName];
+                }
+            } else {
+                flatItem[parentPropName] = item[parentPropName];
+            }
+        }
+        return flatItem;
+    }
+
+    private _createColumns(columns: IViewColumn[]): IViewColumn[] {
+        const viewColumns: IViewColumn[] = [...columns];
+        viewColumns.forEach(column => {
+            const onColumnClick = column.onColumnClick;
+            column.onColumnClick = (ev, column) => this.onColumnClick(ev, column, onColumnClick);
+            const onColumnRender =  column.onRender;
+            column.onRender = (item, index, column) => this.onColumnRender(item, index, column, onColumnRender);
+        });
+        return viewColumns;
+    }
+
+    protected onColumnClick = (ev: React.MouseEvent<HTMLElement>, column: IColumn, onColumnClick: (ev: React.MouseEvent<HTMLElement>, column: IColumn) => void): void => {
+        if (typeof onColumnClick === "function") {
+            onColumnClick(ev, column);
+        }
+        else {
+            if (column.columnActionsMode !== ColumnActionsMode.disabled) {
+                this.setState({
+                    columnContextualMenuProps: this.getColumnContextualMenuProps(ev, column)
+                });
+            }
+        }
+    }
+
+    protected onColumnRender(item: any, index: number, column: IColumn, onRender?: (item?: any, index?: number, column?: IColumn) => any) {
+        if (typeof onRender === "function") {
+            item = this.state.items[index];
+            return onRender(item, index, column);
+        }
+        return item[column.fieldName];
+    }
+
+    protected getColumnContextualMenuProps(ev: React.MouseEvent<HTMLElement>, column: IViewColumn): IContextualMenuProps {
+        const items = [
+            {
+                key: 'aToZ',
+                name: "A to Z",
+                iconProps: { iconName: 'SortUp' },
+                canCheck: column.sortable,
+                disabled: !column.sortable,
+                checked: column.isSorted && !column.isSortedDescending,
+                onClick: () => this.sortByColumn(column, false)
+            },
+            {
+                key: 'zToA',
+                name: "Z to A",
+                iconProps: { iconName: 'SortDown' },
+                canCheck: column.sortable,
+                disabled: !column.sortable,
+                checked: column.isSorted && column.isSortedDescending,
+                onClick: () => this.sortByColumn(column, true)
+            }
+        ];
+        return {
+            items: items,
+            target: ev.currentTarget,
+            directionalHint: DirectionalHint.bottomLeftEdge,
+            gapSpace: 10,
+            isBeakVisible: false,
+            onDismiss: this._onContextualMenuDismissed.bind(this)
+        } as IContextualMenuProps;
+    }
+
+    private _onContextualMenuDismissed() {
+        this.setState({
+            columnContextualMenuProps: undefined
+        });
+    };
 
     /**
      * Specify result grouping for the list rendering
      * @param items
      * @param groupByFields
      */
-    private _getGroups(items: any[], groupByFields: IGrouping[], level: number = 0, startIndex: number = 0): IGroupsItems {
+    private _getGroups(items: any[], groupBy: IGrouping[], level: number = 0, startIndex: number = 0): IGroupsItems {
         // Group array which stores the configured grouping
         let groups: IGroup[] = [];
         let updatedItemsOrder: any[] = [];
         // Check if there are groupby fields set
-        if (groupByFields) {
-            const groupField = groupByFields[level];
+        if (groupBy) {
+            const group = groupBy[level];
             // Check if grouping is configured
-            if (groupByFields && groupByFields.length > 0) {
+            if (groupBy && groupBy.length > 0) {
                 // Create grouped items object
                 const groupedItems = {};
                 items.forEach((item: any) => {
-                    let groupName = item[groupField.name];
+                    let groupName = item[group.name];
                     // Check if the group name exists
                     if (typeof groupName === "undefined") {
                         // Set the default empty label for the field
@@ -85,7 +209,7 @@ export class ListView extends React.Component<IListViewProps, IListViewState> {
                 // Sort the grouped items object by its key
                 const sortedGroups = {};
                 let groupNames = Object.keys(groupedItems);
-                groupNames = groupField.order === GroupOrder.ascending ? groupNames.sort() : groupNames.sort().reverse();
+                groupNames = group.order === GroupOrder.ascending ? groupNames.sort() : groupNames.sort().reverse();
                 groupNames.forEach((key: string) => {
                     sortedGroups[key] = groupedItems[key];
                 });
@@ -102,9 +226,9 @@ export class ListView extends React.Component<IListViewProps, IListViewState> {
                         count: totalItems,
                     };
                     // Check if child grouping available
-                    if (groupByFields[level + 1]) {
+                    if (groupBy[level + 1]) {
                         // Get the child groups
-                        const subGroup = this._getGroups(groupedItems[groupItems], groupByFields, (level + 1), startIndex);
+                        const subGroup = this._getGroups(groupedItems[groupItems], groupBy, (level + 1), startIndex);
                         subGroup.items.forEach((item) => {
                             updatedItemsOrder.push(item);
                         });
@@ -132,48 +256,56 @@ export class ListView extends React.Component<IListViewProps, IListViewState> {
      * Check if sorting needs to be set to the column
      * @param column
      */
-    public sortByColumn = (column: IViewColumn): void => {
-        // Find the field in the viewFields list
-        const columnIdx = findIndex(this.props.columns, c => c.name === column.key);
-        // Check if the field has been found
-        if (columnIdx !== -1) {
-            const column = this.props.columns[columnIdx];
-            // Check if the field needs to be sorted
-            if (has(column, 'sortable')) {
-                // Check if the sorting option is true
-                if (column.sortable) {
-                    const sortDescending = typeof column.isSortedDescending === 'undefined' ? false : !column.isSortedDescending;
-                    // Update the columns
-                    const sortedColumns = this.state.columns.map(c => {
-                        if (c.key === column.key) {
-                            c.isSortedDescending = sortDescending;
-                            c.isSorted = true;
-                        } else {
-                            c.isSorted = false;
-                            c.isSortedDescending = false;
-                        }
-                        return c;
-                    });
+    public sortByColumn = (column: IViewColumn, sortDescending: boolean): void => {
+        const {sortColumn} = this.state;
+        //if(sortColumn && sortColumn.key === column.key && sortColumn.isSortedDescending === sortDescending ) return;
 
-                    // Check if selection needs to be updated
-                    if (this._selection) {
-                        const selection = this._selection.getSelection();
-                        if (selection && selection.length > 0) {
-                            // Clear selection
-                            this._selection.setItems([], true);
-                        }
+        // Check if the field needs to be sorted
+        if (has(column, 'sortable')) {
+            // Check if the sorting option is true
+            if (column.sortable) {
+                // Update the columns
+                let currColumn: IViewColumn;
+                const sortedColumns = this.state.columns.map(c => {
+                    if (c.key === column.key) {
+                        c.isSortedDescending = sortDescending;
+                        c.isSorted = true;
+                        currColumn = c;
+                    } else {
+                        c.isSorted = false;
+                        c.isSortedDescending = false;
                     }
+                    return c;
+                });
 
-                    this.setState({
-                        columns: sortedColumns,
-                    }, () => this.onSortByColumn(column, sortDescending));
+                // Check if selection needs to be updated
+                if (this._selection) {
+                    const selection = this._selection.getSelection();
+                    if (selection && selection.length > 0) {
+                        // Clear selection
+                        this._selection.setItems([], true);
+                    }
                 }
+
+                this.setState({
+                    columns: sortedColumns,
+                    sortColumn: currColumn
+                }, () => this.onSortByColumn(currColumn));
             }
         }
     }
 
-    protected onSortByColumn(column: IViewColumn, descending = false) {
+    protected onSortByColumn(column: IColumn) {
+        const { items } = this.state;
 
+        const ascItems = sortBy(items, [column.fieldName]);
+        const sortedItems = column.isSortedDescending === true ? ascItems.reverse() : ascItems;
+        
+        this.set_items(sortedItems);
+    }
+
+    public set_items(items: any[]) {
+        this.setState({ items: items, flattenItems: this._flattenItems(items) });
     }
 
     /**
@@ -181,8 +313,7 @@ export class ListView extends React.Component<IListViewProps, IListViewState> {
      */
     public render(): React.ReactElement<IListViewProps> {
         let groupProps: IGroupRenderProps = {};
-
-        const { items, columns, groups } = this.state;
+        const { items, flattenItems, columns, groups, columnContextualMenuProps } = this.state;
 
         // Check if selection mode is single selection,
         // if that is the case, disable the selection on grouping headers
@@ -195,13 +326,20 @@ export class ListView extends React.Component<IListViewProps, IListViewState> {
             };
         }
 
+        return <>
+            {this.renderList(flattenItems, columns, groupProps, groups, this._selection)}
+            {columnContextualMenuProps && <ContextualMenu {...columnContextualMenuProps} />}
+        </>;
+    }
+
+    protected renderList(items: any[], columns: IColumn[], groupProps: IGroupRenderProps, groups: IGroup[], selection: Selection): React.ReactElement {
         return React.createElement(DetailsList, {
             ...this.props,
             key: "ListView",
             items: items,
             columns: columns,
             groups: groups,
-            selection: this._selection,
+            selection: selection,
             layoutMode: DetailsListLayoutMode.justified,
             setKey: "ListView",
             groupProps: groupProps

@@ -20,8 +20,8 @@ import * as strings from 'ListViewBuilderWebPartStrings';
 import ListViewBuilder from './components/ListViewBuilder';
 import { IListViewBuilderProps } from './components/IListViewBuilderProps';
 
-import { PropertyPaneAsyncDropdown } from '../../controls/PropertyPane/PropertyPaneAsyncDropdown';
-import { PropertyPaneViewFieldList } from '../../controls/PropertyPane/PropertyPaneViewFieldList';
+import { PropertyPaneAsyncDropdown } from '../../controls/propertyPane/PropertyPaneAsyncDropdown';
+import { PropertyPaneViewFieldList } from '../../controls/propertyPane/PropertyPaneViewFieldList';
 
 import { IConfiguration, IViewField } from './IConfiguration';
 import { update, get } from '@microsoft/sp-lodash-subset';

@@ -1,4 +1,5 @@
 import { IColumn, IGroup, IDetailsListProps } from 'office-ui-fabric-react/lib/components/DetailsList';
+import { IContextualMenuProps } from 'office-ui-fabric-react/lib/ContextualMenu';
 
 export enum GroupOrder {
     ascending = 0,
@@ -11,6 +12,7 @@ export interface IViewColumn extends IColumn {
 }
 
 export interface IListViewProps extends IDetailsListProps {
+    items: any[];
     columns?: IViewColumn[];
     groupBy?: IGrouping[];
     onSelect?: (items: any[]) => void;
@@ -18,16 +20,14 @@ export interface IListViewProps extends IDetailsListProps {
 
 export interface IListViewState {
     items: any[];
+    flattenItems: any[];
     columns?: IColumn[];
+    sortColumn?: IViewColumn;
     groups?: IGroup[];
+    columnContextualMenuProps?: IContextualMenuProps;
 }
 
 export interface IGrouping {
     name: string;
     order: GroupOrder;
-}
-
-export interface IGroupsItems {
-    items: any[];
-    groups: IGroup[];
 }

@@ -9,16 +9,18 @@ import "@pnp/sp/webs";
 import "@pnp/sp/lists";
 //import { ICamlQuery } from "@pnp/sp/lists";
 import "@pnp/sp/items";
-
-import { ListView, IViewField as IColumn, SelectionMode, GroupOrder, IGrouping } from "@pnp/spfx-controls-react/lib/ListView";
-
-import { IConfiguration, IViewField, IViewLookupField, DataType } from '../IConfiguration';
 import { isArray } from '@pnp/common';
+
+//import { ListView, IViewField as IColumn, SelectionMode, GroupOrder, IGrouping } from "@pnp/spfx-controls-react/lib/ListView";
+
+import {IViewField, DataType, SPListView, ISPListViewProps} from "./spListView";
+
+//import { IConfiguration, IViewField, IViewLookupField, DataType } from '../IConfiguration';
 
 export default class ListViewBuilder extends React.Component<IListViewBuilderProps, {
   //configuration: IConfiguration,
   items: any[],
-  groupByFields?: IGrouping[];
+  //groupByFields?: IGrouping[];
   rowLimit? : number;
 }> {
 
@@ -35,7 +37,7 @@ export default class ListViewBuilder extends React.Component<IListViewBuilderPro
   componentDidMount() {
     const{ configuration} = this.props;
     if (configuration && isArray(configuration.ViewFields)) {
-      const viewFields = this.get_ViewFields(configuration.ViewFields);      
+      /*const viewFields = this.get_ViewFields(configuration.ViewFields);      
       const lookups = configuration.ViewFields
          .filter(f => f.DataType === DataType.Lookup || f.DataType === DataType.User || f.DataType === DataType.MultiLookup || f.DataType === DataType.MultiUser)
          .map(l => l.Name);
@@ -46,7 +48,7 @@ export default class ListViewBuilder extends React.Component<IListViewBuilderPro
           items = data.results;
         }
         this.setState({ items: items });
-      })
+      })*/
     }
 
     /*if (this.props.configurationId > 0) {
@@ -75,14 +77,14 @@ export default class ListViewBuilder extends React.Component<IListViewBuilderPro
     }*/
 
     const { configuration } = this.props;
-    const { items, groupByFields } = this.state;
+    //const { items, groupByFields } = this.state;
 
     if (!configuration || !isArray(configuration.ViewFields)) return (<>{"No configuration!"}</>);
 
-    const viewFields = this.get_Columns(configuration.ViewFields);
+    //const viewFields = this.get_Columns(configuration.ViewFields);
     return (
       <div className={styles.listViewBuilder}>
-        <ListView
+        {/*(<ListView
           items={items}
           viewFields={viewFields}
           compact={false}
@@ -91,12 +93,13 @@ export default class ListViewBuilder extends React.Component<IListViewBuilderPro
           showFilter={true}
           defaultFilter=""
           filterPlaceHolder={"Search..."}
-          groupByFields={groupByFields} />
+        groupByFields={groupByFields} />)*/}
+        <SPListView listId={configuration.ListId} viewFields={configuration.ViewFields} />
       </div>
     );
   }
 
-  private get_Columns(viewFields: IViewField[]): IColumn[] {
+  /*private get_Columns(viewFields: IViewField[]): IColumn[] {
     let columns: IColumn[] = viewFields.map(f => this.get_Column(f));   
     return columns;
   }
@@ -202,6 +205,8 @@ export default class ListViewBuilder extends React.Component<IListViewBuilderPro
   private _getSelection(items: any[]) {
     console.log('Selected items:', items);
   }
+*/
+
 
   /*private loadConfiguration(configurationId: number, configListTitle: string): Promise<IConfiguration> {
     return new Promise<IConfiguration>((resolve: (configuration: IConfiguration) => void, reject: (error: any) => void) => {
