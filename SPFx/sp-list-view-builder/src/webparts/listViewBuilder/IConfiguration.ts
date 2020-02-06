@@ -10,7 +10,9 @@ export interface IConfiguration {
 export interface IViewField{
    Name: string;
    Title: string;
-   DataType: DataType; 
+   DataType: DataType;
+   Sortable?: boolean;
+   Filterable?: boolean;
 }
 
 export interface IViewLookupField extends IViewField{  

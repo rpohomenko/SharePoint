@@ -3,8 +3,6 @@ import styles from './ListViewBuilder.module.scss';
 import { Separator } from 'office-ui-fabric-react/lib/Separator';
 
 import { IListViewBuilderProps } from './IListViewBuilderProps';
-import { escape } from '@microsoft/sp-lodash-subset';
-//import { DisplayMode, Environment, EnvironmentType, Version, Guid } from '@microsoft/sp-core-library';
 
 import { sp } from "@pnp/sp";
 import "@pnp/sp/webs";
@@ -16,9 +14,6 @@ import { ListView, IViewField as IColumn, SelectionMode, GroupOrder, IGrouping }
 
 import { IConfiguration, IViewField, IViewLookupField, DataType } from '../IConfiguration';
 import { isArray } from '@pnp/common';
-//import CamlBuilder from 'camljs';
-//import { ListViewBuilderEditor } from './ListViewBuilderEditor';
-
 
 export default class ListViewBuilder extends React.Component<IListViewBuilderProps, {
   //configuration: IConfiguration,
@@ -41,7 +36,9 @@ export default class ListViewBuilder extends React.Component<IListViewBuilderPro
     const{ configuration} = this.props;
     if (configuration && isArray(configuration.ViewFields)) {
       const viewFields = this.get_ViewFields(configuration.ViewFields);      
-      const lookups = configuration.ViewFields.filter(f => f.DataType === DataType.Lookup).map(l => l.Name);
+      const lookups = configuration.ViewFields
+         .filter(f => f.DataType === DataType.Lookup || f.DataType === DataType.User || f.DataType === DataType.MultiLookup || f.DataType === DataType.MultiUser)
+         .map(l => l.Name);
       const count = this.state.rowLimit;
       this.getData(viewFields, count, lookups).then(data => {
         let items: any[] = [];
@@ -105,11 +102,72 @@ export default class ListViewBuilder extends React.Component<IListViewBuilderPro
   }
 
   private get_Column(viewField: IViewField): IColumn {
-    let column = { name: viewField.Name, displayName: viewField.Title, isResizable: true } as IColumn;
+    let sorting = viewField.Sortable;
+    if (viewField.DataType === DataType.MultiLookup
+      || viewField.DataType === DataType.MultiChoice
+      || viewField.DataType === DataType.MultiLineText
+      || viewField.DataType === DataType.RichText
+      || viewField.DataType === DataType.MultiUser
+    ) {
+      sorting = false;
+    }
+    else {
+      if (sorting === undefined || sorting === null) {
+        sorting = true;
+      }
+    }
+    let column = { name: viewField.Name, displayName: viewField.Title, isResizable: true, sorting: sorting } as IColumn;
     if (column.name === "LinkTitle") {
       column.name = "Title";
     }
+
+    if(viewField.DataType === DataType.Lookup){
+      column.render = (item, index, column) => this.renderLookup(item, index, column, viewField);
+    }
+    if(viewField.DataType === DataType.MultiLookup){
+      column.render = (item, index, column) => this.renderMultiLookup(item, index, column, viewField);
+    }
+    else if(viewField.DataType === DataType.User){
+      column.render = (item, index, column) => this.renderUser(item, index, column, viewField);
+    }
+    if(viewField.DataType === DataType.MultiUser){
+      column.render = (item, index, column) => this.renderMultiUser(item, index, column, viewField);
+    }
+    else if(viewField.DataType === DataType.MultiChoice){
+      column.render = (item, index, column) => this.renderMultiChoice(item, index, column, viewField);
+    }
     return column;
+  }
+
+  private renderLookup(item, index, column: IColumn, viewField: IViewField) {
+    let value = item[`${viewField.Name}.${(viewField as IViewLookupField).LookupFieldName || "Title"}`];
+    return <span>{value}</span>;
+  }
+
+  private renderUser(item, index, column: IColumn, viewField: IViewField) {
+    let value = item[`${viewField.Name}.${(viewField as IViewLookupField).LookupFieldName || "Title"}`];
+    return <span>{value}</span>;
+  }
+
+  private renderMultiChoice(item, index, column: IColumn, viewField: IViewField) {
+    const {items} = this.state;
+    const row = items[index];
+    let values = row[viewField.Name].results as string[];
+    return <span>{values.join(', ')}</span>;
+  }
+
+  private renderMultiLookup(item, index, column: IColumn, viewField: IViewField) {
+    const {items} = this.state;
+    const row = items[index];
+    let values = row[viewField.Name].results as string[];
+    return <span>{values.map(value => `${ value[(viewField as IViewLookupField).LookupFieldName || "Title"] }` ).join(', ')}</span>;
+  }
+
+  private renderMultiUser(item, index, column: IColumn, viewField: IViewField) {
+    const {items} = this.state;
+    const row = items[index];
+    let values = row[viewField.Name].results as string[];
+    return <span>{values.map(value => `${ value[(viewField as IViewLookupField).LookupFieldName || "Title"] }` ).join(', ')}</span>;
   }
 
   private get_ViewFields(viewFields: IViewField[]):string[]{    
@@ -127,11 +185,16 @@ export default class ListViewBuilder extends React.Component<IListViewBuilderPro
       return ["Title"];
     }
     if (field.DataType === DataType.Lookup 
-      || field.DataType === DataType.MultiLookup
-      || field.DataType === DataType.User
-      || field.DataType === DataType.MultiUser) {
+      || field.DataType === DataType.MultiLookup     
+      ) {
       const lookupField = field as IViewLookupField;
-      return [`${field.Name}/ID`, `${field.Name}/${lookupField.LookupFieldName}`];
+      return [`${field.Name}/ID`, `${field.Name}/${lookupField.LookupFieldName || "Title"}`];
+    }
+    if (field.DataType === DataType.User
+      || field.DataType === DataType.MultiUser
+      ) {
+      const lookupField = field as IViewLookupField;
+      return [`${field.Name}/ID`, `${field.Name}/EMail`, `${field.Name}/Name`, `${field.Name}/${lookupField.LookupFieldName || "Title"}`];
     }
     return [field.Name];
   }
