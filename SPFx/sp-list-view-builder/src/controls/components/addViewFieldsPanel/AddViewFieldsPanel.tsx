@@ -3,7 +3,7 @@ import { Separator } from 'office-ui-fabric-react/lib/Separator';
 
 import styles from "./addViewFields.module.scss"
 
-import { IListViewBuilderProps } from '../../webparts/listViewBuilder/components/IListViewBuilderProps';
+import { IListViewBuilderProps } from '../../../webparts/listViewBuilder/components/IListViewBuilderProps';
 
 import { Panel } from 'office-ui-fabric-react/lib/Panel';
 
@@ -24,8 +24,8 @@ import { isArray } from '@pnp/common';
 
 import { FieldTypes, IFieldInfo, IField } from "@pnp/sp/fields";
 
-import { IViewField, IViewLookupField, DataType } from '../../webparts/listViewBuilder/IConfiguration';
-import AsyncDropdown from './AsyncDropdown';
+import { IViewField, IViewLookupField, DataType } from '../../../webparts/listViewBuilder/IConfiguration';
+import { AsyncDropdown, IAsyncDropdownState, IAsyncDropdownProps } from '.././asyncDropdown';
 
 import { getTheme } from 'office-ui-fabric-react/lib/Styling';
 
@@ -231,7 +231,7 @@ export class AddViewFieldsPanel extends React.Component<{
   }
 
   private get_Field(field: IFieldInfo): IViewField {
-    let viewField = ({ Name: field.InternalName, Title: field.Title, DataType: this.get_DataType(field) }) as IViewField;
+    let viewField = ({ Name: field.InternalName, Title: field.Title, DataType: this.get_DataType(field), Sortable: this.is_Sortable(field), Filterable: this.is_Filterable(field) }) as IViewField;
     if (field.FieldTypeKind === FieldTypes.Lookup || field.FieldTypeKind === FieldTypes.User) {
       viewField = ({
         ...viewField,
@@ -241,6 +241,45 @@ export class AddViewFieldsPanel extends React.Component<{
       }) as IViewLookupField;
     }
     return viewField;
+  }
+
+  private is_Sortable(field: IFieldInfo) {
+    switch (field.FieldTypeKind) {
+      case FieldTypes.Lookup:
+        if ((field as IFieldLookupInfo).AllowMultipleValues) {
+          return false;
+        }
+        return true;
+      case FieldTypes.MultiChoice:
+      case FieldTypes.Note:
+      case FieldTypes.Calculated:
+        return false;
+      case FieldTypes.User:
+        if ((field as IFieldUserInfo).AllowMultipleValues) {
+          return false;
+        }
+        return true;
+      default: return true;
+    }
+  }
+
+  private is_Filterable(field: IFieldInfo) {
+    switch (field.FieldTypeKind) {
+      case FieldTypes.Lookup:
+        if ((field as IFieldLookupInfo).AllowMultipleValues) {
+          return false;
+        }
+        return true;
+      case FieldTypes.MultiChoice:
+      case FieldTypes.Note:     
+        return false;
+      case FieldTypes.User:
+        if ((field as IFieldUserInfo).AllowMultipleValues) {
+          return false;
+        }
+        return true;
+      default: return true;
+    }
   }
 
   private get_DataType(field: IFieldInfo): DataType {

@@ -295,13 +295,18 @@ export class ListView extends React.Component<IListViewProps, IListViewState> {
         }
     }
 
-    protected onSortByColumn(column: IColumn) {
+    protected onSortByColumn(column: IViewColumn) {
         const { items } = this.state;
 
-        const ascItems = sortBy(items, [column.fieldName]);
-        const sortedItems = column.isSortedDescending === true ? ascItems.reverse() : ascItems;
-        
-        this.set_items(sortedItems);
+        if (typeof this.props.onSort === "function") {
+            this.props.onSort(column, items);
+        }
+        else {
+            const ascItems = sortBy(items, [column.fieldName]);
+            const sortedItems = column.isSortedDescending === true ? ascItems.reverse() : ascItems;
+
+            this.set_items(sortedItems);
+        }
     }
 
     public set_items(items: any[]) {

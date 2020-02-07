@@ -4,7 +4,7 @@ import { Spinner } from 'office-ui-fabric-react/lib/components/Spinner';
 import { IAsyncDropdownProps } from './IAsyncDropdownProps';
 import { IAsyncDropdownState } from './IAsyncDropdownState';
 
-export default class AsyncDropdown extends React.Component<IAsyncDropdownProps, IAsyncDropdownState> {
+export class AsyncDropdown extends React.Component<IAsyncDropdownProps, IAsyncDropdownState> {
   private selectedKey: React.ReactText;
 
   constructor(props: IAsyncDropdownProps, state: IAsyncDropdownState) {
@@ -42,7 +42,7 @@ export default class AsyncDropdown extends React.Component<IAsyncDropdownProps, 
           onChange={this.onChanged.bind(this)}
           selectedKey={this.selectedKey}
           options={this.state.options}
-          placeholder={this.props.placeholder}
+          placeholder={this.props.placeholder || ""}
           {...loading ? { onRenderCaretDown: () => <Spinner /> } : {}} />
         {error}
       </div>

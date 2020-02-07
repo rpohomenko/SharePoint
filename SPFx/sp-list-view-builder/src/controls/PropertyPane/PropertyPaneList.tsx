@@ -37,7 +37,7 @@ export class PropertyPaneList implements IPropertyPaneField<IPropertyPaneListPro
     this.targetProperty = targetProperty;
     this.properties = {
       key: properties.label,
-      label: properties.label,
+      label: properties.label,      
       items: properties.items,
       columns: properties.columns,
       onPropertyChange: properties.onPropertyChange,

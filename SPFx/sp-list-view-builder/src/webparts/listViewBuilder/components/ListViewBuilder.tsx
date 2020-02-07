@@ -1,6 +1,6 @@
 import * as React from 'react';
 import styles from './ListViewBuilder.module.scss';
-import { Separator } from 'office-ui-fabric-react/lib/Separator';
+//import { Separator } from 'office-ui-fabric-react/lib/Separator';
 
 import { IListViewBuilderProps } from './IListViewBuilderProps';
 

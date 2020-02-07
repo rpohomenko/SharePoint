@@ -6,7 +6,7 @@ import { CommandBar, ICommandBarItemProps } from 'office-ui-fabric-react/lib/Com
 
 import { PropertyPaneList, IPropertyPaneListProps } from './PropertyPaneList';
 import { IViewField, DataType } from '../../webparts/listViewBuilder/IConfiguration';
-import { AddViewFieldsPanel } from '../components/AddViewFieldsPanel';
+import { AddViewFieldsPanel } from '../components/addViewFieldsPanel';
 
 export interface IPropertyPaneViewFieldListProps extends IPropertyPaneListProps {
    listId: string;

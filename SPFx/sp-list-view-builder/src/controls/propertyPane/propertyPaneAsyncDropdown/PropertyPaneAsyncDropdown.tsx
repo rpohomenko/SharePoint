@@ -1,6 +1,6 @@
 import * as React from 'react';
 import * as ReactDom from 'react-dom';
-import styles from './PropertyPane.module.scss';
+import styles from './propertyPaneAsyncDropdownProps.module.scss';
 
 import { IPropertyPaneField, PropertyPaneFieldType } from "@microsoft/sp-property-pane";
 import { Stack } from 'office-ui-fabric-react/lib/components/Stack';
@@ -8,8 +8,7 @@ import { Separator } from 'office-ui-fabric-react/lib/components/Separator';
 
 import { IDropdownOption } from 'office-ui-fabric-react/lib/components/Dropdown';
 import { IPropertyPaneAsyncDropdownProps, IPropertyPaneAsyncDropdownInternalProps } from './IPropertyPaneAsyncDropdownProps';
-import AsyncDropdown from '../components/AsyncDropdown';
-import { IAsyncDropdownProps } from '../components/IAsyncDropdownProps';
+import  { AsyncDropdown, IAsyncDropdownProps } from '../../components/asyncDropdown';
 
 export class PropertyPaneAsyncDropdown implements IPropertyPaneField<IPropertyPaneAsyncDropdownProps> {
   public type: PropertyPaneFieldType = PropertyPaneFieldType.Custom;
@@ -22,6 +21,7 @@ export class PropertyPaneAsyncDropdown implements IPropertyPaneField<IPropertyPa
     this.properties = {
       key: properties.label,
       label: properties.label,
+      placeholder : properties.placeholder,
       loadOptions: properties.loadOptions,
       onPropertyChange: properties.onPropertyChange,
       selectedKey: properties.selectedKey,
@@ -45,6 +45,7 @@ export class PropertyPaneAsyncDropdown implements IPropertyPaneField<IPropertyPa
 
     const element: React.ReactElement<IAsyncDropdownProps> = React.createElement(AsyncDropdown, {
       label: this.properties.label,
+      placeholder: this.properties.placeholder,
       loadOptions: this.properties.loadOptions,
       onChanged: this.onChanged.bind(this),
       selectedKey: this.properties.selectedKey,

@@ -4,34 +4,61 @@ import { sp } from "@pnp/sp";
 import "@pnp/sp/webs";
 import "@pnp/sp/lists";
 //import { ICamlQuery } from "@pnp/sp/lists";
-import "@pnp/sp/items";
+import { PagedItemCollection } from "@pnp/sp/items";
 import { isArray } from '@pnp/common';
+import { isEqual } from '@microsoft/sp-lodash-subset';
 
 import { IColumn } from 'office-ui-fabric-react/lib/DetailsList';
-import { LazyListView, ILazyListViewProps } from '../../../../controls/lazyListView';
+//import { LazyListView, ILazyListViewProps } from '../../../../controls/lazyListView';
+import { ListView, IListViewProps } from '../../../../controls/listView';
 import { IViewColumn } from '../../../../controls/listView';
 
 import { ISPListViewProps, ISPListViewState, DataType, IViewField, IViewLookupField } from './ISPListView';
 
 export class SPListView extends React.Component<ISPListViewProps, ISPListViewState> {
 
+    private _columns: IViewColumn[];
+
     constructor(props: ISPListViewProps) {
         super(props);
 
         // Initialize state
         this.state = {
-
         };
     }
 
-    private async getData(): Promise<any[]> {
+    public componentDidMount() {
+
+        this._columns = this.get_Columns(this.props.viewFields);
+
+        this.getData().then(page => {
+            this.setState({ page: page });
+        });
+    }
+
+    public componentDidUpdate(prevProps: ISPListViewProps, prevState: ISPListViewState): void {
+        if (!isEqual(prevProps, this.props)) {
+            this._columns = this.get_Columns(this.props.viewFields);
+        }
+    }
+
+    private async getData(sortColumn?: IViewColumn): Promise<PagedItemCollection<any>> {
         const viewFields = this.get_ViewFields(this.props.viewFields);
         const lookups = this.props.viewFields
             .filter(f => f.DataType === DataType.Lookup || f.DataType === DataType.User || f.DataType === DataType.MultiLookup || f.DataType === DataType.MultiUser)
             .map(l => l.Name);
-        return await sp.web.lists.getById(this.props.listId).items.top(this.props.count || 30).select(...viewFields).expand(...lookups).getPaged()
+        let request = sp.web.lists.getById(this.props.listId).items
+            .top(this.props.count || 30)
+            .select(...viewFields)
+            .expand(...lookups);
+
+        if (sortColumn) {
+            request = request.orderBy(sortColumn.fieldName, sortColumn.isSortedDescending);
+        }
+
+        return await request.getPaged()
             .then((page) => {
-                return page.results;
+                return page;
             });
     }
 
@@ -66,6 +93,12 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
 
     private onSelectItems(items: any[]) {
 
+    }
+
+    private onSortItems(column: IViewColumn, items: any[]) {
+        this.getData(column).then(page => {
+            this.setState({ page: page });
+        });
     }
 
     private get_Columns(viewFields: IViewField[]): IColumn[] {
@@ -121,7 +154,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
         return <span>{value}</span>;
     }
 
-    private renderMultiChoice(item, index, column: IColumn, viewField: IViewField) {      
+    private renderMultiChoice(item, index, column: IColumn, viewField: IViewField) {
         let values = item[viewField.Name] ? item[viewField.Name].results : [] as string[];
         return <span>{values.join(', ')}</span>;
     }
@@ -137,10 +170,12 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
     }
 
     public render(): React.ReactElement {
-        return React.createElement(LazyListView, {
-            asyncItems: this.getData(),
-            columns: this.get_Columns(this.props.viewFields),
-            onSelect: this.onSelectItems.bind(this)
-        } as ILazyListViewProps);
+        const { page } = this.state;
+        return React.createElement(ListView, {
+            items: page ? page.results : null,
+            columns: this._columns,
+            onSelect: this.onSelectItems.bind(this),
+            onSort: this.onSortItems.bind(this)
+        } as IListViewProps);
     }
 }

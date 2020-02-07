@@ -3,6 +3,7 @@ import { IPropertyPaneCustomFieldProps } from "@microsoft/sp-property-pane";
 
 export interface IPropertyPaneAsyncDropdownProps {
   label: string;
+  placeholder ?: string;
   loadOptions: () => Promise<IDropdownOption[]>;
   onPropertyChange: (propertyPath: string, newValue: any, index?: number) => void;
   selectedKey: string | number;

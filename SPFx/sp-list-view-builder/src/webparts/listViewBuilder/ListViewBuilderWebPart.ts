@@ -20,7 +20,7 @@ import * as strings from 'ListViewBuilderWebPartStrings';
 import ListViewBuilder from './components/ListViewBuilder';
 import { IListViewBuilderProps } from './components/IListViewBuilderProps';
 
-import { PropertyPaneAsyncDropdown } from '../../controls/propertyPane/PropertyPaneAsyncDropdown';
+import { PropertyPaneAsyncDropdown } from '../../controls/propertyPane/propertyPaneAsyncDropdown/PropertyPaneAsyncDropdown';
 import { PropertyPaneViewFieldList } from '../../controls/propertyPane/PropertyPaneViewFieldList';
 
 import { IConfiguration, IViewField } from './IConfiguration';
@@ -120,6 +120,7 @@ export default class ListViewBuilderWebPart extends BaseClientSideWebPart<IListV
                 })*/
                 new PropertyPaneAsyncDropdown('listId', {
                   label: strings.ListIdFieldLabel,
+                  placeholder: "Select list...",
                   loadOptions: this.loadLists.bind(this),
                   onPropertyChange: this.onCustomPropertyPaneFieldChanged.bind(this),
                   selectedKey: this.properties.listId
