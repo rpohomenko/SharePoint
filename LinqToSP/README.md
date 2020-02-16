@@ -1,4 +1,6 @@
 # LinqToSP
+[![NuGet version](https://badge.fury.io/nu/LinqToSP.o365.svg)](https://badge.fury.io/nu/LinqToSP.o365)
+
 
 Linq To SharePoint is an object-relational mapper (O/RM) for .NET which uses SharePoint client object model ([CSOM](https://go.microsoft.com/fwlink/?LinkId=531344)) to manage data in SharePoint.
 Also it translates LINQ queries into Collaborative Application Markup Language (CAML) queries.
