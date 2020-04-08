@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Separator } from 'office-ui-fabric-react/lib/Separator';
 
-import styles from "./addViewFields.module.scss"
+import styles from "./addViewFields.module.scss";
 
 import { IListViewBuilderProps } from '../../../webparts/listViewBuilder/components/IListViewBuilderProps';
 
@@ -49,16 +49,20 @@ interface IFieldDateInfo extends IFieldInfo {
   DisplayFormat: number;
 }
 
-export class AddViewFieldsPanel extends React.Component<{
-  listId: string,
-  isOpen?: boolean,
-  fields: IViewField[],
-  onFieldsAdded: (fields: IViewField[]) => void
-}, {
-  viewId?: string,
-  isOpen?: boolean,
-  selection: IViewField[]
-}> {
+export interface AddViewFieldsPanelProps {
+  listId: string;
+  isOpen?: boolean;
+  fields: IViewField[];
+  onAddFields: (fields: IViewField[]) => void;
+}
+
+export interface AddViewFieldsPanelState {
+  viewId?: string;
+  isOpen?: boolean;
+  selection: IViewField[];
+}
+
+export class AddViewFieldsPanel extends React.Component<AddViewFieldsPanelProps, AddViewFieldsPanelState> {
 
   private _fields: { [viewId: string]: IViewField[] } = {};
   private _selection: Selection;
@@ -75,12 +79,12 @@ export class AddViewFieldsPanel extends React.Component<{
         const { fields } = this.props;
         const selection: IViewField[] =
           (this._selection.getSelection() as IViewField[]).filter(f => !fields.some(ff => ff.Name === f.Name));
-        this.setState({ selection: selection })
+        this.setState({ selection: selection });
       }
     });
   }
 
-  componentDidUpdate(prevProps: { listId: string, isOpen?: boolean }) {
+  public componentDidUpdate(prevProps: { listId: string, isOpen?: boolean }) {
     if (prevProps.isOpen !== this.props.isOpen) {
       this.setState({ isOpen: this.props.isOpen });
     }
@@ -165,10 +169,10 @@ export class AddViewFieldsPanel extends React.Component<{
       <PrimaryButton disabled={selection.length === 0} onClick={() => {
         this._selection.setItems([], true);
         this.close();
-        if (typeof this.props.onFieldsAdded === "function") {
+        if (this.props.onAddFields instanceof Function) {
           const { fields } = this.props;
-          const addedFields: IViewField[] = selection.filter(f => !fields.some(ff => ff.Name === f.Name));
-          this.props.onFieldsAdded(addedFields);
+          const viewFields: IViewField[] = selection.filter(f => !fields.some(ff => ff.Name === f.Name));
+          this.props.onAddFields(viewFields);
         }
       }} styles={{ root: { marginRight: 8 } }}>
         {"Add"}
@@ -212,12 +216,12 @@ export class AddViewFieldsPanel extends React.Component<{
   private loadFields(listId: string, fieldNames: string[]): Promise<IViewField[]> {
     return new Promise<IViewField[]>((resolve: (options: IViewField[]) => void, reject: (error: any) => void) => {
       try {
-        return sp.web.lists.getById(listId).fields.select('InternalName', 'Title', 'FieldTypeKind', 'AllowMultipleValues', 'RichText', 'DisplayFormat', 'LookupField', 'LookupList', 'LookupWebId').filter(`${
+        return sp.web.lists.getById(listId).fields.select('InternalName', 'Title', 'FieldTypeKind', 'AllowMultipleValues', 'RichText', 'DisplayFormat', 'LookupField', 'LookupList', 'LookupWebId'/*, 'SchemaXml'*/).filter(`${
           fieldNames.map(field => `InternalName eq '${field}'`).join(' or ')
           }`).get()
           .then(fields => {
             let viewFields = fields.map(f => this.get_Field(f));
-            viewFields.sort(function (a, b) {
+            viewFields.sort((a, b) => {
               return fieldNames.indexOf(a.Name) - fieldNames.indexOf(b.Name);
             });
             resolve(viewFields);
@@ -271,7 +275,7 @@ export class AddViewFieldsPanel extends React.Component<{
         }
         return true;
       case FieldTypes.MultiChoice:
-      case FieldTypes.Note:     
+      case FieldTypes.Note:
         return false;
       case FieldTypes.User:
         if ((field as IFieldUserInfo).AllowMultipleValues) {

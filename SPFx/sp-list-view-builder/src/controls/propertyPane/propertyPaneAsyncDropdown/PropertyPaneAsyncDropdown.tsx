@@ -53,7 +53,7 @@ export class PropertyPaneAsyncDropdown implements IPropertyPaneField<IPropertyPa
       // required to allow the component to be re-rendered by calling this.render() externally
       stateKey: new Date().toString(),
     });
-    ReactDom.render((<div className={styles["property-pane-async-dropdown"]}>
+    ReactDom.render((<div className={styles.propertyPaneAsyncDropdown}>
       <Stack tokens={{ childrenGap: 1 }}>
         <Stack.Item>
           <Separator />

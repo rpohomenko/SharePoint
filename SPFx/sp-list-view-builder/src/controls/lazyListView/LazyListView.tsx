@@ -18,9 +18,9 @@ export class LazyListView extends ListView {
     protected updateState(items: any[]) {
         const { asyncItems } = this.props as ILazyListViewProps;
         if (!!asyncItems) {
-            asyncItems.then(items => {
-                super.updateState(items);
-            })
+            asyncItems.then(result => {
+                super.updateState(result);
+            });
         }
         else {
             super.updateState(items);

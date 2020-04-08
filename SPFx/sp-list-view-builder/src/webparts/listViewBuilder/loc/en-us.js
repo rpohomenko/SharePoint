@@ -6,6 +6,7 @@ define([], function() {
     "DescriptionFieldLabel": "Description",
     "ConfigurationIdFieldLabel": "Configuration Id",
     "ListIdFieldLabel":"List Id",
-    "ViewFieldsFieldLabel": "View Fields"
+    "ViewFieldsFieldLabel": "View Fields",
+    "FieldTypeNames": ["Text", "Note", "Rich Text", "Date Time", "Date", "Number", "Lookup", "Multiple Lookup", "Boolean", "Choice", "Multiple Choice", "User", "Multiple User"]
   }
 });

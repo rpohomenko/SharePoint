@@ -105,9 +105,9 @@ export class ListView extends React.Component<IListViewProps, IListViewState> {
         const viewColumns: IViewColumn[] = [...columns];
         viewColumns.forEach(column => {
             const onColumnClick = column.onColumnClick;
-            column.onColumnClick = (ev, column) => this.onColumnClick(ev, column, onColumnClick);
+            column.onColumnClick = (ev, col) => this.onColumnClick(ev, col, onColumnClick);
             const onColumnRender =  column.onRender;
-            column.onRender = (item, index, column) => this.onColumnRender(item, index, column, onColumnRender);
+            column.onRender = (item, index, col) => this.onColumnRender(item, index, col, onColumnRender);
         });
         return viewColumns;
     }
@@ -168,7 +168,7 @@ export class ListView extends React.Component<IListViewProps, IListViewState> {
         this.setState({
             columnContextualMenuProps: undefined
         });
-    };
+    }
 
     /**
      * Specify result grouping for the list rendering
@@ -219,7 +219,7 @@ export class ListView extends React.Component<IListViewProps, IListViewState> {
                     // Retrieve the total number of items per group
                     const totalItems = groupedItems[groupItems].length;
                     // Create the new group
-                    const group: IGroup = {
+                    const g: IGroup = {
                         name: groupItems === "undefined" ? "" : groupItems,
                         key: groupItems === "undefined" ? "" : groupItems,
                         startIndex: startIndex,
@@ -232,7 +232,7 @@ export class ListView extends React.Component<IListViewProps, IListViewState> {
                         subGroup.items.forEach((item) => {
                             updatedItemsOrder.push(item);
                         });
-                        group.children = subGroup.groups;
+                        g.children = subGroup.groups;
                     } else {
                         // Add the items to the updated items order array
                         groupedItems[groupItems].forEach((item) => {
@@ -241,7 +241,7 @@ export class ListView extends React.Component<IListViewProps, IListViewState> {
                     }
                     // Increase the start index for the next group
                     startIndex = startIndex + totalItems;
-                    groups.push(group);
+                    groups.push(g);
                 }
             }
         }

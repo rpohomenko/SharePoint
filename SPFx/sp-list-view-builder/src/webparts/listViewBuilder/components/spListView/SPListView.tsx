@@ -17,28 +17,24 @@ import { ISPListViewProps, ISPListViewState, DataType, IViewField, IViewLookupFi
 
 export class SPListView extends React.Component<ISPListViewProps, ISPListViewState> {
 
-    private _columns: IViewColumn[];
-
     constructor(props: ISPListViewProps) {
         super(props);
 
         // Initialize state
         this.state = {
+            columns: []
         };
     }
 
-    public componentDidMount() {
-
-        this._columns = this.get_Columns(this.props.viewFields);
-
-        this.getData().then(page => {
-            this.setState({ page: page });
-        });
+    public async componentDidMount() {
+        const columns = this.get_Columns(this.props.viewFields);
+        const page = await this.getData();
+        this.setState({ page: page, columns: columns });
     }
 
-    public componentDidUpdate(prevProps: ISPListViewProps, prevState: ISPListViewState): void {
+    public async componentDidUpdate(prevProps: ISPListViewProps, prevState: ISPListViewState) {
         if (!isEqual(prevProps, this.props)) {
-            this._columns = this.get_Columns(this.props.viewFields);
+            await this.componentDidMount();
         }
     }
 
@@ -127,19 +123,19 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
         }
 
         if (viewField.DataType === DataType.Lookup) {
-            column.onRender = (item, index, column) => this.renderLookup(item, index, column, viewField);
+            column.onRender = (item, index, col) => this.renderLookup(item, index, col, viewField);
         }
         if (viewField.DataType === DataType.MultiLookup) {
-            column.onRender = (item, index, column) => this.renderMultiLookup(item, index, column, viewField);
+            column.onRender = (item, index, col) => this.renderMultiLookup(item, index, col, viewField);
         }
         else if (viewField.DataType === DataType.User) {
-            column.onRender = (item, index, column) => this.renderUser(item, index, column, viewField);
+            column.onRender = (item, index, col) => this.renderUser(item, index, col, viewField);
         }
         if (viewField.DataType === DataType.MultiUser) {
-            column.onRender = (item, index, column) => this.renderMultiUser(item, index, column, viewField);
+            column.onRender = (item, index, col) => this.renderMultiUser(item, index, col, viewField);
         }
         else if (viewField.DataType === DataType.MultiChoice) {
-            column.onRender = (item, index, column) => this.renderMultiChoice(item, index, column, viewField);
+            column.onRender = (item, index, col) => this.renderMultiChoice(item, index, col, viewField);
         }
         return column;
     }
@@ -170,10 +166,10 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
     }
 
     public render(): React.ReactElement {
-        const { page } = this.state;
+        const { page, columns } = this.state;
         return React.createElement(ListView, {
             items: page ? page.results : null,
-            columns: this._columns,
+            columns: columns,
             onSelect: this.onSelectItems.bind(this),
             onSort: this.onSortItems.bind(this)
         } as IListViewProps);

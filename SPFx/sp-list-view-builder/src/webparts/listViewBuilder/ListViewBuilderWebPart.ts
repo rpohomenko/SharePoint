@@ -13,9 +13,8 @@ import { setup as pnpSetup, isArray } from "@pnp/common";
 import { sp } from "@pnp/sp";
 import "@pnp/sp/webs";
 import "@pnp/sp/lists";
-//import { ICamlQuery } from "@pnp/sp/lists";
 import "@pnp/sp/items";
-
+import { Placeholder } from "@pnp/spfx-controls-react/lib/Placeholder";
 import * as strings from 'ListViewBuilderWebPartStrings';
 import ListViewBuilder from './components/ListViewBuilder';
 import { IListViewBuilderProps } from './components/IListViewBuilderProps';
@@ -25,39 +24,45 @@ import { PropertyPaneViewFieldList } from '../../controls/propertyPane/PropertyP
 
 import { IConfiguration, IViewField } from './IConfiguration';
 import { update, get } from '@microsoft/sp-lodash-subset';
-//import CamlBuilder from 'camljs';
 import { proxyUrl, webRelativeUrl } from '../../settings';
 
 export interface IListViewBuilderWebPartProps {
   description: string;
-  configurationId: number;
   listId: string;
   viewFields: IViewField[];
 }
 
 export default class ListViewBuilderWebPart extends BaseClientSideWebPart<IListViewBuilderWebPartProps> {
 
-  //private _configurations: Array<IConfigurationOption>;
-  //private _configListTitle = "LVBuilderConfigurations";
-
   public render(): void {
+  
+    const inDesignMode: boolean = this.displayMode === DisplayMode.Edit;    
+    //const environmentType: EnvironmentType = Environment.type;
 
-    //debugger;
-    const inDesignMode: boolean = this.displayMode === DisplayMode.Edit;
-    //const environmentType: EnvironmentType = Environment.type; 
-    const element: React.ReactElement<IListViewBuilderProps> = React.createElement(
-      ListViewBuilder,
-      {
-        inDesignMode: inDesignMode,
-        description: this.properties.description,
-        //configurationId: this.properties.configurationId,
-        //configListTitle: this._configListTitle,
-        configuration: this.properties.listId
-          ? { ListId: this.properties.listId, ViewFields: this.properties.viewFields } as IConfiguration
-          : null
-      }
-    );
-
+    let element: React.ReactElement;
+    if (!!this.properties.listId && this.properties.viewFields instanceof Array && this.properties.viewFields.length > 0) {
+      element = React.createElement(
+        ListViewBuilder,
+        {
+          inDesignMode: inDesignMode,
+          description: this.properties.description,       
+          configuration: this.properties.listId
+            ? { ListId: this.properties.listId, ViewFields: this.properties.viewFields } as IConfiguration
+            : null
+        });
+    }
+    else {
+      element = React.createElement(
+        Placeholder,
+        {
+          iconName: 'Edit',
+          iconText: this.title,
+          description: strings.PropertyPaneDescription,
+          buttonLabel: 'Configure',
+          hideButton: this.displayMode == DisplayMode.Read,
+          onConfigure: () => this.context.propertyPane.open()
+        });
+    }
     ReactDom.render(element, this.domElement);
   }
 
@@ -105,19 +110,7 @@ export default class ListViewBuilderWebPart extends BaseClientSideWebPart<IListV
           groups: [
             {
               groupName: strings.BasicGroupName,
-              groupFields: [
-                /*PropertyPaneTextField('description', {
-                  label: strings.DescriptionFieldLabel
-                }),*/
-                /*PropertyPaneTextField('configurationId',{
-                  label: strings.ConfigurationIdFieldLabel
-                }),*/
-                /*new PropertyPaneAsyncDropdown('configurationId', {
-                  label: strings.ConfigurationIdFieldLabel,
-                  loadOptions: this.loadConfigurations.bind(this),
-                  onPropertyChange: this.onPropertyChange.bind(this),
-                  selectedKey: this.properties.configurationId
-                })*/
+              groupFields: [               
                 new PropertyPaneAsyncDropdown('listId', {
                   label: strings.ListIdFieldLabel,
                   placeholder: "Select list...",
@@ -170,8 +163,8 @@ export default class ListViewBuilderWebPart extends BaseClientSideWebPart<IListV
     if (oldValue !== newValue) {
       this.properties[targetProperty] = newValue;
 
-      if (targetProperty === "listId") {
-        //this.properties.viewFields = [];
+      if (targetProperty === "listId") {      
+      
         update(this.properties, "viewFields", (): any => { return []; });
       }
 
@@ -179,32 +172,11 @@ export default class ListViewBuilderWebPart extends BaseClientSideWebPart<IListV
 
       // NOTE: in local workbench onPropertyPaneFieldChanged method initiates re-render
       // in SharePoint environment we need to call re-render by ourselves
-      if (Environment.type !== EnvironmentType.Local) {
+      //if (Environment.type !== EnvironmentType.Local) {
         this.render();
-      }
+      //}
 
       this.context.propertyPane.refresh();
     }
-  }
-
-  /*private loadConfigurations(): Promise<IConfigurationOption[]> {
-    return new Promise<IConfigurationOption[]>((resolve: (options: IConfigurationOption[]) => void, reject: (error: any) => void) => {
-      try {
-        //debugger;
-        const caml: ICamlQuery = {
-          ViewXml: new CamlBuilder().View(["ID", "Title"]).Scope(CamlBuilder.ViewScope.Recursive).RowLimit(100).ToString()
-        };
-        return sp.web.lists.getByTitle(this._configListTitle).getItemsByCAMLQuery(caml)
-          .then((items) => {
-            this._configurations = items.map((i) => ({ key: i.Id, text: i.Title } as IConfigurationOption));
-            resolve(this._configurations);
-          }).catch(e => {
-            //debugger;
-            console.error(e.message);
-          });
-      } catch (error) {
-        alert(error);
-      }
-    });
-  }*/
+  } 
 }

@@ -2,7 +2,7 @@ import { IDropdownOption } from 'office-ui-fabric-react/lib/components/Dropdown'
 
 export interface IConfiguration {
   ListId: string;
-  ViewFields: IViewField[]
+  ViewFields: IViewField[];
 
  //TODO: properties
 }

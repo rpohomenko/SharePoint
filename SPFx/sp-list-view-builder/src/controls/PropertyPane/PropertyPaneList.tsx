@@ -20,7 +20,7 @@ export interface IPropertyPaneListProps {
   label: string;
   onPropertyChange: (propertyPath: string, newValue: any) => void;
   items: any[];
-  columns: IColumn[],
+  columns: IColumn[];
   noItemsMessage: React.ReactElement | string;
 }
 
@@ -59,7 +59,7 @@ export class PropertyPaneList implements IPropertyPaneField<IPropertyPaneListPro
       this.elem = elem;
     }
     const element: React.ReactElement<IDetailsListProps> = this.onRenderElement();
-    ReactDom.render(<div className={styles["property-pane-list"]}>
+    ReactDom.render(<div className={styles.propertyPaneList}>
       <Stack tokens={{ childrenGap: 1 }}>
         <Stack.Item>
           <Separator/>

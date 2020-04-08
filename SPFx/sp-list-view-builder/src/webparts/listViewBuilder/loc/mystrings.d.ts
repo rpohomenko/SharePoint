@@ -6,6 +6,7 @@ declare interface IListViewBuilderWebPartStrings {
   ConfigurationIdFieldLabel: string;
   ListIdFieldLabel: string;
   ViewFieldsFieldLabel: string;
+  FieldTypeNames: string[];
 }
 
 declare module 'ListViewBuilderWebPartStrings' {
