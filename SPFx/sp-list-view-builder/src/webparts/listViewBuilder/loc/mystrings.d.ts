@@ -4,7 +4,7 @@ declare interface IListViewBuilderWebPartStrings {
   BasicGroupName: string;
   DescriptionFieldLabel: string;
   ConfigurationIdFieldLabel: string;
-  ListIdFieldLabel: string;
+  ListFieldLabel: string;
   ViewFieldsFieldLabel: string;
   FieldTypeNames: string[];
 }

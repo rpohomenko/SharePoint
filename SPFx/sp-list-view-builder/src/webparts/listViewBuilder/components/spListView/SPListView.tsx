@@ -1,15 +1,10 @@
 import * as React from 'react';
-
 import { sp } from "@pnp/sp";
 import "@pnp/sp/webs";
 import "@pnp/sp/lists";
-//import { ICamlQuery } from "@pnp/sp/lists";
 import { PagedItemCollection } from "@pnp/sp/items";
-import { isArray } from '@pnp/common';
 import { isEqual } from '@microsoft/sp-lodash-subset';
-
 import { IColumn } from 'office-ui-fabric-react/lib/DetailsList';
-//import { LazyListView, ILazyListViewProps } from '../../../../controls/lazyListView';
 import { ListView, IListViewProps } from '../../../../controls/listView';
 import { IViewColumn } from '../../../../controls/listView';
 

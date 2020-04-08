@@ -112,7 +112,7 @@ export default class ListViewBuilderWebPart extends BaseClientSideWebPart<IListV
               groupName: strings.BasicGroupName,
               groupFields: [               
                 new PropertyPaneAsyncDropdown('listId', {
-                  label: strings.ListIdFieldLabel,
+                  label: strings.ListFieldLabel,
                   placeholder: "Select list...",
                   loadOptions: this.loadLists.bind(this),
                   onPropertyChange: this.onCustomPropertyPaneFieldChanged.bind(this),

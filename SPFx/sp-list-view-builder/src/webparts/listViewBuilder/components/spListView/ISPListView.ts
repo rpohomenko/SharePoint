@@ -9,14 +9,14 @@ export interface ISPListViewProps {
 
 export interface ISPListViewState {
   page?: PagedItemCollection<any>;
-  columns: IColumn[]
+  columns: IColumn[];
 }
 
 export interface IViewField {
   Name: string;
   Title: string;
   DataType: DataType;
-  OutputType?: DataType.Text | DataType.Number | DataType.Boolean | DataType.DateTime | DataType.Date
+  OutputType?: DataType.Text | DataType.Number | DataType.Boolean | DataType.DateTime | DataType.Date;
   Sortable?: boolean;
   Filterable?: boolean;
 }

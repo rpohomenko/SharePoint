@@ -5,7 +5,7 @@ define([], function() {
     "BasicGroupName": "Settings",
     "DescriptionFieldLabel": "Description",
     "ConfigurationIdFieldLabel": "Configuration Id",
-    "ListIdFieldLabel":"List Id",
+    "ListFieldLabel":"List",
     "ViewFieldsFieldLabel": "View Fields",
     "FieldTypeNames": ["Text", "Note", "Rich Text", "Date Time", "Date", "Number", "Lookup", "Multiple Lookup", "Boolean", "Choice", "Multiple Choice", "User", "Multiple User"]
   }
