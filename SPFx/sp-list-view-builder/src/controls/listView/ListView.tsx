@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { DetailsList, ColumnActionsMode, DetailsListLayoutMode, Selection, SelectionMode, IColumn, IGroup, IGroupRenderProps } from 'office-ui-fabric-react/lib/DetailsList';
+import { ShimmeredDetailsList } from 'office-ui-fabric-react/lib/ShimmeredDetailsList';
 import { DirectionalHint, ContextualMenu, IContextualMenuProps } from 'office-ui-fabric-react/lib/ContextualMenu';
 import { IListViewProps, IListViewState, IViewColumn, IGrouping, GroupOrder } from './IListView';
 import { findIndex, has, isEqual, sortBy } from '@microsoft/sp-lodash-subset';
@@ -51,6 +52,48 @@ export class ListView extends React.Component<IListViewProps, IListViewState> {
             }
             this.updateState(this.props.items);
         }
+    }
+
+    public set_items(items: any[]) {
+        this.setState({ items: items, flattenItems: this._flattenItems(items) });
+    }
+
+    /**
+     * Default React component render method
+     */
+    public render(): React.ReactElement<IListViewProps> {
+        let groupProps: IGroupRenderProps = {};
+        const { items, flattenItems, columns, groups, columnContextualMenuProps } = this.state;
+
+        // Check if selection mode is single selection,
+        // if that is the case, disable the selection on grouping headers
+        if (this.props.selectionMode === SelectionMode.single) {
+            groupProps = {
+                headerProps: {
+                    onToggleSelectGroup: () => null,
+                    onGroupHeaderClick: () => null,
+                }
+            };
+        }
+
+        return <>
+            {this.renderList(flattenItems, columns, groupProps, groups, this._selection)}
+            {columnContextualMenuProps && <ContextualMenu {...columnContextualMenuProps} />}
+        </>;
+    }
+
+    protected renderList(items: any[], columns: IColumn[], groupProps: IGroupRenderProps, groups: IGroup[], selection: Selection): React.ReactElement {
+        return React.createElement(ShimmeredDetailsList, {
+            ...this.props,
+            key: "ListView",
+            items: items,
+            columns: columns,
+            groups: groups,
+            selection: selection,
+            layoutMode: DetailsListLayoutMode.justified,
+            setKey: "ListView",
+            groupProps: groupProps
+        });
     }
 
     protected updateState(items: any[]) {
@@ -307,47 +350,5 @@ export class ListView extends React.Component<IListViewProps, IListViewState> {
 
             this.set_items(sortedItems);
         }
-    }
-
-    public set_items(items: any[]) {
-        this.setState({ items: items, flattenItems: this._flattenItems(items) });
-    }
-
-    /**
-     * Default React component render method
-     */
-    public render(): React.ReactElement<IListViewProps> {
-        let groupProps: IGroupRenderProps = {};
-        const { items, flattenItems, columns, groups, columnContextualMenuProps } = this.state;
-
-        // Check if selection mode is single selection,
-        // if that is the case, disable the selection on grouping headers
-        if (this.props.selectionMode === SelectionMode.single) {
-            groupProps = {
-                headerProps: {
-                    onToggleSelectGroup: () => null,
-                    onGroupHeaderClick: () => null,
-                }
-            };
-        }
-
-        return <>
-            {this.renderList(flattenItems, columns, groupProps, groups, this._selection)}
-            {columnContextualMenuProps && <ContextualMenu {...columnContextualMenuProps} />}
-        </>;
-    }
-
-    protected renderList(items: any[], columns: IColumn[], groupProps: IGroupRenderProps, groups: IGroup[], selection: Selection): React.ReactElement {
-        return React.createElement(DetailsList, {
-            ...this.props,
-            key: "ListView",
-            items: items,
-            columns: columns,
-            groups: groups,
-            selection: selection,
-            layoutMode: DetailsListLayoutMode.justified,
-            setKey: "ListView",
-            groupProps: groupProps
-        });
-    }
+    }  
 }

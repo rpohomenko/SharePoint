@@ -17,12 +17,12 @@ import "@pnp/sp/items";
 import { Placeholder } from "@pnp/spfx-controls-react/lib/Placeholder";
 import * as strings from 'ListViewBuilderWebPartStrings';
 import ListViewBuilder from './components/ListViewBuilder';
-import { IListViewBuilderProps } from './components/IListViewBuilderProps';
 
 import { PropertyPaneAsyncDropdown } from '../../controls/propertyPane/propertyPaneAsyncDropdown/PropertyPaneAsyncDropdown';
 import { PropertyPaneViewFieldList } from '../../controls/propertyPane/PropertyPaneViewFieldList';
 
-import { IConfiguration, IViewField } from './IConfiguration';
+import { IConfiguration } from './IConfiguration';
+import { IViewField } from './components/spListView/ISPListView';
 import { update, get } from '@microsoft/sp-lodash-subset';
 import { proxyUrl, webRelativeUrl } from '../../settings';
 

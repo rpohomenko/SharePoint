@@ -10,9 +10,11 @@ export interface ISPListViewProps {
 export interface ISPListViewState {
   page?: PagedItemCollection<any>;
   columns: IColumn[];
+  isLoading?: boolean;
 }
 
 export interface IViewField {
+  Id: string;
   Name: string;
   Title: string;
   DataType: DataType;
@@ -25,6 +27,8 @@ export interface IViewLookupField extends IViewField {
   LookupFieldName: string;
   LookupListId: string;
   LookupWebId: string;
+  //PrimaryFieldId?: string;
+  PrimaryFieldName?: string;
 }
 
 export enum DataType {

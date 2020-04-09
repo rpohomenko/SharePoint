@@ -1,4 +1,4 @@
-import { IViewField, IConfiguration } from "../IConfiguration";
+import { IConfiguration } from "../IConfiguration";
 
 export interface IListViewBuilderProps {
   description: string;

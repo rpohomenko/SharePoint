@@ -4,9 +4,9 @@ import styles from './PropertyPane.module.scss';
 import * as strings from 'ListViewBuilderWebPartStrings';
 
 import { CommandBar, ICommandBarItemProps } from 'office-ui-fabric-react/lib/CommandBar';
-import { IconButton, getTheme, mergeStyleSets } from 'office-ui-fabric-react';
+import { IconButton, getTheme, mergeStyleSets, IColumn } from 'office-ui-fabric-react';
 import { PropertyPaneList, IPropertyPaneListProps } from './PropertyPaneList';
-import { IViewField, DataType } from '../../webparts/listViewBuilder/IConfiguration';
+import { IViewField, DataType } from '../../webparts/listViewBuilder/components/spListView/ISPListView';
 import { AddViewFieldsPanel } from '../components/addViewFieldsPanel';
 
 export interface IPropertyPaneViewFieldListProps extends IPropertyPaneListProps {
@@ -52,10 +52,12 @@ export class PropertyPaneViewFieldList extends PropertyPaneList {
                   }} />;
             }
          },
-         { key: 'title', name: 'Title', fieldName: 'Title', minWidth: 50, maxWidth: 150, isResizable: true },
+         { key: 'title', name: 'Title', fieldName: 'Title', minWidth: 50, maxWidth: 150, isResizable: true, onRender: (item?: any, index?: number, column?: IColumn) => {
+            return <span title={item[column.fieldName]}>{item[column.fieldName]}</span>;
+         } },
          //{ key: 'name', name: 'Name', fieldName: 'Name', minWidth: 50, maxWidth: 100, isResizable: true },
          {
-            key: 'dataType', name: 'Data Type', fieldName: 'dataType', minWidth: 50, maxWidth: 100, isResizable: false,
+            key: 'dataType', name: 'Data Type', fieldName: 'dataType', minWidth: 70, maxWidth: 100, isResizable: false,
             onRender: (item: IViewField) => {
                return this.display_DataType(item.DataType);
             }

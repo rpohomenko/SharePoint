@@ -4,6 +4,7 @@ import "@pnp/sp/webs";
 import "@pnp/sp/lists";
 import { PagedItemCollection } from "@pnp/sp/items";
 import { isEqual } from '@microsoft/sp-lodash-subset';
+import { Spinner, SpinnerSize } from 'office-ui-fabric-react/lib/Spinner';
 import { IColumn } from 'office-ui-fabric-react/lib/DetailsList';
 import { ListView, IListViewProps } from '../../../../controls/listView';
 import { IViewColumn } from '../../../../controls/listView';
@@ -21,83 +22,111 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
         };
     }
 
-    public async componentDidMount() {
+    public componentDidMount() {
         const columns = this.get_Columns(this.props.viewFields);
-        const page = await this.getData();
-        this.setState({ page: page, columns: columns });
+        this.setState({ isLoading: true, page: { results: new Array(10) } as PagedItemCollection<any[]> });
+        this.getData().then(page => {
+            this.setState({ page: page, columns: columns, isLoading: false });
+        });
     }
 
-    public async componentDidUpdate(prevProps: ISPListViewProps, prevState: ISPListViewState) {
+    public componentDidUpdate(prevProps: ISPListViewProps, prevState: ISPListViewState) {
         if (!isEqual(prevProps, this.props)) {
-            await this.componentDidMount();
+            this.componentDidMount();
         }
     }
 
+    public componentWillUnmount(){
+       
+    }
+
+    public render(): React.ReactElement {
+        const { page, columns, isLoading } = this.state;
+        const listView = React.createElement(ListView, {
+            items: page ? page.results : [],
+            columns: columns,
+            onSelect: this.onSelectItems.bind(this),
+            onSort: this.onSortItems.bind(this)
+        } as IListViewProps);
+        return <div>
+            {isLoading && !page && <Spinner size={SpinnerSize.large} />}
+            {listView}
+        </div>;
+    }
+
     private async getData(sortColumn?: IViewColumn): Promise<PagedItemCollection<any>> {
-        const viewFields = this.get_ViewFields(this.props.viewFields);
-        const lookups = this.props.viewFields
-            .filter(f => f.DataType === DataType.Lookup || f.DataType === DataType.User || f.DataType === DataType.MultiLookup || f.DataType === DataType.MultiUser)
-            .map(l => l.Name);
+        let select = [], expand = [];
+        for (const viewField of this.props.viewFields) {
+            if (viewField.Name === "LinkTitle") {
+                select.push("Title");
+            }
+            else if (viewField.DataType === DataType.Lookup
+                || viewField.DataType === DataType.MultiLookup
+            ) {
+                const lookupField = viewField as IViewLookupField;
+                if (lookupField.PrimaryFieldName && lookupField.LookupFieldName) {
+                    select.push(`${lookupField.PrimaryFieldName}/${lookupField.LookupFieldName}`);
+                    if (expand.indexOf(lookupField.PrimaryFieldName) === -1) {
+                        expand.push(lookupField.PrimaryFieldName);
+                    }
+                }
+                else {
+                    select.push(`${lookupField.Name}/ID`);
+                    select.push(`${lookupField.Name}/${lookupField.LookupFieldName || "Title"}`);
+                    if (expand.indexOf(lookupField.Name) === -1) {
+                        expand.push(lookupField.Name);
+                    }
+                }
+            }
+            else if (viewField.DataType === DataType.User
+                || viewField.DataType === DataType.MultiUser
+            ) {
+                const lookupField = viewField as IViewLookupField;
+                select.push(`${lookupField.Name}/ID`);
+                select.push(`${lookupField.Name}/Name`);
+                select.push(`${lookupField.Name}/EMail`);
+                expand.push(lookupField.Name);
+            }
+            else {
+                select.push(viewField.Name);
+            }
+        }
+
         let request = sp.web.lists.getById(this.props.listId).items
-            .top(this.props.count || 30)
-            .select(...viewFields)
-            .expand(...lookups);
+            .top(this.props.count || 30);
+
+        if (select.length > 0) {
+            request = request.select(...select);
+        }
+        if (expand.length > 0) {
+            request = request.expand(...expand);
+        }
 
         if (sortColumn) {
             request = request.orderBy(sortColumn.fieldName, sortColumn.isSortedDescending);
         }
 
-        return await request.getPaged()
-            .then((page) => {
-                return page;
-            });
+        return await request.getPaged();
     }
-
-    private get_ViewFields(viewFields: IViewField[]): string[] {
-        let fields: string[] = ["ID"];
-
-        for (let i = 0; i < viewFields.length; i++) {
-            const viewField = viewFields[i];
-            fields = fields.concat(this.get_ViewField(viewField));
-        }
-        return fields;
-    }
-
-    private get_ViewField(field: IViewField): string[] {
-        if (field.Name === "LinkTitle") {
-            return ["Title"];
-        }
-        if (field.DataType === DataType.Lookup
-            || field.DataType === DataType.MultiLookup
-        ) {
-            const lookupField = field as IViewLookupField;
-            return [`${field.Name}/ID`, `${field.Name}/${lookupField.LookupFieldName || "Title"}`];
-        }
-        if (field.DataType === DataType.User
-            || field.DataType === DataType.MultiUser
-        ) {
-            const lookupField = field as IViewLookupField;
-            return [`${field.Name}/ID`, `${field.Name}/EMail`, `${field.Name}/Name`, `${field.Name}/${lookupField.LookupFieldName || "Title"}`];
-        }
-        return [field.Name];
-    }
-
+    
     private onSelectItems(items: any[]) {
 
     }
 
-    private onSortItems(column: IViewColumn, items: any[]) {
+    private onSortItems(column: IViewColumn, items: any[]) {      
+        this.setState({ isLoading: true, page: { results: new Array(10) } as PagedItemCollection<any[]> });
         this.getData(column).then(page => {
-            this.setState({ page: page });
+            this.setState({ page: page, isLoading: false });
         });
+
     }
 
     private get_Columns(viewFields: IViewField[]): IColumn[] {
-        let columns: IColumn[] = viewFields.map(f => this.get_Column(f));
+        let columns: IColumn[] = viewFields.map(f => this.get_Column(f, viewFields));
         return columns;
     }
 
-    private get_Column(viewField: IViewField): IColumn {
+    private get_Column(viewField: IViewField, viewFields: IViewField[]): IColumn {
         let sortable = viewField.Sortable;
         if (viewField.DataType === DataType.MultiLookup
             || viewField.DataType === DataType.MultiChoice
@@ -118,55 +147,57 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
         }
 
         if (viewField.DataType === DataType.Lookup) {
-            column.onRender = (item, index, col) => this.renderLookup(item, index, col, viewField);
+            column.onRender = (item, index, col) => this.renderLookup(item, index, col, viewField as IViewLookupField, viewFields);
         }
         if (viewField.DataType === DataType.MultiLookup) {
-            column.onRender = (item, index, col) => this.renderMultiLookup(item, index, col, viewField);
+            column.onRender = (item, index, col) => this.renderMultiLookup(item, index, col, viewField as IViewLookupField, viewFields);
         }
         else if (viewField.DataType === DataType.User) {
-            column.onRender = (item, index, col) => this.renderUser(item, index, col, viewField);
+            column.onRender = (item, index, col) => this.renderUser(item, index, col, viewField, viewFields);
         }
         if (viewField.DataType === DataType.MultiUser) {
-            column.onRender = (item, index, col) => this.renderMultiUser(item, index, col, viewField);
+            column.onRender = (item, index, col) => this.renderMultiUser(item, index, col, viewField, viewFields);
         }
         else if (viewField.DataType === DataType.MultiChoice) {
-            column.onRender = (item, index, col) => this.renderMultiChoice(item, index, col, viewField);
+            column.onRender = (item, index, col) => this.renderMultiChoice(item, index, col, viewField, viewFields);
         }
         return column;
     }
 
-    private renderLookup(item, index, column: IColumn, viewField: IViewField) {
+    private renderLookup(item, index, column: IColumn, viewField: IViewLookupField, viewFields: IViewField[]) {
+        let value;
+        if (viewField.PrimaryFieldName && viewField.LookupFieldName) {
+            value = item[`${viewField.PrimaryFieldName}`][(viewField as IViewLookupField).LookupFieldName];
+        }
+        else {
+            value = item[`${viewField.Name}`][(viewField as IViewLookupField).LookupFieldName || "Title"];
+        }
+        return <span>{value}</span>;
+    }
+
+    private renderUser(item, index, column: IColumn, viewField: IViewField, viewFields: IViewField[]) {
         let value = item[`${viewField.Name}`][(viewField as IViewLookupField).LookupFieldName || "Title"];
         return <span>{value}</span>;
     }
 
-    private renderUser(item, index, column: IColumn, viewField: IViewField) {
-        let value = item[`${viewField.Name}`][(viewField as IViewLookupField).LookupFieldName || "Title"];
-        return <span>{value}</span>;
-    }
-
-    private renderMultiChoice(item, index, column: IColumn, viewField: IViewField) {
+    private renderMultiChoice(item, index, column: IColumn, viewField: IViewField, viewFields: IViewField[]) {
         let values = item[viewField.Name] ? item[viewField.Name].results : [] as string[];
         return <span>{values.join(', ')}</span>;
     }
 
-    private renderMultiLookup(item, index, column: IColumn, viewField: IViewField) {
-        let values = item[viewField.Name] ? item[viewField.Name].results : [] as string[];
+    private renderMultiLookup(item, index, column: IColumn, viewField: IViewLookupField, viewFields: IViewField[]) {
+        let values;
+        if (viewField.PrimaryFieldName && viewField.LookupFieldName) {         
+            values = item[viewField.PrimaryFieldName] ? item[viewField.PrimaryFieldName].results : [] as string[];
+        }
+        else {
+            values = item[viewField.Name] ? item[viewField.Name].results : [] as string[];
+        }    
         return <span>{values.map(value => `${value[(viewField as IViewLookupField).LookupFieldName || "Title"]}`).join(', ')}</span>;
     }
 
-    private renderMultiUser(item, index, column: IColumn, viewField: IViewField) {
+    private renderMultiUser(item, index, column: IColumn, viewField: IViewField, viewFields: IViewField[]) {
         let values = item[viewField.Name] ? item[viewField.Name].results : [] as string[];
         return <span>{values.map(value => `${value[(viewField as IViewLookupField).LookupFieldName || "Title"]}`).join(', ')}</span>;
-    }
-
-    public render(): React.ReactElement {
-        const { page, columns } = this.state;
-        return React.createElement(ListView, {
-            items: page ? page.results : null,
-            columns: columns,
-            onSelect: this.onSelectItems.bind(this),
-            onSort: this.onSortItems.bind(this)
-        } as IListViewProps);
-    }
+    } 
 }
