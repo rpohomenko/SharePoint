@@ -16,15 +16,14 @@ import "@pnp/sp/lists";
 import "@pnp/sp/items";
 import { Placeholder } from "@pnp/spfx-controls-react/lib/Placeholder";
 import * as strings from 'ListViewBuilderWebPartStrings';
-import ListViewBuilder from './components/ListViewBuilder';
 
 import { PropertyPaneAsyncDropdown } from '../../controls/propertyPane/propertyPaneAsyncDropdown/PropertyPaneAsyncDropdown';
 import { PropertyPaneViewFieldList } from '../../controls/propertyPane/PropertyPaneViewFieldList';
 
-import { IConfiguration } from './IConfiguration';
 import { IViewField } from './components/spListView/ISPListView';
 import { update, get } from '@microsoft/sp-lodash-subset';
 import { proxyUrl, webRelativeUrl } from '../../settings';
+import { SPListView } from './components/spListView';
 
 export interface IListViewBuilderWebPartProps {
   description: string;
@@ -35,20 +34,17 @@ export interface IListViewBuilderWebPartProps {
 export default class ListViewBuilderWebPart extends BaseClientSideWebPart<IListViewBuilderWebPartProps> {
 
   public render(): void {
-  
-    const inDesignMode: boolean = this.displayMode === DisplayMode.Edit;    
+
+    const inDesignMode: boolean = this.displayMode === DisplayMode.Edit;
     //const environmentType: EnvironmentType = Environment.type;
 
     let element: React.ReactElement;
     if (!!this.properties.listId && this.properties.viewFields instanceof Array && this.properties.viewFields.length > 0) {
       element = React.createElement(
-        ListViewBuilder,
+        SPListView,
         {
-          inDesignMode: inDesignMode,
-          description: this.properties.description,       
-          configuration: this.properties.listId
-            ? { ListId: this.properties.listId, ViewFields: this.properties.viewFields } as IConfiguration
-            : null
+          listId: this.properties.listId,
+          viewFields: this.properties.viewFields
         });
     }
     else {
@@ -110,7 +106,7 @@ export default class ListViewBuilderWebPart extends BaseClientSideWebPart<IListV
           groups: [
             {
               groupName: strings.BasicGroupName,
-              groupFields: [               
+              groupFields: [
                 new PropertyPaneAsyncDropdown('listId', {
                   label: strings.ListFieldLabel,
                   placeholder: "Select list...",
@@ -163,8 +159,8 @@ export default class ListViewBuilderWebPart extends BaseClientSideWebPart<IListV
     if (oldValue !== newValue) {
       this.properties[targetProperty] = newValue;
 
-      if (targetProperty === "listId") {      
-      
+      if (targetProperty === "listId") {
+
         update(this.properties, "viewFields", (): any => { return []; });
       }
 
@@ -173,10 +169,10 @@ export default class ListViewBuilderWebPart extends BaseClientSideWebPart<IListV
       // NOTE: in local workbench onPropertyPaneFieldChanged method initiates re-render
       // in SharePoint environment we need to call re-render by ourselves
       //if (Environment.type !== EnvironmentType.Local) {
-        this.render();
+      this.render();
       //}
 
       this.context.propertyPane.refresh();
     }
-  } 
+  }
 }

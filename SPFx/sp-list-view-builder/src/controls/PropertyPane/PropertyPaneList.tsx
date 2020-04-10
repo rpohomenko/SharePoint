@@ -35,12 +35,13 @@ const dragEnterClass = mergeStyles({
   backgroundColor: theme.palette.neutralLight,
 });
 
-class PropertyPaneListBuilder extends React.Component<{
+export class PropertyPaneListBuilder extends React.Component<{
   items: any[];
   columns: IColumn[];
   noItemsMessage: React.ReactElement | string;
   onChange?: (items: any[]) => void;
-  commandItems?: ICommandBarItemProps[];
+  onSelect?: (selection: any[]) => void;
+  getCommandItems?: (items: any[], selection?: IObjectWithKey[]) => ICommandBarItemProps[];
 }, {
   items: any[];
   selection?: IObjectWithKey[]
@@ -55,7 +56,12 @@ class PropertyPaneListBuilder extends React.Component<{
 
     this._selection = new Selection({
       onSelectionChanged: () => {
-        this.setState({ selection: this._selection.getSelection() });
+        const selection = this._selection.getSelection();
+        this.setState({ selection: selection }, () => {
+          if (this.props.onSelect instanceof Function) {
+            this.props.onSelect(selection);
+          }
+        });
       }
     });
     this._dragDropEvents = this._getDragDropEvents();
@@ -83,55 +89,7 @@ class PropertyPaneListBuilder extends React.Component<{
   }
 
   private renderCommandBar() {
-    const commandItems = [...this.props.commandItems,
-      {
-        key: 'edit', text: 'Edit', iconProps: { iconName: 'Edit' }, iconOnly: true,
-        disabled: !(this.state.selection instanceof Array) || this.state.selection.length !== 1,
-        onClick: () => {
-          if (this.state.selection instanceof Array && this.state.selection.length > 0) {
-            
-          }
-        }
-      },
-      {
-        key: 'delete', text: 'Delete', iconProps: { iconName: 'Delete' }, iconOnly: true,
-        disabled: !(this.state.selection instanceof Array) || this.state.selection.length === 0,
-        onClick: () => {
-          if (this.state.selection instanceof Array && this.state.selection.length > 0) {
-            const items = this.state.items.filter(it => this.state.selection.indexOf(it) === -1);
-            this.setItems(items);
-          }
-        }
-      },
-      {
-        key: 'moveUp', text: 'Move Up', iconProps: { iconName: 'Up' }, iconOnly: true,
-        disabled: !(this.state.selection instanceof Array) || this.state.selection.length === 0 || this.state.selection[0] === this.state.items[0],
-        onClick: () => {
-          if (this.state.selection instanceof Array && this.state.selection.length > 0) {
-            const index = this.state.items.indexOf(this.state.selection[0]);
-            if (index > 0) {
-              this._draggedIndex = index;
-              const item = this.state.items[index - 1];
-              this._insertBeforeItem(item);
-            }
-          }
-        }
-      },
-      {
-        key: 'moveDown', text: 'Move Down', iconProps: { iconName: 'Down' }, iconOnly: true,
-        disabled: !(this.state.selection instanceof Array) || this.state.selection.length === 0 || this.state.selection[this.state.selection.length - 1] === this.state.items[this.state.items.length - 1],
-        onClick: () => {
-          if (this.state.selection instanceof Array && this.state.selection.length > 0) {
-            const index = this.state.items.indexOf(this.state.selection[this.state.selection.length - 1]);
-            if (index < this.state.items.length - 1) {
-              this._draggedIndex = index;
-              const item = this.state.items[index + 1];
-              this._insertAfterItem(item);
-            }
-          }
-        }
-      },
-    ];
+    const commandItems = this.props.getCommandItems(this.state.items, this.state.selection);
     return <CommandBar items={commandItems} />;
   }
 
@@ -227,6 +185,7 @@ export class PropertyPaneList implements IPropertyPaneField<IPropertyPaneListPro
   public targetProperty: string;
   public properties: IPropertyPaneListInternalProps;
   private elem: HTMLElement;
+  protected selection: any[];
 
   constructor(targetProperty: string, properties: IPropertyPaneListProps) {
     this.targetProperty = targetProperty;
@@ -267,13 +226,23 @@ export class PropertyPaneList implements IPropertyPaneField<IPropertyPaneListPro
     </div>, elem);
   }
 
-  protected onRenderElement(...commandItems: ICommandBarItemProps[]): React.ReactElement {
+  protected getCommandItems(items: any[], selection?: IObjectWithKey[]): ICommandBarItemProps[] {
+    return [];
+  }
+
+  protected onRenderElement(): React.ReactElement {
     return <PropertyPaneListBuilder items={this.properties.items} columns={this.properties.columns}
-      commandItems={commandItems}
+    onSelect={this.onSelect.bind(this)}
+    getCommandItems={this.getCommandItems.bind(this)}
       noItemsMessage={this.properties.noItemsMessage}
       onChange={(items) => {
         this.set_items(items);
       }} />;
+  }
+
+  protected onSelect(selection: any[]){
+     this.selection = selection;
+     this.onRenderElement();
   }
 
   public delete_items(...deletedItems: any[]): void {

@@ -27,7 +27,6 @@ export interface IViewLookupField extends IViewField {
   LookupFieldName: string;
   LookupListId: string;
   LookupWebId: string;
-  //PrimaryFieldId?: string;
   PrimaryFieldName?: string;
 }
 

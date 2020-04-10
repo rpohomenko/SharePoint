@@ -3,8 +3,6 @@ import { Separator } from 'office-ui-fabric-react/lib/Separator';
 
 import styles from "./addViewFields.module.scss";
 
-import { IListViewBuilderProps } from '../../../webparts/listViewBuilder/components/IListViewBuilderProps';
-
 import { Panel } from 'office-ui-fabric-react/lib/Panel';
 
 import { Stack, IDropdownOption, Spinner, SpinnerSize } from 'office-ui-fabric-react';
@@ -96,7 +94,7 @@ export class AddViewFieldsPanel extends React.Component<AddViewFieldsPanelProps,
     }
   }
 
-  public render(): React.ReactElement<IListViewBuilderProps> {
+  public render(): React.ReactElement {
     const { listId } = this.props;
     const { isOpen, viewId, isLoading } = this.state;
     const fields = !!viewId ? this._fields[viewId] : null;
@@ -104,7 +102,7 @@ export class AddViewFieldsPanel extends React.Component<AddViewFieldsPanelProps,
     return (
       <Panel className={styles.addViewFields} isLightDismiss isOpen={isOpen} onDismiss={() => this.close()} closeButtonAriaLabel={"Close"} headerText={"Add Field(s)..."}
         onRenderFooterContent={this.renderFooterContent.bind(this)}
-        isFooterAtBottom={false}>
+        isFooterAtBottom={true}>
         <Stack tokens={{ childrenGap: 2 }}>
           <Stack.Item>
             <AsyncDropdown label={"View"} placeholder={"Select View..."} loadOptions={() => this.loadViews(listId)} onChanged={this.onViewChanged.bind(this)} selectedKey={viewId} />
