@@ -151,7 +151,7 @@ export class PropertyPaneViewFieldList extends PropertyPaneList {
          }} />
          <EditViewFieldPanel ref={this._editViewFieldsPanel} onChange={(field) => {
             const items: IViewField[] = [... this.properties.items];
-            for (const item of items.filter(item => item.Name === field.Name)) {
+            for (const item of items.filter(i => i.Name === field.Name)) {
                items[items.indexOf(item)] = field;
             }
             this.set_items(items);

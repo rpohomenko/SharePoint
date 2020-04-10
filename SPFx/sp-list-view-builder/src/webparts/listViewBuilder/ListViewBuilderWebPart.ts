@@ -3,13 +3,16 @@ import * as ReactDom from 'react-dom';
 import { DisplayMode, Environment, EnvironmentType, Version } from '@microsoft/sp-core-library';
 import {
   IPropertyPaneConfiguration,
+  PropertyPaneSlider,
+  IPropertyPaneDropdownOption,
+  PropertyPaneDropdown,
+  PropertyPaneToggle,
   PropertyPaneTextField
 } from '@microsoft/sp-property-pane';
 import { BaseClientSideWebPart } from '@microsoft/sp-webpart-base';
 
 import { IDropdownOption } from 'office-ui-fabric-react';
 
-import { setup as pnpSetup, isArray } from "@pnp/common";
 import { sp } from "@pnp/sp";
 import "@pnp/sp/webs";
 import "@pnp/sp/lists";
@@ -24,14 +27,21 @@ import { IViewField } from './components/spListView/ISPListView';
 import { update, get } from '@microsoft/sp-lodash-subset';
 import { proxyUrl, webRelativeUrl } from '../../settings';
 import { SPListView } from './components/spListView';
+import SPService from '../../utilities/SPService';
 
 export interface IListViewBuilderWebPartProps {
   description: string;
   listId: string;
   viewFields: IViewField[];
+  countPerPage?: number;
+  cachingTimeoutSeconds?: number;
 }
 
 export default class ListViewBuilderWebPart extends BaseClientSideWebPart<IListViewBuilderWebPartProps> {
+
+  private _locale: string;
+  private _webAbsoluteUrl: string;
+  private _webRelativeUrl: string;
 
   public render(): void {
 
@@ -44,7 +54,10 @@ export default class ListViewBuilderWebPart extends BaseClientSideWebPart<IListV
         SPListView,
         {
           listId: this.properties.listId,
-          viewFields: this.properties.viewFields
+          viewFields: this.properties.viewFields,
+          count: this.properties.countPerPage,
+          timeZone: SPService.getTimeZoneInfo(),
+          regionalSettings: SPService.getRegionalSettingsInfo()
         });
     }
     else {
@@ -65,25 +78,50 @@ export default class ListViewBuilderWebPart extends BaseClientSideWebPart<IListV
   /**
 * Initialize the web part.
 */
-  protected onInit(): Promise<void> {
-    return super.onInit().then(_ => {
-      if (Environment.type == EnvironmentType.Local) {
-        const url = `${proxyUrl}${webRelativeUrl}`;
-        sp.setup({
-          sp: {
-            headers: {
-              Accept: "application/json;odata=verbose",
-            },
-            baseUrl: url
+  protected async onInit(): Promise<void> {
+    await super.onInit();
+    const isIE11 = !!(<any>window).MSInputMethodContext && !!(<any>document).documentMode;
+    if (this.properties.cachingTimeoutSeconds === undefined) {
+      this.properties.cachingTimeoutSeconds = 0;
+    }
+    if (this.properties.countPerPage === undefined) {
+      this.properties.countPerPage = 30;
+    }
+    if (Environment.type == EnvironmentType.Local) {
+      this._webRelativeUrl = webRelativeUrl;
+      this._webAbsoluteUrl = `${proxyUrl}${this._webRelativeUrl}`;
+      sp.setup({
+        ie11: isIE11,
+        defaultCachingStore: "session", // or "local"
+        defaultCachingTimeoutSeconds: this.properties.cachingTimeoutSeconds || 30,
+        globalCacheDisable: this.properties.cachingTimeoutSeconds === 0,
+        spfxContext: this.context,
+        sp: {
+          headers: {
+            Accept: "application/json;odata=verbose",
           },
-        });
-      }
-      else {
-        pnpSetup({
-          spfxContext: this.context
-        });
-      }
-    });
+          baseUrl: this._webAbsoluteUrl
+        },
+      });
+    }
+    else {
+      this._locale = this.context.pageContext.cultureInfo.currentUICultureName;
+      this._webAbsoluteUrl = this.context.pageContext.web.absoluteUrl;
+      this._webRelativeUrl = this.context.pageContext.web.serverRelativeUrl;
+      sp.setup({
+        ie11: isIE11,
+        defaultCachingStore: "session", // or "local"
+        defaultCachingTimeoutSeconds: this.properties.cachingTimeoutSeconds || 30,
+        globalCacheDisable: this.properties.cachingTimeoutSeconds === 0,
+        spfxContext: this.context,
+        sp: {
+          headers: {
+            Accept: "application/json;odata=verbose",
+          },
+          baseUrl: this._webAbsoluteUrl
+        }
+      });
+    }
   }
 
   protected onDispose(): void {
@@ -94,9 +132,7 @@ export default class ListViewBuilderWebPart extends BaseClientSideWebPart<IListV
     return Version.parse('1.0');
   }
 
-  protected getPropertyPaneConfiguration(): IPropertyPaneConfiguration {
-    const viewFields: IViewField[] = isArray(this.properties.viewFields)
-      ? this.properties.viewFields : [];
+  protected getPropertyPaneConfiguration(): IPropertyPaneConfiguration {   
     return {
       pages: [
         {
@@ -109,7 +145,7 @@ export default class ListViewBuilderWebPart extends BaseClientSideWebPart<IListV
               groupFields: [
                 new PropertyPaneAsyncDropdown('listId', {
                   label: strings.ListFieldLabel,
-                  placeholder: "Select list...",
+                  placeholder: "Select a list...",
                   loadOptions: this.loadLists.bind(this),
                   onPropertyChange: this.onCustomPropertyPaneFieldChanged.bind(this),
                   selectedKey: this.properties.listId
@@ -117,10 +153,25 @@ export default class ListViewBuilderWebPart extends BaseClientSideWebPart<IListV
                 new PropertyPaneViewFieldList('viewFields', {
                   label: strings.ViewFieldsFieldLabel,
                   listId: this.properties.listId,
-                  items: viewFields,
+                  items: this.properties.viewFields,
                   columns: [],
                   onPropertyChange: this.onCustomPropertyPaneFieldChanged.bind(this),
                   noItemsMessage: "Click on 'Add' to add fields."
+                }),
+              ]
+            },
+            {
+              groupName: strings.AdvancedGroupName,
+              groupFields: [
+                PropertyPaneSlider('countPerPage', {
+                  label: strings.CountPerPageLabel,
+                  min: 0,
+                  max: 100
+                }),
+                PropertyPaneSlider('cachingTimeoutSeconds', {
+                  label: strings.CachingTimeoutSecondsLabel,
+                  min: 0,
+                  max: 30 * 60
                 }),
               ]
             }

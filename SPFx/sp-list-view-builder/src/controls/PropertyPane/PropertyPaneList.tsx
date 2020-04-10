@@ -68,7 +68,7 @@ export class PropertyPaneListBuilder extends React.Component<{
     this._draggedIndex = -1;
 
     this.state = {
-      items: props.items
+      items: props.items || []
     };
   }
 
@@ -82,9 +82,9 @@ export class PropertyPaneListBuilder extends React.Component<{
     if (!isEqual(prevProps, this.props)) {
       // Reset the selected items
       if (this._selection) {
-        this._selection.setItems(this.props.items, true);
+        this._selection.setItems(this.props.items || [], true);
       }
-      this.setState({ items: this.props.items });
+      this.setState({ items: this.props.items || [] });
     }
   }
 

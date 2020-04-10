@@ -8,10 +8,16 @@ import { Spinner, SpinnerSize } from 'office-ui-fabric-react/lib/Spinner';
 import { IColumn } from 'office-ui-fabric-react/lib/DetailsList';
 import { ListView, IListViewProps } from '../../../../controls/listView';
 import { IViewColumn } from '../../../../controls/listView';
-
+import { ITimeZoneInfo, IRegionalSettingsInfo } from "@pnp/sp/regional-settings/types";
 import { ISPListViewProps, ISPListViewState, DataType, IViewField, IViewLookupField } from './ISPListView';
+import moment from 'moment';
+import SPService from '../../../../utilities/SPService';
+import DateHelper from '../../../../utilities/DateHelper';
 
 export class SPListView extends React.Component<ISPListViewProps, ISPListViewState> {
+
+    private _timeZone: ITimeZoneInfo;
+    private _regionalSettings: IRegionalSettingsInfo;
 
     constructor(props: ISPListViewProps) {
         super(props);
@@ -22,17 +28,26 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
         };
     }
 
-    public componentDidMount() {
+    public async componentDidMount() {
         const columns = this.get_Columns(this.props.viewFields);
         this.setState({ isLoading: true, page: { results: new Array(10) } as PagedItemCollection<any[]> });
-        this.getData().then(page => {
-            this.setState({ page: page, columns: columns, isLoading: false });
-        });
+        if (this.props.regionalSettings) {
+            this._regionalSettings = await this.props.regionalSettings;
+        }
+        if (this.props.timeZone) {
+            this._timeZone = await this.props.timeZone;
+        }
+
+        const locale =  SPService.getLocaleName(this._regionalSettings.LocaleId);
+        moment.locale(locale);
+
+        const page = await this.getData();       
+        this.setState({ page: page, columns: columns, isLoading: false });
     }
 
-    public componentDidUpdate(prevProps: ISPListViewProps, prevState: ISPListViewState) {
+    public async componentDidUpdate(prevProps: ISPListViewProps, prevState: ISPListViewState) {
         if (!isEqual(prevProps, this.props)) {
-            this.componentDidMount();
+           await this.componentDidMount();
         }
     }
 
@@ -106,7 +121,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
             request = request.orderBy(sortColumn.fieldName, sortColumn.isSortedDescending);
         }
 
-        return await request.getPaged();
+        return await request.usingCaching().getPaged();
     }
     
     private onSelectItems(items: any[]) {
@@ -161,6 +176,12 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
         else if (viewField.DataType === DataType.MultiChoice) {
             column.onRender = (item, index, col) => this.renderMultiChoice(item, index, col, viewField, viewFields);
         }
+        else if (viewField.DataType === DataType.Date) {
+            column.onRender = (item, index, col) => this.renderDate(item, index, col, viewField, viewFields);
+        }
+        else if (viewField.DataType === DataType.DateTime) {
+            column.onRender = (item, index, col) => this.renderDateTime(item, index, col, viewField, viewFields);
+        }
         return column;
     }
 
@@ -199,5 +220,23 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
     private renderMultiUser(item, index, column: IColumn, viewField: IViewField, viewFields: IViewField[]) {
         let values = item[viewField.Name] ? item[viewField.Name].results : [] as string[];
         return <span>{values.map(value => `${value[(viewField as IViewLookupField).LookupFieldName || "Title"]}`).join(', ')}</span>;
-    } 
+    }
+
+    private renderDate(item, index, column: IColumn, viewField: IViewField, viewFields: IViewField[]) {
+        let value = item[viewField.Name];
+        if (value) {
+            value = DateHelper.toLocaleDate(value, this._timeZone ? this._timeZone.Information.Bias : 0);
+            return moment(value).format("L");
+        }
+        return null;
+    }
+
+    private renderDateTime(item, index, column: IColumn, viewField: IViewField, viewFields: IViewField[]) {
+        let value = item[viewField.Name];
+        if (value) {
+            value = DateHelper.toLocaleDate(value, this._timeZone ? this._timeZone.Information.Bias : 0);
+            return moment(value).format("L LT");
+        }
+        return null;
+    }
 }
