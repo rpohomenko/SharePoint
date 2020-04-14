@@ -206,15 +206,15 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
             column.onRender = (item, index, col) => this.renderDateTime(item, index, col, viewField, viewFields);
         }
         return column;
-    }
+    }  
 
-    private formatFieldValue(value: string, viewField: IViewField, viewFields: IViewField[]): string {
+    private formatFieldValue(value: string, dataType: DataType): string {
         if (value) {
-            switch (viewField.OutputType) {
+            switch (dataType) {
                 case DataType.Date:
                 case DataType.DateTime:
                     const dateValue = DateHelper.toLocaleDate(new Date(value), this._timeZone ? this._timeZone.Information.Bias : 0);
-                    return viewField.OutputType === DataType.Date ? moment(dateValue).format("L") : moment(dateValue).format("L LT");
+                    return dataType === DataType.Date ? moment(dateValue).format("L") : moment(dateValue).format("L LT");
                 case DataType.Number:
                     return Number(value).toString();
                 case DataType.Boolean:
@@ -240,17 +240,17 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
         else {
             value = item[`${viewField.Name}`][(viewField as IViewLookupField).LookupFieldName || "Title"];
         }
-        return <span>{this.formatFieldValue(value, viewField, viewFields)}</span>;
+        return <span>{this.formatFieldValue(value, viewField.OutputType)}</span>;
     }
 
     private renderUser(item, index, column: IColumn, viewField: IViewField, viewFields: IViewField[]) {
         let value = item[`${viewField.Name}`][(viewField as IViewLookupField).LookupFieldName || "Title"];
-        return <span>{this.formatFieldValue(value, viewField, viewFields)}</span>;
+        return <span>{value}</span>;
     }
 
     private renderMultiChoice(item, index, column: IColumn, viewField: IViewField, viewFields: IViewField[]) {
         let values = item[viewField.Name] ? item[viewField.Name].results : [] as string[];
-        return <span>{values.map(value => this.formatFieldValue(value, viewField, viewFields)).join(', ')}</span>;
+        return <span>{values.map(value => this.formatFieldValue(value, viewField.OutputType)).join(', ')}</span>;
     }
 
     private renderMultiLookup(item, index, column: IColumn, viewField: IViewLookupField, viewFields: IViewField[]) {
@@ -261,16 +261,16 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
         else {
             values = item[viewField.Name] ? item[viewField.Name].results : [] as string[];
         }
-        return <span>{values.map(value => this.formatFieldValue(value[(viewField as IViewLookupField).LookupFieldName || "Title"], viewField, viewFields)).join(', ')}</span>;
+        return <span>{values.map(value => this.formatFieldValue(value[(viewField as IViewLookupField).LookupFieldName || "Title"], viewField.OutputType)).join(', ')}</span>;
     }
 
     private renderMultiUser(item, index, column: IColumn, viewField: IViewField, viewFields: IViewField[]) {
         let values = item[viewField.Name] ? item[viewField.Name].results : [] as string[];
-        return <span>{values.map(value => this.formatFieldValue(value[(viewField as IViewLookupField).LookupFieldName || "Title"], viewField, viewFields)).join(', ')}</span>;
+        return <span>{values.map(value => value[(viewField as IViewLookupField).LookupFieldName || "Title"]).join(', ')}</span>;
     }  
 
     private renderDateTime(item, index, column: IColumn, viewField: IViewField, viewFields: IViewField[]) {
         let value = item[viewField.Name];
-        return this.formatFieldValue(value, viewField, viewFields)
+        return this.formatFieldValue(value, viewField.DataType);
     }
 }
