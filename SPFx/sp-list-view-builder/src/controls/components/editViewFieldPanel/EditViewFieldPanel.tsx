@@ -6,8 +6,7 @@ import styles from "./editViewField.module.scss";
 import { Panel } from 'office-ui-fabric-react/lib/Panel';
 import { Label } from 'office-ui-fabric-react/lib/Label';
 import { TextField } from 'office-ui-fabric-react/lib/TextField';
-
-import { Stack, IDropdownOption, Spinner, SpinnerSize } from 'office-ui-fabric-react';
+import { Stack, Dropdown, IDropdownOption, Spinner, SpinnerSize } from 'office-ui-fabric-react';
 import { DefaultButton, PrimaryButton } from 'office-ui-fabric-react/lib/Button';
 
 import { sp } from "@pnp/sp";
@@ -53,10 +52,27 @@ export class EditViewFieldPanel extends React.Component<IEditViewFieldProps, IEd
         isFooterAtBottom={true}>
         <Stack horizontal={false} tokens={{ childrenGap: 15 }}>
           <TextField label={"Title"} required placeholder={field.Title} value={changedField.Title} onChange={(event, value) => {
-            changedField.Title = value /*|| field.Title;*/
+            changedField.Title = value; /*|| field.Title;*/
             this.setState({ isChanged: !!value && changedField.Title !== field.Title, changedField: changedField });
           }} />
           <Separator></Separator>
+          { (field.DataType === DataType.Lookup || field.DataType === DataType.MultiLookup) && <Dropdown
+            label="Field Type"
+            options={[
+              { key: DataType.Boolean.toString(), text: 'Boolean' },
+              { key: DataType.Date.toString(), text: 'Date' },
+              { key: DataType.DateTime.toString(), text: 'DateTime' },
+              { key: DataType.Number.toString(), text: 'Number' },
+              { key: DataType.Text.toString(), text: 'Text' }
+            ]}
+            //defaultSelectedKey={DataType.Text.toString()}
+            selectedKey={changedField.OutputType ? changedField.OutputType.toString() : DataType.Text.toString()}
+            onChange={(event, option, index) => {
+              changedField.OutputType = Number(option.key);
+              this.setState({ isChanged: changedField.OutputType !== field.OutputType, changedField: changedField });
+            }}
+          />
+          }
         </Stack>
       </Panel>
     );

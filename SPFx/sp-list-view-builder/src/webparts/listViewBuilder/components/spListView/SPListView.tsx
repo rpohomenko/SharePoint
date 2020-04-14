@@ -5,6 +5,8 @@ import "@pnp/sp/lists";
 import { PagedItemCollection } from "@pnp/sp/items";
 import { isEqual } from '@microsoft/sp-lodash-subset';
 import { Spinner, SpinnerSize } from 'office-ui-fabric-react/lib/Spinner';
+import { Stack } from 'office-ui-fabric-react/lib/Stack';
+import { IconButton } from 'office-ui-fabric-react';
 import { IColumn } from 'office-ui-fabric-react/lib/DetailsList';
 import { ListView, IListViewProps } from '../../../../controls/listView';
 import { IViewColumn } from '../../../../controls/listView';
@@ -18,6 +20,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
 
     private _timeZone: ITimeZoneInfo;
     private _regionalSettings: IRegionalSettingsInfo;
+    private _isMounted = false;
 
     constructor(props: ISPListViewProps) {
         super(props);
@@ -41,8 +44,9 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
         const locale =  SPService.getLocaleName(this._regionalSettings.LocaleId);
         moment.locale(locale);
 
-        const page = await this.getData();       
-        this.setState({ page: page, columns: columns, isLoading: false });
+        const page = await this.getData();
+        this._isMounted = true;    
+        this.setState({ page: page, columns: columns, isLoading: false });      
     }
 
     public async componentDidUpdate(prevProps: ISPListViewProps, prevState: ISPListViewState) {
@@ -57,16 +61,35 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
 
     public render(): React.ReactElement {
         const { page, columns, isLoading } = this.state;
-        const listView = React.createElement(ListView, {
-            items: page ? page.results : [],
-            columns: columns,
-            onSelect: this.onSelectItems.bind(this),
-            onSort: this.onSortItems.bind(this)
-        } as IListViewProps);
         return <div>
-            {isLoading && !page && <Spinner size={SpinnerSize.large} />}
-            {listView}
+            {!this._isMounted && isLoading /*&& !page*/ && <Spinner size={SpinnerSize.large} />}
+            {this._isMounted === true && <ListView items={page ? page.results : []} columns={columns} onSelect={this.onSelectItems.bind(this)} onSort={this.onSortItems.bind(this)} />}
+            {this._isMounted === true && !isLoading && (page && page.hasNext === true) && <Stack verticalAlign="center" horizontalAlign="center">
+                <IconButton
+                    title={"More"}
+                    iconProps={{ iconName: 'ChevronDown' }}
+                    ariaLabel="More"
+                    styles={{
+                        root: {
+                            width: '100%'
+                        }
+                    }}
+                    onClick={() => {
+                        this.loadNextData(page);
+                    }}
+                />
+            </Stack>}
         </div>;
+    }
+
+    private async loadNextData(page: PagedItemCollection<any>) {
+        if (page && page.hasNext === true) {
+            const results = (page.results as any[] || []).concat(new Array(10));
+            this.setState({ isLoading: true, page: { results: results } as PagedItemCollection<any[]> });
+            const nextPage = await page.getNext();
+            nextPage.results = (page.results as any[] || []).concat(nextPage.results as any[] || []);
+            this.setState({ isLoading: false, page: nextPage });
+        }
     }
 
     private async getData(sortColumn?: IViewColumn): Promise<PagedItemCollection<any>> {
@@ -98,6 +121,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
             ) {
                 const lookupField = viewField as IViewLookupField;
                 select.push(`${lookupField.Name}/ID`);
+                select.push(`${lookupField.Name}/Title`);
                 select.push(`${lookupField.Name}/Name`);
                 select.push(`${lookupField.Name}/EMail`);
                 expand.push(lookupField.Name);
@@ -107,8 +131,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
             }
         }
 
-        let request = sp.web.lists.getById(this.props.listId).items
-            .top(this.props.count || 30);
+        let request = sp.web.lists.getById(this.props.listId).items.top(this.props.count || 30);
 
         if (select.length > 0) {
             request = request.select(...select);
@@ -118,7 +141,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
         }
 
         if (sortColumn) {
-            request = request.orderBy(sortColumn.fieldName, sortColumn.isSortedDescending);
+            request = request.orderBy(sortColumn.fieldName, !sortColumn.isSortedDescending);
         }
 
         return await request.usingCaching().getPaged();
@@ -133,7 +156,6 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
         this.getData(column).then(page => {
             this.setState({ page: page, isLoading: false });
         });
-
     }
 
     private get_Columns(viewFields: IViewField[]): IColumn[] {
@@ -148,6 +170,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
             || viewField.DataType === DataType.MultiLineText
             || viewField.DataType === DataType.RichText
             || viewField.DataType === DataType.MultiUser
+            || !!(viewField as IViewLookupField).PrimaryFieldName
         ) {
             sortable = false;
         }
@@ -164,6 +187,9 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
         if (viewField.DataType === DataType.Lookup) {
             column.onRender = (item, index, col) => this.renderLookup(item, index, col, viewField as IViewLookupField, viewFields);
         }
+        if (viewField.DataType === DataType.Boolean) {
+            column.onRender = (item, index, col) => this.renderBoolean(item, index, col, viewField as IViewLookupField, viewFields);
+        }
         if (viewField.DataType === DataType.MultiLookup) {
             column.onRender = (item, index, col) => this.renderMultiLookup(item, index, col, viewField as IViewLookupField, viewFields);
         }
@@ -175,14 +201,35 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
         }
         else if (viewField.DataType === DataType.MultiChoice) {
             column.onRender = (item, index, col) => this.renderMultiChoice(item, index, col, viewField, viewFields);
-        }
-        else if (viewField.DataType === DataType.Date) {
-            column.onRender = (item, index, col) => this.renderDate(item, index, col, viewField, viewFields);
-        }
-        else if (viewField.DataType === DataType.DateTime) {
+        }     
+        else if (viewField.DataType === DataType.Date || viewField.DataType === DataType.DateTime) {
             column.onRender = (item, index, col) => this.renderDateTime(item, index, col, viewField, viewFields);
         }
         return column;
+    }
+
+    private formatFieldValue(value: string, viewField: IViewField, viewFields: IViewField[]): string {
+        if (value) {
+            switch (viewField.OutputType) {
+                case DataType.Date:
+                case DataType.DateTime:
+                    const dateValue = DateHelper.toLocaleDate(new Date(value), this._timeZone ? this._timeZone.Information.Bias : 0);
+                    return viewField.OutputType === DataType.Date ? moment(dateValue).format("L") : moment(dateValue).format("L LT");
+                case DataType.Number:
+                    return Number(value).toString();
+                case DataType.Boolean:
+                    return Boolean(value) === true ? "Yes" : "No";
+            }
+        }
+        return value;
+    }
+
+    private renderBoolean(item, index, column: IColumn, viewField: IViewLookupField, viewFields: IViewField[]) {
+        const value = item[viewField.Name];
+        if (value !== undefined && value !== null) {
+            return value === true ? "Yes" : "No";
+        }
+        return value;
     }
 
     private renderLookup(item, index, column: IColumn, viewField: IViewLookupField, viewFields: IViewField[]) {
@@ -193,50 +240,37 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
         else {
             value = item[`${viewField.Name}`][(viewField as IViewLookupField).LookupFieldName || "Title"];
         }
-        return <span>{value}</span>;
+        return <span>{this.formatFieldValue(value, viewField, viewFields)}</span>;
     }
 
     private renderUser(item, index, column: IColumn, viewField: IViewField, viewFields: IViewField[]) {
         let value = item[`${viewField.Name}`][(viewField as IViewLookupField).LookupFieldName || "Title"];
-        return <span>{value}</span>;
+        return <span>{this.formatFieldValue(value, viewField, viewFields)}</span>;
     }
 
     private renderMultiChoice(item, index, column: IColumn, viewField: IViewField, viewFields: IViewField[]) {
         let values = item[viewField.Name] ? item[viewField.Name].results : [] as string[];
-        return <span>{values.join(', ')}</span>;
+        return <span>{values.map(value => this.formatFieldValue(value, viewField, viewFields)).join(', ')}</span>;
     }
 
     private renderMultiLookup(item, index, column: IColumn, viewField: IViewLookupField, viewFields: IViewField[]) {
         let values;
-        if (viewField.PrimaryFieldName && viewField.LookupFieldName) {         
+        if (viewField.PrimaryFieldName && viewField.LookupFieldName) {
             values = item[viewField.PrimaryFieldName] ? item[viewField.PrimaryFieldName].results : [] as string[];
         }
         else {
             values = item[viewField.Name] ? item[viewField.Name].results : [] as string[];
-        }    
-        return <span>{values.map(value => `${value[(viewField as IViewLookupField).LookupFieldName || "Title"]}`).join(', ')}</span>;
+        }
+        return <span>{values.map(value => this.formatFieldValue(value[(viewField as IViewLookupField).LookupFieldName || "Title"], viewField, viewFields)).join(', ')}</span>;
     }
 
     private renderMultiUser(item, index, column: IColumn, viewField: IViewField, viewFields: IViewField[]) {
         let values = item[viewField.Name] ? item[viewField.Name].results : [] as string[];
-        return <span>{values.map(value => `${value[(viewField as IViewLookupField).LookupFieldName || "Title"]}`).join(', ')}</span>;
-    }
-
-    private renderDate(item, index, column: IColumn, viewField: IViewField, viewFields: IViewField[]) {
-        let value = item[viewField.Name];
-        if (value) {
-            value = DateHelper.toLocaleDate(value, this._timeZone ? this._timeZone.Information.Bias : 0);
-            return moment(value).format("L");
-        }
-        return null;
-    }
+        return <span>{values.map(value => this.formatFieldValue(value[(viewField as IViewLookupField).LookupFieldName || "Title"], viewField, viewFields)).join(', ')}</span>;
+    }  
 
     private renderDateTime(item, index, column: IColumn, viewField: IViewField, viewFields: IViewField[]) {
         let value = item[viewField.Name];
-        if (value) {
-            value = DateHelper.toLocaleDate(value, this._timeZone ? this._timeZone.Information.Bias : 0);
-            return moment(value).format("L LT");
-        }
-        return null;
+        return this.formatFieldValue(value, viewField, viewFields)
     }
 }
