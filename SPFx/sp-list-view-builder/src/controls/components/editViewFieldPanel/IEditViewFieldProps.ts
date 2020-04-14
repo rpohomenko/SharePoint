@@ -1,4 +1,4 @@
-import { IViewField } from '../../../webparts/listViewBuilder/components/spListView/ISPListView';
+import { IViewField } from '../../../utilities/Entities';
 
 export interface IEditViewFieldProps {
     field?: IViewField;

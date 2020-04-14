@@ -23,7 +23,7 @@ import * as strings from 'ListViewBuilderWebPartStrings';
 import { PropertyPaneAsyncDropdown } from '../../controls/propertyPane/propertyPaneAsyncDropdown/PropertyPaneAsyncDropdown';
 import { PropertyPaneViewFieldList } from '../../controls/propertyPane/PropertyPaneViewFieldList';
 
-import { IViewField } from './components/spListView/ISPListView';
+import { IViewField } from '../../utilities/Entities';
 import { update, get } from '@microsoft/sp-lodash-subset';
 import { proxyUrl, webRelativeUrl } from '../../settings';
 import { SPListView } from './components/spListView';

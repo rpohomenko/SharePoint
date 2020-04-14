@@ -22,7 +22,7 @@ import { isArray } from '@pnp/common';
 
 import { FieldTypes, IFieldInfo, IField } from "@pnp/sp/fields";
 
-import { IViewField, IViewLookupField, DataType } from '../../../webparts/listViewBuilder/components/spListView/ISPListView';
+import { IViewField, IViewLookupField, DataType } from '../../../utilities/Entities';
 import { AsyncDropdown, IAsyncDropdownState, IAsyncDropdownProps } from '.././asyncDropdown';
 
 import { getTheme } from 'office-ui-fabric-react/lib/Styling';

@@ -6,7 +6,7 @@ import * as strings from 'ListViewBuilderWebPartStrings';
 import { CommandBar, ICommandBarItemProps } from 'office-ui-fabric-react/lib/CommandBar';
 import { IconButton, getTheme, mergeStyleSets, IColumn } from 'office-ui-fabric-react';
 import { PropertyPaneList, IPropertyPaneListProps, PropertyPaneListBuilder } from './PropertyPaneList';
-import { IViewField, DataType } from '../../webparts/listViewBuilder/components/spListView/ISPListView';
+import { IViewField, IViewLookupField, DataType } from '../../utilities/Entities';
 import { AddViewFieldsPanel } from '../components/addViewFieldsPanel';
 import { EditViewFieldPanel } from '../components/editViewFieldPanel';
 

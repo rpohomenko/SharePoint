@@ -16,7 +16,7 @@ import "@pnp/sp/items";
 import "@pnp/sp/views";
 import "@pnp/sp/fields";
 import { isEqual } from '@microsoft/sp-lodash-subset';
-import { IViewField, IViewLookupField, DataType } from '../../../webparts/listViewBuilder/components/spListView/ISPListView';
+import { IViewField, IViewLookupField, DataType } from '../../../utilities/Entities';
 import { IEditViewFieldProps, IEditViewFieldState } from './IEditViewFieldProps';
 
 import { getTheme } from 'office-ui-fabric-react/lib/Styling';
