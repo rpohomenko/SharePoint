@@ -49,13 +49,12 @@ export class EditViewFieldPanel extends React.Component<IEditViewFieldProps, IEd
     return (
       <Panel className={styles.editViewField} isLightDismiss isOpen={isOpen} onDismiss={() => this.close()} closeButtonAriaLabel={"Close"} headerText={`Edit: ${field.Title}`}
         onRenderFooterContent={this.renderFooterContent.bind(this)}
-        isFooterAtBottom={true}>
+        isFooterAtBottom={false}>
         <Stack horizontal={false} tokens={{ childrenGap: 15 }}>
           <TextField label={"Title"} required placeholder={field.Title} value={changedField.Title} onChange={(event, value) => {
             changedField.Title = value; /*|| field.Title;*/
             this.setState({ isChanged: !!value && changedField.Title !== field.Title, changedField: changedField });
-          }} />
-          <Separator></Separator>
+          }} />         
           { (field.DataType === DataType.Lookup || field.DataType === DataType.MultiLookup) && <Dropdown
             label="Field Type"
             options={[

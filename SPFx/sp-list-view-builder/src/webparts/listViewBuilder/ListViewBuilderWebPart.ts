@@ -10,9 +10,6 @@ import {
   PropertyPaneTextField
 } from '@microsoft/sp-property-pane';
 import { BaseClientSideWebPart } from '@microsoft/sp-webpart-base';
-
-import { IDropdownOption } from 'office-ui-fabric-react';
-
 import { sp } from "@pnp/sp";
 import "@pnp/sp/webs";
 import "@pnp/sp/lists";
@@ -24,7 +21,7 @@ import { PropertyFieldListPicker } from '../propertyPaneField/propertyFieldListP
 import { ListOrderBy, ISPListInfo } from "../../controls/components/listPicker";
 import { PropertyPaneViewFieldList } from '../propertyPaneField/PropertyPaneViewFieldList';
 
-import { IViewField } from '../../utilities/Entities';
+import { IViewField, IFolder } from '../../utilities/Entities';
 import { update, get } from '@microsoft/sp-lodash-subset';
 import { proxyUrl, webRelativeUrl } from '../../settings';
 import { SPListView } from './components/spListView';
@@ -37,6 +34,7 @@ export interface IListViewBuilderWebPartProps {
   viewFields: IViewField[];
   countPerPage?: number;
   cachingTimeoutSeconds?: number;
+  includeSubFolders?: boolean;
 }
 
 export default class ListViewBuilderWebPart extends BaseClientSideWebPart<IListViewBuilderWebPartProps> {
@@ -59,7 +57,10 @@ export default class ListViewBuilderWebPart extends BaseClientSideWebPart<IListV
           viewFields: this.properties.viewFields,
           count: this.properties.countPerPage,
           timeZone: SPService.getTimeZoneInfo(),
-          regionalSettings: SPService.getRegionalSettingsInfo()
+          regionalSettings: SPService.getRegionalSettingsInfo(),
+          includeSubFolders: this.properties.includeSubFolders,
+          showFolders: !this.properties.includeSubFolders,
+          rootFolder: !this.properties.includeSubFolders ? { Name: this.properties.list.Title, ServerRelativeUrl: this.properties.list.Url } as IFolder : undefined
         });
     }
     else {
@@ -88,6 +89,9 @@ export default class ListViewBuilderWebPart extends BaseClientSideWebPart<IListV
     }
     if (this.properties.countPerPage === undefined) {
       this.properties.countPerPage = 30;
+    }
+    if (this.properties.includeSubFolders === undefined) {
+      this.properties.includeSubFolders = false;
     }
     if (Environment.type == EnvironmentType.Local) {
       this._webRelativeUrl = webRelativeUrl;
@@ -134,7 +138,7 @@ export default class ListViewBuilderWebPart extends BaseClientSideWebPart<IListV
     return Version.parse('1.0');
   }
 
-  protected getPropertyPaneConfiguration(): IPropertyPaneConfiguration {   
+  protected getPropertyPaneConfiguration(): IPropertyPaneConfiguration {
     return {
       pages: [
         {
@@ -146,7 +150,7 @@ export default class ListViewBuilderWebPart extends BaseClientSideWebPart<IListV
               groupName: strings.BasicGroupName,
               groupFields: [
                 PropertyFieldListPicker('list', {
-                  label: strings.ListFieldLabel,                
+                  label: strings.ListFieldLabel,
                   selectedList: this.properties.list,
                   includeHidden: false,
                   orderBy: ListOrderBy.Title,
@@ -159,7 +163,7 @@ export default class ListViewBuilderWebPart extends BaseClientSideWebPart<IListV
                 }),              
                 new PropertyPaneViewFieldList('viewFields', {
                   label: strings.ViewFieldsFieldLabel,
-                  listId: this.properties.list ? this.properties.list.Id: undefined,
+                  listId: this.properties.list ? this.properties.list.Id : undefined,
                   items: this.properties.viewFields,
                   columns: [],
                   onPropertyChange: this.onCustomPropertyPaneFieldChanged.bind(this),
@@ -174,6 +178,9 @@ export default class ListViewBuilderWebPart extends BaseClientSideWebPart<IListV
                   label: strings.CountPerPageLabel,
                   min: 0,
                   max: 100
+                }),
+                PropertyPaneToggle('includeSubFolders', {
+                  label: strings.IncludeSubFolderLabel
                 }),
                 PropertyPaneSlider('cachingTimeoutSeconds', {
                   label: strings.CachingTimeoutSecondsLabel,

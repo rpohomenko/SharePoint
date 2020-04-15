@@ -103,7 +103,7 @@ export class AddViewFieldsPanel extends React.Component<AddViewFieldsPanelProps,
     return (
       <Panel className={styles.addViewFields} isLightDismiss isOpen={isOpen} onDismiss={() => this.close()} closeButtonAriaLabel={"Close"} headerText={"Add Field(s)..."}
         onRenderFooterContent={this.renderFooterContent.bind(this)}
-        isFooterAtBottom={true}>
+        isFooterAtBottom={false}>
         <Stack tokens={{ childrenGap: 2 }}>
           <Stack.Item>
             <AsyncDropdown label={"View"} placeholder={"Select View..."} options={() => this.loadViews(listId)} onChange={this.onViewChanged.bind(this)} selectedKey={viewId} />
@@ -148,7 +148,7 @@ export class AddViewFieldsPanel extends React.Component<AddViewFieldsPanelProps,
     if (props) {
       const fields = this.props.fields;
       if (fields instanceof Array) {
-        if (fields.some(f => f.Name === props.item.Name)) {
+        if (fields.some(f => this.compareFieldNames(f.Name, props.item.Name))) {
           customStyles.root = { backgroundColor: theme.palette.themeLighter };
           selectionDisabled = true;
           //props.checkboxVisibility= CheckboxVisibility.always;
@@ -161,6 +161,15 @@ export class AddViewFieldsPanel extends React.Component<AddViewFieldsPanelProps,
         <DetailsRow {...props} styles={customStyles} />
       </span>
     );
+  }
+
+  private compareFieldNames(name1: string, name2: string): boolean {
+    const isTitle1 = name1 === "LinkTitle" || name1 === "Title" || name1 === "LinkTitleNoMenu";
+    const isTitle2 = name2 === "LinkTitle" || name2 === "Title" || name2 === "LinkTitleNoMenu";
+    if (isTitle1 && isTitle2) {
+      return true;
+    }
+    return name1 === name2;
   }
 
   private renderFooterContent = () => {

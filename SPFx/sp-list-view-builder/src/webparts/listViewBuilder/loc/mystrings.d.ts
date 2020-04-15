@@ -10,6 +10,7 @@ declare interface IListViewBuilderWebPartStrings {
   FieldTypeNames: string[];
   CachingTimeoutSecondsLabel: string;
   CountPerPageLabel: string;
+  IncludeSubFolderLabel: string;
 }
 
 declare module 'ListViewBuilderWebPartStrings' {

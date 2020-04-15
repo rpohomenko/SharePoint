@@ -10,6 +10,7 @@ define([], function() {
     "ViewFieldsFieldLabel": "View Fields",
     "FieldTypeNames": ["Text", "Note", "Rich Text", "Date Time", "Date", "Number", "Lookup", "Multiple Lookup", "Boolean", "Choice", "Multiple Choice", "User", "Multiple User"],
     "CachingTimeoutSecondsLabel": "Caching Timeout (in seconds)",
-    "CountPerPageLabel": "Item Count"
+    "CountPerPageLabel": "Item Count",
+    "IncludeSubFolderLabel": "Include Folders"
   }
 });

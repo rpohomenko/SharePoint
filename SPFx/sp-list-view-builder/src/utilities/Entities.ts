@@ -36,3 +36,14 @@ export interface IViewLookupField extends IViewField {
     LookupWebId: string;
     PrimaryFieldName?: string;
 }
+
+export interface IFolder {
+    /**
+     * Folder name
+     */
+    Name: string;
+    /**
+     * Server relative url of the folder
+     */
+    ServerRelativeUrl: string;
+}
