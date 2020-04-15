@@ -1,4 +1,4 @@
-import { DataType, FormMode } from '../../../utilities/Entities';
+import { DataType, FormMode } from '../../utilities/Entities';
 
 export interface IBaseFieldRendererProps {
     mode: FormMode;

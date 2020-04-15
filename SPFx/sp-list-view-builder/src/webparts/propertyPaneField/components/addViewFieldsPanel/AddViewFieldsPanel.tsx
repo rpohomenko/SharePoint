@@ -22,8 +22,8 @@ import { isArray } from '@pnp/common';
 
 import { FieldTypes, IFieldInfo, IField } from "@pnp/sp/fields";
 
-import { IViewField, IViewLookupField, DataType } from '../../../utilities/Entities';
-import { AsyncDropdown, IAsyncDropdownState, IAsyncDropdownProps } from '.././asyncDropdown';
+import { IViewField, IViewLookupField, DataType } from '../../../../utilities/Entities';
+import { AsyncDropdown, IAsyncDropdownState, IAsyncDropdownProps } from '../../../../controls/components/asyncDropdown';
 
 import { getTheme } from 'office-ui-fabric-react/lib/Styling';
 
@@ -78,9 +78,10 @@ export class AddViewFieldsPanel extends React.Component<AddViewFieldsPanelProps,
     this._selection = new Selection({
       onSelectionChanged: () => {
         const { fields } = this.props;
-        const selection: IViewField[] =
-          (this._selection.getSelection() as IViewField[]).filter(f => !fields.some(ff => ff.Name === f.Name));
-        this.setState({ selection: selection });
+        const selection: IViewField[] = fields instanceof Array && fields.length > 0
+          ? (this._selection.getSelection() as IViewField[]).filter(f => !fields.some(ff => ff.Name === f.Name))
+          : this._selection.getSelection() as IViewField[];
+        this.setState({ selection: selection });    
       }
     });
   }
@@ -105,7 +106,7 @@ export class AddViewFieldsPanel extends React.Component<AddViewFieldsPanelProps,
         isFooterAtBottom={true}>
         <Stack tokens={{ childrenGap: 2 }}>
           <Stack.Item>
-            <AsyncDropdown label={"View"} placeholder={"Select View..."} loadOptions={() => this.loadViews(listId)} onChanged={this.onViewChanged.bind(this)} selectedKey={viewId} />
+            <AsyncDropdown label={"View"} placeholder={"Select View..."} options={() => this.loadViews(listId)} onChange={this.onViewChanged.bind(this)} selectedKey={viewId} />
             <Separator></Separator>
           </Stack.Item>
           <Stack.Item>
@@ -146,7 +147,7 @@ export class AddViewFieldsPanel extends React.Component<AddViewFieldsPanelProps,
     let selectionDisabled = false;
     if (props) {
       const fields = this.props.fields;
-      if (fields) {
+      if (fields instanceof Array) {
         if (fields.some(f => f.Name === props.item.Name)) {
           customStyles.root = { backgroundColor: theme.palette.themeLighter };
           selectionDisabled = true;
@@ -171,7 +172,9 @@ export class AddViewFieldsPanel extends React.Component<AddViewFieldsPanelProps,
         this.close();
         if (this.props.onAddFields instanceof Function) {
           const { fields } = this.props;
-          const viewFields: IViewField[] = selection.filter(f => !fields.some(ff => ff.Name === f.Name));
+          const viewFields: IViewField[] = fields instanceof Array && fields.length > 0
+            ? selection.filter(f => !fields.some(ff => ff.Name === f.Name))
+            : selection;
           this.props.onAddFields(viewFields);
         }
       }} styles={{ root: { marginRight: 8 } }}>

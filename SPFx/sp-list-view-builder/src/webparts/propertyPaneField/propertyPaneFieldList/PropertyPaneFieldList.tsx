@@ -1,6 +1,6 @@
 import * as React from 'react';
 import * as ReactDom from 'react-dom';
-import styles from './PropertyPane.module.scss';
+import styles from './PropertyPaneFieldList.module.scss';
 
 import { IPropertyPaneField, PropertyPaneFieldType } from "@microsoft/sp-property-pane";
 import { Stack } from 'office-ui-fabric-react/lib/components/Stack';
@@ -15,20 +15,8 @@ import {
 } from 'office-ui-fabric-react/lib/DetailsList';
 import { CommandBar, ICommandBarItemProps } from 'office-ui-fabric-react/lib/CommandBar';
 import { getTheme, mergeStyles } from 'office-ui-fabric-react/lib/Styling';
-import { IPropertyPaneCustomFieldProps } from "@microsoft/sp-property-pane";
 import { isEqual } from '@microsoft/sp-lodash-subset';
-
-export interface IPropertyPaneListProps {
-  label: string;
-  onPropertyChange: (propertyPath: string, newValue: any) => void;
-  items: any[];
-  columns: IColumn[];
-  noItemsMessage: React.ReactElement | string;
-}
-
-export interface IPropertyPaneListInternalProps extends IPropertyPaneListProps, IPropertyPaneCustomFieldProps {
-
-}
+import {IPropertyPaneFieldListProps, IPropertyPaneFieldListInternalProps} from './IPropertyPaneFieldListProps';
 
 const theme = getTheme();
 const dragEnterClass = mergeStyles({
@@ -180,17 +168,18 @@ export class PropertyPaneListBuilder extends React.Component<{
   }
 }
 
-export class PropertyPaneList implements IPropertyPaneField<IPropertyPaneListProps> {
+export class PropertyPaneFieldList implements IPropertyPaneField<IPropertyPaneFieldListProps> {
   public type: PropertyPaneFieldType = PropertyPaneFieldType.Custom;
   public targetProperty: string;
-  public properties: IPropertyPaneListInternalProps;
+  public properties: IPropertyPaneFieldListInternalProps;
   private elem: HTMLElement;
   protected selection: any[];
 
-  constructor(targetProperty: string, properties: IPropertyPaneListProps) {
+  constructor(targetProperty: string, properties: IPropertyPaneFieldListProps) {
     this.targetProperty = targetProperty;
     this.properties = {
       key: properties.label,
+      targetProperty: targetProperty,
       label: properties.label,
       items: properties.items,
       columns: properties.columns,

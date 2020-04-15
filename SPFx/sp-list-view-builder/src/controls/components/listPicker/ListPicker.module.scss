@@ -1,0 +1,12 @@
+.listPicker {
+    position: relative;
+    .spinner {
+        position: absolute;
+        right: 20px;
+        bottom: 5px;
+        float: right;
+        width: 20px;
+        height: 20px;
+        z-index: 1;
+    }
+}

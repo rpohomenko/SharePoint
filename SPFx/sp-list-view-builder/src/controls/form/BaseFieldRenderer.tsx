@@ -1,7 +1,7 @@
 import * as React from 'react';
-import ErrorBoundary from '../../ErrorBoundary';
+import ErrorBoundary from '../ErrorBoundary';
 import { IBaseFieldRendererProps, IBaseFieldRendererState, ValidationResult } from './IBaseFieldRendererProps';
-import { DataType, FormMode } from '../../../utilities/Entities';
+import { DataType, FormMode } from '../../utilities/Entities';
 import { isEqual } from '@microsoft/sp-lodash-subset';
 
 export class BaseFieldRenderer extends React.Component<IBaseFieldRendererProps, IBaseFieldRendererState> {

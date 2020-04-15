@@ -1,4 +1,4 @@
-import { IViewField } from '../../../utilities/Entities';
+import { IViewField } from '../../../../utilities/Entities';
 
 export interface IEditViewFieldProps {
     field?: IViewField;

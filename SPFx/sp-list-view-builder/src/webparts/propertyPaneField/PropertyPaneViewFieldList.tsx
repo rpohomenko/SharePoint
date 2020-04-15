@@ -1,16 +1,14 @@
 import * as React from 'react';
-
-import styles from './PropertyPane.module.scss';
 import * as strings from 'ListViewBuilderWebPartStrings';
 
-import { CommandBar, ICommandBarItemProps } from 'office-ui-fabric-react/lib/CommandBar';
+import { ICommandBarItemProps } from 'office-ui-fabric-react/lib/CommandBar';
 import { IconButton, getTheme, mergeStyleSets, IColumn } from 'office-ui-fabric-react';
-import { PropertyPaneList, IPropertyPaneListProps, PropertyPaneListBuilder } from './PropertyPaneList';
-import { IViewField, IViewLookupField, DataType } from '../../utilities/Entities';
-import { AddViewFieldsPanel } from '../components/addViewFieldsPanel';
-import { EditViewFieldPanel } from '../components/editViewFieldPanel';
+import { PropertyPaneFieldList, IPropertyPaneFieldListProps } from './propertyPaneFieldList';
+import { IViewField, DataType } from '../../utilities/Entities';
+import { AddViewFieldsPanel } from './components/addViewFieldsPanel';
+import { EditViewFieldPanel } from './components/editViewFieldPanel';
 
-export interface IPropertyPaneViewFieldListProps extends IPropertyPaneListProps {
+export interface IPropertyPaneViewFieldListProps extends IPropertyPaneFieldListProps {
    listId: string;
    items: IViewField[];
 }
@@ -33,7 +31,7 @@ const iconButtonStyles = mergeStyleSets({
    }
 });
 
-export class PropertyPaneViewFieldList extends PropertyPaneList {
+export class PropertyPaneViewFieldList extends PropertyPaneFieldList {
 
    private _addViewFieldsPanel: React.RefObject<AddViewFieldsPanel>;
    private _editViewFieldsPanel: React.RefObject<EditViewFieldPanel>;
@@ -143,14 +141,14 @@ export class PropertyPaneViewFieldList extends PropertyPaneList {
 
    protected onRenderElement(): React.ReactElement {
       const element = super.onRenderElement();
-      return <div className={styles.viewFieldList}>
+      return <div>
          {element}
          <AddViewFieldsPanel ref={this._addViewFieldsPanel} listId={this._listId} fields={this.properties.items} onAddFields={(fields) => {
-            const items = [... this.properties.items, ...fields];
+            const items = this.properties.items instanceof Array ? [... this.properties.items, ...fields] : fields;
             this.set_items(items);
          }} />
          <EditViewFieldPanel ref={this._editViewFieldsPanel} onChange={(field) => {
-            const items: IViewField[] = [... this.properties.items];
+            const items: IViewField[] =  this.properties.items instanceof Array ? [... this.properties.items] : [];
             for (const item of items.filter(i => i.Name === field.Name)) {
                items[items.indexOf(item)] = field;
             }

@@ -20,18 +20,20 @@ import "@pnp/sp/items";
 import { Placeholder } from "@pnp/spfx-controls-react/lib/Placeholder";
 import * as strings from 'ListViewBuilderWebPartStrings';
 
-import { PropertyPaneAsyncDropdown } from '../../controls/propertyPane/propertyPaneAsyncDropdown/PropertyPaneAsyncDropdown';
-import { PropertyPaneViewFieldList } from '../../controls/propertyPane/PropertyPaneViewFieldList';
+import { PropertyFieldListPicker } from '../propertyPaneField/propertyFieldListPicker';
+import { ListOrderBy, ISPListInfo } from "../../controls/components/listPicker";
+import { PropertyPaneViewFieldList } from '../propertyPaneField/PropertyPaneViewFieldList';
 
 import { IViewField } from '../../utilities/Entities';
 import { update, get } from '@microsoft/sp-lodash-subset';
 import { proxyUrl, webRelativeUrl } from '../../settings';
 import { SPListView } from './components/spListView';
 import SPService from '../../utilities/SPService';
+import { isEqual } from '@microsoft/sp-lodash-subset';
 
 export interface IListViewBuilderWebPartProps {
   description: string;
-  listId: string;
+  list: ISPListInfo;
   viewFields: IViewField[];
   countPerPage?: number;
   cachingTimeoutSeconds?: number;
@@ -49,11 +51,11 @@ export default class ListViewBuilderWebPart extends BaseClientSideWebPart<IListV
     //const environmentType: EnvironmentType = Environment.type;
 
     let element: React.ReactElement;
-    if (!!this.properties.listId && this.properties.viewFields instanceof Array && this.properties.viewFields.length > 0) {
+    if (!!this.properties.list && this.properties.viewFields instanceof Array && this.properties.viewFields.length > 0) {
       element = React.createElement(
         SPListView,
         {
-          listId: this.properties.listId,
+          listId: this.properties.list.Id,
           viewFields: this.properties.viewFields,
           count: this.properties.countPerPage,
           timeZone: SPService.getTimeZoneInfo(),
@@ -143,16 +145,21 @@ export default class ListViewBuilderWebPart extends BaseClientSideWebPart<IListV
             {
               groupName: strings.BasicGroupName,
               groupFields: [
-                new PropertyPaneAsyncDropdown('listId', {
-                  label: strings.ListFieldLabel,
-                  placeholder: "Select a list...",
-                  loadOptions: this.loadLists.bind(this),
+                PropertyFieldListPicker('list', {
+                  label: strings.ListFieldLabel,                
+                  selectedList: this.properties.list,
+                  includeHidden: false,
+                  orderBy: ListOrderBy.Title,
+                  disabled: false,
                   onPropertyChange: this.onCustomPropertyPaneFieldChanged.bind(this),
-                  selectedKey: this.properties.listId
-                }),
+                  properties: this.properties,
+                  web: sp.web,
+                  placeHolder: "Select a list...",
+                  key: 'listPicker'
+                }),              
                 new PropertyPaneViewFieldList('viewFields', {
                   label: strings.ViewFieldsFieldLabel,
-                  listId: this.properties.listId,
+                  listId: this.properties.list ? this.properties.list.Id: undefined,
                   items: this.properties.viewFields,
                   columns: [],
                   onPropertyChange: this.onCustomPropertyPaneFieldChanged.bind(this),
@@ -181,7 +188,7 @@ export default class ListViewBuilderWebPart extends BaseClientSideWebPart<IListV
     };
   }
 
-  private loadLists(): Promise<IDropdownOption[]> {
+  /*private loadLists(): Promise<IDropdownOption[]> {
     return new Promise<IDropdownOption[]>((resolve: (options: IDropdownOption[]) => void, reject: (error: any) => void) => {
       try {
         return sp.web.lists.filter('Hidden eq false').get()
@@ -195,7 +202,7 @@ export default class ListViewBuilderWebPart extends BaseClientSideWebPart<IListV
         alert(error);
       }
     });
-  }
+  }*/
 
   private onPropertyChange(propertyPath: string, newValue: any, index?: number): void {
     // store new value in web part properties
@@ -207,10 +214,10 @@ export default class ListViewBuilderWebPart extends BaseClientSideWebPart<IListV
   private onCustomPropertyPaneFieldChanged(targetProperty: string, newValue: any) {
     const oldValue = this.properties[targetProperty];
 
-    if (oldValue !== newValue) {
+    if (!isEqual(oldValue, newValue)) {
       this.properties[targetProperty] = newValue;
 
-      if (targetProperty === "listId") {
+      if (targetProperty === "list") {
 
         update(this.properties, "viewFields", (): any => { return []; });
       }

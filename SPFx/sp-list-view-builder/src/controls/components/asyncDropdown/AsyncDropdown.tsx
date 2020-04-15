@@ -39,7 +39,7 @@ export class AsyncDropdown extends React.Component<IAsyncDropdownProps, IAsyncDr
       <div>
         <Dropdown label={this.props.label}
           disabled={this.props.disabled || this.state.loading || this.state.error !== undefined}
-          onChange={this.onChanged.bind(this)}
+          onChange={this.onChange.bind(this)}
           selectedKey={this.selectedKey}
           options={this.state.options}
           placeholder={this.props.placeholder || ""}
@@ -49,30 +49,40 @@ export class AsyncDropdown extends React.Component<IAsyncDropdownProps, IAsyncDr
     );
   }
 
-  private loadOptions(): void {
-    this.setState({
-      loading: true,
-      error: undefined,
-      options: undefined
-    });
+  private loadOptions(): void {  
 
-    this.props.loadOptions()
-      .then((options: IDropdownOption[]): void => {
+    if (this.props.options) {
+      if(this.props.options instanceof Array){
         this.setState({
           loading: false,
           error: undefined,
-          options: options
+          options: this.props.options
         });
-      }, (error: any): void => {
-        this.setState((prevState: IAsyncDropdownState, props: IAsyncDropdownProps): IAsyncDropdownState => {
-          prevState.loading = false;
-          prevState.error = error;
-          return prevState;
-        });
+        return;
+      }
+      this.setState({
+        loading: true,
+        error: undefined,
+        options: undefined
       });
+      this.props.options()
+        .then((options: IDropdownOption[]): void => {
+          this.setState({
+            loading: false,
+            error: undefined,
+            options: options
+          });
+        }, (error: any): void => {
+          this.setState((prevState: IAsyncDropdownState, props: IAsyncDropdownProps): IAsyncDropdownState => {
+            prevState.loading = false;
+            prevState.error = error;
+            return prevState;
+          });
+        });
+    }
   }
 
-  private onChanged(e, option: IDropdownOption, index?: number): void {
+  private onChange(e, option: IDropdownOption, index?: number): void {
     this.selectedKey = option.key;
     // reset previously selected options
     const options: IDropdownOption[] = this.state.options;
@@ -85,8 +95,8 @@ export class AsyncDropdown extends React.Component<IAsyncDropdownProps, IAsyncDr
       prevState.options = options;
       return prevState;
     }, () => {
-      if (typeof this.props.onChanged === "function") {
-        this.props.onChanged(option, index);
+      if (typeof this.props.onChange === "function") {
+        this.props.onChange(option, index);
       }
     });
   }
