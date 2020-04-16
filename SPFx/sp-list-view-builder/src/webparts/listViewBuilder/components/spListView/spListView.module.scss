@@ -1,0 +1,12 @@
+@import '~office-ui-fabric-react/dist/sass/References.scss';
+
+.breadcrumb {  
+    & button {
+        font-size: 18px;
+      }
+    
+      & button[aria-current="page"] > div {
+        font-weight: 600;
+        color: $ms-color-neutralPrimary;
+      }
+}

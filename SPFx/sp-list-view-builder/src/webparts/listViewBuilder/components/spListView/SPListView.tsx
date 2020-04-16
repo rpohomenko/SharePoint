@@ -8,6 +8,7 @@ import { Spinner, SpinnerSize } from 'office-ui-fabric-react/lib/Spinner';
 import { Stack } from 'office-ui-fabric-react/lib/Stack';
 import { IconButton, Icon, Link } from 'office-ui-fabric-react';
 import { IColumn } from 'office-ui-fabric-react/lib/DetailsList';
+import { Breadcrumb, IBreadcrumbItem } from "office-ui-fabric-react/lib/Breadcrumb";
 import { ListView, IListViewProps } from '../../../../controls/listView';
 import { IViewColumn } from '../../../../controls/listView';
 import { ITimeZoneInfo, IRegionalSettingsInfo } from "@pnp/sp/regional-settings/types";
@@ -16,6 +17,7 @@ import { DataType, IViewField, IViewLookupField, IFolder } from '../../../../uti
 import moment from 'moment';
 import SPService from '../../../../utilities/SPService';
 import DateHelper from '../../../../utilities/DateHelper';
+import styles from './spListView.module.scss';
 
 export class SPListView extends React.Component<ISPListViewProps, ISPListViewState> {
 
@@ -64,6 +66,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
         const { page, columns, isLoading } = this.state;
         return <div>
             {!this._isMounted && isLoading /*&& !page*/ && <Spinner size={SpinnerSize.large} />}
+            {this._isMounted === true && this.renderBreadcrumb()}
             {this._isMounted === true && <ListView items={page ? page.results : []} columns={columns} onSelect={this.onSelectItems.bind(this)} onSort={this.onSortItems.bind(this)} />}
             {this._isMounted === true && !isLoading && (page && page.hasNext === true) && <Stack verticalAlign="center" horizontalAlign="center">
                 <IconButton
@@ -81,6 +84,10 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
                 />
             </Stack>}
         </div>;
+    }
+
+    protected onSelectItems(items: any[]) {
+
     }
 
     private async loadNextData(page: PagedItemCollection<any>) {
@@ -112,7 +119,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
         return filter;
     }
 
-    private async getData(sortColumn?: IViewColumn, folder?: IFolder): Promise<PagedItemCollection<any>> {
+    private async getData(sortColumn?: IViewColumn, folder?: IFolder): Promise<PagedItemCollection<any[]>> {
         let select = [], expand = [];
         for (const viewField of this.props.viewFields) {
             if (viewField.Name === "DocIcon") {
@@ -194,9 +201,13 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
         return await request.usingCaching().getPaged();
     }
 
-    private onSelectItems(items: any[]) {
-
-    }
+    private loadItemsInFolder(folder: IFolder) {
+        this.setState({ isLoading: true, folder: folder, page: { results: new Array(10) } as PagedItemCollection<any[]> }, () => {
+            this.getData(this.state.sortColumn, folder).then(page => {
+                this.setState({ page: page, isLoading: false });
+            });
+        });
+    }  
 
     private onSortItems(column: IViewColumn, items: any[]) {
         this.setState({ isLoading: true, sortColumn: column, page: { results: new Array(10) } as PagedItemCollection<any[]> }, () => {
@@ -265,6 +276,9 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
         else if (viewField.DataType === DataType.Date || viewField.DataType === DataType.DateTime) {
             column.onRender = (item, index, col) => this.renderDateTime(item, index, col, viewField, viewFields);
         }
+        else if (viewField.DataType === DataType.RichText) {
+            column.onRender = (item, index, col) => this.renderRichText(item, index, col, viewField, viewFields);
+        }
         return column;
     }
 
@@ -325,13 +339,18 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
     }
 
     private renderMultiUser(item, index, column: IColumn, viewField: IViewField, viewFields: IViewField[]) {
-        let values = item[viewField.Name] ? item[viewField.Name].results : [] as string[];
+        const values = item[viewField.Name] ? item[viewField.Name].results : [] as string[];
         return <span>{values.map(value => value[(viewField as IViewLookupField).LookupFieldName || "Title"]).join(', ')}</span>;
     }
 
     private renderDateTime(item, index, column: IColumn, viewField: IViewField, viewFields: IViewField[]) {
-        let value = item[viewField.Name];
+        const value = item[viewField.Name];
         return this.formatFieldValue(value, viewField.DataType);
+    }
+
+    private renderRichText(item, index, column: IColumn, viewField: IViewField, viewFields: IViewField[]) {
+        const value = item[viewField.Name];
+        return <div dangerouslySetInnerHTML={{ __html: value }} />;
     }
 
     private renderTitle(item, index, column: IColumn, viewField: IViewField, viewFields: IViewField[]) {
@@ -339,19 +358,64 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
         return isFolder
             ? <Link onClick={() => {
                 const folder = { Name: item[column.fieldName], ServerRelativeUrl: item["FileRef"] } as IFolder;
-                this.setState({ isLoading: true, folder: folder, page: { results: new Array(10) } as PagedItemCollection<any[]> }, () => {
-                    this.getData(this.state.sortColumn, folder).then(page => {
-                        this.setState({ page: page, isLoading: false });
-                    });
-                });
+                this.loadItemsInFolder(folder);
             }}>
                 {item[column.fieldName]}
             </Link>
             : item[column.fieldName];
-    }
+    }   
 
     private renderDocIcon(item, index, column: IColumn, viewField: IViewField, viewFields: IViewField[]) {
         const isFolder = item["FSObjType"] === 1;
         return isFolder ? <Icon iconName="FolderHorizontal" /> : <Icon iconName="Document" />;
+    }
+
+    private renderBreadcrumb(): JSX.Element {
+        const items = this._getBreadcrumbItems();
+        //if (items instanceof Array && items.length > 0) {
+        const overflowIndex = items.length > 1 ? 1 : 0;
+        return <Breadcrumb items={items} className={styles.breadcrumb} maxDisplayedItems={3} overflowIndex={overflowIndex} />;
+        //}
+        //return null;
+    }
+
+    /**
+* Get breadcrumb items
+* @returns an array of IBreadcrumbItem objects
+*/
+    private _getBreadcrumbItems = (): IBreadcrumbItem[] => {
+        const items: IBreadcrumbItem[] = [];
+        const { rootFolder } = this.props;
+        const { folder } = this.state;
+
+        if (rootFolder) {
+            const rootItem: IBreadcrumbItem = {
+                text: rootFolder.Name, key: 'root', onClick: () => {                   
+                    this.loadItemsInFolder(rootFolder);
+                }
+            };
+
+            items.push(rootItem);
+
+            if (folder && folder.ServerRelativeUrl !== rootFolder.ServerRelativeUrl) {
+                const folderPathSplit = folder.ServerRelativeUrl.replace(rootFolder.ServerRelativeUrl, '').split('/');
+                let folderPath = rootFolder.ServerRelativeUrl;
+                folderPathSplit.forEach((folderName, index) => {
+                    if (folderName !== '') {
+                        folderPath += '/' + folderName;
+                        const folderItem: IBreadcrumbItem = {
+                            text: folderName, key: `folder-${index.toString()}`, onClick: () => {
+                                const subFolder = {  Name: folderName, ServerRelativeUrl: folderPath } as IFolder;
+                                this.loadItemsInFolder(subFolder);
+                            }
+                        };
+                        items.push(folderItem);
+                    }
+                });
+            }
+
+            items[items.length - 1].isCurrentItem = true;
+        }
+        return items;
     }
 }
