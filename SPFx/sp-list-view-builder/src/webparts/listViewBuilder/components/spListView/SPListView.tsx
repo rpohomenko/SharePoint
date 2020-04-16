@@ -183,6 +183,17 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
             request = request.orderBy("FSObjType", false);
         }
 
+        if (this.props.orderBy instanceof Array) {
+            for (const orderByField of this.props.orderBy) {
+                if (orderByField.Name === "DocIcon") {
+                    request = request.orderBy("FSObjType", !orderByField.Descending);
+                }
+                else {
+                    request = request.orderBy(orderByField.Name, !orderByField.Descending);
+                }
+            }
+        }
+
         if (sortColumn) {
             if (sortColumn.fieldName === "DocIcon") {
                 request = request.orderBy("FSObjType", !sortColumn.isSortedDescending);

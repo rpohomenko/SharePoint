@@ -11,6 +11,8 @@ declare interface IListViewBuilderWebPartStrings {
   CachingTimeoutSecondsLabel: string;
   CountPerPageLabel: string;
   IncludeSubFolderLabel: string;
+  OrderByLabel: string;
+  AscendingLabel: string;
 }
 
 declare module 'ListViewBuilderWebPartStrings' {

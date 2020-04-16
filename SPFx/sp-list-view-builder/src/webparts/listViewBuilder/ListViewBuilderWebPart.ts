@@ -20,8 +20,8 @@ import * as strings from 'ListViewBuilderWebPartStrings';
 import { PropertyFieldListPicker } from '../propertyPaneField/propertyFieldListPicker';
 import { ListOrderBy, ISPListInfo } from "../../controls/components/listPicker";
 import { PropertyPaneViewFieldList } from '../propertyPaneField/PropertyPaneViewFieldList';
-
-import { IViewField, IFolder } from '../../utilities/Entities';
+import { PropertyPaneFieldPicker } from '../propertyPaneField/propertyPaneFieldPicker';
+import { IViewField, IFolder, IField, IOrderByField } from '../../utilities/Entities';
 import { update, get } from '@microsoft/sp-lodash-subset';
 import { proxyUrl, webRelativeUrl } from '../../settings';
 import { SPListView } from './components/spListView';
@@ -35,6 +35,8 @@ export interface IListViewBuilderWebPartProps {
   countPerPage?: number;
   cachingTimeoutSeconds?: number;
   includeSubFolders?: boolean;
+  ascending?: boolean;
+  orderBy?: IField;
 }
 
 export default class ListViewBuilderWebPart extends BaseClientSideWebPart<IListViewBuilderWebPartProps> {
@@ -60,7 +62,8 @@ export default class ListViewBuilderWebPart extends BaseClientSideWebPart<IListV
           regionalSettings: SPService.getRegionalSettingsInfo(),
           includeSubFolders: this.properties.includeSubFolders,
           showFolders: !this.properties.includeSubFolders,
-          rootFolder: !this.properties.includeSubFolders ? { Name: this.properties.list.Title, ServerRelativeUrl: this.properties.list.Url } as IFolder : undefined
+          rootFolder: !this.properties.includeSubFolders ? { Name: this.properties.list.Title, ServerRelativeUrl: this.properties.list.Url } as IFolder : undefined,
+          orderBy: this.properties.orderBy ? [{ Name: this.properties.orderBy.Name, Descending: !this.properties.ascending } as IOrderByField] : undefined
         });
     }
     else {
@@ -92,6 +95,9 @@ export default class ListViewBuilderWebPart extends BaseClientSideWebPart<IListV
     }
     if (this.properties.includeSubFolders === undefined) {
       this.properties.includeSubFolders = false;
+    }
+    if (this.properties.ascending === undefined) {
+      this.properties.ascending = true;
     }
     if (Environment.type == EnvironmentType.Local) {
       this._webRelativeUrl = webRelativeUrl;
@@ -160,14 +166,27 @@ export default class ListViewBuilderWebPart extends BaseClientSideWebPart<IListV
                   web: sp.web,
                   placeHolder: "Select a list...",
                   key: 'listPicker'
-                }),              
+                }),
                 new PropertyPaneViewFieldList('viewFields', {
                   label: strings.ViewFieldsFieldLabel,
                   listId: this.properties.list ? this.properties.list.Id : undefined,
-                  items: this.properties.viewFields,
+                  items: this.properties.viewFields,                
                   columns: [],
                   onPropertyChange: this.onCustomPropertyPaneFieldChanged.bind(this),
                   noItemsMessage: "Click on 'Add' to add fields."
+                }),
+                new PropertyPaneFieldPicker('orderBy', {
+                  label: strings.OrderByLabel,
+                  placeholder: "Select a field...",
+                  itemLimit: 1,
+                  disabled: !this.properties.list,
+                  selected: this.properties.orderBy ? [this.properties.orderBy]: undefined,                
+                  list: SPService.getList(this.properties.list),
+                  onPropertyChange: this.onCustomPropertyPaneFieldChanged.bind(this)
+                }),
+                PropertyPaneToggle('ascending', {
+                  label: strings.AscendingLabel,
+                  disabled: !this.properties.orderBy
                 }),
               ]
             },
@@ -193,23 +212,7 @@ export default class ListViewBuilderWebPart extends BaseClientSideWebPart<IListV
         }
       ]
     };
-  }
-
-  /*private loadLists(): Promise<IDropdownOption[]> {
-    return new Promise<IDropdownOption[]>((resolve: (options: IDropdownOption[]) => void, reject: (error: any) => void) => {
-      try {
-        return sp.web.lists.filter('Hidden eq false').get()
-          .then((lists) => {
-            let options = lists.map((l) => ({ key: l.Id, text: l.Title }) as IDropdownOption);
-            resolve(options);
-          }).catch(e => {
-            reject(e.message);
-          });
-      } catch (error) {
-        alert(error);
-      }
-    });
-  }*/
+  }  
 
   private onPropertyChange(propertyPath: string, newValue: any, index?: number): void {
     // store new value in web part properties
@@ -225,7 +228,7 @@ export default class ListViewBuilderWebPart extends BaseClientSideWebPart<IListV
       this.properties[targetProperty] = newValue;
 
       if (targetProperty === "list") {
-
+        update(this.properties, "orderBy", (): any => { return undefined; });
         update(this.properties, "viewFields", (): any => { return []; });
       }
 

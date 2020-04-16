@@ -1,5 +1,6 @@
-import { sp } from "@pnp/sp/presets/all";
+import { sp, IList } from "@pnp/sp/presets/all";
 import { ITimeZoneInfo, IRegionalSettingsInfo } from "@pnp/sp/regional-settings/types";
+import { ISPListInfo } from "../controls/components/listPicker";
 
 export default class SPService {
 
@@ -11,6 +12,21 @@ export default class SPService {
     public static async getTimeZoneInfo(): Promise<ITimeZoneInfo> {
         const timeZone = await sp.web.regionalSettings.timeZone();
         return timeZone;
+    }
+
+    public static getList(listInfo: ISPListInfo): IList {
+        if (!listInfo) return undefined;
+        let list: IList;
+        if (listInfo.Url) {
+            list = sp.web.getList(listInfo.Url);
+        }
+        else if (listInfo.Id) {
+            list = sp.web.lists.getById(listInfo.Id);
+        }
+        else if (listInfo.Title) {
+            list = sp.web.lists.getByTitle(listInfo.Title);
+        }
+        return list;
     }
 
     public static getLocaleName(lcid: number): string {

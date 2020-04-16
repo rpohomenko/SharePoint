@@ -20,14 +20,21 @@ export enum FormMode {
     New = 2
 }
 
-export interface IViewField {
+export interface IField {
     Id: string;
     Name: string;
     Title: string;
+}
+
+export interface IViewField extends IField {
     DataType: DataType;
     OutputType?: DataType.Text | DataType.Number | DataType.Boolean | DataType.DateTime | DataType.Date;
     Sortable?: boolean;
     Filterable?: boolean;
+}
+
+export interface IOrderByField extends IField {
+    Descending?: boolean;
 }
 
 export interface IViewLookupField extends IViewField {
