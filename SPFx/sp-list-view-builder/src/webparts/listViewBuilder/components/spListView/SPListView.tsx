@@ -24,6 +24,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
     private _timeZone: ITimeZoneInfo;
     private _regionalSettings: IRegionalSettingsInfo;
     private _isMounted = false;
+    private _shimItemCount = 5;
 
     constructor(props: ISPListViewProps) {
         super(props);
@@ -36,7 +37,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
 
     public async componentDidMount() {
         const columns = this.get_Columns(this.props.viewFields);
-        this.setState({ isLoading: true, page: { results: new Array(10) } as PagedItemCollection<any[]> });
+        this.setState({ isLoading: true, page: { results: new Array(this._shimItemCount) } as PagedItemCollection<any[]> });
         if (this.props.regionalSettings) {
             this._regionalSettings = await this.props.regionalSettings;
         }
@@ -95,11 +96,12 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
 
     private async loadNextData(page: PagedItemCollection<any>) {
         if (page && page.hasNext === true) {
-            const results = (page.results as any[] || []).concat(new Array(10));
-            this.setState({ isLoading: true, page: { results: results } as PagedItemCollection<any[]> });
+            const { groupBy } = this.state;
+            const results = (page.results as any[] || []).concat(new Array(this._shimItemCount));
+            this.setState({ isLoading: true, groupBy: undefined, page: { results: results } as PagedItemCollection<any[]> });
             const nextPage = await page.getNext();
             nextPage.results = (page.results as any[] || []).concat(nextPage.results as any[] || []);
-            this.setState({ isLoading: false, page: nextPage });
+            this.setState({ isLoading: false, groupBy: groupBy, page: nextPage });
         }
     }
 
@@ -221,7 +223,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
     }
 
     private loadItemsInFolder(folder: IFolder) {
-        this.setState({ isLoading: true, folder: folder, page: { results: new Array(10) } as PagedItemCollection<any[]> }, () => {
+        this.setState({ isLoading: true, folder: folder, page: { results: new Array(this._shimItemCount) } as PagedItemCollection<any[]> }, () => {
             this.getData(this.state.sortColumn, this.state.groupBy, folder).then(page => {
                 this.setState({ page: page, isLoading: false });
             });
@@ -229,10 +231,11 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
     }  
 
     private onSortItems(column: IViewColumn) {
-        this.setState({ isLoading: true, sortColumn: column, page: { results: new Array(10) } as PagedItemCollection<any[]> }, () => {
+        const { groupBy } = this.state;
+        this.setState({ isLoading: true, groupBy: undefined, sortColumn: column, page: { results: new Array(this._shimItemCount) } as PagedItemCollection<any[]> }, () => {
             const folder = this.state.folder || this.props.rootFolder;
-            this.getData(column, this.state.groupBy, folder).then(page => {
-                this.setState({ page: page, isLoading: false });
+            this.getData(column, groupBy, folder).then(page => {
+                this.setState({ page: page, groupBy: groupBy, isLoading: false });
             });
         });
     }
@@ -243,14 +246,16 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
             const viewField = viewFields.some(f => SPService.compareFieldNames(f.Name, g.name)) ? viewFields.filter(f => SPService.compareFieldNames(f.Name, g.name))[0] : null;
             return {
                 ...g,
-                keyGetter: (value) => {
-                    if (value) {
+                keyGetter: (item) => {
+                    if (item) {
+                        const value = item[g.name];
                         if (viewField) {
                             if (viewField.DataType === DataType.Lookup || viewField.DataType === DataType.User) {
-                                return value[(viewField as IViewLookupField).LookupFieldName || "Title"];
+                                return this.getLookupValue(item, viewField as IViewLookupField)
                             }
+                            return this.formatFieldValue(value, viewField.DataType);
                         }
-                        return viewField ? this.formatFieldValue(value, viewField.DataType) : value;
+                        return value;
                     }
                     return "";
                 }
@@ -261,7 +266,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
             onGroup(items, groupBy);
         });
     
-        /*this.setState({ isLoading: true, groupBy: groupBy, page: { results: new Array(10) } as PagedItemCollection<any[]> }, () => {
+        /*this.setState({ isLoading: true, groupBy: groupBy, page: { results: new Array(this._shimItemCount) } as PagedItemCollection<any[]> }, () => {
             const folder = this.state.folder || this.props.rootFolder;
             this.getData(this.state.sortColumn, groupBy, folder).then(page => {
                 this.setState({ page: page, isLoading: false });
@@ -276,6 +281,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
 
     private get_Column(viewField: IViewField, viewFields: IViewField[]): IColumn {
         let sortable = viewField.Sortable;
+        let canGroup = sortable;
         if (viewField.DataType === DataType.MultiLookup
             || viewField.DataType === DataType.MultiChoice
             || viewField.DataType === DataType.MultiLineText
@@ -284,13 +290,17 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
             || !!(viewField as IViewLookupField).PrimaryFieldName
         ) {
             sortable = false;
+            canGroup = viewField.DataType === DataType.Lookup;
         }
         else {
             if (sortable === undefined || sortable === null) {
-                sortable = true;
+                sortable = true;            
             }
+            if (canGroup === undefined || canGroup === null) {              
+                canGroup = true;
+            }         
         }
-        let column = { key: viewField.Name.toLowerCase(), fieldName: viewField.Name, name: viewField.Title, isResizable: true, sortable: sortable } as IViewColumn;
+        let column = { key: viewField.Name.toLowerCase(), fieldName: viewField.Name, name: viewField.Title, isResizable: true, sortable: sortable, canGroup: canGroup } as IViewColumn;
         if (column.fieldName === "LinkTitle" || column.fieldName === "LinkTitleNoMenu") {
             column.fieldName = "Title";
         }

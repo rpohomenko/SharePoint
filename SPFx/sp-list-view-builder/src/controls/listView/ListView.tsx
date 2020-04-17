@@ -91,7 +91,7 @@ export class ListView extends React.Component<IListViewProps, IListViewState> {
             groups: groups,
             selection: selection,
             layoutMode: DetailsListLayoutMode.justified,
-            setKey: "ListView",
+            setKey: "ListView",            
             groupProps: groupProps
         });
     }
@@ -201,8 +201,8 @@ export class ListView extends React.Component<IListViewProps, IListViewState> {
                 key: `groupBy`,
                 name: "Group By",
                 iconProps: { iconName: 'GroupList' },
-                canCheck: column.sortable,
-                disabled: !column.sortable,
+                canCheck: column.canGroup,
+                disabled: !column.canGroup,
                 checked: column.isGrouped,
                 onClick: () => this.groupByColumn(column)
             }
@@ -239,13 +239,12 @@ export class ListView extends React.Component<IListViewProps, IListViewState> {
             // Check if grouping is configured
             if (groupBy && groupBy.length > 0) {
                 // Create grouped items object
-                const groupedItems = ListView.groupBy(items, item => {
-                    const value = item[group.name];
+                const groupedItems = ListView.groupBy(items, item => {                 
                     if (group.keyGetter instanceof Function) {
-                        return group.keyGetter(value) || "";
+                        return group.keyGetter(item) || "";
                     }
                     else {
-                        return value || "";
+                        return item[group.name] || "";
                     }
                 });
                 /*items.forEach((item: any) => {
@@ -269,35 +268,42 @@ export class ListView extends React.Component<IListViewProps, IListViewState> {
                 });*/
 
                 // Sort the grouped items object by its key
-                const sortedGroups = {};
+                //const sortedGroups = {};
                 let groupNames = Object.keys(groupedItems);
-                groupNames = group.order === GroupOrder.ascending ? groupNames.sort() : groupNames.sort().reverse();
-                groupNames.forEach((key: string) => {
+
+                if (this.state.sortColumn && group.name === this.state.sortColumn.fieldName) {
+                    groupNames = this.state.sortColumn.isSortedDescending === true ? groupNames.sort().reverse() : groupNames.sort();
+                }
+                else {
+                    groupNames = group.order === GroupOrder.ascending ? groupNames.sort() : groupNames.sort().reverse();
+                }
+
+                /*groupNames.forEach((key: string) => {
                     sortedGroups[key] = groupedItems[key];
-                });
+                });*/
 
                 // Loop over all the groups
-                for (const groupItems in sortedGroups) {
+                for (const groupKey of groupNames) {
                     // Retrieve the total number of items per group
-                    const totalItems = groupedItems[groupItems].length;
+                    const totalItems = groupedItems[groupKey].length;
                     // Create the new group
                     const g: IGroup = {
-                        name: groupItems === "undefined" ? "" : groupItems,
-                        key: groupItems === "undefined" ? "" : groupItems,
+                        name: groupKey || "",
+                        key: groupKey || "",
                         startIndex: startIndex,
                         count: totalItems,
                     };
                     // Check if child grouping available
                     if (groupBy[level + 1]) {
                         // Get the child groups
-                        const subGroup = this._getGroups(groupedItems[groupItems], groupBy, (level + 1), startIndex);
+                        const subGroup = this._getGroups(groupedItems[groupKey], groupBy, (level + 1), startIndex);
                         subGroup.items.forEach((item) => {
                             updatedItemsOrder.push(item);
                         });
                         g.children = subGroup.groups;
                     } else {
                         // Add the items to the updated items order array
-                        groupedItems[groupItems].forEach((item) => {
+                        groupedItems[groupKey].forEach((item) => {
                             updatedItemsOrder.push(item);
                         });
                     }
@@ -328,7 +334,7 @@ export class ListView extends React.Component<IListViewProps, IListViewState> {
 
     public groupByColumn = (column: IViewColumn): void => {
         const { columns } = this.state;
-        if (has(column, 'sortable') && column.sortable) {
+        if (has(column, 'canGroup') && column.canGroup) {
             // Update the columns
             let currColumn: IViewColumn;
             const groupedColumns = columns.map(c => {
@@ -336,15 +342,17 @@ export class ListView extends React.Component<IListViewProps, IListViewState> {
                     c.isGrouped = !column.isGrouped;
                     currColumn = c;
                 }
-                else{
+                else {
                     c.isGrouped = false;
-                }                
+                    //c.isSorted = false;
+                    //c.isSortedDescending = false;
+                }
                 return c;
             });
 
             this.setState({
                 columns: groupedColumns,
-                groups: undefined
+                //groups: undefined
             }, () => this.onGroupByColumn(/*currColumn*/...groupedColumns/*.filter(c => c.isGrouped)*/));
         }
     }
@@ -375,7 +383,7 @@ export class ListView extends React.Component<IListViewProps, IListViewState> {
      * @param column
      */
     public sortByColumn = (column: IViewColumn, sortDescending: boolean): void => {
-        const { sortColumn, columns } = this.state;
+        const { sortColumn, columns, groups } = this.state;
         //if(sortColumn && sortColumn.key === column.key && sortColumn.isSortedDescending === sortDescending ) return;
 
         // Check if the field needs to be sorted

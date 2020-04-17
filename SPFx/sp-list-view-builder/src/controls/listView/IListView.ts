@@ -9,6 +9,7 @@ export enum GroupOrder {
 export interface IViewColumn extends IColumn {
     sortable?: boolean;
     filterable?: boolean;
+    canGroup?: boolean;
 }
 
 export interface IListViewProps extends IDetailsListProps {
@@ -32,5 +33,5 @@ export interface IListViewState {
 export interface IGrouping {
     name: string;
     order: GroupOrder;
-    keyGetter?: (value: any) => string;
+    keyGetter?: (item: any) => string;
 }
