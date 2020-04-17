@@ -2,6 +2,7 @@
 import { IPropertyPaneCustomFieldProps } from "@microsoft/sp-property-pane";
 import { IList } from "@pnp/sp/lists";
 import { IField } from '../../../utilities/Entities';
+import { IFieldInfo } from "@pnp/sp/fields";
 
 export interface IPropertyPaneFieldPickerProps {
   label: string;
@@ -11,6 +12,7 @@ export interface IPropertyPaneFieldPickerProps {
   itemLimit?: number;
   selected?: IField[];
   disabled?: boolean;
+  onFilter?: (field: IFieldInfo) => boolean;
 }
 
 export interface IPropertyPaneFieldPickerInternalProps extends IPropertyPaneFieldPickerProps, IPropertyPaneCustomFieldProps {

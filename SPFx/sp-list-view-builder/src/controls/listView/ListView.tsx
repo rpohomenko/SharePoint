@@ -54,8 +54,8 @@ export class ListView extends React.Component<IListViewProps, IListViewState> {
         }
     }
 
-    public set_items(items: any[]) {
-        this.setState({ items: items, flattenItems: this._flattenItems(items) });
+    public set_items(items: any[], groups?: IGroup[]) {
+        this.setState({ items: items, flattenItems: this._flattenItems(items), groups: groups });
     }
 
     /**
@@ -99,10 +99,11 @@ export class ListView extends React.Component<IListViewProps, IListViewState> {
     protected updateState(items: any[]) {
         const { columns } = this.props;
         this.setState({
-            items: (typeof items !== 'undefined' && items !== null) ? [...items] : [],
-            flattenItems: (typeof items !== 'undefined' && items !== null) ? this._flattenItems(items) : [],
+            //items: (typeof items !== 'undefined' && items !== null) ? [...items] : [],
+            //flattenItems: (typeof items !== 'undefined' && items !== null) ? this._flattenItems(items) : [],
             columns: (typeof columns !== 'undefined' && columns !== null) ? this._createColumns(columns) : []
         });
+        this._groupItems(items instanceof Array ? items : [], this.props.groupBy);
     }
 
     /**
@@ -149,7 +150,7 @@ export class ListView extends React.Component<IListViewProps, IListViewState> {
         viewColumns.forEach(column => {
             const onColumnClick = column.onColumnClick;
             column.onColumnClick = (ev, col) => this.onColumnClick(ev, col, onColumnClick);
-            const onColumnRender =  column.onRender;
+            const onColumnRender = column.onRender;
             column.onRender = (item, index, col) => this.onColumnRender(item, index, col, onColumnRender);
         });
         return viewColumns;
@@ -195,8 +196,18 @@ export class ListView extends React.Component<IListViewProps, IListViewState> {
                 disabled: !column.sortable,
                 checked: column.isSorted && column.isSortedDescending,
                 onClick: () => this.sortByColumn(column, true)
+            },
+            {
+                key: `groupBy`,
+                name: "Group By",
+                iconProps: { iconName: 'GroupList' },
+                canCheck: column.sortable,
+                disabled: !column.sortable,
+                checked: column.isGrouped,
+                onClick: () => this.groupByColumn(column)
             }
         ];
+
         return {
             items: items,
             target: ev.currentTarget,
@@ -220,16 +231,24 @@ export class ListView extends React.Component<IListViewProps, IListViewState> {
      */
     private _getGroups(items: any[], groupBy: IGrouping[], level: number = 0, startIndex: number = 0): IGroupsItems {
         // Group array which stores the configured grouping
-        let groups: IGroup[] = [];
-        let updatedItemsOrder: any[] = [];
+        const groups: IGroup[] = [];
+        const updatedItemsOrder: any[] = [];
         // Check if there are groupby fields set
         if (groupBy) {
             const group = groupBy[level];
             // Check if grouping is configured
             if (groupBy && groupBy.length > 0) {
                 // Create grouped items object
-                const groupedItems = {};
-                items.forEach((item: any) => {
+                const groupedItems = ListView.groupBy(items, item => {
+                    const value = item[group.name];
+                    if (group.keyGetter instanceof Function) {
+                        return group.keyGetter(value) || "";
+                    }
+                    else {
+                        return value || "";
+                    }
+                });
+                /*items.forEach((item: any) => {
                     let groupName = item[group.name];
                     // Check if the group name exists
                     if (typeof groupName === "undefined") {
@@ -247,7 +266,7 @@ export class ListView extends React.Component<IListViewProps, IListViewState> {
                         groupedItems[groupName] = [];
                     }
                     groupedItems[groupName].push(item);
-                });
+                });*/
 
                 // Sort the grouped items object by its key
                 const sortedGroups = {};
@@ -295,12 +314,68 @@ export class ListView extends React.Component<IListViewProps, IListViewState> {
         };
     }
 
+    private static groupBy<T extends any, K extends keyof T>(array: T[], key: K | { (obj: T): string | number }): Record<string | number, T[]> {
+        const keyFn = key instanceof Function ? key : (obj: T) => obj[key];
+        return array.reduce(
+            (objectsByKeyValue, obj) => {
+                const value = keyFn(obj);
+                objectsByKeyValue[value] = (objectsByKeyValue[value] || []).concat(obj);
+                return objectsByKeyValue;
+            },
+            {} as Record<string | number, T[]>
+        );
+    }
+
+    public groupByColumn = (column: IViewColumn): void => {
+        const { columns } = this.state;
+        if (has(column, 'sortable') && column.sortable) {
+            // Update the columns
+            let currColumn: IViewColumn;
+            const groupedColumns = columns.map(c => {
+                if (c.key === column.key) {
+                    c.isGrouped = !column.isGrouped;
+                    currColumn = c;
+                }
+                else{
+                    c.isGrouped = false;
+                }                
+                return c;
+            });
+
+            this.setState({
+                columns: groupedColumns,
+                groups: undefined
+            }, () => this.onGroupByColumn(/*currColumn*/...groupedColumns/*.filter(c => c.isGrouped)*/));
+        }
+    }
+
+    protected onGroupByColumn(...columns: IViewColumn[]) {
+        const { items } = this.state;
+        const groupBy = columns.filter(c => c.isGrouped).map(c => {
+            return { name: c.fieldName, order: c.isSortedDescending ? GroupOrder.descending : GroupOrder.ascending } as IGrouping;
+        });
+
+        if (this.props.onGroup instanceof Function) {
+            this.props.onGroup(groupBy, columns, items, (sortedItems: any[], newGroupBy: IGrouping[], groups?: IGroup[]) => {
+                if (!(groups instanceof Array)) {
+                    this._groupItems(sortedItems, newGroupBy || groupBy);
+                }
+                else {
+                    this.set_items(sortedItems, groups);
+                }
+            });
+        }
+        else {
+            this._groupItems(items, groupBy);
+        }
+    }
+
     /**
      * Check if sorting needs to be set to the column
      * @param column
      */
     public sortByColumn = (column: IViewColumn, sortDescending: boolean): void => {
-        const {sortColumn} = this.state;
+        const { sortColumn, columns } = this.state;
         //if(sortColumn && sortColumn.key === column.key && sortColumn.isSortedDescending === sortDescending ) return;
 
         // Check if the field needs to be sorted
@@ -309,7 +384,7 @@ export class ListView extends React.Component<IListViewProps, IListViewState> {
             if (column.sortable) {
                 // Update the columns
                 let currColumn: IViewColumn;
-                const sortedColumns = this.state.columns.map(c => {
+                const sortedColumns = columns.map(c => {
                     if (c.key === column.key) {
                         c.isSortedDescending = sortDescending;
                         c.isSorted = true;
@@ -341,14 +416,30 @@ export class ListView extends React.Component<IListViewProps, IListViewState> {
     protected onSortByColumn(column: IViewColumn) {
         const { items } = this.state;
 
-        if (typeof this.props.onSort === "function") {
-            this.props.onSort(column, items);
+        if (this.props.onSort instanceof Function) {
+            this.props.onSort(column, items, (sortedItems: any[], groupBy: IGrouping[], groups?: IGroup[]) => {
+                if (!(groups instanceof Array)) {
+                    this._groupItems(sortedItems, groupBy || this.props.groupBy);
+                }
+                else {
+                    this.set_items(sortedItems, groups);
+                }
+            });
         }
         else {
             const ascItems = sortBy(items, [column.fieldName]);
             const sortedItems = column.isSortedDescending === true ? ascItems.reverse() : ascItems;
-
-            this.set_items(sortedItems);
+            this._groupItems(sortedItems, this.props.groupBy);
         }
-    }  
+    }
+
+    private _groupItems(items: any[], groupBy: IGrouping[]) {
+        if (groupBy instanceof Array && groupBy.length > 0) {
+            const groupedItems = this._getGroups(items, groupBy);
+            this.set_items(groupedItems.groups.length > 0 ? groupedItems.items : items, groupedItems.groups);
+        }
+        else {
+            this.set_items(items, undefined);
+        }
+    }
 }

@@ -16,7 +16,8 @@ export interface IListViewProps extends IDetailsListProps {
     columns?: IViewColumn[];
     groupBy?: IGrouping[];
     onSelect?: (items: any[]) => void;
-    onSort?: (sortColumn: IViewColumn, items: any[]) => void;
+    onSort?: (sortColumn: IViewColumn, items: any[], onSort: (sortedItems: any[], groupBy?: IGrouping[], groups? : IGroup[]) => void) => void;
+    onGroup?: (groupBy: IGrouping[], columns: IViewColumn[], items: any[], onGroup: (groupedItems: any[], groupBy?: IGrouping[], groups? : IGroup[]) => void) => void;
 }
 
 export interface IListViewState {
@@ -31,4 +32,5 @@ export interface IListViewState {
 export interface IGrouping {
     name: string;
     order: GroupOrder;
+    keyGetter?: (value: any) => string;
 }

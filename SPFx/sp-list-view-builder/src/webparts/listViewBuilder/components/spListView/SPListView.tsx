@@ -7,9 +7,9 @@ import { isEqual } from '@microsoft/sp-lodash-subset';
 import { Spinner, SpinnerSize } from 'office-ui-fabric-react/lib/Spinner';
 import { Stack } from 'office-ui-fabric-react/lib/Stack';
 import { IconButton, Icon, Link } from 'office-ui-fabric-react';
-import { IColumn } from 'office-ui-fabric-react/lib/DetailsList';
+import { IColumn, IGroup } from 'office-ui-fabric-react/lib/DetailsList';
 import { Breadcrumb, IBreadcrumbItem } from "office-ui-fabric-react/lib/Breadcrumb";
-import { ListView, IListViewProps } from '../../../../controls/listView';
+import { ListView, IListViewProps, IGrouping } from '../../../../controls/listView';
 import { IViewColumn } from '../../../../controls/listView';
 import { ITimeZoneInfo, IRegionalSettingsInfo } from "@pnp/sp/regional-settings/types";
 import { ISPListViewProps, ISPListViewState } from './ISPListView';
@@ -47,9 +47,9 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
         const locale = SPService.getLocaleName(this._regionalSettings.LocaleId);
         moment.locale(locale);
         const folder = this.props.rootFolder;
-        const page = await this.getData(undefined, folder);
+        const page = await this.getData(undefined, undefined, folder);
         this._isMounted = true;
-        this.setState({ page: page, columns: columns, isLoading: false, sortColumn: undefined, folder: this.props.rootFolder ? { ...this.props.rootFolder } : undefined });
+        this.setState({ page: page, columns: columns, isLoading: false, sortColumn: undefined, groupBy: this.props.groupBy, folder: this.props.rootFolder ? { ...this.props.rootFolder } : undefined });
     }
 
     public async componentDidUpdate(prevProps: ISPListViewProps, prevState: ISPListViewState) {
@@ -63,11 +63,14 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
     }
 
     public render(): React.ReactElement {
-        const { page, columns, isLoading } = this.state;
+        const { page, columns, groupBy, isLoading } = this.state;
         return <div>
-            {!this._isMounted && isLoading /*&& !page*/ && <Spinner size={SpinnerSize.large} />}
+            {!this._isMounted && isLoading && <Spinner size={SpinnerSize.large} />}
             {this._isMounted === true && this.renderBreadcrumb()}
-            {this._isMounted === true && <ListView items={page ? page.results : []} columns={columns} onSelect={this.onSelectItems.bind(this)} onSort={this.onSortItems.bind(this)} />}
+            {this._isMounted === true && <ListView items={page ? page.results : []} columns={columns} groupBy={groupBy}
+                onSelect={this.onSelectItems.bind(this)}
+                onSort={this.onSortItems.bind(this)}
+                onGroup={this.onGroupItems.bind(this)} />}
             {this._isMounted === true && !isLoading && (page && page.hasNext === true) && <Stack verticalAlign="center" horizontalAlign="center">
                 <IconButton
                     title={"More"}
@@ -119,7 +122,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
         return filter;
     }
 
-    private async getData(sortColumn?: IViewColumn, folder?: IFolder): Promise<PagedItemCollection<any[]>> {
+    private async getData(sortColumn?: IViewColumn, groupBy?: IGrouping[], folder?: IFolder): Promise<PagedItemCollection<any[]>> {
         let select = [], expand = [];
         for (const viewField of this.props.viewFields) {
             if (viewField.Name === "DocIcon") {
@@ -179,19 +182,8 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
             request = request.expand(...expand);
         }
 
-        if (this.props.showFolders === true && (sortColumn && sortColumn.fieldName !== "DocIcon")) {
+        if (this.props.showFolders === true && (!sortColumn || sortColumn.fieldName !== "DocIcon")) {
             request = request.orderBy("FSObjType", false);
-        }
-
-        if (this.props.orderBy instanceof Array) {
-            for (const orderByField of this.props.orderBy) {
-                if (orderByField.Name === "DocIcon") {
-                    request = request.orderBy("FSObjType", !orderByField.Descending);
-                }
-                else {
-                    request = request.orderBy(orderByField.Name, !orderByField.Descending);
-                }
-            }
         }
 
         if (sortColumn) {
@@ -203,30 +195,78 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
             }
         }
 
+        if (this.props.orderBy instanceof Array) {
+            for (const orderByField of this.props.orderBy) {
+                if (orderByField.Name === "DocIcon") {
+                    request = request.orderBy("FSObjType", !orderByField.Descending);
+                }
+                else {
+                    request = request.orderBy(orderByField.Name, !orderByField.Descending);
+                }
+            }
+        }      
+
         const filter = folder ? this.getFilter(this.props.showFolders, this.props.includeSubFolders, folder.ServerRelativeUrl)
             : this.getFilter(this.props.showFolders, this.props.includeSubFolders);
 
         if (filter) {
             request = request.filter(filter);
         }
+        
+        if(groupBy){
+          //TODO: GroupBy in CAML query
+        }
+
         return await request.usingCaching().getPaged();
     }
 
     private loadItemsInFolder(folder: IFolder) {
         this.setState({ isLoading: true, folder: folder, page: { results: new Array(10) } as PagedItemCollection<any[]> }, () => {
-            this.getData(this.state.sortColumn, folder).then(page => {
+            this.getData(this.state.sortColumn, this.state.groupBy, folder).then(page => {
                 this.setState({ page: page, isLoading: false });
             });
         });
     }  
 
-    private onSortItems(column: IViewColumn, items: any[]) {
+    private onSortItems(column: IViewColumn) {
         this.setState({ isLoading: true, sortColumn: column, page: { results: new Array(10) } as PagedItemCollection<any[]> }, () => {
             const folder = this.state.folder || this.props.rootFolder;
-            this.getData(column, folder).then(page => {
+            this.getData(column, this.state.groupBy, folder).then(page => {
                 this.setState({ page: page, isLoading: false });
             });
         });
+    }
+
+    private onGroupItems(groupBy: IGrouping[], columns: IViewColumn[], items: any[], onGroup: (groupedItems: any[], groupBy?: IGrouping[], groups? : IGroup[]) => void) {
+        const { viewFields } = this.props;
+        groupBy = groupBy.map(g => {
+            const viewField = viewFields.some(f => SPService.compareFieldNames(f.Name, g.name)) ? viewFields.filter(f => SPService.compareFieldNames(f.Name, g.name))[0] : null;
+            return {
+                ...g,
+                keyGetter: (value) => {
+                    if (value) {
+                        if (viewField) {
+                            if (viewField.DataType === DataType.Lookup || viewField.DataType === DataType.User) {
+                                return value[(viewField as IViewLookupField).LookupFieldName || "Title"];
+                            }
+                        }
+                        return viewField ? this.formatFieldValue(value, viewField.DataType) : value;
+                    }
+                    return "";
+                }
+            } as IGrouping;
+        });
+
+        this.setState({ groupBy: groupBy }, () => {
+            onGroup(items, groupBy);
+        });
+    
+        /*this.setState({ isLoading: true, groupBy: groupBy, page: { results: new Array(10) } as PagedItemCollection<any[]> }, () => {
+            const folder = this.state.folder || this.props.rootFolder;
+            this.getData(this.state.sortColumn, groupBy, folder).then(page => {
+                this.setState({ page: page, isLoading: false });
+            });
+        });*/
     }
 
     private get_Columns(viewFields: IViewField[]): IColumn[] {
@@ -276,7 +316,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
             column.onRender = (item, index, col) => this.renderMultiLookup(item, index, col, viewField as IViewLookupField, viewFields);
         }
         else if (viewField.DataType === DataType.User) {
-            column.onRender = (item, index, col) => this.renderUser(item, index, col, viewField, viewFields);
+            column.onRender = (item, index, col) => this.renderUser(item, index, col, viewField as IViewLookupField, viewFields);
         }
         if (viewField.DataType === DataType.MultiUser) {
             column.onRender = (item, index, col) => this.renderMultiUser(item, index, col, viewField, viewFields);
@@ -317,7 +357,11 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
         return value;
     }
 
-    private renderLookup(item, index, column: IColumn, viewField: IViewLookupField, viewFields: IViewField[]) {
+    private renderLookup(item, index: number, column: IColumn, viewField: IViewLookupField, viewFields: IViewField[]) {
+        return <span>{this.getLookupValue(item, viewField)}</span>;
+    }
+
+    private getLookupValue(item: any, viewField: IViewLookupField) {
         let value;
         if (viewField.PrimaryFieldName && viewField.LookupFieldName) {
             value = item[`${viewField.PrimaryFieldName}`][(viewField as IViewLookupField).LookupFieldName];
@@ -325,11 +369,11 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
         else {
             value = item[`${viewField.Name}`][(viewField as IViewLookupField).LookupFieldName || "Title"];
         }
-        return <span>{this.formatFieldValue(value, viewField.OutputType)}</span>;
+        return this.formatFieldValue(value, viewField.OutputType);
     }
 
-    private renderUser(item, index, column: IColumn, viewField: IViewField, viewFields: IViewField[]) {
-        let value = item[`${viewField.Name}`][(viewField as IViewLookupField).LookupFieldName || "Title"];
+    private renderUser(item, index, column: IColumn, viewField: IViewLookupField, viewFields: IViewField[]) {
+        const value = this.getLookupValue(item, viewField);
         return <span>{value}</span>;
     }
 

@@ -6,6 +6,7 @@ import { Separator } from 'office-ui-fabric-react/lib/components/Separator';
 import { IPropertyPaneFieldPickerInternalProps, IPropertyPaneFieldPickerProps } from './IPropertyPaneFieldPickerProps';
 import { FieldPicker } from '../../../controls/components/fieldPicker';
 import { IField } from '../../../utilities/Entities';
+import { IFieldInfo } from '@pnp/sp/fields';
 
 export class PropertyPaneFieldPicker implements IPropertyPaneField<IPropertyPaneFieldPickerProps> {
   public type: PropertyPaneFieldType = PropertyPaneFieldType.Custom;
@@ -57,13 +58,18 @@ export class PropertyPaneFieldPicker implements IPropertyPaneField<IPropertyPane
   }
 
   protected onRenderElement(): React.ReactElement {
-    return <FieldPicker list={this.properties.list} disabled={this.properties.disabled} itemLimit={this.properties.itemLimit} placeholder={this.properties.placeholder} selected={this.properties.selected} onChange={(fields: IField[]) => {
-      if (fields instanceof Array && fields.length > 0) {
-        this.properties.onPropertyChange(this.targetProperty, fields[0]);
-      }
-      else {
-        this.properties.onPropertyChange(this.targetProperty, null);
-      }
-    }} />;
+    return <FieldPicker list={this.properties.list} disabled={this.properties.disabled} itemLimit={this.properties.itemLimit} placeholder={this.properties.placeholder} selected={this.properties.selected}
+      onFilter={this.properties.onFilter}
+      onChange={(fields: IFieldInfo[]) => {
+        if (fields instanceof Array && fields.length > 0) {
+          const value = this.properties.itemLimit === 1
+            ? { Id: fields[0].Id, Name: fields[0].InternalName, Title: fields[0].Title } as IField
+            : fields.map(field => { return { Id: field.Id, Name: field.InternalName, Title: field.Title } as IField; });
+          this.properties.onPropertyChange(this.targetProperty, value);
+        }
+        else {
+          this.properties.onPropertyChange(this.targetProperty, null);
+        }
+      }} />;
   }
 }

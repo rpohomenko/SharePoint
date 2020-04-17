@@ -29,6 +29,15 @@ export default class SPService {
         return list;
     }
 
+    public static compareFieldNames(name1: string, name2: string): boolean {
+        const isTitle1 = name1 === "LinkTitle" || name1 === "Title" || name1 === "LinkTitleNoMenu";
+        const isTitle2 = name2 === "LinkTitle" || name2 === "Title" || name2 === "LinkTitleNoMenu";
+        if (isTitle1 && isTitle2) {
+          return true;
+        }
+        return name1 === name2;
+      }
+
     public static getLocaleName(lcid: number): string {
         const locales: Record<number, string> = {
             1025: 'ar-SA',

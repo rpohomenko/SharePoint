@@ -1,10 +1,7 @@
 import * as React from 'react';
 import { Separator } from 'office-ui-fabric-react/lib/Separator';
-
 import styles from "./addViewFields.module.scss";
-
 import { Panel } from 'office-ui-fabric-react/lib/Panel';
-
 import { Stack, IDropdownOption, Spinner, SpinnerSize } from 'office-ui-fabric-react';
 import { DefaultButton, PrimaryButton } from 'office-ui-fabric-react/lib/Button';
 
@@ -20,34 +17,15 @@ import "@pnp/sp/views";
 import "@pnp/sp/fields";
 import { isArray } from '@pnp/common';
 
-import { FieldTypes, IFieldInfo, IField } from "@pnp/sp/fields";
+import { FieldTypes, IFieldInfo } from "@pnp/sp/fields";
 
-import { IViewField, IViewLookupField, DataType } from '../../../../utilities/Entities';
+import { IViewField, IViewLookupField, DataType, IFieldLookupInfo, IFieldDateInfo, IFieldUserInfo, IFieldMultiLineTextInfo } from '../../../../utilities/Entities';
 import { AsyncDropdown, IAsyncDropdownState, IAsyncDropdownProps } from '../../../../controls/components/asyncDropdown';
 
 import { getTheme } from 'office-ui-fabric-react/lib/Styling';
+import SPService from '../../../../utilities/SPService';
 
 const theme = getTheme();
-
-interface IFieldLookupInfo extends IFieldInfo {
-  AllowMultipleValues: boolean;
-  LookupField: string;
-  LookupList: string;
-  LookupWebId: string;  
-  IsRelationship: boolean;
-  PrimaryFieldId?: string;
-}
-
-interface IFieldUserInfo extends IFieldLookupInfo {
-}
-
-interface IFieldMultiLineTextInfo extends IFieldInfo {
-  RichText: boolean;
-}
-
-interface IFieldDateInfo extends IFieldInfo {
-  DisplayFormat: number;
-}
 
 export interface AddViewFieldsPanelProps {
   listId: string;
@@ -148,7 +126,7 @@ export class AddViewFieldsPanel extends React.Component<AddViewFieldsPanelProps,
     if (props) {
       const fields = this.props.fields;
       if (fields instanceof Array) {
-        if (fields.some(f => this.compareFieldNames(f.Name, props.item.Name))) {
+        if (fields.some(f => SPService.compareFieldNames(f.Name, props.item.Name))) {
           customStyles.root = { backgroundColor: theme.palette.themeLighter };
           selectionDisabled = true;
           //props.checkboxVisibility= CheckboxVisibility.always;
@@ -161,15 +139,6 @@ export class AddViewFieldsPanel extends React.Component<AddViewFieldsPanelProps,
         <DetailsRow {...props} styles={customStyles} />
       </span>
     );
-  }
-
-  private compareFieldNames(name1: string, name2: string): boolean {
-    const isTitle1 = name1 === "LinkTitle" || name1 === "Title" || name1 === "LinkTitleNoMenu";
-    const isTitle2 = name2 === "LinkTitle" || name2 === "Title" || name2 === "LinkTitleNoMenu";
-    if (isTitle1 && isTitle2) {
-      return true;
-    }
-    return name1 === name2;
   }
 
   private renderFooterContent = () => {

@@ -2,7 +2,7 @@ import * as React from 'react';
 import { Label } from 'office-ui-fabric-react/lib/Label';
 import { TagPicker, IBasePicker, ITag } from 'office-ui-fabric-react/lib/Pickers';
 import { IList } from "@pnp/sp/lists";
-import { IFieldInfo } from "@pnp/sp/fields";
+import { IFieldInfo, Field } from "@pnp/sp/fields";
 import { IFieldPickerState, IFieldPickerProps } from './IFieldPickerProps';
 import { IField } from "../../../utilities/Entities";
 
@@ -43,18 +43,21 @@ export class FieldPicker extends React.Component<IFieldPickerProps, IFieldPicker
                     return { key: field.Name, name: field.Title } as ITag;
                 }) : []}
                 onResolveSuggestions={(filter: string, selectedItems?: ITag[]) => {
-                    if(!filter) return null;
+                    if (!filter) return null;
                     return this.getFields(list).then((fields) => {
                         if (fields instanceof Array) {
-                            return fields.filter(field => field.Title.toLowerCase().indexOf(filter.toLowerCase()) !== -1)
-                                .map(field => { return { key: field.InternalName, name: field.Title } as ITag; });
+                            fields = fields.filter(field => field.Title.toLowerCase().indexOf(filter.toLowerCase()) !== -1);
+                            if (this.props.onFilter instanceof Function) {
+                                fields = fields.filter(field => this.props.onFilter(field));
+                            }
+                            return fields.map(field => { return { key: field.InternalName, name: field.Title } as ITag; });
                         }
                     });
                 }}
                 onChange={(items?: ITag[]) => {
                     const fields = items.length > 0 && this._fields instanceof Array ? this._fields.filter(field => items.some(item => item.key === field.InternalName)) : [];
                     if (this.props.onChange instanceof Function) {
-                        this.props.onChange(fields.map(field => { return { Id: field.Id, Name: field.InternalName, Title: field.Title } as IField; }));
+                        this.props.onChange(fields);
                     }
                 }}
                 onItemSelected={(item: ITag): ITag | null => {

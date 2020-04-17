@@ -1,3 +1,5 @@
+import { FieldTypes, IFieldInfo } from "@pnp/sp/fields";
+
 export enum DataType {
     Text = 0,
     MultiLineText = 1,
@@ -53,4 +55,24 @@ export interface IFolder {
      * Server relative url of the folder
      */
     ServerRelativeUrl: string;
+}
+
+export interface IFieldLookupInfo extends IFieldInfo {
+    AllowMultipleValues: boolean;
+    LookupField: string;
+    LookupList: string;
+    LookupWebId: string;
+    IsRelationship: boolean;
+    PrimaryFieldId?: string;
+}
+
+export interface IFieldUserInfo extends IFieldLookupInfo {
+}
+
+export interface IFieldMultiLineTextInfo extends IFieldInfo {
+    RichText: boolean;
+}
+
+export interface IFieldDateInfo extends IFieldInfo {
+    DisplayFormat: number;
 }

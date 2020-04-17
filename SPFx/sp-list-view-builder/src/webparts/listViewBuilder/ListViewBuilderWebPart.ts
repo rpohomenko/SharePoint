@@ -14,6 +14,7 @@ import { sp } from "@pnp/sp";
 import "@pnp/sp/webs";
 import "@pnp/sp/lists";
 import "@pnp/sp/items";
+import { FieldTypes, IFieldInfo } from "@pnp/sp/fields";
 import { Placeholder } from "@pnp/spfx-controls-react/lib/Placeholder";
 import * as strings from 'ListViewBuilderWebPartStrings';
 
@@ -21,7 +22,7 @@ import { PropertyFieldListPicker } from '../propertyPaneField/propertyFieldListP
 import { ListOrderBy, ISPListInfo } from "../../controls/components/listPicker";
 import { PropertyPaneViewFieldList } from '../propertyPaneField/PropertyPaneViewFieldList';
 import { PropertyPaneFieldPicker } from '../propertyPaneField/propertyPaneFieldPicker';
-import { IViewField, IFolder, IField, IOrderByField } from '../../utilities/Entities';
+import { IViewField, IFolder, IField, IOrderByField, IFieldLookupInfo } from '../../utilities/Entities';
 import { update, get } from '@microsoft/sp-lodash-subset';
 import { proxyUrl, webRelativeUrl } from '../../settings';
 import { SPListView } from './components/spListView';
@@ -63,7 +64,8 @@ export default class ListViewBuilderWebPart extends BaseClientSideWebPart<IListV
           includeSubFolders: this.properties.includeSubFolders,
           showFolders: !this.properties.includeSubFolders,
           rootFolder: !this.properties.includeSubFolders ? { Name: this.properties.list.Title, ServerRelativeUrl: this.properties.list.Url } as IFolder : undefined,
-          orderBy: this.properties.orderBy ? [{ Name: this.properties.orderBy.Name, Descending: !this.properties.ascending } as IOrderByField] : undefined
+          orderBy: this.properties.orderBy ? [{ Name: this.properties.orderBy.Name, Descending: !this.properties.ascending } as IOrderByField] : undefined,
+          
         });
     }
     else {
@@ -180,9 +182,13 @@ export default class ListViewBuilderWebPart extends BaseClientSideWebPart<IListV
                   placeholder: "Select a field...",
                   itemLimit: 1,
                   disabled: !this.properties.list,
-                  selected: this.properties.orderBy ? [this.properties.orderBy]: undefined,                
+                  selected: this.properties.orderBy ? [this.properties.orderBy] : undefined,
                   list: SPService.getList(this.properties.list),
-                  onPropertyChange: this.onCustomPropertyPaneFieldChanged.bind(this)
+                  onPropertyChange: this.onCustomPropertyPaneFieldChanged.bind(this),
+                  onFilter: (field) => {
+                    return !(field as IFieldLookupInfo).AllowMultipleValues && field.FieldTypeKind !== FieldTypes.MultiChoice
+                      && field.FieldTypeKind !== FieldTypes.Note;
+                  }
                 }),
                 PropertyPaneToggle('ascending', {
                   label: strings.AscendingLabel,
