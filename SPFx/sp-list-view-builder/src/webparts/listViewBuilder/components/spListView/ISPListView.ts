@@ -19,8 +19,9 @@ export interface ISPListViewProps {
 }
 
 export interface ISPListViewState {
-  page?: PagedItemCollection<IListItem[]>;
-  selection?: IListItem[],
+  //page?: PagedItemCollection<IListItem[]>;
+  items?: IListItem[];
+  selection?: IListItem[];
   columns: IColumn[];
   isLoading?: boolean;
   folder?: IFolder;

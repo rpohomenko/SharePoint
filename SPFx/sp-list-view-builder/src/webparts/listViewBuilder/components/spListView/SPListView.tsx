@@ -28,6 +28,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
     private _regionalSettings: IRegionalSettingsInfo;
     private _isMounted = false;
     private _shimItemCount = 5;
+    private _page?: PagedItemCollection<IListItem[]>;
 
     constructor(props: ISPListViewProps) {
         super(props);
@@ -40,7 +41,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
 
     public async componentDidMount() {
         const columns = this.get_Columns(this.props.viewFields);
-        this.setState({ isLoading: true, page: { results: new Array(this._shimItemCount) } as PagedItemCollection<IEditableListItem[]> });
+        this.setState({ isLoading: true, items: new Array(this._shimItemCount) });
         if (this.props.regionalSettings) {
             this._regionalSettings = await this.props.regionalSettings;
         }
@@ -52,8 +53,9 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
         moment.locale(locale);
         const folder = this.props.rootFolder;
         const page = await this.getData(this.props.list, undefined, undefined, folder);
+        this._page = page;
         this._isMounted = true;
-        this.setState({ page: page, columns: columns, isLoading: false, sortColumn: undefined, groupBy: this.props.groupBy, folder: this.props.rootFolder ? { ...this.props.rootFolder } : undefined });
+        this.setState({ items: page.results, columns: columns, isLoading: false, sortColumn: undefined, groupBy: this.props.groupBy, folder: this.props.rootFolder ? { ...this.props.rootFolder } : undefined });
     }
 
     public async componentDidUpdate(prevProps: ISPListViewProps, prevState: ISPListViewState) {
@@ -67,12 +69,13 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
     }
 
     public render(): React.ReactElement {
-        const { page, columns, groupBy, isLoading } = this.state;
+        const { items, columns, groupBy, isLoading } = this.state;
+        const page = this._page;
         return <div>
             {this._isMounted === true && this.renderCommandBar()}
             {!this._isMounted && isLoading && <Spinner size={SpinnerSize.large} />}
             {this._isMounted === true && this.renderBreadcrumb()}
-            {this._isMounted === true && <ListView items={page ? page.results : []} columns={columns} groupBy={groupBy}
+            {this._isMounted === true && <ListView items={items || []} columns={columns} groupBy={groupBy}
                 onSelect={this.onSelectItems.bind(this)}
                 onSort={this.onSortItems.bind(this)}
                 onGroup={this.onGroupItems.bind(this)} />}
@@ -100,20 +103,21 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
 
     private async loadNextData(page: PagedItemCollection<IEditableListItem[]>) {
         if (page && page.hasNext === true) {
-            const { groupBy } = this.state;
-            const results = (page.results as any[] || []).concat(new Array(this._shimItemCount));
-            this.setState({ isLoading: true, groupBy: undefined, page: { results: results } as PagedItemCollection<IEditableListItem[]> });
+            const { groupBy, items } = this.state;
+            this.setState({ isLoading: true, groupBy: undefined, items: [...items, ...new Array(this._shimItemCount)] });
             const nextPage = await page.getNext();
-            nextPage.results = (page.results as any[] || []).concat(nextPage.results as any[] || []);
-            this.setState({ isLoading: false, groupBy: groupBy, page: nextPage });
+            const newItems = [...page.results, ...nextPage.results];
+            this._page = nextPage;
+            this.setState({ isLoading: false, groupBy: groupBy, items: newItems });
         }
     }
 
     private loadItemsInFolder(folder: IFolder) {
         const { groupBy } = this.state;
-        this.setState({ isLoading: true, groupBy: undefined, folder: folder, page: { results: new Array(this._shimItemCount) } as PagedItemCollection<IEditableListItem[]> }, () => {
+        this.setState({ isLoading: true, groupBy: undefined, folder: folder, items: new Array(this._shimItemCount) }, () => {
             this.getData(this.props.list, this.state.sortColumn, this.state.groupBy, folder).then(page => {
-                this.setState({ page: page, groupBy: groupBy, isLoading: false });
+                this._page = page;
+                this.setState({ items: page.results, groupBy: groupBy, isLoading: false });
             });
         });
     }
@@ -138,7 +142,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
     }
 
     private renderCommandBar() {
-        const commandItems = this.getCommandItems(this.state.page, this.state.selection);
+        const commandItems = this.getCommandItems(this.state.items, this.state.selection);
         return <CommandBar items={commandItems} />;
     }
 
@@ -161,7 +165,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
         return item;
     }
 
-    protected getCommandItems(page: PagedItemCollection<IEditableListItem[]>, selection?: IEditableListItem[]): ICommandBarItemProps[] {
+    protected getCommandItems(items: IEditableListItem[], selection?: IEditableListItem[]): ICommandBarItemProps[] {
         selection = this._processListItems(...selection);
         const canEdit = selection instanceof Array && selection.length === 1 && selection[0].CanEdit;
         const canDelete = selection instanceof Array && selection.length > 0 && selection.filter(item => item.CanDelete === true).length === selection.length;
@@ -263,7 +267,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
         }
 
         if (this.props.showFolders === true && (!sortColumn || sortColumn.fieldName !== "DocIcon")) {
-            request = request.orderBy("FSObjType", false);
+           request = request.orderBy("FSObjType", false);
         }
 
         if (sortColumn) {
@@ -273,7 +277,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
             else {
                 request = request.orderBy(sortColumn.fieldName, !sortColumn.isSortedDescending);
             }
-        }
+        }      
 
         if (this.props.orderBy instanceof Array) {
             for (const orderByField of this.props.orderBy) {
@@ -285,6 +289,8 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
                 }
             }
         }
+        
+        request = request.orderBy("ID", true);
 
         const filter = folder ? this.getFilter(this.props.showFolders, this.props.includeSubFolders, folder.ServerRelativeUrl)
             : this.getFilter(this.props.showFolders, this.props.includeSubFolders);
@@ -297,15 +303,16 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
             //TODO: GroupBy in CAML query
         }
 
-        return await request.usingCaching().getPaged();
+        return await request/*.usingCaching()*/.getPaged();
     }
 
     private onSortItems(column: IViewColumn) {
         const { groupBy } = this.state;
-        this.setState({ isLoading: true, groupBy: undefined, sortColumn: column, page: { results: new Array(this._shimItemCount) } as PagedItemCollection<IEditableListItem[]> }, () => {
+        this.setState({ isLoading: true, groupBy: undefined, sortColumn: column, items: new Array(this._shimItemCount) }, () => {
             const folder = this.state.folder || this.props.rootFolder;
             this.getData(this.props.list, column, groupBy, folder).then(page => {
-                this.setState({ page: page, groupBy: groupBy, isLoading: false });
+                this._page = page;
+                this.setState({ items: page.results, groupBy: groupBy, isLoading: false });
             });
         });
     }
@@ -340,14 +347,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
 
         this.setState({ groupBy: groupBy }, () => {
             onGroup(items, groupBy);
-        });
-
-        /*this.setState({ isLoading: true, groupBy: groupBy, page: { results: new Array(this._shimItemCount) } as PagedItemCollection<IEditableListItem[]> }, () => {
-            const folder = this.state.folder || this.props.rootFolder;
-            this.getData(this.state.sortColumn, groupBy, folder).then(page => {
-                this.setState({ page: page, isLoading: false });
-            });
-        });*/
+        });      
     }
 
     private get_Columns(viewFields: IViewField[]): IColumn[] {
