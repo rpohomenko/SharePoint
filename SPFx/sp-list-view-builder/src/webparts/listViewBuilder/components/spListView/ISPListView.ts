@@ -1,11 +1,12 @@
 import { PagedItemCollection } from "@pnp/sp/items";
 import { IColumn } from 'office-ui-fabric-react/lib/DetailsList';
 import { ITimeZoneInfo, IRegionalSettingsInfo } from "@pnp/sp/regional-settings/types";
-import { IViewField, IFolder, IOrderByField } from '../../../../utilities/Entities';
+import { IViewField, IFolder, IOrderByField, IListItem } from '../../../../utilities/Entities';
 import { IGrouping } from "../../../../controls/listView";
+import { IList } from "@pnp/sp/lists";
 
 export interface ISPListViewProps {
-  listId: string;
+  list: IList;
   viewFields: IViewField[];
   count?: number;
   regionalSettings?: Promise<IRegionalSettingsInfo>;
@@ -18,10 +19,12 @@ export interface ISPListViewProps {
 }
 
 export interface ISPListViewState {
-  page?: PagedItemCollection<any>;
+  page?: PagedItemCollection<IListItem[]>;
+  selection?: IListItem[],
   columns: IColumn[];
   isLoading?: boolean;
   folder?: IFolder;
   sortColumn?: IColumn;
   groupBy?: IGrouping[];
+  canAddItems?: boolean; 
 }

@@ -56,7 +56,7 @@ export default class ListViewBuilderWebPart extends BaseClientSideWebPart<IListV
       element = React.createElement(
         SPListView,
         {
-          listId: this.properties.list.Id,
+          list: SPService.getList(this.properties.list),
           viewFields: this.properties.viewFields,
           count: this.properties.countPerPage,
           timeZone: SPService.getTimeZoneInfo(),

@@ -19,16 +19,17 @@ export class ListView extends React.Component<IListViewProps, IListViewState> {
         // Initialize state
         this.state = {
             items: [],
-            flattenItems: []
+            //flattenItems: []
         };
-
-        if (this.props.selection) {
-            // Initialize the selection
-            this._selection = new Selection({
-                // Create the event handler when a selection changes
-                onSelectionChanged: () => this.props.onSelect(this._selection.getSelection())
-            });
-        }
+        // Initialize the selection
+        this._selection = new Selection({
+            // Create the event handler when a selection changes
+            onSelectionChanged: () => {
+                if (this.props.onSelect instanceof Function) {
+                    this.props.onSelect(this._selection.getSelection());
+                }
+            }
+        });
     }
 
     /**
@@ -45,7 +46,7 @@ export class ListView extends React.Component<IListViewProps, IListViewState> {
      */
     public componentDidUpdate(prevProps: IListViewProps, prevState: IListViewState): void {
 
-        if (!isEqual(prevProps, this.props)) {
+        if (/*!isEqual(prevProps, this.props)*/ prevProps.items !== this.props.items ||  prevProps.columns !== this.props.columns) {
             // Reset the selected items
             if (this._selection) {
                 this._selection.setItems(this.props.items, true);
@@ -54,16 +55,12 @@ export class ListView extends React.Component<IListViewProps, IListViewState> {
         }
     }
 
-    public set_items(items: any[], groups?: IGroup[]) {
-        this.setState({ items: items, flattenItems: this._flattenItems(items), groups: groups });
-    }
-
     /**
      * Default React component render method
      */
     public render(): React.ReactElement<IListViewProps> {
         let groupProps: IGroupRenderProps = {};
-        const { items, flattenItems, columns, groups, columnContextualMenuProps } = this.state;
+        const { items/*, flattenItems*/, columns, groups, columnContextualMenuProps } = this.state;
 
         // Check if selection mode is single selection,
         // if that is the case, disable the selection on grouping headers
@@ -77,7 +74,7 @@ export class ListView extends React.Component<IListViewProps, IListViewState> {
         }
 
         return <>
-            {this.renderList(flattenItems, columns, groupProps, groups, this._selection)}
+            {this.renderList(/*flattenItems*/ items, columns, groupProps, groups, this._selection)}
             {columnContextualMenuProps && <ContextualMenu {...columnContextualMenuProps} />}
         </>;
     }
@@ -104,6 +101,10 @@ export class ListView extends React.Component<IListViewProps, IListViewState> {
             columns: (typeof columns !== 'undefined' && columns !== null) ? this._createColumns(columns) : []
         });
         this._groupItems(items instanceof Array ? items : [], this.props.groupBy);
+    }
+
+    public set_items(items: any[], groups?: IGroup[]) {
+        this.setState({ items: items/*, flattenItems: this._flattenItems(items)*/, groups: groups });
     }
 
     /**

@@ -1,4 +1,5 @@
 import { FieldTypes, IFieldInfo } from "@pnp/sp/fields";
+import { IBasePermissions } from "@pnp/sp/security";
 
 export enum DataType {
     Text = 0,
@@ -75,4 +76,15 @@ export interface IFieldMultiLineTextInfo extends IFieldInfo {
 
 export interface IFieldDateInfo extends IFieldInfo {
     DisplayFormat: number;
+}
+
+export interface IListItem {
+    ID: number;
+    Title?: string;
+    EffectiveBasePermissions: IBasePermissions;
+}
+
+export interface IEditableListItem extends IListItem {
+    CanEdit?: boolean;
+    CanDelete?: boolean;
 }

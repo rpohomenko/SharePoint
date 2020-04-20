@@ -10,14 +10,17 @@ import { IconButton, Icon, Link } from 'office-ui-fabric-react';
 import { IColumn, IGroup } from 'office-ui-fabric-react/lib/DetailsList';
 import { Breadcrumb, IBreadcrumbItem } from "office-ui-fabric-react/lib/Breadcrumb";
 import { ListView, IListViewProps, IGrouping } from '../../../../controls/listView';
+import { IList } from "@pnp/sp/lists";
 import { IViewColumn } from '../../../../controls/listView';
 import { ITimeZoneInfo, IRegionalSettingsInfo } from "@pnp/sp/regional-settings/types";
 import { ISPListViewProps, ISPListViewState } from './ISPListView';
-import { DataType, IViewField, IViewLookupField, IFolder } from '../../../../utilities/Entities';
+import { DataType, IViewField, IViewLookupField, IFolder, IEditableListItem, IListItem } from '../../../../utilities/Entities';
 import moment from 'moment';
 import SPService from '../../../../utilities/SPService';
 import DateHelper from '../../../../utilities/DateHelper';
 import styles from './spListView.module.scss';
+import { CommandBar, ICommandBarItemProps } from 'office-ui-fabric-react/lib/CommandBar';
+import { PermissionKind } from '@pnp/sp/security';
 
 export class SPListView extends React.Component<ISPListViewProps, ISPListViewState> {
 
@@ -37,7 +40,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
 
     public async componentDidMount() {
         const columns = this.get_Columns(this.props.viewFields);
-        this.setState({ isLoading: true, page: { results: new Array(this._shimItemCount) } as PagedItemCollection<any[]> });
+        this.setState({ isLoading: true, page: { results: new Array(this._shimItemCount) } as PagedItemCollection<IEditableListItem[]> });
         if (this.props.regionalSettings) {
             this._regionalSettings = await this.props.regionalSettings;
         }
@@ -48,7 +51,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
         const locale = SPService.getLocaleName(this._regionalSettings.LocaleId);
         moment.locale(locale);
         const folder = this.props.rootFolder;
-        const page = await this.getData(undefined, undefined, folder);
+        const page = await this.getData(this.props.list, undefined, undefined, folder);
         this._isMounted = true;
         this.setState({ page: page, columns: columns, isLoading: false, sortColumn: undefined, groupBy: this.props.groupBy, folder: this.props.rootFolder ? { ...this.props.rootFolder } : undefined });
     }
@@ -66,6 +69,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
     public render(): React.ReactElement {
         const { page, columns, groupBy, isLoading } = this.state;
         return <div>
+            {this._isMounted === true && this.renderCommandBar()}
             {!this._isMounted && isLoading && <Spinner size={SpinnerSize.large} />}
             {this._isMounted === true && this.renderBreadcrumb()}
             {this._isMounted === true && <ListView items={page ? page.results : []} columns={columns} groupBy={groupBy}
@@ -90,19 +94,28 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
         </div>;
     }
 
-    protected onSelectItems(items: any[]) {
-
+    protected onSelectItems(selection: IListItem[]) {
+        this.setState({ selection: selection });
     }
 
-    private async loadNextData(page: PagedItemCollection<any>) {
+    private async loadNextData(page: PagedItemCollection<IEditableListItem[]>) {
         if (page && page.hasNext === true) {
             const { groupBy } = this.state;
             const results = (page.results as any[] || []).concat(new Array(this._shimItemCount));
-            this.setState({ isLoading: true, groupBy: undefined, page: { results: results } as PagedItemCollection<any[]> });
+            this.setState({ isLoading: true, groupBy: undefined, page: { results: results } as PagedItemCollection<IEditableListItem[]> });
             const nextPage = await page.getNext();
             nextPage.results = (page.results as any[] || []).concat(nextPage.results as any[] || []);
             this.setState({ isLoading: false, groupBy: groupBy, page: nextPage });
         }
+    }
+
+    private loadItemsInFolder(folder: IFolder) {
+        const { groupBy } = this.state;
+        this.setState({ isLoading: true, groupBy: undefined, folder: folder, page: { results: new Array(this._shimItemCount) } as PagedItemCollection<IEditableListItem[]> }, () => {
+            this.getData(this.props.list, this.state.sortColumn, this.state.groupBy, folder).then(page => {
+                this.setState({ page: page, groupBy: groupBy, isLoading: false });
+            });
+        });
     }
 
     private getFilter(showFolders?: boolean, includeSubFolders?: boolean, ...folderServerRelativeUrls: string[]): string {
@@ -124,8 +137,73 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
         return filter;
     }
 
-    private async getData(sortColumn?: IViewColumn, groupBy?: IGrouping[], folder?: IFolder): Promise<PagedItemCollection<any[]>> {
+    private renderCommandBar() {
+        const commandItems = this.getCommandItems(this.state.page, this.state.selection);
+        return <CommandBar items={commandItems} />;
+    }
+
+    private _processListItems(...items: IEditableListItem[]): IEditableListItem[] {
+        if (items instanceof Array && items.length > 0) {
+            items.forEach(item => this._processListItem(item));
+        }
+        return items;
+    }
+
+    private _processListItem(item: IEditableListItem): IEditableListItem {
+        if (item) {
+            if (item.CanEdit === undefined) {
+                item.CanEdit = SPService.DoesItemHavePermissions(item, PermissionKind.EditListItems);
+            }
+            if (item.CanDelete === undefined) {
+                item.CanDelete = SPService.DoesItemHavePermissions(item, PermissionKind.DeleteListItems);
+            }
+        }
+        return item;
+    }
+
+    protected getCommandItems(page: PagedItemCollection<IEditableListItem[]>, selection?: IEditableListItem[]): ICommandBarItemProps[] {
+        selection = this._processListItems(...selection);
+        const canEdit = selection instanceof Array && selection.length === 1 && selection[0].CanEdit;
+        const canDelete = selection instanceof Array && selection.length > 0 && selection.filter(item => item.CanDelete === true).length === selection.length;
+
+        return [
+            {
+                key: 'add', text: 'Add', iconProps: { iconName: 'Add' }, iconOnly: true,
+                disabled: !this.props.list || !this.state.canAddItems,
+                onClick: () => {
+
+                }
+            },
+            {
+                key: 'edit', text: 'Edit', iconProps: { iconName: 'Edit' }, iconOnly: true,
+                disabled: !canEdit,
+                onClick: () => {
+                    if (selection instanceof Array && selection.length > 0) {
+
+                    }
+                }
+            },
+            {
+                key: 'delete', text: 'Delete', iconProps: { iconName: 'Delete' }, iconOnly: true,
+                disabled: !canDelete,
+                onClick: () => {
+                    if (selection instanceof Array && selection.length > 0) {
+                        //this.set_items(page.results.filter(it => selection.indexOf(it) === -1));
+                    }
+                }
+            }
+        ];
+    }
+
+
+    private async getData(list: IList, sortColumn?: IViewColumn, groupBy?: IGrouping[], folder?: IFolder): Promise<PagedItemCollection<IEditableListItem[]>> {
+
+        if (!list) return;
+
         let select = [], expand = [];
+
+        select.push("EffectiveBasePermissions");
+
         for (const viewField of this.props.viewFields) {
             if (viewField.Name === "DocIcon") {
                 continue;
@@ -166,7 +244,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
             }
         }
 
-        let request = sp.web.lists.getById(this.props.listId).items.top(this.props.count || 30);
+        let request = list.items.top(this.props.count || 30);
 
         if (select.length > 0) {
             if (select.indexOf("FSObjType") === -1) {
@@ -206,7 +284,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
                     request = request.orderBy(orderByField.Name, !orderByField.Descending);
                 }
             }
-        }      
+        }
 
         const filter = folder ? this.getFilter(this.props.showFolders, this.props.includeSubFolders, folder.ServerRelativeUrl)
             : this.getFilter(this.props.showFolders, this.props.includeSubFolders);
@@ -214,36 +292,34 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
         if (filter) {
             request = request.filter(filter);
         }
-        
-        if(groupBy){
-          //TODO: GroupBy in CAML query
+
+        if (groupBy) {
+            //TODO: GroupBy in CAML query
         }
 
         return await request.usingCaching().getPaged();
     }
 
-    private loadItemsInFolder(folder: IFolder) {
-        this.setState({ isLoading: true, folder: folder, page: { results: new Array(this._shimItemCount) } as PagedItemCollection<any[]> }, () => {
-            this.getData(this.state.sortColumn, this.state.groupBy, folder).then(page => {
-                this.setState({ page: page, isLoading: false });
-            });
-        });
-    }  
-
     private onSortItems(column: IViewColumn) {
         const { groupBy } = this.state;
-        this.setState({ isLoading: true, groupBy: undefined, sortColumn: column, page: { results: new Array(this._shimItemCount) } as PagedItemCollection<any[]> }, () => {
+        this.setState({ isLoading: true, groupBy: undefined, sortColumn: column, page: { results: new Array(this._shimItemCount) } as PagedItemCollection<IEditableListItem[]> }, () => {
             const folder = this.state.folder || this.props.rootFolder;
-            this.getData(column, groupBy, folder).then(page => {
+            this.getData(this.props.list, column, groupBy, folder).then(page => {
                 this.setState({ page: page, groupBy: groupBy, isLoading: false });
             });
         });
     }
 
-    private onGroupItems(groupBy: IGrouping[], columns: IViewColumn[], items: any[], onGroup: (groupedItems: any[], groupBy?: IGrouping[], groups? : IGroup[]) => void) {
+    private onGroupItems(groupBy: IGrouping[], columns: IViewColumn[], items: any[], onGroup: (groupedItems: any[], groupBy?: IGrouping[], groups?: IGroup[]) => void) {
         const { viewFields } = this.props;
         groupBy = groupBy.map(g => {
-            const viewField = viewFields.some(f => SPService.compareFieldNames(f.Name, g.name)) ? viewFields.filter(f => SPService.compareFieldNames(f.Name, g.name))[0] : null;
+            let viewField = null;
+            viewFields.forEach(f => {
+                if (SPService.compareFieldNames(f.Name, g.name)) {
+                    viewField = f;
+                    return;
+                }
+            });
             return {
                 ...g,
                 keyGetter: (item) => {
@@ -251,7 +327,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
                         const value = item[g.name];
                         if (viewField) {
                             if (viewField.DataType === DataType.Lookup || viewField.DataType === DataType.User) {
-                                return this.getLookupValue(item, viewField as IViewLookupField)
+                                return this.getLookupValue(item, viewField as IViewLookupField);
                             }
                             return this.formatFieldValue(value, viewField.DataType);
                         }
@@ -265,8 +341,8 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
         this.setState({ groupBy: groupBy }, () => {
             onGroup(items, groupBy);
         });
-    
-        /*this.setState({ isLoading: true, groupBy: groupBy, page: { results: new Array(this._shimItemCount) } as PagedItemCollection<any[]> }, () => {
+
+        /*this.setState({ isLoading: true, groupBy: groupBy, page: { results: new Array(this._shimItemCount) } as PagedItemCollection<IEditableListItem[]> }, () => {
             const folder = this.state.folder || this.props.rootFolder;
             this.getData(this.state.sortColumn, groupBy, folder).then(page => {
                 this.setState({ page: page, isLoading: false });
@@ -294,11 +370,11 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
         }
         else {
             if (sortable === undefined || sortable === null) {
-                sortable = true;            
+                sortable = true;
             }
-            if (canGroup === undefined || canGroup === null) {              
+            if (canGroup === undefined || canGroup === null) {
                 canGroup = true;
-            }         
+            }
         }
         let column = { key: viewField.Name.toLowerCase(), fieldName: viewField.Name, name: viewField.Title, isResizable: true, sortable: sortable, canGroup: canGroup } as IViewColumn;
         if (column.fieldName === "LinkTitle" || column.fieldName === "LinkTitleNoMenu") {
@@ -344,17 +420,18 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
     }
 
     private formatFieldValue(value: string, dataType: DataType): string {
-        if (value) {
-            switch (dataType) {
-                case DataType.Date:
-                case DataType.DateTime:
-                    const dateValue = DateHelper.toLocaleDate(new Date(value), this._timeZone ? this._timeZone.Information.Bias : 0);
-                    return dataType === DataType.Date ? moment(dateValue).format("L") : moment(dateValue).format("L LT");
-                case DataType.Number:
-                    return Number(value).toString();
-                case DataType.Boolean:
-                    return Boolean(value) === true ? "Yes" : "No";
-            }
+        if (value === undefined || value === null) {
+            return "";
+        }
+        switch (dataType) {
+            case DataType.Date:
+            case DataType.DateTime:
+                const dateValue = DateHelper.toLocaleDate(new Date(value), this._timeZone ? this._timeZone.Information.Bias : 0);
+                return dataType === DataType.Date ? moment(dateValue).format("L") : moment(dateValue).format("L LT");
+            case DataType.Number:
+                return Number(value).toString();
+            case DataType.Boolean:
+                return Boolean(value) === true ? "Yes" : "No";
         }
         return value;
     }
@@ -428,7 +505,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
                 {item[column.fieldName]}
             </Link>
             : item[column.fieldName];
-    }   
+    }
 
     private renderDocIcon(item, index, column: IColumn, viewField: IViewField, viewFields: IViewField[]) {
         const isFolder = item["FSObjType"] === 1;
@@ -444,7 +521,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
         //return null;
     }
 
-    /**
+/**
 * Get breadcrumb items
 * @returns an array of IBreadcrumbItem objects
 */
@@ -455,7 +532,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
 
         if (rootFolder) {
             const rootItem: IBreadcrumbItem = {
-                text: rootFolder.Name, key: 'root', onClick: () => {                   
+                text: rootFolder.Name, key: 'root', onClick: () => {
                     this.loadItemsInFolder(rootFolder);
                 }
             };
@@ -470,7 +547,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
                         folderPath += '/' + folderName;
                         const folderItem: IBreadcrumbItem = {
                             text: folderName, key: `folder-${index.toString()}`, onClick: () => {
-                                const subFolder = {  Name: folderName, ServerRelativeUrl: folderPath } as IFolder;
+                                const subFolder = { Name: folderName, ServerRelativeUrl: folderPath } as IFolder;
                                 this.loadItemsInFolder(subFolder);
                             }
                         };

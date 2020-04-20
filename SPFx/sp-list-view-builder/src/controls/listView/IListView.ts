@@ -23,7 +23,7 @@ export interface IListViewProps extends IDetailsListProps {
 
 export interface IListViewState {
     items: any[];
-    flattenItems: any[];
+    //flattenItems: any[];
     columns?: IColumn[];
     sortColumn?: IViewColumn;
     groups?: IGroup[];

@@ -1,6 +1,7 @@
-import { sp, IList } from "@pnp/sp/presets/all";
+import { sp, IList, PermissionKind } from "@pnp/sp/presets/all";
 import { ITimeZoneInfo, IRegionalSettingsInfo } from "@pnp/sp/regional-settings/types";
 import { ISPListInfo } from "../controls/components/listPicker";
+import { IListItem } from "./Entities";
 
 export default class SPService {
 
@@ -33,10 +34,10 @@ export default class SPService {
         const isTitle1 = name1 === "LinkTitle" || name1 === "Title" || name1 === "LinkTitleNoMenu";
         const isTitle2 = name2 === "LinkTitle" || name2 === "Title" || name2 === "LinkTitleNoMenu";
         if (isTitle1 && isTitle2) {
-          return true;
+            return true;
         }
         return name1 === name2;
-      }
+    }
 
     public static getLocaleName(lcid: number): string {
         const locales: Record<number, string> = {
@@ -265,5 +266,9 @@ export default class SPService {
             58380: 'fr-015',
         };
         return locales[lcid];
+    }
+
+    public static DoesItemHavePermissions(item: IListItem, perm: PermissionKind): boolean {
+        return item ? sp.web.hasPermissions(item.EffectiveBasePermissions, perm) : false;
     }
 }

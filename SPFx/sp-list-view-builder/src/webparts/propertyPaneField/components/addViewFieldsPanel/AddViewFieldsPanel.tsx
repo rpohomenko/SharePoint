@@ -6,7 +6,7 @@ import { Stack, IDropdownOption, Spinner, SpinnerSize } from 'office-ui-fabric-r
 import { DefaultButton, PrimaryButton } from 'office-ui-fabric-react/lib/Button';
 
 import {
-  DetailsList, DetailsRow, IDetailsRowProps, IDetailsRowStyles, DetailsListLayoutMode, Selection, IColumn, CheckboxVisibility
+  DetailsList, DetailsRow, IDetailsRowProps, IDetailsRowStyles, DetailsListLayoutMode, Selection
 } from 'office-ui-fabric-react/lib/DetailsList';
 
 import { sp } from "@pnp/sp";
@@ -20,7 +20,7 @@ import { isArray } from '@pnp/common';
 import { FieldTypes, IFieldInfo } from "@pnp/sp/fields";
 
 import { IViewField, IViewLookupField, DataType, IFieldLookupInfo, IFieldDateInfo, IFieldUserInfo, IFieldMultiLineTextInfo } from '../../../../utilities/Entities';
-import { AsyncDropdown, IAsyncDropdownState, IAsyncDropdownProps } from '../../../../controls/components/asyncDropdown';
+import { AsyncDropdown } from '../../../../controls/components/asyncDropdown';
 
 import { getTheme } from 'office-ui-fabric-react/lib/Styling';
 import SPService from '../../../../utilities/SPService';
