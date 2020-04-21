@@ -21,6 +21,12 @@ import DateHelper from '../../../../utilities/DateHelper';
 import styles from './spListView.module.scss';
 import { CommandBar, ICommandBarItemProps } from 'office-ui-fabric-react/lib/CommandBar';
 import { PermissionKind } from '@pnp/sp/security';
+import { FontIcon } from 'office-ui-fabric-react/lib/Icon';
+import { getTheme } from 'office-ui-fabric-react/lib/Styling';
+import { Dialog, DialogType, DialogFooter } from 'office-ui-fabric-react/lib/Dialog';
+import { PrimaryButton, DefaultButton } from 'office-ui-fabric-react/lib/Button';
+
+const theme = getTheme();
 
 export class SPListView extends React.Component<ISPListViewProps, ISPListViewState> {
 
@@ -76,7 +82,16 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
             {!this._isMounted && isLoading && <Spinner size={SpinnerSize.large} />}
             {this._isMounted === true && this.renderBreadcrumb()}
             {this._isMounted === true && <ListView items={items || []} columns={columns} groupBy={groupBy}
-                placeholder={(<div>{"No items"}</div>)}
+                placeholder={(<div>
+                    <FontIcon iconName="Search" style={{
+                        fontSize: '2em',
+                        margin: 25,
+                        color: theme.palette.themePrimary
+                    }} />
+                    <span style={{
+                        fontSize: '1.3em',
+                    }}>{"No items"}</span>
+                </div>)}
                 onSelect={this.onSelectItems.bind(this)}
                 onSort={this.onSortItems.bind(this)}
                 onGroup={this.onGroupItems.bind(this)} />}
@@ -95,7 +110,39 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
                     }}
                 />
             </Stack>}
+            {this._renderDeleteDialog()}
         </div>;
+    }
+
+    private _renderDeleteDialog() {
+        return <Dialog
+            hidden={this.state.isDeleting !== true}
+            onDismiss={() => {
+                this.setState({ isDeleting: false });
+            }}
+            dialogContentProps={{
+                type: DialogType.normal,
+                title: 'Delete?',
+                closeButtonAriaLabel: 'Close',
+                subText: 'Are you sure you want to delete the item(s)?',
+            }}
+            modalProps={{
+                isBlocking: false,
+                styles: { main: { maxWidth: 450 } },
+            }}
+        >
+            <DialogFooter>
+                <PrimaryButton onClick={() => {
+                    this.setState({ isLoading: true, isDeleting: false });
+                    this._deleteItem(...this.state.selection).then(_ => {
+                        this.refresh();
+                    });
+                }} text="Delete" />
+                <DefaultButton onClick={() => {
+                    this.setState({ isDeleting: false });
+                }} text="Cancel" />
+            </DialogFooter>
+        </Dialog>
     }
 
     protected onSelectItems(selection: IListItem[]) {
@@ -565,10 +612,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
                 disabled: this.state.isLoading === true || !canDelete,
                 onClick: () => {
                     if (selection instanceof Array && selection.length > 0) {
-                        this.setState({ isLoading: true });
-                        this._deleteItem(...selection).then(_ => {
-                            this.refresh();
-                        });
+                        this.setState({ isDeleting: true });
                     }
                 }
             }

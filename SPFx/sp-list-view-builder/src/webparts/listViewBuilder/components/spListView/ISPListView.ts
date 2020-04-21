@@ -27,4 +27,5 @@ export interface ISPListViewState {
   sortColumn?: IColumn;
   groupBy?: IGrouping[];
   canAddItems?: boolean; 
+  isDeleting?: boolean;
 }
