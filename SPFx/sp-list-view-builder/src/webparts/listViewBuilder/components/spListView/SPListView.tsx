@@ -76,6 +76,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
             {!this._isMounted && isLoading && <Spinner size={SpinnerSize.large} />}
             {this._isMounted === true && this.renderBreadcrumb()}
             {this._isMounted === true && <ListView items={items || []} columns={columns} groupBy={groupBy}
+                placeholder={(<div>{"No items"}</div>)}
                 onSelect={this.onSelectItems.bind(this)}
                 onSort={this.onSortItems.bind(this)}
                 onGroup={this.onGroupItems.bind(this)} />}
@@ -106,7 +107,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
             const { groupBy, items } = this.state;
             this.setState({ isLoading: true, groupBy: undefined, items: [...items, ...new Array(this._shimItemCount)] });
             const nextPage = await page.getNext();
-            const newItems = [...page.results, ...nextPage.results];
+            const newItems = [...items, ...nextPage.results];
             this._page = nextPage;
             this.setState({ isLoading: false, groupBy: groupBy, items: newItems });
         }
@@ -141,11 +142,6 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
         return filter;
     }
 
-    private renderCommandBar() {
-        const commandItems = this.getCommandItems(this.state.items, this.state.selection);
-        return <CommandBar items={commandItems} />;
-    }
-
     private _processListItems(...items: IEditableListItem[]): IEditableListItem[] {
         if (items instanceof Array && items.length > 0) {
             items.forEach(item => this._processListItem(item));
@@ -165,47 +161,13 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
         return item;
     }
 
-    protected getCommandItems(items: IEditableListItem[], selection?: IEditableListItem[]): ICommandBarItemProps[] {
-        selection = this._processListItems(...selection);
-        const canEdit = selection instanceof Array && selection.length === 1 && selection[0].CanEdit;
-        const canDelete = selection instanceof Array && selection.length > 0 && selection.filter(item => item.CanDelete === true).length === selection.length;
-
-        return [
-            {
-                key: 'add', text: 'Add', iconProps: { iconName: 'Add' }, iconOnly: true,
-                disabled: !this.props.list || !this.state.canAddItems,
-                onClick: () => {
-
-                }
-            },
-            {
-                key: 'edit', text: 'Edit', iconProps: { iconName: 'Edit' }, iconOnly: true,
-                disabled: !canEdit,
-                onClick: () => {
-                    if (selection instanceof Array && selection.length > 0) {
-
-                    }
-                }
-            },
-            {
-                key: 'delete', text: 'Delete', iconProps: { iconName: 'Delete' }, iconOnly: true,
-                disabled: !canDelete,
-                onClick: () => {
-                    if (selection instanceof Array && selection.length > 0) {
-                        //this.set_items(page.results.filter(it => selection.indexOf(it) === -1));
-                    }
-                }
-            }
-        ];
-    }
-
-
     private async getData(list: IList, sortColumn?: IViewColumn, groupBy?: IGrouping[], folder?: IFolder): Promise<PagedItemCollection<IEditableListItem[]>> {
 
         if (!list) return;
 
         let select = [], expand = [];
 
+        select.push("ID");
         select.push("EffectiveBasePermissions");
 
         for (const viewField of this.props.viewFields) {
@@ -213,7 +175,9 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
                 continue;
             }
             else if (viewField.Name === "LinkTitle" || viewField.Name === "LinkTitleNoMenu") {
-                select.push("Title");
+                if (select.indexOf("Title") === -1) {
+                    select.push("Title");
+                }
             }
             else if (viewField.DataType === DataType.Lookup
                 || viewField.DataType === DataType.MultiLookup
@@ -244,7 +208,9 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
                 expand.push(lookupField.Name);
             }
             else {
-                select.push(viewField.Name);
+                if (select.indexOf(viewField.Name) === -1) {
+                    select.push(viewField.Name);
+                }
             }
         }
 
@@ -267,7 +233,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
         }
 
         if (this.props.showFolders === true && (!sortColumn || sortColumn.fieldName !== "DocIcon")) {
-           request = request.orderBy("FSObjType", false);
+            request = request.orderBy("FSObjType", false);
         }
 
         if (sortColumn) {
@@ -277,7 +243,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
             else {
                 request = request.orderBy(sortColumn.fieldName, !sortColumn.isSortedDescending);
             }
-        }      
+        }
 
         if (this.props.orderBy instanceof Array) {
             for (const orderByField of this.props.orderBy) {
@@ -289,7 +255,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
                 }
             }
         }
-        
+
         request = request.orderBy("ID", true);
 
         const filter = folder ? this.getFilter(this.props.showFolders, this.props.includeSubFolders, folder.ServerRelativeUrl)
@@ -303,7 +269,11 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
             //TODO: GroupBy in CAML query
         }
 
-        return await request/*.usingCaching()*/.getPaged();
+        const page = await request.usingCaching().getPaged();
+        if (page.getNext instanceof Function) {
+            return page;
+        }
+        return new PagedItemCollection<IEditableListItem[]>(request.usingCaching(), (page as any).nextUrl, page.results);
     }
 
     private onSortItems(column: IViewColumn) {
@@ -347,7 +317,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
 
         this.setState({ groupBy: groupBy }, () => {
             onGroup(items, groupBy);
-        });      
+        });
     }
 
     private get_Columns(viewFields: IViewField[]): IColumn[] {
@@ -521,10 +491,10 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
         //return null;
     }
 
-/**
-* Get breadcrumb items
-* @returns an array of IBreadcrumbItem objects
-*/
+    /**
+    * Get breadcrumb items
+    * @returns an array of IBreadcrumbItem objects
+    */
     private _getBreadcrumbItems = (): IBreadcrumbItem[] => {
         const items: IBreadcrumbItem[] = [];
         const { rootFolder } = this.props;
@@ -559,5 +529,76 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
             items[items.length - 1].isCurrentItem = true;
         }
         return items;
+    }
+
+
+    private renderCommandBar() {
+        const selection = this._processListItems(...this.state.selection);
+        const items = this.getCommandItems(this.state.items, selection);
+        const farItems = this.getFarCommandItems(this.state.items, this.state.selection);
+        return <CommandBar items={items} farItems={farItems} />;
+    }
+
+    protected getCommandItems(items: IEditableListItem[], selection?: IEditableListItem[]): ICommandBarItemProps[] {
+        const canEdit = selection instanceof Array && selection.length === 1 && selection[0].CanEdit;
+        const canDelete = selection instanceof Array && selection.length > 0 && selection.filter(item => item.CanDelete === true).length === selection.length;
+
+        return [
+            {
+                key: 'add', text: 'Add', iconProps: { iconName: 'Add' }, iconOnly: true,
+                disabled: (this.state.isLoading === true || !this.props.list || !this.state.canAddItems) && (!(selection instanceof Array) || selection.length > 0),
+                onClick: () => {
+
+                }
+            },
+            {
+                key: 'edit', text: 'Edit', iconProps: { iconName: 'Edit' }, iconOnly: true,
+                disabled: this.state.isLoading === true || !canEdit,
+                onClick: () => {
+                    if (selection instanceof Array && selection.length > 0) {
+
+                    }
+                }
+            },
+            {
+                key: 'delete', text: 'Delete', iconProps: { iconName: 'Delete' }, iconOnly: true,
+                disabled: this.state.isLoading === true || !canDelete,
+                onClick: () => {
+                    if (selection instanceof Array && selection.length > 0) {
+                        this.setState({ isLoading: true });
+                        this._deleteItem(...selection).then(_ => {
+                            this.refresh();
+                        });
+                    }
+                }
+            }
+        ];
+    }
+
+    private async _deleteItem(...items: IEditableListItem[]) {
+        if (items instanceof Array) {
+            const deleted = items.map(item => this.props.list.items.getById(item.ID).delete());
+            return Promise.all(deleted);
+        }
+    }
+
+    protected getFarCommandItems(items: IEditableListItem[], selection?: IEditableListItem[]): ICommandBarItemProps[] {
+        return [
+            {
+                key: 'refresh', text: 'Refresh', iconProps: { iconName: 'Refresh' }, iconOnly: true,
+                disabled: !this.props.list || this.state.isLoading === true,
+                onClick: () => {
+                    this.refresh();
+                }
+            }
+        ];
+    }
+
+    public async refresh() {
+        const { groupBy } = this.state;
+        this.setState({ isLoading: true, items: new Array(this._shimItemCount), groupBy: undefined });
+        const page = await this.getData(this.props.list, this.state.sortColumn, this.state.groupBy, this.state.folder);
+        this._page = page;
+        this.setState({ items: page.results, groupBy: groupBy, isLoading: false });
     }
 }

@@ -46,7 +46,7 @@ export class ListView extends React.Component<IListViewProps, IListViewState> {
      */
     public componentDidUpdate(prevProps: IListViewProps, prevState: IListViewState): void {
 
-        if (/*!isEqual(prevProps, this.props)*/ prevProps.items !== this.props.items ||  prevProps.columns !== this.props.columns) {
+        if (/*!isEqual(prevProps, this.props)*/ prevProps.items !== this.props.items || prevProps.columns !== this.props.columns) {
             // Reset the selected items
             if (this._selection) {
                 this._selection.setItems(this.props.items, true);
@@ -88,9 +88,17 @@ export class ListView extends React.Component<IListViewProps, IListViewState> {
             groups: groups,
             selection: selection,
             layoutMode: DetailsListLayoutMode.justified,
-            setKey: "ListView",            
-            groupProps: groupProps
+            setKey: "ListView",
+            groupProps: groupProps,
+            onRenderDetailsFooter: this.renderDetailsFooter.bind(this)
         });
+    }
+
+    protected renderDetailsFooter(): JSX.Element {
+        if ((!(this.props.items instanceof Array) || this.props.items.length === 0) && this.props.placeholder) {
+            return this.props.placeholder;
+        }
+        return null;
     }
 
     protected updateState(items: any[]) {
@@ -240,7 +248,7 @@ export class ListView extends React.Component<IListViewProps, IListViewState> {
             // Check if grouping is configured
             if (groupBy && groupBy.length > 0) {
                 // Create grouped items object
-                const groupedItems = ListView.groupBy(items, item => {                 
+                const groupedItems = ListView.groupBy(items, item => {
                     if (group.keyGetter instanceof Function) {
                         return group.keyGetter(item) || "";
                     }

@@ -1,4 +1,3 @@
-import { PagedItemCollection } from "@pnp/sp/items";
 import { IColumn } from 'office-ui-fabric-react/lib/DetailsList';
 import { ITimeZoneInfo, IRegionalSettingsInfo } from "@pnp/sp/regional-settings/types";
 import { IViewField, IFolder, IOrderByField, IListItem } from '../../../../utilities/Entities';
@@ -15,7 +14,7 @@ export interface ISPListViewProps {
   includeSubFolders?: boolean;
   showFolders?: boolean;
   orderBy?: IOrderByField[];
-  groupBy?: IGrouping[];
+  groupBy?: IGrouping[]; 
 }
 
 export interface ISPListViewState {
