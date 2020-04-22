@@ -13,6 +13,7 @@ declare interface IListViewBuilderWebPartStrings {
   IncludeSubFolderLabel: string;
   OrderByLabel: string;
   AscendingLabel: string;
+  FormFieldsFieldLabel: string;
 }
 
 declare module 'ListViewBuilderWebPartStrings' {

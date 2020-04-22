@@ -36,6 +36,17 @@ export interface IViewField extends IField {
     Filterable?: boolean;
 }
 
+export interface IFormField extends IField {
+    DataType: DataType;
+    LookupFieldName?: string;
+    LookupListId?: string;
+    LookupWebId?: string;
+    PrimaryFieldName?: string;
+    Required?: boolean;
+    ReadOnly?: boolean;
+    Modes?: FormMode[];
+}
+
 export interface IOrderByField extends IField {
     Descending?: boolean;
 }

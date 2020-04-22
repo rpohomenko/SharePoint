@@ -1,7 +1,7 @@
-import { sp, IList, PermissionKind, IListInfo } from "@pnp/sp/presets/all";
+import { sp, IList, PermissionKind, IListInfo, IFieldInfo, FieldTypes } from "@pnp/sp/presets/all";
 import { ITimeZoneInfo, IRegionalSettingsInfo } from "@pnp/sp/regional-settings/types";
 import { ISPListInfo } from "../controls/components/listPicker";
-import { IListItem } from "./Entities";
+import { IListItem, DataType, IFieldDateInfo, IFieldLookupInfo, IFieldMultiLineTextInfo, IFieldUserInfo } from "./Entities";
 
 export default class SPService {
 
@@ -268,11 +268,50 @@ export default class SPService {
         return locales[lcid];
     }
 
-    public static DoesItemHavePermissions(item: IListItem, perm: PermissionKind): boolean {
+    public static doesItemHavePermissions(item: IListItem, perm: PermissionKind): boolean {
         return item ? sp.web.hasPermissions(item.EffectiveBasePermissions, perm) : false;
     }
 
-    public static DoesListHavePermissions(item: IListInfo, perm: PermissionKind): boolean {
+    public static doesListHavePermissions(item: IListInfo, perm: PermissionKind): boolean {
         return item ? sp.web.hasPermissions(item.EffectiveBasePermissions, perm) : false;
     }
+
+    
+  public static get_DataType(field: IFieldInfo): DataType {
+    switch (field.FieldTypeKind) {
+      case FieldTypes.Boolean:
+      case FieldTypes.Recurrence:
+      case FieldTypes.AllDayEvent:
+        return DataType.Boolean;
+      case FieldTypes.Choice:
+        return DataType.Choice;
+      case FieldTypes.DateTime:
+        if ((field as IFieldDateInfo).DisplayFormat === 0) {
+          return DataType.Date;
+        }
+        return DataType.DateTime;
+      case FieldTypes.Lookup:
+        if ((field as IFieldLookupInfo).AllowMultipleValues) {
+          return DataType.MultiLookup;
+        }
+        return DataType.Lookup;
+      case FieldTypes.MultiChoice:
+        return DataType.MultiChoice;
+      case FieldTypes.Number:
+      case FieldTypes.Integer:
+      case FieldTypes.Counter:
+        return DataType.Number;
+      case FieldTypes.Note:
+        if ((field as IFieldMultiLineTextInfo).RichText) {
+          return DataType.RichText;
+        }
+        return DataType.MultiLineText;
+      case FieldTypes.User:
+        if ((field as IFieldUserInfo).AllowMultipleValues) {
+          return DataType.MultiUser;
+        }
+        return DataType.User;
+      default: return DataType.Text;
+    }
+  }
 }

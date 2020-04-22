@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { Separator } from 'office-ui-fabric-react/lib/Separator';
-import styles from "./addViewFields.module.scss";
 import { Panel } from 'office-ui-fabric-react/lib/Panel';
 import { Stack, IDropdownOption, Spinner, SpinnerSize } from 'office-ui-fabric-react';
 import { DefaultButton, PrimaryButton } from 'office-ui-fabric-react/lib/Button';
@@ -12,38 +11,37 @@ import {
 import "@pnp/sp/webs";
 import "@pnp/sp/lists";
 import "@pnp/sp/items";
-import "@pnp/sp/views";
 import "@pnp/sp/fields";
 import { isArray } from '@pnp/common';
 
 import { FieldTypes, IFieldInfo } from "@pnp/sp/fields";
 
-import { IViewField, IViewLookupField, IFieldLookupInfo, IFieldUserInfo } from '../../../../utilities/Entities';
+import { IFieldLookupInfo, IFormField } from '../../../../utilities/Entities';
 import { AsyncDropdown } from '../../../../controls/components/asyncDropdown';
 
 import { getTheme } from 'office-ui-fabric-react/lib/Styling';
 import SPService from '../../../../utilities/SPService';
-import { IList } from '@pnp/sp/lists';
+import { IList, IListInfo } from '@pnp/sp/lists';
 
 const theme = getTheme();
 
-export interface IAddViewFieldsPanelProps {
+export interface IAddFormFieldsPanelProps {
   list: IList;
   isOpen?: boolean;
-  fields: IViewField[];
-  onAddFields: (fields: IViewField[]) => void;
+  fields: IFormField[];
+  onAddFields: (fields: IFormField[]) => void;
 }
 
-export interface IAddViewFieldsPanelState {
-  viewId?: string;
+export interface IAddFormFieldsPanelState {
+  contentTypeId?: string;
   isOpen?: boolean;
-  selection?: IViewField[];
+  selection?: IFormField[];
   isLoading?: boolean;
 }
 
-export class AddViewFieldsPanel extends React.Component<IAddViewFieldsPanelProps, IAddViewFieldsPanelState> {
+export class AddFormFieldsPanel extends React.Component<IAddFormFieldsPanelProps, IAddFormFieldsPanelState> {
 
-  private _fields: { [viewId: string]: IViewField[] } = {};
+  private _fields: { [contentTypeId: string]: IFormField[] } = {};
   private _selection: Selection;
 
   constructor(props) {
@@ -56,35 +54,35 @@ export class AddViewFieldsPanel extends React.Component<IAddViewFieldsPanelProps
     this._selection = new Selection({
       onSelectionChanged: () => {
         const { fields } = this.props;
-        const selection: IViewField[] = fields instanceof Array && fields.length > 0
-          ? (this._selection.getSelection() as IViewField[]).filter(f => !fields.some(ff => ff.Name === f.Name))
-          : this._selection.getSelection() as IViewField[];
-        this.setState({ selection: selection });    
+        const selection: IFormField[] = fields instanceof Array && fields.length > 0
+          ? (this._selection.getSelection() as IFormField[]).filter(f => !fields.some(ff => ff.Name === f.Name))
+          : this._selection.getSelection() as IFormField[];
+        this.setState({ selection: selection });
       }
     });
   }
 
-  public componentDidUpdate(prevProps: IAddViewFieldsPanelProps) {
+  public componentDidUpdate(prevProps: IAddFormFieldsPanelProps) {
     if (prevProps.isOpen !== this.props.isOpen) {
       this.setState({ isOpen: this.props.isOpen });
     }
     if (prevProps.list !== this.props.list) {
-      this.setState({ viewId: null });
+      this.setState({ contentTypeId: null });
     }
   }
 
   public render(): React.ReactElement {
     const { list } = this.props;
-    const { isOpen, viewId, isLoading } = this.state;
-    const fields = !!viewId ? this._fields[viewId] : null;
+    const { isOpen, contentTypeId, isLoading } = this.state;
+    const fields = !!contentTypeId ? this._fields[contentTypeId] : null;
 
     return (
-      <Panel className={styles.addViewFields} isLightDismiss isOpen={isOpen} onDismiss={() => this.close()} closeButtonAriaLabel={"Close"} headerText={"Add Field(s)..."}
+      <Panel isLightDismiss isOpen={isOpen} onDismiss={() => this.close()} closeButtonAriaLabel={"Close"} headerText={"Add Field(s)..."}
         onRenderFooterContent={this.renderFooterContent.bind(this)}
         isFooterAtBottom={false}>
         <Stack tokens={{ childrenGap: 2 }}>
           <Stack.Item>
-            <AsyncDropdown label={"View"} placeholder={"Select a list view..."} options={() => this.loadViews(list)} onChange={this.onViewChanged.bind(this)} selectedKey={viewId} />
+            <AsyncDropdown label={"Content Type"} placeholder={"Select a content type..."} options={() => this.loadContentTypes(list)} onChange={this.onContentTypeChanged.bind(this)} selectedKey={contentTypeId} />
             <Separator></Separator>
           </Stack.Item>
           <Stack.Item>
@@ -150,10 +148,10 @@ export class AddViewFieldsPanel extends React.Component<IAddViewFieldsPanelProps
         this.close();
         if (this.props.onAddFields instanceof Function) {
           const { fields } = this.props;
-          const viewFields: IViewField[] = fields instanceof Array && fields.length > 0
+          const formFields: IFormField[] = fields instanceof Array && fields.length > 0
             ? selection.filter(f => !fields.some(ff => ff.Name === f.Name))
             : selection;
-          this.props.onAddFields(viewFields);
+          this.props.onAddFields(formFields);
         }
       }} styles={{ root: { marginRight: 8 } }}>
         {"Add"}
@@ -162,12 +160,12 @@ export class AddViewFieldsPanel extends React.Component<IAddViewFieldsPanelProps
     </div>);
   }
 
-  private loadViews(list: IList): Promise<IDropdownOption[]> {
+  private loadContentTypes(list: IList): Promise<IDropdownOption[]> {
     return new Promise<IDropdownOption[]>((resolve: (options: IDropdownOption[]) => void, reject: (error: any) => void) => {
       try {
-        return list.views.filter('Hidden eq false').get()
-          .then((views) => {
-            let options = views.map((v) => ({ key: v.Id, text: v.Title }) as IDropdownOption);
+        return list.contentTypes.filter('Hidden eq false').get()
+          .then((contentTypes) => {
+            const options = contentTypes.map((ct) => ({ key: ct.Id.StringValue, text: ct.Name }) as IDropdownOption);
             resolve(options);
           }).catch(e => {
             reject(e.message);
@@ -178,34 +176,13 @@ export class AddViewFieldsPanel extends React.Component<IAddViewFieldsPanelProps
     });
   }
 
-  private loadViewFields(list: IList, viewId: string): Promise<string[]> {
-    return new Promise<string[]>((resolve: (options: string[]) => void, reject: (error: any) => void) => {
+  private loadContentTypeFields(list: IList, contentTypeId: string): Promise<IFormField[]> {
+    return new Promise<IFormField[]>((resolve: (options: IFormField[]) => void, reject: (error: any) => void) => {
       try {
-        return list.getView(viewId).fields.select('Items').get()
-          .then(f => {
-            const fields = (f as any).Items.results || (f as any).Items;
-            resolve(fields as string[]);
-          }).catch(e => {
-            reject(e.message);
-          });
-      } catch (error) {
-        alert(error);
-      }
-    });
-  }
-
-  private loadFields(list: IList, fieldNames: string[]): Promise<IViewField[]> {
-    return new Promise<IViewField[]>((resolve: (options: IViewField[]) => void, reject: (error: any) => void) => {
-      try {
-        return list.fields.select('Id', 'InternalName', 'EntityPropertyName', 'Title', 'FieldTypeKind', 'AllowMultipleValues', 'RichText', 'DisplayFormat', 'LookupField', 'LookupList', 'LookupWebId', 'IsRelationship', 'PrimaryFieldId'/*, 'SchemaXml'*/).filter(`${
-          fieldNames.map(field => `InternalName eq '${field}'`).join(' or ')
-          }`).get()
+        return list.contentTypes.getById(contentTypeId).fields.filter('Hidden eq false')/*.orderBy('Title')*/.select('Id', 'InternalName', 'EntityPropertyName', 'Title', 'FieldTypeKind', 'AllowMultipleValues', 'Required', 'ReadOnlyField', 'RichText', 'DisplayFormat', 'LookupField', 'LookupList', 'LookupWebId', 'IsRelationship', 'PrimaryFieldId'/*, 'SchemaXml'*/).get()
           .then(fields => {
-            let viewFields = fields.map(f => this.get_Field(f, fields));
-            viewFields.sort((a, b) => {
-              return fieldNames.indexOf(a.Name) - fieldNames.indexOf(b.Name);
-            });
-            resolve(viewFields);
+            const formFields = fields.map(f => this.get_Field(f, fields));
+            resolve(formFields);
           }).catch(e => {
             reject(e.message);
           });
@@ -215,87 +192,46 @@ export class AddViewFieldsPanel extends React.Component<IAddViewFieldsPanelProps
     });
   }
 
-  private get_Field(field: IFieldInfo, fields: IFieldInfo[]): IViewField {
-    let viewField = { Id: field.Id, Name: field.EntityPropertyName || field.InternalName, Title: field.Title, DataType: SPService.get_DataType(field), Sortable: this.is_Sortable(field), Filterable: this.is_Filterable(field) } as IViewField;
+  private get_Field(field: IFieldInfo, fields: IFieldInfo[]): IFormField {
+    let formField = { Id: field.Id, Name: field.EntityPropertyName || field.InternalName, Title: field.Title, DataType: SPService.get_DataType(field), Required: field.Required, ReadOnly: field.ReadOnlyField } as IFormField;
     if (field.FieldTypeKind === FieldTypes.Lookup || field.FieldTypeKind === FieldTypes.User) {
       const lookupField = field as IFieldLookupInfo;
       if (lookupField.PrimaryFieldId) {
         const primaryField = fields.filter(f => f.Id === lookupField.PrimaryFieldId);
-        viewField = ({
-          ...viewField,
+        formField = ({
+          ...formField,
           LookupFieldName: lookupField.LookupField,
           LookupListId: lookupField.LookupList,
           LookupWebId: lookupField.LookupWebId,
           PrimaryFieldName: primaryField.length > 0 ? primaryField[0].EntityPropertyName || primaryField[0].InternalName : undefined
-        }) as IViewLookupField;
+        }) as IFormField;
       }
       else {
-        viewField = ({
-          ...viewField,
+        formField = ({
+          ...formField,
           LookupFieldName: lookupField.LookupField,
           LookupListId: lookupField.LookupList,
-          LookupWebId: lookupField.LookupWebId,       
-        }) as IViewLookupField;
+          LookupWebId: lookupField.LookupWebId,
+        }) as IFormField;
       }
     }
-    return viewField;
+    return formField;
   }
 
-  private is_Sortable(field: IFieldInfo) {
-    switch (field.FieldTypeKind) {
-      case FieldTypes.Lookup:
-        if ((field as IFieldLookupInfo).AllowMultipleValues) {
-          return false;
-        }
-        return true;
-      case FieldTypes.MultiChoice:
-      case FieldTypes.Note:
-      case FieldTypes.Calculated:
-        return false;
-      case FieldTypes.User:
-        if ((field as IFieldUserInfo).AllowMultipleValues) {
-          return false;
-        }
-        return true;
-      default: return true;
-    }
-  }
-
-  private is_Filterable(field: IFieldInfo) {
-    switch (field.FieldTypeKind) {
-      case FieldTypes.Lookup:
-        if ((field as IFieldLookupInfo).AllowMultipleValues) {
-          return false;
-        }
-        return true;
-      case FieldTypes.MultiChoice:
-      case FieldTypes.Note:
-        return false;
-      case FieldTypes.User:
-        if ((field as IFieldUserInfo).AllowMultipleValues) {
-          return false;
-        }
-        return true;
-      default: return true;
-    }
-  }
-
-  private onViewChanged(option: IDropdownOption, index?: number): void {
+  private onContentTypeChanged(option: IDropdownOption, index?: number): void {
     const { list } = this.props;
-    const viewId = option.key as string;
-    if (viewId !== this.state.viewId) {
-      if (isArray(this._fields[viewId])) {
-        this.setState({ viewId: viewId });
+    const contentTypeId = option.key as string;
+    if (contentTypeId !== this.state.contentTypeId) {
+      if (isArray(this._fields[contentTypeId])) {
+        this.setState({ contentTypeId: contentTypeId });
         return;
       }
       this.setState({ isLoading: true });
-      this.loadViewFields(list, option.key as string)
-        .then((fieldNames) => this.loadFields(list, fieldNames)
-          .then((viewFields) => {
-            this._fields[option.key] = viewFields;
-            this.setState({ viewId: viewId, isLoading: false });
-          }).catch(_ => this.setState({ isLoading: false })))
-        .catch(_ => this.setState({ isLoading: false }));
+      this.loadContentTypeFields(list, option.key as string)
+        .then((formFields) => {
+          this._fields[option.key] = formFields;
+          this.setState({ contentTypeId: contentTypeId, isLoading: false });
+        }).catch(_ => this.setState({ isLoading: false }));
     }
   }
 }

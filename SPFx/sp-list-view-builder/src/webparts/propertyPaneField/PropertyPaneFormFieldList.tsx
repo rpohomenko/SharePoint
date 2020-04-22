@@ -4,14 +4,14 @@ import * as strings from 'ListViewBuilderWebPartStrings';
 import { ICommandBarItemProps } from 'office-ui-fabric-react/lib/CommandBar';
 import { IconButton, getTheme, mergeStyleSets, IColumn } from 'office-ui-fabric-react';
 import { PropertyPaneFieldList, IPropertyPaneFieldListProps } from './propertyPaneFieldList';
-import { IViewField, DataType } from '../../utilities/Entities';
-import { AddViewFieldsPanel } from './components/addViewFieldsPanel';
-import { EditViewFieldPanel } from './components/editViewFieldPanel';
+import { IFormField, DataType } from '../../utilities/Entities';
+import { AddFormFieldsPanel } from './components/addFormFieldsPanel';
+//import { EditViewFieldPanel } from './components/editViewFieldPanel';
 import { IList } from '@pnp/sp/lists';
 
-export interface IPropertyPaneViewFieldListProps extends IPropertyPaneFieldListProps {
+export interface IPropertyPaneFormFieldListProps extends IPropertyPaneFieldListProps {
    list: IList;
-   items: IViewField[];
+   items: IFormField[];
 }
 
 const theme = getTheme();
@@ -32,18 +32,18 @@ const iconButtonStyles = mergeStyleSets({
    }
 });
 
-export class PropertyPaneViewFieldList extends PropertyPaneFieldList {
+export class PropertyPaneFormFieldList extends PropertyPaneFieldList {
 
-   private _addViewFieldsPanel: React.RefObject<AddViewFieldsPanel>;
-   private _editViewFieldsPanel: React.RefObject<EditViewFieldPanel>;
+   private _addFormFieldsPanel: React.RefObject<AddFormFieldsPanel>;
+   //private _editViewFieldsPanel: React.RefObject<EditViewFieldPanel>;
    private _list: IList;
 
-   constructor(targetProperty: string, properties: IPropertyPaneViewFieldListProps) {
+   constructor(targetProperty: string, properties: IPropertyPaneFormFieldListProps) {
 
       properties.columns = [
          {
             key: "remove", name: "remove", isIconOnly: true, iconName: "Delete", calculatedWidth: 30, maxWidth: 30, minWidth: 10, isResizable: false,
-            onRender: (item: IViewField) => {
+            onRender: (item: IFormField) => {
                return <IconButton
                   iconProps={{ iconName: 'Delete' }}
                   ariaLabel="Delete"
@@ -61,7 +61,7 @@ export class PropertyPaneViewFieldList extends PropertyPaneFieldList {
          //{ key: 'name', name: 'Name', fieldName: 'Name', minWidth: 50, maxWidth: 100, isResizable: true },
          {
             key: 'dataType', name: 'Data Type', fieldName: 'dataType', minWidth: 70, maxWidth: 100, isResizable: false,
-            onRender: (item: IViewField) => {
+            onRender: (item: IFormField) => {
                return this.display_DataType(item.DataType);
             }
          }
@@ -70,8 +70,8 @@ export class PropertyPaneViewFieldList extends PropertyPaneFieldList {
       super(targetProperty, properties);   
      
       this._list = properties.list;
-      this._addViewFieldsPanel = React.createRef();
-      this._editViewFieldsPanel = React.createRef();
+      this._addFormFieldsPanel = React.createRef();
+      //this._editViewFieldsPanel = React.createRef();
    }
 
    private display_DataType(type: DataType) {
@@ -84,8 +84,8 @@ export class PropertyPaneViewFieldList extends PropertyPaneFieldList {
             key: 'add', text: 'Add', iconProps: { iconName: 'Add' },
             disabled: !this._list,
             onClick: () => {
-               if (this._addViewFieldsPanel.current) {
-                  this._addViewFieldsPanel.current.open();
+               if (this._addFormFieldsPanel.current) {
+                  this._addFormFieldsPanel.current.open();
                }
             }
          },
@@ -93,12 +93,12 @@ export class PropertyPaneViewFieldList extends PropertyPaneFieldList {
             key: 'edit', text: 'Edit', iconProps: { iconName: 'Edit' }, iconOnly: true,
             disabled: !(selection instanceof Array) || selection.length !== 1,
             onClick: () => {
-               if (selection instanceof Array && selection.length > 0) {
+               /*if (selection instanceof Array && selection.length > 0) {
                   if (this._editViewFieldsPanel.current) {
                      this._editViewFieldsPanel.current.setState({ field: selection[0] as IViewField });
                      this._editViewFieldsPanel.current.open();
                   }
-               }
+               }*/
             }
          },
          {
@@ -143,17 +143,10 @@ export class PropertyPaneViewFieldList extends PropertyPaneFieldList {
       const element = super.onRenderElement();
       return <div>
          {element}
-         <AddViewFieldsPanel ref={this._addViewFieldsPanel} list={this._list} fields={this.properties.items} onAddFields={(fields) => {
+         <AddFormFieldsPanel ref={this._addFormFieldsPanel} list={this._list} fields={this.properties.items} onAddFields={(fields) => {
             const items = this.properties.items instanceof Array ? [... this.properties.items, ...fields] : fields;
             this.set_items(items);
-         }} />
-         <EditViewFieldPanel ref={this._editViewFieldsPanel} onChange={(field) => {
-            const items: IViewField[] =  this.properties.items instanceof Array ? [... this.properties.items] : [];
-            for (const item of items.filter(i => i.Name === field.Name)) {
-               items[items.indexOf(item)] = field;
-            }
-            this.set_items(items);
-         }} />
+         }} />      
       </div>;
    }
 

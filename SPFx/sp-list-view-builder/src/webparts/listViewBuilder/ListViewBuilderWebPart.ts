@@ -21,8 +21,9 @@ import * as strings from 'ListViewBuilderWebPartStrings';
 import { PropertyFieldListPicker } from '../propertyPaneField/propertyFieldListPicker';
 import { ListOrderBy, ISPListInfo } from "../../controls/components/listPicker";
 import { PropertyPaneViewFieldList } from '../propertyPaneField/PropertyPaneViewFieldList';
+import { PropertyPaneFormFieldList } from '../propertyPaneField/PropertyPaneFormFieldList';
 import { PropertyPaneFieldPicker } from '../propertyPaneField/propertyPaneFieldPicker';
-import { IViewField, IFolder, IField, IOrderByField, IFieldLookupInfo } from '../../utilities/Entities';
+import { IViewField, IFolder, IField, IOrderByField, IFieldLookupInfo, IFormField } from '../../utilities/Entities';
 import { update, get } from '@microsoft/sp-lodash-subset';
 import { proxyUrl, webRelativeUrl } from '../../settings';
 import { SPListView } from './components/spListView';
@@ -33,6 +34,7 @@ export interface IListViewBuilderWebPartProps {
   description: string;
   list: ISPListInfo;
   viewFields: IViewField[];
+  formFields: IFormField[];
   countPerPage?: number;
   cachingTimeoutSeconds?: number;
   includeSubFolders?: boolean;
@@ -147,6 +149,7 @@ export default class ListViewBuilderWebPart extends BaseClientSideWebPart<IListV
   }
 
   protected getPropertyPaneConfiguration(): IPropertyPaneConfiguration {
+    const list = SPService.getList(this.properties.list);
     return {
       pages: [
         {
@@ -171,9 +174,9 @@ export default class ListViewBuilderWebPart extends BaseClientSideWebPart<IListV
                 }),
                 new PropertyPaneViewFieldList('viewFields', {
                   label: strings.ViewFieldsFieldLabel,
-                  listId: this.properties.list ? this.properties.list.Id : undefined,
+                  list: list,
                   items: this.properties.viewFields,                
-                  columns: [],
+                  //columns: [],
                   onPropertyChange: this.onCustomPropertyPaneFieldChanged.bind(this),
                   noItemsMessage: "Click on 'Add' to add fields."
                 }),
@@ -183,7 +186,7 @@ export default class ListViewBuilderWebPart extends BaseClientSideWebPart<IListV
                   itemLimit: 1,
                   disabled: !this.properties.list,
                   selected: this.properties.orderBy ? [this.properties.orderBy] : undefined,
-                  list: SPService.getList(this.properties.list),
+                  list: list,
                   onPropertyChange: this.onCustomPropertyPaneFieldChanged.bind(this),
                   onFilter: (field) => {
                     return !(field as IFieldLookupInfo).AllowMultipleValues && field.FieldTypeKind !== FieldTypes.MultiChoice
@@ -193,6 +196,14 @@ export default class ListViewBuilderWebPart extends BaseClientSideWebPart<IListV
                 PropertyPaneToggle('ascending', {
                   label: strings.AscendingLabel,
                   disabled: !this.properties.orderBy
+                }),
+                new PropertyPaneFormFieldList('formFields', {
+                  label: strings.FormFieldsFieldLabel,
+                  list: list,
+                  items: this.properties.formFields,                
+                  //columns: [],
+                  onPropertyChange: this.onCustomPropertyPaneFieldChanged.bind(this),
+                  noItemsMessage: "Click on 'Add' to add fields."
                 }),
               ]
             },

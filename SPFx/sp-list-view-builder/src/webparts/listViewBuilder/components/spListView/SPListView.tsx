@@ -66,7 +66,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
         const folder = this.props.rootFolder;
         this._abortPromises();
         const list = await this._addPromise(this.getListInfo(this.props.list));
-        const canAddItem = SPService.DoesListHavePermissions(list, PermissionKind.AddListItems);
+        const canAddItem = SPService.doesListHavePermissions(list, PermissionKind.AddListItems);
         const page = await this._addPromise(this.getData(this.props.list, undefined, undefined, folder));
         this._page = page;
         this._isMounted = true;
@@ -234,10 +234,10 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
     private _processListItem(item: IEditableListItem): IEditableListItem {
         if (item) {
             if (item.CanEdit === undefined) {
-                item.CanEdit = SPService.DoesItemHavePermissions(item, PermissionKind.EditListItems);
+                item.CanEdit = SPService.doesItemHavePermissions(item, PermissionKind.EditListItems);
             }
             if (item.CanDelete === undefined) {
-                item.CanDelete = SPService.DoesItemHavePermissions(item, PermissionKind.DeleteListItems);
+                item.CanDelete = SPService.doesItemHavePermissions(item, PermissionKind.DeleteListItems);
             }
         }
         return item;

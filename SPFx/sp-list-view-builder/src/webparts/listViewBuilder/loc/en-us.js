@@ -14,5 +14,6 @@ define([], function() {
     "IncludeSubFolderLabel": "Include Folders",
     "OrderByLabel": "Sort By", 
     "AscendingLabel" : "Sort Ascending",
+    "FormFieldsFieldLabel": "Form Fields"
   }
 });
