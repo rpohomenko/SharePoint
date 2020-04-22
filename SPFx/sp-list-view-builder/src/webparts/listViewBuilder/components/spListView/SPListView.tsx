@@ -10,7 +10,7 @@ import { IconButton, Icon, Link } from 'office-ui-fabric-react';
 import { IColumn, IGroup } from 'office-ui-fabric-react/lib/DetailsList';
 import { Breadcrumb, IBreadcrumbItem } from "office-ui-fabric-react/lib/Breadcrumb";
 import { ListView, IListViewProps, IGrouping } from '../../../../controls/listView';
-import { IList } from "@pnp/sp/lists";
+import { IList, IListInfo } from "@pnp/sp/lists";
 import { IViewColumn } from '../../../../controls/listView';
 import { ITimeZoneInfo, IRegionalSettingsInfo } from "@pnp/sp/regional-settings/types";
 import { ISPListViewProps, ISPListViewState } from './ISPListView';
@@ -25,8 +25,13 @@ import { FontIcon } from 'office-ui-fabric-react/lib/Icon';
 import { getTheme } from 'office-ui-fabric-react/lib/Styling';
 import { Dialog, DialogType, DialogFooter } from 'office-ui-fabric-react/lib/Dialog';
 import { PrimaryButton, DefaultButton } from 'office-ui-fabric-react/lib/Button';
+import { cancelable, CancelablePromise } from 'cancelable-promise';
 
 const theme = getTheme();
+
+interface CancelablePromise{
+    cancel: ()=> void;
+}
 
 export class SPListView extends React.Component<ISPListViewProps, ISPListViewState> {
 
@@ -35,6 +40,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
     private _isMounted = false;
     private _shimItemCount = 5;
     private _page?: PagedItemCollection<IListItem[]>;
+    private _promises : CancelablePromise[] = [];
 
     constructor(props: ISPListViewProps) {
         super(props);
@@ -58,11 +64,14 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
         const locale = SPService.getLocaleName(this._regionalSettings.LocaleId);
         moment.locale(locale);
         const folder = this.props.rootFolder;
-        const page = await this.getData(this.props.list, undefined, undefined, folder);
+        this._abortPromises();
+        const list = await this._addPromise(this.getListInfo(this.props.list));
+        const canAddItem = SPService.DoesListHavePermissions(list, PermissionKind.AddListItems);
+        const page = await this._addPromise(this.getData(this.props.list, undefined, undefined, folder));
         this._page = page;
         this._isMounted = true;
-        this.setState({ items: page.results, columns: columns, isLoading: false, sortColumn: undefined, groupBy: this.props.groupBy, folder: this.props.rootFolder ? { ...this.props.rootFolder } : undefined });
-    }
+        this.setState({ items: page.results, canAddItem: canAddItem, columns: columns, isLoading: false, sortColumn: undefined, groupBy: this.props.groupBy, folder: this.props.rootFolder ? { ...this.props.rootFolder } : undefined });
+    }   
 
     public async componentDidUpdate(prevProps: ISPListViewProps, prevState: ISPListViewState) {
         if (!isEqual(prevProps, this.props)) {
@@ -71,7 +80,8 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
     }
 
     public componentWillUnmount() {
-
+        this._isMounted = false;
+        this._abortPromises();
     }
 
     public render(): React.ReactElement {
@@ -129,8 +139,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
             modalProps={{
                 isBlocking: false,
                 styles: { main: { maxWidth: 450 } },
-            }}
-        >
+            }}>
             <DialogFooter>
                 <PrimaryButton onClick={() => {
                     this.setState({ isLoading: true, isDeleting: false });
@@ -142,18 +151,43 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
                     this.setState({ isDeleting: false });
                 }} text="Cancel" />
             </DialogFooter>
-        </Dialog>
+        </Dialog>;
     }
 
     protected onSelectItems(selection: IListItem[]) {
         this.setState({ selection: selection });
     }
 
+    private async _addPromise(promise: Promise<any>): Promise<any> {
+        if (promise) {
+            const cancelablePromise = cancelable(promise).finally(() => {
+                this._removePromise(cancelablePromise);
+            });
+            this._promises.push(cancelablePromise);
+        }
+        return promise;
+    }
+
+    private _removePromise(cancelablePromise: CancelablePromise) {
+        this._promises = this._promises.filter(promise => promise !== cancelablePromise);
+    }
+
+    private _abortPromises() {
+        for (const promise of this._promises) {
+            promise.cancel();
+        }
+    }
+
+    private async _waitForPromises() {
+       return await CancelablePromise.all(this._promises);
+    }
+
     private async loadNextData(page: PagedItemCollection<IEditableListItem[]>) {
         if (page && page.hasNext === true) {
             const { groupBy, items } = this.state;
             this.setState({ isLoading: true, groupBy: undefined, items: [...items, ...new Array(this._shimItemCount)] });
-            const nextPage = await page.getNext();
+            await this._waitForPromises();
+            const nextPage = await this._addPromise(page.getNext());
             const newItems = [...items, ...nextPage.results];
             this._page = nextPage;
             this.setState({ isLoading: false, groupBy: groupBy, items: newItems });
@@ -162,8 +196,9 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
 
     private loadItemsInFolder(folder: IFolder) {
         const { groupBy } = this.state;
+        this._abortPromises();
         this.setState({ isLoading: true, groupBy: undefined, folder: folder, items: new Array(this._shimItemCount) }, () => {
-            this.getData(this.props.list, this.state.sortColumn, this.state.groupBy, folder).then(page => {
+            this._addPromise(this.getData(this.props.list, this.state.sortColumn, this.state.groupBy, folder)).then(page => {
                 this._page = page;
                 this.setState({ items: page.results, groupBy: groupBy, isLoading: false });
             });
@@ -206,6 +241,12 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
             }
         }
         return item;
+    }
+
+    private async getListInfo(list: IList): Promise<IListInfo> {
+        if (list) {
+            return await list.select('Id', 'Title', 'BaseTemplate', 'RootFolder/ServerRelativeUrl', 'DefaultDisplayFormUrl', 'EffectiveBasePermissions').get();
+        }
     }
 
     private async getData(list: IList, sortColumn?: IViewColumn, groupBy?: IGrouping[], folder?: IFolder): Promise<PagedItemCollection<IEditableListItem[]>> {
@@ -325,9 +366,10 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
 
     private onSortItems(column: IViewColumn) {
         const { groupBy } = this.state;
+        this._abortPromises();
         this.setState({ isLoading: true, groupBy: undefined, sortColumn: column, items: new Array(this._shimItemCount) }, () => {
             const folder = this.state.folder || this.props.rootFolder;
-            this.getData(this.props.list, column, groupBy, folder).then(page => {
+            this._addPromise(this.getData(this.props.list, column, groupBy, folder)).then(page => {
                 this._page = page;
                 this.setState({ items: page.results, groupBy: groupBy, isLoading: false });
             });
@@ -593,7 +635,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
         return [
             {
                 key: 'add', text: 'Add', iconProps: { iconName: 'Add' }, iconOnly: true,
-                disabled: (this.state.isLoading === true || !this.props.list || !this.state.canAddItems) && (!(selection instanceof Array) || selection.length > 0),
+                disabled: (this.state.isLoading === true || !this.props.list || !this.state.canAddItem) || (!(selection instanceof Array) || selection.length > 0),
                 onClick: () => {
 
                 }
@@ -640,8 +682,9 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
 
     public async refresh() {
         const { groupBy } = this.state;
+        this._abortPromises();
         this.setState({ isLoading: true, items: new Array(this._shimItemCount), groupBy: undefined });
-        const page = await this.getData(this.props.list, this.state.sortColumn, this.state.groupBy, this.state.folder);
+        const page = await this._addPromise(this.getData(this.props.list, this.state.sortColumn, this.state.groupBy, this.state.folder));
         this._page = page;
         this.setState({ items: page.results, groupBy: groupBy, isLoading: false });
     }

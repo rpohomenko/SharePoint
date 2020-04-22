@@ -1,4 +1,4 @@
-import { sp, IList, PermissionKind } from "@pnp/sp/presets/all";
+import { sp, IList, PermissionKind, IListInfo } from "@pnp/sp/presets/all";
 import { ITimeZoneInfo, IRegionalSettingsInfo } from "@pnp/sp/regional-settings/types";
 import { ISPListInfo } from "../controls/components/listPicker";
 import { IListItem } from "./Entities";
@@ -269,6 +269,10 @@ export default class SPService {
     }
 
     public static DoesItemHavePermissions(item: IListItem, perm: PermissionKind): boolean {
+        return item ? sp.web.hasPermissions(item.EffectiveBasePermissions, perm) : false;
+    }
+
+    public static DoesListHavePermissions(item: IListInfo, perm: PermissionKind): boolean {
         return item ? sp.web.hasPermissions(item.EffectiveBasePermissions, perm) : false;
     }
 }

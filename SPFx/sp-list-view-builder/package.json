@@ -33,6 +33,7 @@
     "@types/react-dom": "16.8.3",
     "@types/webpack-env": "1.13.1",
     "camljs": "^2.12.0",
+    "cancelable-promise": "^3.0.0",
     "moment": "^2.24.0",
     "office-ui-fabric-react": "^7.105.12",
     "react": "16.8.5",

@@ -17,8 +17,7 @@ export interface ISPListViewProps {
   groupBy?: IGrouping[]; 
 }
 
-export interface ISPListViewState {
-  //page?: PagedItemCollection<IListItem[]>;
+export interface ISPListViewState { 
   items?: IListItem[];
   selection?: IListItem[];
   columns: IColumn[];
@@ -26,6 +25,6 @@ export interface ISPListViewState {
   folder?: IFolder;
   sortColumn?: IColumn;
   groupBy?: IGrouping[];
-  canAddItems?: boolean; 
+  canAddItem?: boolean; 
   isDeleting?: boolean;
 }
