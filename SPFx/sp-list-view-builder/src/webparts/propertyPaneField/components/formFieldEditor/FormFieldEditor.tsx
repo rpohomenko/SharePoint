@@ -15,7 +15,7 @@ import "@pnp/sp/items";
 import "@pnp/sp/views";
 import "@pnp/sp/fields";
 import { isEqual } from '@microsoft/sp-lodash-subset';
-import { IFormField, DataType } from '../../../../utilities/Entities';
+import { IFormField, DataType, FormMode } from '../../../../utilities/Entities';
 import { IFormFieldEditorProps, IFormFieldEditorState } from './IFormFieldEditorProps';
 
 import { getTheme } from 'office-ui-fabric-react/lib/Styling';
@@ -27,7 +27,7 @@ export class FormFieldEditor extends React.Component<IFormFieldEditorProps, IFor
   constructor(props) {
     super(props);
     this.state = {
-      field: { ...props.field },     
+      field: { ...props.field },
       isOpen: props.isOpen
     };
   }
@@ -43,7 +43,7 @@ export class FormFieldEditor extends React.Component<IFormFieldEditorProps, IFor
 
   public render(): React.ReactElement {
     const { isOpen, field } = this.state;
-    const changedField = this.state.changedField || { ...field };
+    const changedField = this.state.changedField || { ...field, Modes: field.Modes instanceof Array ? [...field.Modes] : [] };
     if (!field) return null;
     return (
       <Panel className={styles.formFieldEditor} isLightDismiss isOpen={isOpen} onDismiss={() => this.close()} closeButtonAriaLabel={"Close"} headerText={`Edit: ${field.Title}`}
@@ -54,11 +54,11 @@ export class FormFieldEditor extends React.Component<IFormFieldEditorProps, IFor
             changedField.Title = value;
             this.setState({ isChanged: !!value && changedField.Title !== field.Title, changedField: changedField });
           }} />
-          <Toggle label="Required" checked={changedField.Required === true} onChange={(event, checked) => {
+          <Toggle label="Required" disabled={changedField.ReadOnly === true} checked={changedField.Required === true} onChange={(event, checked) => {
             changedField.Required = checked;
             this.setState({ isChanged: changedField.Required !== field.Required, changedField: changedField });
           }} />
-          { (field.DataType === DataType.Lookup || field.DataType === DataType.MultiLookup) && <Dropdown
+          {(field.DataType === DataType.Lookup || field.DataType === DataType.MultiLookup) && <Dropdown
             label="Field Type"
             options={[
               { key: DataType.Boolean.toString(), text: 'Boolean' },
@@ -71,10 +71,47 @@ export class FormFieldEditor extends React.Component<IFormFieldEditorProps, IFor
             selectedKey={changedField.OutputType ? changedField.OutputType.toString() : DataType.Text.toString()}
             onChange={(event, option, index) => {
               changedField.OutputType = Number(option.key);
-              this.setState({ isChanged: changedField.OutputType !== field.OutputType, changedField: changedField });
+              const isChanged = changedField.OutputType !== field.OutputType
+                    && !(changedField.OutputType === DataType.Text && field.OutputType === undefined);
+              this.setState({ isChanged: isChanged, changedField: changedField });
             }}
           />
           }
+          <Dropdown
+            label="Mode"
+            placeholder="Select..."
+            multiSelect={true}
+            options={[
+              { key: FormMode.Display.toString(), text: 'Display' },
+              { key: FormMode.Edit.toString(), text: 'Edit' },
+              { key: FormMode.New.toString(), text: 'New' }
+            ]}
+            disabled={field.ReadOnly === true}
+            selectedKeys={changedField.Modes instanceof Array ? changedField.Modes.map(mode => mode.toString()) : undefined}
+            onChange={(event, option, index) => {
+              let modes = changedField.Modes || [];
+              const currentMode: FormMode = Number(option.key);
+              let isChanged = false;
+              if (modes.indexOf(currentMode) === -1) {
+                if (option.selected === true) {
+                  modes.push(currentMode);
+                  isChanged = true;
+                }
+              }
+              else {
+                if (option.selected !== true) {
+                  modes = modes.filter(mode => mode !== currentMode);
+                  isChanged = true;
+                }
+              }
+              changedField.Modes = modes;
+              if (isChanged) {
+                const prevModes = (field.Modes || []);
+                isChanged = prevModes.length !== modes.length || prevModes.some(mode => modes.indexOf(mode) === -1);
+                this.setState({ isChanged: isChanged, changedField: changedField });
+              }
+            }}
+          />
         </Stack>
       </Panel>
     );

@@ -393,6 +393,14 @@ export class ListView extends React.Component<IListViewProps, IListViewState> {
      */
     public sortByColumn = (column: IViewColumn, sortDescending: boolean): void => {
         const { sortColumn, columns, groups } = this.state;
+        if (sortColumn && column.fieldName === sortColumn.fieldName && column.isSorted === sortColumn.isSorted && sortDescending === sortColumn.isSortedDescending) {
+            sortColumn.isSorted = false;
+            sortColumn.isSortedDescending = false;
+            this.setState({
+                sortColumn: undefined, columns: columns
+            }, () => this.onSortByColumn(null));
+            return;
+        }
         //if(sortColumn && sortColumn.key === column.key && sortColumn.isSortedDescending === sortDescending ) return;
 
         // Check if the field needs to be sorted

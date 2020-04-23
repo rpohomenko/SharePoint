@@ -60,12 +60,13 @@ export default class ListViewBuilderWebPart extends BaseClientSideWebPart<IListV
         {
           list: SPService.getList(this.properties.list),
           viewFields: this.properties.viewFields,
+          formFields: this.properties.formFields,
           count: this.properties.countPerPage,
           timeZone: SPService.getTimeZoneInfo(),
           regionalSettings: SPService.getRegionalSettingsInfo(),
           includeSubFolders: this.properties.includeSubFolders,
           showFolders: !this.properties.includeSubFolders,
-          rootFolder: !this.properties.includeSubFolders ? { Name: this.properties.list.Title, ServerRelativeUrl: this.properties.list.Url } as IFolder : undefined,
+          rootFolder: { Name: this.properties.list.Title, ServerRelativeUrl: this.properties.list.Url } as IFolder,
           orderBy: this.properties.orderBy ? [{ Name: this.properties.orderBy.Name, Descending: !this.properties.ascending } as IOrderByField] : undefined,
           
         });

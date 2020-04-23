@@ -1,12 +1,13 @@
 import { IColumn } from 'office-ui-fabric-react/lib/DetailsList';
 import { ITimeZoneInfo, IRegionalSettingsInfo } from "@pnp/sp/regional-settings/types";
-import { IViewField, IFolder, IOrderByField, IListItem } from '../../../../utilities/Entities';
+import { IViewField, IFolder, IOrderByField, IListItem, IFormField } from '../../../../utilities/Entities';
 import { IGrouping } from "../../../../controls/listView";
 import { IList } from "@pnp/sp/lists";
 
 export interface ISPListViewProps {
   list: IList;
   viewFields: IViewField[];
+  formFields: IFormField[];
   count?: number;
   regionalSettings?: Promise<IRegionalSettingsInfo>;
   timeZone?: Promise<ITimeZoneInfo>;

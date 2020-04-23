@@ -631,11 +631,12 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
     protected getCommandItems(items: IEditableListItem[], selection?: IEditableListItem[]): ICommandBarItemProps[] {
         const canEdit = selection instanceof Array && selection.length === 1 && selection[0].CanEdit;
         const canDelete = selection instanceof Array && selection.length > 0 && selection.filter(item => item.CanDelete === true).length === selection.length;
-
+        const canAddItem = this.state.canAddItem && this.props.formFields instanceof Array && this.props.formFields.length > 0;
         return [
             {
                 key: 'add', text: 'Add', iconProps: { iconName: 'Add' }, iconOnly: true,
-                disabled: (this.state.isLoading === true || !this.props.list || !this.state.canAddItem) || (!(selection instanceof Array) || selection.length > 0),
+                disabled: this.state.isLoading === true || !this.props.list || !canAddItem
+                    || (selection instanceof Array && selection.length > 0),
                 onClick: () => {
 
                 }
