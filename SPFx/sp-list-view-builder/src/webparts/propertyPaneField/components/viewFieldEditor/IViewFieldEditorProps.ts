@@ -1,12 +1,12 @@
 import { IViewField } from '../../../../utilities/Entities';
 
-export interface IEditViewFieldProps {
+export interface IViewFieldEditorProps {
     field?: IViewField;
     isOpen?: boolean;
     onChange: (field: IViewField) => void;
 }
 
-export interface IEditViewFieldState {
+export interface IViewFieldEditorState {
     isOpen: boolean;
     field?: IViewField;
     changedField?: IViewField;

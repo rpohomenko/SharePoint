@@ -5,8 +5,8 @@ import { ICommandBarItemProps } from 'office-ui-fabric-react/lib/CommandBar';
 import { IconButton, getTheme, mergeStyleSets, IColumn } from 'office-ui-fabric-react';
 import { PropertyPaneFieldList, IPropertyPaneFieldListProps } from './propertyPaneFieldList';
 import { IFormField, DataType } from '../../utilities/Entities';
-import { AddFormFieldsPanel } from './components/addFormFieldsPanel';
-//import { EditViewFieldPanel } from './components/editViewFieldPanel';
+import AddFormFieldPanel from './components/AddFormFieldPanel';
+import { FormFieldEditor } from './components/formFieldEditor';
 import { IList } from '@pnp/sp/lists';
 
 export interface IPropertyPaneFormFieldListProps extends IPropertyPaneFieldListProps {
@@ -34,8 +34,8 @@ const iconButtonStyles = mergeStyleSets({
 
 export class PropertyPaneFormFieldList extends PropertyPaneFieldList {
 
-   private _addFormFieldsPanel: React.RefObject<AddFormFieldsPanel>;
-   //private _editViewFieldsPanel: React.RefObject<EditViewFieldPanel>;
+   private _addFormFieldPanel: React.RefObject<AddFormFieldPanel>;
+   private _formFieldEditor: React.RefObject<FormFieldEditor>;
    private _list: IList;
 
    constructor(targetProperty: string, properties: IPropertyPaneFormFieldListProps) {
@@ -67,11 +67,11 @@ export class PropertyPaneFormFieldList extends PropertyPaneFieldList {
          }
       ];
 
-      super(targetProperty, properties);   
-     
+      super(targetProperty, properties);
+
       this._list = properties.list;
-      this._addFormFieldsPanel = React.createRef();
-      //this._editViewFieldsPanel = React.createRef();
+      this._addFormFieldPanel = React.createRef();
+      this._formFieldEditor = React.createRef();
    }
 
    private display_DataType(type: DataType) {
@@ -84,8 +84,8 @@ export class PropertyPaneFormFieldList extends PropertyPaneFieldList {
             key: 'add', text: 'Add', iconProps: { iconName: 'Add' },
             disabled: !this._list,
             onClick: () => {
-               if (this._addFormFieldsPanel.current) {
-                  this._addFormFieldsPanel.current.open();
+               if (this._addFormFieldPanel.current) {
+                  this._addFormFieldPanel.current.open();
                }
             }
          },
@@ -93,12 +93,12 @@ export class PropertyPaneFormFieldList extends PropertyPaneFieldList {
             key: 'edit', text: 'Edit', iconProps: { iconName: 'Edit' }, iconOnly: true,
             disabled: !(selection instanceof Array) || selection.length !== 1,
             onClick: () => {
-               /*if (selection instanceof Array && selection.length > 0) {
-                  if (this._editViewFieldsPanel.current) {
-                     this._editViewFieldsPanel.current.setState({ field: selection[0] as IViewField });
-                     this._editViewFieldsPanel.current.open();
+               if (selection instanceof Array && selection.length > 0) {
+                  if (this._formFieldEditor.current) {
+                     this._formFieldEditor.current.setState({ field: selection[0] as IFormField });
+                     this._formFieldEditor.current.open();
                   }
-               }*/
+               }
             }
          },
          {
@@ -143,10 +143,17 @@ export class PropertyPaneFormFieldList extends PropertyPaneFieldList {
       const element = super.onRenderElement();
       return <div>
          {element}
-         <AddFormFieldsPanel ref={this._addFormFieldsPanel} list={this._list} fields={this.properties.items} onAddFields={(fields) => {
+         <AddFormFieldPanel ref={this._addFormFieldPanel} list={this._list} fields={this.properties.items} onAddFields={(fields) => {
             const items = this.properties.items instanceof Array ? [... this.properties.items, ...fields] : fields;
             this.set_items(items);
-         }} />      
+         }} />
+         <FormFieldEditor ref={this._formFieldEditor} onChange={(field) => {
+            const items: IFormField[] =  this.properties.items instanceof Array ? [... this.properties.items] : [];
+            for (const item of items.filter(i => i.Name === field.Name)) {
+               items[items.indexOf(item)] = field;
+            }
+            this.set_items(items);
+         }} />
       </div>;
    }
 

@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Separator } from 'office-ui-fabric-react/lib/Separator';
-
-import styles from "./editViewField.module.scss";
+import { Toggle } from 'office-ui-fabric-react/lib/Toggle';
+import styles from "./formFieldEditor.module.scss";
 
 import { Panel } from 'office-ui-fabric-react/lib/Panel';
 import { Label } from 'office-ui-fabric-react/lib/Label';
@@ -9,21 +9,20 @@ import { TextField } from 'office-ui-fabric-react/lib/TextField';
 import { Stack, Dropdown, IDropdownOption, Spinner, SpinnerSize } from 'office-ui-fabric-react';
 import { DefaultButton, PrimaryButton } from 'office-ui-fabric-react/lib/Button';
 
-import { sp } from "@pnp/sp";
 import "@pnp/sp/webs";
 import "@pnp/sp/lists";
 import "@pnp/sp/items";
 import "@pnp/sp/views";
 import "@pnp/sp/fields";
 import { isEqual } from '@microsoft/sp-lodash-subset';
-import { IViewField, IViewLookupField, DataType } from '../../../../utilities/Entities';
-import { IEditViewFieldProps, IEditViewFieldState } from './IEditViewFieldProps';
+import { IFormField, DataType } from '../../../../utilities/Entities';
+import { IFormFieldEditorProps, IFormFieldEditorState } from './IFormFieldEditorProps';
 
 import { getTheme } from 'office-ui-fabric-react/lib/Styling';
 
 const theme = getTheme();
 
-export class EditViewFieldPanel extends React.Component<IEditViewFieldProps, IEditViewFieldState> {
+export class FormFieldEditor extends React.Component<IFormFieldEditorProps, IFormFieldEditorState> {
 
   constructor(props) {
     super(props);
@@ -33,7 +32,7 @@ export class EditViewFieldPanel extends React.Component<IEditViewFieldProps, IEd
     };
   }
 
-  public componentDidUpdate(prevProps: IEditViewFieldProps) {
+  public componentDidUpdate(prevProps: IFormFieldEditorProps) {
     if (prevProps.isOpen !== this.props.isOpen) {
       this.setState({ isOpen: this.props.isOpen });
     }
@@ -47,20 +46,24 @@ export class EditViewFieldPanel extends React.Component<IEditViewFieldProps, IEd
     const changedField = this.state.changedField || { ...field };
     if (!field) return null;
     return (
-      <Panel className={styles.editViewField} isLightDismiss isOpen={isOpen} onDismiss={() => this.close()} closeButtonAriaLabel={"Close"} headerText={`Edit: ${field.Title}`}
+      <Panel className={styles.formFieldEditor} isLightDismiss isOpen={isOpen} onDismiss={() => this.close()} closeButtonAriaLabel={"Close"} headerText={`Edit: ${field.Title}`}
         onRenderFooterContent={this.renderFooterContent.bind(this)}
         isFooterAtBottom={false}>
         <Stack horizontal={false} tokens={{ childrenGap: 15 }}>
           <TextField label={"Title"} required placeholder={field.Title} value={changedField.Title} onChange={(event, value) => {
-            changedField.Title = value; /*|| field.Title;*/
+            changedField.Title = value;
             this.setState({ isChanged: !!value && changedField.Title !== field.Title, changedField: changedField });
-          }} />         
+          }} />
+          <Toggle label="Required" checked={changedField.Required === true} onChange={(event, checked) => {
+            changedField.Required = checked;
+            this.setState({ isChanged: changedField.Required !== field.Required, changedField: changedField });
+          }} />
           { (field.DataType === DataType.Lookup || field.DataType === DataType.MultiLookup) && <Dropdown
             label="Field Type"
             options={[
               { key: DataType.Boolean.toString(), text: 'Boolean' },
               { key: DataType.Date.toString(), text: 'Date' },
-              { key: DataType.DateTime.toString(), text: 'DateTime' },
+              { key: DataType.DateTime.toString(), text: 'Date Time' },
               { key: DataType.Number.toString(), text: 'Number' },
               { key: DataType.Text.toString(), text: 'Text' }
             ]}

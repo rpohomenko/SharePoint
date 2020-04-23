@@ -38,6 +38,7 @@ export interface IViewField extends IField {
 
 export interface IFormField extends IField {
     DataType: DataType;
+    OutputType?: DataType.Text | DataType.Number | DataType.Boolean | DataType.DateTime | DataType.Date;
     LookupFieldName?: string;
     LookupListId?: string;
     LookupWebId?: string;

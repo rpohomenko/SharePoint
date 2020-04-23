@@ -16,30 +16,30 @@ import { isArray } from '@pnp/common';
 
 import { FieldTypes, IFieldInfo } from "@pnp/sp/fields";
 
-import { IFieldLookupInfo, IFormField } from '../../../../utilities/Entities';
-import { AsyncDropdown } from '../../../../controls/components/asyncDropdown';
+import { IFieldLookupInfo, IFormField } from '../../../utilities/Entities';
+import { AsyncDropdown } from '../../../controls/components/asyncDropdown';
 
 import { getTheme } from 'office-ui-fabric-react/lib/Styling';
-import SPService from '../../../../utilities/SPService';
-import { IList, IListInfo } from '@pnp/sp/lists';
+import SPService from '../../../utilities/SPService';
+import { IList } from '@pnp/sp/lists';
 
 const theme = getTheme();
 
-export interface IAddFormFieldsPanelProps {
+export interface IAddFormFieldPanelProps {
   list: IList;
   isOpen?: boolean;
   fields: IFormField[];
   onAddFields: (fields: IFormField[]) => void;
 }
 
-export interface IAddFormFieldsPanelState {
+export interface IAddFormFieldPanelState {
   contentTypeId?: string;
   isOpen?: boolean;
   selection?: IFormField[];
   isLoading?: boolean;
 }
 
-export class AddFormFieldsPanel extends React.Component<IAddFormFieldsPanelProps, IAddFormFieldsPanelState> {
+export default class AddFormFieldPanel extends React.Component<IAddFormFieldPanelProps, IAddFormFieldPanelState> {
 
   private _fields: { [contentTypeId: string]: IFormField[] } = {};
   private _selection: Selection;
@@ -62,7 +62,7 @@ export class AddFormFieldsPanel extends React.Component<IAddFormFieldsPanelProps
     });
   }
 
-  public componentDidUpdate(prevProps: IAddFormFieldsPanelProps) {
+  public componentDidUpdate(prevProps: IAddFormFieldPanelProps) {
     if (prevProps.isOpen !== this.props.isOpen) {
       this.setState({ isOpen: this.props.isOpen });
     }

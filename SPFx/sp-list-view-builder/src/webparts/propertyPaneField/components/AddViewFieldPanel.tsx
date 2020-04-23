@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { Separator } from 'office-ui-fabric-react/lib/Separator';
-import styles from "./addViewFields.module.scss";
 import { Panel } from 'office-ui-fabric-react/lib/Panel';
 import { Stack, IDropdownOption, Spinner, SpinnerSize } from 'office-ui-fabric-react';
 import { DefaultButton, PrimaryButton } from 'office-ui-fabric-react/lib/Button';
@@ -18,30 +17,30 @@ import { isArray } from '@pnp/common';
 
 import { FieldTypes, IFieldInfo } from "@pnp/sp/fields";
 
-import { IViewField, IViewLookupField, IFieldLookupInfo, IFieldUserInfo } from '../../../../utilities/Entities';
-import { AsyncDropdown } from '../../../../controls/components/asyncDropdown';
+import { IViewField, IViewLookupField, IFieldLookupInfo, IFieldUserInfo } from '../../../utilities/Entities';
+import { AsyncDropdown } from '../../../controls/components/asyncDropdown';
 
 import { getTheme } from 'office-ui-fabric-react/lib/Styling';
-import SPService from '../../../../utilities/SPService';
+import SPService from '../../../utilities/SPService';
 import { IList } from '@pnp/sp/lists';
 
 const theme = getTheme();
 
-export interface IAddViewFieldsPanelProps {
+export interface IAddViewFieldPanelProps {
   list: IList;
   isOpen?: boolean;
   fields: IViewField[];
   onAddFields: (fields: IViewField[]) => void;
 }
 
-export interface IAddViewFieldsPanelState {
+export interface IAddViewFieldPanelState {
   viewId?: string;
   isOpen?: boolean;
   selection?: IViewField[];
   isLoading?: boolean;
 }
 
-export class AddViewFieldsPanel extends React.Component<IAddViewFieldsPanelProps, IAddViewFieldsPanelState> {
+export default class AddViewFieldPanel extends React.Component<IAddViewFieldPanelProps, IAddViewFieldPanelState> {
 
   private _fields: { [viewId: string]: IViewField[] } = {};
   private _selection: Selection;
@@ -64,7 +63,7 @@ export class AddViewFieldsPanel extends React.Component<IAddViewFieldsPanelProps
     });
   }
 
-  public componentDidUpdate(prevProps: IAddViewFieldsPanelProps) {
+  public componentDidUpdate(prevProps: IAddViewFieldPanelProps) {
     if (prevProps.isOpen !== this.props.isOpen) {
       this.setState({ isOpen: this.props.isOpen });
     }
@@ -79,7 +78,7 @@ export class AddViewFieldsPanel extends React.Component<IAddViewFieldsPanelProps
     const fields = !!viewId ? this._fields[viewId] : null;
 
     return (
-      <Panel className={styles.addViewFields} isLightDismiss isOpen={isOpen} onDismiss={() => this.close()} closeButtonAriaLabel={"Close"} headerText={"Add Field(s)..."}
+      <Panel isLightDismiss isOpen={isOpen} onDismiss={() => this.close()} closeButtonAriaLabel={"Close"} headerText={"Add Field(s)..."}
         onRenderFooterContent={this.renderFooterContent.bind(this)}
         isFooterAtBottom={false}>
         <Stack tokens={{ childrenGap: 2 }}>
