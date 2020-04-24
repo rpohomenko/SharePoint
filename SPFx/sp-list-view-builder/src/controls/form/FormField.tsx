@@ -1,0 +1,109 @@
+import * as React from 'react';
+import { Label } from 'office-ui-fabric-react/lib/Label';
+import { IconButton } from 'office-ui-fabric-react/lib/Button';
+import { Callout } from 'office-ui-fabric-react/lib/Callout';
+import { Stack } from 'office-ui-fabric-react/lib/Stack';
+import { Text } from 'office-ui-fabric-react/lib/Text';
+import { IFormFieldProps, IFormFieldState } from './IFormFieldProps';
+import { getId } from 'office-ui-fabric-react/lib/Utilities';
+import { BaseFieldRenderer } from './fieldRenderer/BaseFieldRenderer';
+import { TextFieldRenderer } from './fieldRenderer/TextFieldRenderer';
+import { IBaseFieldRendererProps, ValidationResult } from './fieldRenderer/IBaseFieldRendererProps';
+import { DataType } from '../../utilities/Entities';
+
+export class FormField extends React.Component<IFormFieldProps, IFormFieldState> {
+
+    private _iconButtonId = getId('iFieldInfo');
+    private _fieldControl: React.RefObject<any>;
+
+    constructor(props: IFormFieldProps) {
+        super(props);
+
+        this.state = {
+            mode: props.mode
+        };
+
+        this._fieldControl = React.createRef();
+    }
+
+    public componentDidMount() {
+    }
+
+    public componentDidUpdate(prevProps: IFormFieldProps, prevState: IFormFieldState) {
+        if (prevProps.mode != this.props.mode) {
+            this.setState({
+                mode: this.props.mode
+            });
+        }
+    }
+
+    public render() {
+        const { field, onGetFieldRenderer } = this.props;
+        const { mode } = this.state;
+        const isHidden = !field || (field.Modes instanceof Array && field.Modes.length > 0 && !field.Modes.some(m => m === mode));
+        if (isHidden) {
+            return null;
+        }
+        const fieldRenderer = onGetFieldRenderer instanceof Function
+            ? onGetFieldRenderer(this._fieldControl, () => this._getFieldRenderer())
+            : this._getFieldRenderer();
+        return <div className="form-field">
+            {field.Title &&
+                (<Stack horizontal verticalAlign="center" styles={{ root: { padding: 2 } }}>
+                    <Label className="form-field-label" required={field.Required === true}>{field.Title}</Label>
+                    {field.Description &&
+                        (<IconButton
+                            id={this._iconButtonId}
+                            iconProps={{ iconName: 'Info' }}
+                            title="Info"
+                            ariaLabel="Info"
+                            onClick={() => this._setCalloutVisible(!this.state.isCalloutVisible)} />)}
+                </Stack>)}
+            {this.state.isCalloutVisible && (
+                <Callout
+                    setInitialFocus={true}
+                    target={'#' + this._iconButtonId}
+                    onDismiss={() => this._setCalloutVisible(false)}
+                    role="alertdialog">
+                    <Stack horizontalAlign="start" styles={{ root: { padding: 20 } }}>
+                        <Text variant="small">
+                            {field.Description}
+                        </Text>
+                    </Stack>
+                </Callout>
+            )}
+            {fieldRenderer}
+        </div>;
+    }
+
+    public async validate(disableEvents?: boolean): Promise<ValidationResult> {
+        if (this._fieldControl.current) {
+            return await this._fieldControl.current.validate(disableEvents);
+        }
+    }
+
+    private _setCalloutVisible = (visible: boolean) => {
+        this.setState({ isCalloutVisible: visible });
+    }
+
+    private _getFieldRenderer(): JSX.Element {
+        const { field, defaultValue, onChange, onValidate } = this.props;
+        const { mode } = this.state;
+        if (field.DataType === DataType.Text || field.DataType === DataType.MultiLineText) {
+            return <TextFieldRenderer
+                key={field.Name}
+                ref={this._fieldControl}
+                disabled={field.ReadOnly === true}
+                defaultValue={defaultValue}
+                mode={mode}
+                dataType={field.DataType}
+                title={field.Title}
+                onValidate={onValidate}
+                onChange={onChange} />;
+        }
+        else {
+            return null;
+            //throw `Field Type "${field.DataType[field.DataType]}" is not supported.`;
+        }
+    }
+}

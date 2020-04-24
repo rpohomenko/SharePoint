@@ -15,10 +15,11 @@ export interface ISPListViewProps {
   includeSubFolders?: boolean;
   showFolders?: boolean;
   orderBy?: IOrderByField[];
-  groupBy?: IGrouping[]; 
+  groupBy?: IGrouping[];
+  showCommandBar?: boolean;
 }
 
-export interface ISPListViewState { 
+export interface ISPListViewState {
   items?: IListItem[];
   selection?: IListItem[];
   columns: IColumn[];
@@ -26,6 +27,7 @@ export interface ISPListViewState {
   folder?: IFolder;
   sortColumn?: IColumn;
   groupBy?: IGrouping[];
-  canAddItem?: boolean; 
+  canAddItem?: boolean;
   isDeleting?: boolean;
+  isEditing?: boolean;
 }

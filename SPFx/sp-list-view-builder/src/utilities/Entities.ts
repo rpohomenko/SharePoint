@@ -46,6 +46,7 @@ export interface IFormField extends IField {
     Required?: boolean;
     ReadOnly?: boolean;
     Modes?: FormMode[];
+    Description?: string;
 }
 
 export interface IOrderByField extends IField {

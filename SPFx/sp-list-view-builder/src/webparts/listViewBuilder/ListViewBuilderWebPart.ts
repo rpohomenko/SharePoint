@@ -40,6 +40,7 @@ export interface IListViewBuilderWebPartProps {
   includeSubFolders?: boolean;
   ascending?: boolean;
   orderBy?: IField;
+  showCommandBar?: boolean;
 }
 
 export default class ListViewBuilderWebPart extends BaseClientSideWebPart<IListViewBuilderWebPartProps> {
@@ -67,6 +68,7 @@ export default class ListViewBuilderWebPart extends BaseClientSideWebPart<IListV
           includeSubFolders: this.properties.includeSubFolders,
           showFolders: !this.properties.includeSubFolders,
           rootFolder: { Name: this.properties.list.Title, ServerRelativeUrl: this.properties.list.Url } as IFolder,
+          showCommandBar: this.properties.showCommandBar,
           orderBy: this.properties.orderBy ? [{ Name: this.properties.orderBy.Name, Descending: !this.properties.ascending } as IOrderByField] : undefined,
           
         });
@@ -103,6 +105,9 @@ export default class ListViewBuilderWebPart extends BaseClientSideWebPart<IListV
     }
     if (this.properties.ascending === undefined) {
       this.properties.ascending = true;
+    }
+    if (this.properties.showCommandBar === undefined) {
+      this.properties.showCommandBar = true;
     }
     if (Environment.type == EnvironmentType.Local) {
       this._webRelativeUrl = webRelativeUrl;
@@ -219,6 +224,10 @@ export default class ListViewBuilderWebPart extends BaseClientSideWebPart<IListV
                 PropertyPaneToggle('includeSubFolders', {
                   label: strings.IncludeSubFolderLabel
                 }),
+                PropertyPaneToggle('showCommandBar', {
+                  label: strings.ShowCommandBarLabel,
+                  checked: this.properties.showCommandBar === true
+                }),
                 PropertyPaneSlider('cachingTimeoutSeconds', {
                   label: strings.CachingTimeoutSecondsLabel,
                   min: 0,
@@ -248,6 +257,7 @@ export default class ListViewBuilderWebPart extends BaseClientSideWebPart<IListV
       if (targetProperty === "list") {
         update(this.properties, "orderBy", (): any => { return undefined; });
         update(this.properties, "viewFields", (): any => { return []; });
+        update(this.properties, "formFields", (): any => { return []; });
       }
 
       this.onPropertyPaneFieldChanged(targetProperty, oldValue, newValue);

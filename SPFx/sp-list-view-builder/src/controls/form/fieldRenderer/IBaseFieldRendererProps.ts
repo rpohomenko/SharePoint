@@ -1,10 +1,11 @@
-import { DataType, FormMode } from '../../utilities/Entities';
+import { DataType, FormMode } from '../../../utilities/Entities';
 
 export interface IBaseFieldRendererProps {
     mode: FormMode;
     dataType: DataType;
     required?: boolean;
-    title: string;
+    title?: string;
+    disabled?: boolean;
     onChange: (value: any) => void;
     onValidate: (validationResult: ValidationResult) => void;
     defaultValue?: any;

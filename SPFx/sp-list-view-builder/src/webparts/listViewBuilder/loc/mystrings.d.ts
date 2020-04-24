@@ -14,6 +14,7 @@ declare interface IListViewBuilderWebPartStrings {
   OrderByLabel: string;
   AscendingLabel: string;
   FormFieldsFieldLabel: string;
+  ShowCommandBarLabel: string;
 }
 
 declare module 'ListViewBuilderWebPartStrings' {

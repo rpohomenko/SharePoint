@@ -1,7 +1,7 @@
 import * as React from 'react';
-import ErrorBoundary from '../ErrorBoundary';
+import ErrorBoundary from '../../ErrorBoundary';
 import { IBaseFieldRendererProps, IBaseFieldRendererState, ValidationResult } from './IBaseFieldRendererProps';
-import { DataType, FormMode } from '../../utilities/Entities';
+import { DataType, FormMode } from '../../../utilities/Entities';
 import { isEqual } from '@microsoft/sp-lodash-subset';
 
 export class BaseFieldRenderer extends React.Component<IBaseFieldRendererProps, IBaseFieldRendererState> {
@@ -27,9 +27,8 @@ export class BaseFieldRenderer extends React.Component<IBaseFieldRendererProps, 
         }
     }
 
-    public render() {
-        const { mode } = this.props;
-        const { validationResult } = this.state;
+    public render() {    
+        const { mode, validationResult } = this.state;
 
         return (<>
             <ErrorBoundary>
@@ -56,11 +55,18 @@ export class BaseFieldRenderer extends React.Component<IBaseFieldRendererProps, 
         return this.getValue() !== null && this.getValue() !== undefined;
     }
 
-    public validate(disableEvents?: boolean): ValidationResult {
+    public async validate(disableEvents?: boolean): Promise<ValidationResult> {
         const { onValidate, required, title } = this.props;
-        const result = this.onValidate() || {} as ValidationResult;
+        const result = this.onValidate() || { isValid: true } as ValidationResult;
         if (!(result.validationErrors instanceof Array)) {
             result.validationErrors = [];
+        }
+        const resultAsync = await this.onValidateAsync();
+        if (resultAsync && resultAsync.isValid !== true) {
+            result.isValid = false;
+            if (resultAsync.validationErrors instanceof Array) {
+                resultAsync.validationErrors.forEach(validationError => result.validationErrors.push(validationError));
+            }
         }
         if (required === true) {
             if (!this.hasValue()) {
@@ -71,7 +77,7 @@ export class BaseFieldRenderer extends React.Component<IBaseFieldRendererProps, 
         this.setState({
             validationResult: result
         }, () => {
-            if (!disableEvents && typeof onValidate === "function") {
+            if (!disableEvents && onValidate instanceof Function) {
                 onValidate(result);
             }
         });
@@ -82,45 +88,52 @@ export class BaseFieldRenderer extends React.Component<IBaseFieldRendererProps, 
         return this.state.value;
     }
 
-    public setValue(newValue) {
+    public setValue(newValue: any) {
         this.setState({ value: newValue }, () => {
-            const validationResult = this.validate();
-            if (validationResult.isValid) {
-                this.onChange(newValue);
-            }
+            this.validate().then(validationResult => {
+                if (validationResult.isValid) {
+                    this.onChange(newValue);
+                }
+            });
         });
     }
 
     protected onRenderNewForm(): JSX.Element {
-        throw (`Method _renderNewForm is not yet implemented, field type: ${this.props.dataType}.`);
+        throw (`Method onRenderNewForm is not yet implemented, field type: ${this.props.dataType}.`);
     }
 
     protected onRenderEditForm(): JSX.Element {
-        throw (`Method _renderEditForm is not yet implemented, field type: ${this.props.dataType}.`);
+        throw (`Method onRenderEditForm is not yet implemented, field type: ${this.props.dataType}.`);
     }
 
     protected onRenderDispForm(): JSX.Element {
-        throw (`Method _renderDispForm is not yet implemented, field type: ${this.props.dataType}.`);
-    }
+        throw (`Method onRenderDispForm is not yet implemented, field type: ${this.props.dataType}.`);
+    }  
 
     protected onValidate(): ValidationResult {
-        throw (`Method _validate is not yet implemented, field type: ${this.props.dataType}.`);
+        return null;
+        //throw (`Method onValidate is not yet implemented, field type: ${this.props.dataType}.`);
     }
 
-    protected onChange(value) {
+    protected async onValidateAsync(): Promise<ValidationResult> {
+        return null;
+       //throw (`Method onValidateAsync is not yet implemented, field type: ${this.props.dataType}.`);
+    }
+
+    protected onChange(value: any) {
         const { onChange } = this.props;
-        if (typeof onChange === "function") {
+        if (onChange instanceof Function) {
             onChange(value);
         }
     }
 
-    private _renderValidationErrors = (validationErrors) => {
-        if (!validationErrors) {
+    private _renderValidationErrors = (validationErrors: string[]) => {
+        if (!(validationErrors instanceof Array)) {
             return null;
         }
         const errorStyle = {
             color: 'red'
         };
-        return (<>{validationErrors.map((err, i) => <div key={`err_${i}`} style={errorStyle}>{err}</div>)}</>);
+        return (<>{validationErrors.map((err: string, i: number) => <div key={`err_${i}`} style={errorStyle}>{err}</div>)}</>);
     }
 }

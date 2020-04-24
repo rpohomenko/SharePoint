@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { sp } from "@pnp/sp";
 import "@pnp/sp/webs";
 import "@pnp/sp/lists";
 import { PagedItemCollection, Item } from "@pnp/sp/items";
@@ -14,7 +13,7 @@ import { IList, IListInfo } from "@pnp/sp/lists";
 import { IViewColumn } from '../../../../controls/listView';
 import { ITimeZoneInfo, IRegionalSettingsInfo } from "@pnp/sp/regional-settings/types";
 import { ISPListViewProps, ISPListViewState } from './ISPListView';
-import { DataType, IViewField, IViewLookupField, IFolder, IEditableListItem, IListItem } from '../../../../utilities/Entities';
+import { DataType, IViewField, IViewLookupField, IFolder, IEditableListItem, IListItem, FormMode } from '../../../../utilities/Entities';
 import moment from 'moment';
 import SPService from '../../../../utilities/SPService';
 import DateHelper from '../../../../utilities/DateHelper';
@@ -25,12 +24,14 @@ import { FontIcon } from 'office-ui-fabric-react/lib/Icon';
 import { getTheme } from 'office-ui-fabric-react/lib/Styling';
 import { Dialog, DialogType, DialogFooter } from 'office-ui-fabric-react/lib/Dialog';
 import { PrimaryButton, DefaultButton } from 'office-ui-fabric-react/lib/Button';
+import { Panel } from 'office-ui-fabric-react/lib/Panel';
 import { cancelable, CancelablePromise } from 'cancelable-promise';
+import { ListForm } from '../../../../controls/form/ListForm';
 
 const theme = getTheme();
 
-interface CancelablePromise{
-    cancel: ()=> void;
+interface CancelablePromise {
+    cancel: () => void;
 }
 
 export class SPListView extends React.Component<ISPListViewProps, ISPListViewState> {
@@ -40,7 +41,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
     private _isMounted = false;
     private _shimItemCount = 5;
     private _page?: PagedItemCollection<IListItem[]>;
-    private _promises : CancelablePromise[] = [];
+    private _promises: CancelablePromise[] = [];
 
     constructor(props: ISPListViewProps) {
         super(props);
@@ -71,7 +72,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
         this._page = page;
         this._isMounted = true;
         this.setState({ items: page.results, canAddItem: canAddItem, columns: columns, isLoading: false, sortColumn: undefined, groupBy: this.props.groupBy, folder: this.props.rootFolder ? { ...this.props.rootFolder } : undefined });
-    }   
+    }
 
     public async componentDidUpdate(prevProps: ISPListViewProps, prevState: ISPListViewState) {
         if (!isEqual(prevProps, this.props)) {
@@ -88,7 +89,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
         const { items, columns, groupBy, isLoading } = this.state;
         const page = this._page;
         return <div>
-            {this._isMounted === true && this.renderCommandBar()}
+            {this._isMounted === true && this.props.showCommandBar === true && this.renderCommandBar()}
             {!this._isMounted && isLoading && <Spinner size={SpinnerSize.large} />}
             {this._isMounted === true && this.renderBreadcrumb()}
             {this._isMounted === true && <ListView items={items || []} columns={columns} groupBy={groupBy}
@@ -121,7 +122,22 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
                 />
             </Stack>}
             {this._renderDeleteDialog()}
+            {this.renderEditForm()}
         </div>;
+    }
+
+    private renderEditForm() {
+        return <Panel isLightDismiss isOpen={this.state.isEditing === true} onDismiss={() => {
+            this.setState({ isEditing: false });
+        }} closeButtonAriaLabel={"Close"} headerText={"Edit"}
+            onRenderFooterContent={() => {
+                return null;
+            }}
+            isFooterAtBottom={false}>
+            <ListForm fields={this.props.formFields} mode={FormMode.Edit} onChange={(field, value) => {
+
+            }} />
+        </Panel>;
     }
 
     private _renderDeleteDialog() {
@@ -179,7 +195,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
     }
 
     private async _waitForPromises() {
-       return await CancelablePromise.all(this._promises);
+        return await CancelablePromise.all(this._promises);
     }
 
     private async loadNextData(page: PagedItemCollection<IEditableListItem[]>) {
@@ -628,8 +644,15 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
         return <CommandBar items={items} farItems={farItems} />;
     }
 
+    private async _deleteItem(...items: IEditableListItem[]) {
+        if (items instanceof Array) {
+            const deleted = items.map(item => this.props.list.items.getById(item.ID).delete());
+            return Promise.all(deleted);
+        }
+    }
+
     protected getCommandItems(items: IEditableListItem[], selection?: IEditableListItem[]): ICommandBarItemProps[] {
-        const canEdit = selection instanceof Array && selection.length === 1 && selection[0].CanEdit;
+        const canEdit = selection instanceof Array && selection.length === 1 && selection[0].CanEdit && this.props.formFields instanceof Array && this.props.formFields.length > 0;
         const canDelete = selection instanceof Array && selection.length > 0 && selection.filter(item => item.CanDelete === true).length === selection.length;
         const canAddItem = this.state.canAddItem && this.props.formFields instanceof Array && this.props.formFields.length > 0;
         return [
@@ -646,7 +669,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
                 disabled: this.state.isLoading === true || !canEdit,
                 onClick: () => {
                     if (selection instanceof Array && selection.length > 0) {
-
+                        this.setState({ isEditing: true });
                     }
                 }
             },
@@ -660,13 +683,6 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
                 }
             }
         ];
-    }
-
-    private async _deleteItem(...items: IEditableListItem[]) {
-        if (items instanceof Array) {
-            const deleted = items.map(item => this.props.list.items.getById(item.ID).delete());
-            return Promise.all(deleted);
-        }
     }
 
     protected getFarCommandItems(items: IEditableListItem[], selection?: IEditableListItem[]): ICommandBarItemProps[] {
