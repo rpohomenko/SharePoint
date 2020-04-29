@@ -29,5 +29,7 @@ export interface ISPListViewState {
   groupBy?: IGrouping[];
   canAddItem?: boolean;
   isDeleting?: boolean;
-  isEditing?: boolean;
+  isEditFormOpen?: boolean;
+  isNewFormOpen?: boolean;
+  isViewFormOpen?: boolean;
 }

@@ -25,9 +25,16 @@ export class BaseFieldRenderer extends React.Component<IBaseFieldRendererProps, 
                 mode: this.props.mode
             });
         }
+        if (prevProps.defaultValue != this.props.defaultValue) {
+            if (this.state.value === undefined) {
+                this.setState({
+                    value: this.props.defaultValue,
+                });
+            }
+        }
     }
 
-    public render() {    
+    public render() {
         const { mode, validationResult } = this.state;
 
         return (<>
@@ -108,7 +115,7 @@ export class BaseFieldRenderer extends React.Component<IBaseFieldRendererProps, 
 
     protected onRenderDispForm(): JSX.Element {
         throw (`Method onRenderDispForm is not yet implemented, field type: ${this.props.dataType}.`);
-    }  
+    }
 
     protected onValidate(): ValidationResult {
         return null;
@@ -117,7 +124,7 @@ export class BaseFieldRenderer extends React.Component<IBaseFieldRendererProps, 
 
     protected async onValidateAsync(): Promise<ValidationResult> {
         return null;
-       //throw (`Method onValidateAsync is not yet implemented, field type: ${this.props.dataType}.`);
+        //throw (`Method onValidateAsync is not yet implemented, field type: ${this.props.dataType}.`);
     }
 
     protected onChange(value: any) {

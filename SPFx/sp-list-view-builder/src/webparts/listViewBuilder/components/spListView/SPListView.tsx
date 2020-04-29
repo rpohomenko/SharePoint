@@ -41,7 +41,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
     private _isMounted = false;
     private _shimItemCount = 5;
     private _page?: PagedItemCollection<IListItem[]>;
-    private _promises: CancelablePromise[] = [];
+    private _promises: CancelablePromise[] = [];   
 
     constructor(props: ISPListViewProps) {
         super(props);
@@ -122,21 +122,78 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
                 />
             </Stack>}
             {this._renderDeleteDialog()}
-            {this.renderEditForm()}
+            {this.renderListForm()}
         </div>;
     }
 
-    private renderEditForm() {
-        return <Panel isLightDismiss isOpen={this.state.isEditing === true} onDismiss={() => {
-            this.setState({ isEditing: false });
-        }} closeButtonAriaLabel={"Close"} headerText={"Edit"}
+    private renderListForm() {
+        const { isEditFormOpen, isNewFormOpen, isViewFormOpen, selection } = this.state;
+        const itemId: number = selection instanceof Array && selection.length > 0 ? selection[0].ID : 0;
+        const loadItem = async (): Promise<IListItem> => {
+            const { list, formFields } = this.props;
+            let select = [], expand = [];
+
+            select.push("ID");
+            select.push("EffectiveBasePermissions");
+
+            for (const formField of formFields) {
+                if (formField.Name === "DocIcon") {
+                    continue;
+                }
+                else if (formField.Name === "LinkTitle" || formField.Name === "LinkTitleNoMenu") {
+                    if (select.indexOf("Title") === -1) {
+                        select.push("Title");
+                    }
+                }
+                else if (formField.DataType === DataType.Lookup
+                    || formField.DataType === DataType.MultiLookup
+                ) {
+                    const lookupField = formField as IViewLookupField;
+                    if (lookupField.PrimaryFieldName && lookupField.LookupFieldName) {
+                        select.push(`${lookupField.PrimaryFieldName}/${lookupField.LookupFieldName}`);
+                        if (expand.indexOf(lookupField.PrimaryFieldName) === -1) {
+                            expand.push(lookupField.PrimaryFieldName);
+                        }
+                    }
+                    else {
+                        select.push(`${lookupField.Name}/ID`);
+                        select.push(`${lookupField.Name}/${lookupField.LookupFieldName || "Title"}`);
+                        if (expand.indexOf(lookupField.Name) === -1) {
+                            expand.push(lookupField.Name);
+                        }
+                    }
+                }
+                else if (formField.DataType === DataType.User
+                    || formField.DataType === DataType.MultiUser
+                ) {
+                    const lookupField = formField as IViewLookupField;
+                    select.push(`${lookupField.Name}/ID`);
+                    select.push(`${lookupField.Name}/Title`);
+                    select.push(`${lookupField.Name}/Name`);
+                    select.push(`${lookupField.Name}/EMail`);
+                    expand.push(lookupField.Name);
+                }
+                else {
+                    if (select.indexOf(formField.Name) === -1) {
+                        select.push(formField.Name);
+                    }
+                }
+            }
+            return await list.items.getById(itemId).select(...select).expand(...expand).get();
+        };
+        return <Panel isLightDismiss isOpen={isEditFormOpen === true || isNewFormOpen === true || isViewFormOpen === true} onDismiss={() => {
+            this.setState({ isEditFormOpen: false, isNewFormOpen: false, isViewFormOpen: false });
+        }} closeButtonAriaLabel={"Close"}
+            headerText={`${this.props.rootFolder ? this.props.rootFolder.Name + ": " : ""}${isEditFormOpen ? "Edit" : (isNewFormOpen ? "New" : "View")}`}
             onRenderFooterContent={() => {
                 return null;
             }}
             isFooterAtBottom={false}>
-            <ListForm fields={this.props.formFields} mode={FormMode.Edit} onChange={(field, value) => {
+            <ListForm itemPromise={isEditFormOpen === true || isViewFormOpen === true && itemId > 0 ? loadItem() : undefined}
+                fields={this.props.formFields} mode={isEditFormOpen ? FormMode.Edit : (isNewFormOpen ? FormMode.New : FormMode.Display)}
+                onChange={(field, value) => {
 
-            }} />
+                }} />
         </Panel>;
     }
 
@@ -661,7 +718,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
                 disabled: this.state.isLoading === true || !this.props.list || !canAddItem
                     || (selection instanceof Array && selection.length > 0),
                 onClick: () => {
-
+                    this.setState({ isNewFormOpen: true });
                 }
             },
             {
@@ -669,7 +726,16 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
                 disabled: this.state.isLoading === true || !canEdit,
                 onClick: () => {
                     if (selection instanceof Array && selection.length > 0) {
-                        this.setState({ isEditing: true });
+                        this.setState({ isEditFormOpen: true });
+                    }
+                }
+            },
+            {
+                key: 'view', text: 'View', iconProps: { iconName: 'View' }, iconOnly: true,
+                disabled: this.state.isLoading === true || !canEdit,
+                onClick: () => {
+                    if (selection instanceof Array && selection.length > 0) {
+                        this.setState({ isViewFormOpen: true });
                     }
                 }
             },

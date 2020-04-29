@@ -6,6 +6,7 @@ import { IBaseFieldRendererProps, IBaseFieldRendererState, ValidationResult } fr
 
 export interface ITextFieldRendererProps extends IBaseFieldRendererProps {
     multiline?: boolean;
+    maxLength?: number;
 }
 
 export class TextFieldRenderer extends BaseFieldRenderer {
@@ -26,22 +27,23 @@ export class TextFieldRenderer extends BaseFieldRenderer {
     }
 
     protected onRenderDispForm() {
-        return (<Label>{this.props.defaultValue}</Label>);
+        return typeof this.props.defaultValue === "string" ? (<Label>{this.props.defaultValue}</Label>) : null;
     }
 
     private _renderNewOrEditForm() {
-        const { defaultValue, disabled, multiline } = this.props as ITextFieldRendererProps;
+        const { defaultValue, disabled, multiline, maxLength } = this.props as ITextFieldRendererProps;
         const { value } = this.state;
-        return (<TextField underlined
+        return <TextField underlined
             componentRef={this._textField}
             disabled={disabled}
             multiline={multiline}
+            maxLength={maxLength}
             onChange={(ev, newValue) => {
                 this.setValue(newValue);
             }}
-            placeholder={defaultValue}
-            value={value}
-        />);
+            placeholder={typeof defaultValue === "string" ? defaultValue : undefined}
+            value={typeof value === "string" ? value : undefined}
+        />;
     }
 
     public hasValue() {
