@@ -34,7 +34,7 @@ export class FormField extends React.Component<IFormFieldProps | IDateFormFieldP
             this.setState({
                 mode: this.props.mode
             });
-        }
+        }       
     }
 
     public render() {
@@ -82,19 +82,36 @@ export class FormField extends React.Component<IFormFieldProps | IDateFormFieldP
         }
     }
 
+    public get isValid(): boolean {
+        if (this._fieldControl.current) {
+            return this._fieldControl.current.isValid;
+        }
+    }
+
+    public get isDirty(): boolean {
+        if (this._fieldControl.current) {
+            return this._fieldControl.current.isDirty;
+        }
+    }
+
     private _setCalloutVisible = (visible: boolean) => {
         this.setState({ isCalloutVisible: visible });
     }
 
     private _getFieldRenderer(): JSX.Element {
-        const { field, defaultValue, onChange, onValidate } = this.props;
+        const { field, defaultValue, onChange, onValidate, disabled } = this.props;
         const { mode } = this.state;
+        if(field.Name === "ContentType"){
+            field.ReadOnly = true;
+            return defaultValue ? defaultValue.Name : null;
+        }
         if (field.DataType === DataType.Text || field.DataType === DataType.MultiLineText) {
             return React.createElement(TextFieldRenderer, {
                 key: field.Name,
                 ref: this._fieldControl,
-                disabled: field.ReadOnly === true,
+                disabled: field.ReadOnly === true || disabled === true,
                 defaultValue: defaultValue,
+                required: field.Required === true,
                 mode: mode,
                 dataType: field.DataType,
                 title: field.Title,
@@ -108,8 +125,9 @@ export class FormField extends React.Component<IFormFieldProps | IDateFormFieldP
             return React.createElement(DateFieldRenderer, {
                 key: field.Name,
                 ref: this._fieldControl,
-                disabled: field.ReadOnly === true,
+                disabled: field.ReadOnly === true || disabled === true,
                 defaultValue: defaultValue,
+                required: field.Required === true,
                 mode: mode,
                 dataType: field.DataType,
                 title: field.Title,

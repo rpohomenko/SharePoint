@@ -1,7 +1,7 @@
 import * as React from 'react';
 import "@pnp/sp/webs";
 import "@pnp/sp/lists";
-import { PagedItemCollection, Item } from "@pnp/sp/items";
+import { PagedItemCollection, Item, IItem } from "@pnp/sp/items";
 import { isEqual } from '@microsoft/sp-lodash-subset';
 import { Spinner, SpinnerSize } from 'office-ui-fabric-react/lib/Spinner';
 import { Stack } from 'office-ui-fabric-react/lib/Stack';
@@ -41,7 +41,8 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
     private _isMounted = false;
     private _shimItemCount = 5;
     private _page?: PagedItemCollection<IListItem[]>;
-    private _promises: CancelablePromise[] = [];   
+    private _promises: CancelablePromise[] = [];
+    private _listForm: React.RefObject<ListForm>;
 
     constructor(props: ISPListViewProps) {
         super(props);
@@ -50,6 +51,8 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
         this.state = {
             columns: []
         };
+
+        this._listForm = React.createRef();
     }
 
     public async componentDidMount() {
@@ -127,14 +130,16 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
     }
 
     private renderListForm() {
-        const { isEditFormOpen, isNewFormOpen, isViewFormOpen, selection } = this.state;
+        const { list, formFields } = this.props;
+        const { isEditFormOpen, isNewFormOpen, isViewFormOpen, selection, refreshCommandEnabled, saveCommandEnabled } = this.state;
         const itemId: number = selection instanceof Array && selection.length > 0 ? selection[0].ID : 0;
-        const loadItem = async (): Promise<IListItem> => {
-            const { list, formFields } = this.props;
+        const loadItem = async (item: IItem): Promise<IListItem> => {
+            if (!item) return;
             let select = [], expand = [];
-
             select.push("ID");
             select.push("EffectiveBasePermissions");
+            select.push("ContentTypeId");
+            select.push("owshiddenversion");
 
             for (const formField of formFields) {
                 if (formField.Name === "DocIcon") {
@@ -144,6 +149,10 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
                     if (select.indexOf("Title") === -1) {
                         select.push("Title");
                     }
+                }
+                else if (formField.Name === "ContentType") {
+                    select.push("ContentType/Name");
+                    expand.push("ContentType");
                 }
                 else if (formField.DataType === DataType.Lookup
                     || formField.DataType === DataType.MultiLookup
@@ -179,7 +188,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
                     }
                 }
             }
-            return await list.items.getById(itemId).select(...select).expand(...expand).get();
+            return await item.select(...select).expand(...expand).get();
         };
         return <Panel isLightDismiss isOpen={isEditFormOpen === true || isNewFormOpen === true || isViewFormOpen === true} onDismiss={() => {
             this.setState({ isEditFormOpen: false, isNewFormOpen: false, isViewFormOpen: false });
@@ -189,10 +198,66 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
                 return null;
             }}
             isFooterAtBottom={false}>
-            <ListForm itemPromise={isEditFormOpen === true || isViewFormOpen === true && itemId > 0 ? loadItem() : undefined}
+            <CommandBar items={[
+                {
+                    key: 'save', text: 'Save', iconProps: { iconName: 'Save' }, iconOnly: true,
+                    disabled: isEditFormOpen !== true || !saveCommandEnabled,
+                    onClick: () => {
+                        if (this._listForm.current) {
+                            if (!this._listForm.current.state.isLoading) {
+                                this.setState({ saveCommandEnabled: false, refreshCommandEnabled: false });
+                                cancelable(this._listForm.current.save(this.props.list).then((it) => {
+                                    this._listForm.current.setState({ /*item: null,*/ isLoading: true });
+                                    return cancelable(loadItem(it).then(item => {
+                                        if (item) {
+                                            this._listForm.current.setState({ item: item });
+                                        }
+                                    })).finally(() => {
+                                        this._listForm.current.setState({ isLoading: false });
+                                    });
+                                })).finally(() => {
+                                    this.setState({ saveCommandEnabled: true, refreshCommandEnabled: true });
+                                });
+                            }
+                        }
+                    }
+                }
+            ]}
+                farItems={[
+                    {
+                        key: 'refresh', text: 'Refresh', iconProps: { iconName: 'Refresh' }, iconOnly: true,
+                        disabled: isNewFormOpen === true || !refreshCommandEnabled,
+                        onClick: () => {
+                            if (this._listForm.current) {
+                                if (!this._listForm.current.state.isLoading) {
+                                    this.setState({ refreshCommandEnabled: false, saveCommandEnabled: false });
+                                    this._listForm.current.setState({ /*item: null,*/ isLoading: true }, () => {
+                                        cancelable(loadItem(list.items.getById(itemId)).then(item => {
+                                            if (item) {
+                                                this._listForm.current.setState({ item: item });
+                                            }
+                                        })).finally(() => {
+                                            this._listForm.current.setState({ isLoading: false });
+                                            this.setState({ refreshCommandEnabled: true, saveCommandEnabled: true });
+                                        });
+                                    });
+                                }
+                            }
+                        }
+                    }
+                ]} />
+            <ListForm ref={this._listForm} itemPromise={isEditFormOpen === true
+                || isViewFormOpen === true && itemId > 0 ? loadItem(list.items.getById(itemId)).then((item) => {                 
+                    this.setState({ refreshCommandEnabled: true, saveCommandEnabled: true });
+                    return item;
+                }) : undefined}
                 fields={this.props.formFields} mode={isEditFormOpen ? FormMode.Edit : (isNewFormOpen ? FormMode.New : FormMode.Display)}
                 onChange={(field, value) => {
-
+                    if (this._listForm.current) {
+                        //const isValid = this._listForm.current.isValid;
+                        const isDirty = this._listForm.current.isDirty;
+                        this.setState({ refreshCommandEnabled: true, saveCommandEnabled: isDirty === true });
+                    }
                 }} />
         </Panel>;
     }

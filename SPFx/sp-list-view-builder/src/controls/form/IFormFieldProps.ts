@@ -7,6 +7,7 @@ export interface IFormFieldProps {
     mode: FormMode;
     field: IFormField;
     defaultValue?: any;
+    disabled?: boolean;
     onChange: (value: any) => void;
     onValidate: (validationResult: ValidationResult) => void;
     onGetFieldRenderer?: (ref: React.Ref<any>, defaultRenderer: () => JSX.Element) => BaseFieldRenderer | JSX.Element;

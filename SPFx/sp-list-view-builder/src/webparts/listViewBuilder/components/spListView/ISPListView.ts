@@ -32,4 +32,6 @@ export interface ISPListViewState {
   isEditFormOpen?: boolean;
   isNewFormOpen?: boolean;
   isViewFormOpen?: boolean;
+  refreshCommandEnabled?: boolean;
+  saveCommandEnabled?: boolean;
 }
