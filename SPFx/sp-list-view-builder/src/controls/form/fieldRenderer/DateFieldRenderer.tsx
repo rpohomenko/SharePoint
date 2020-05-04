@@ -38,7 +38,8 @@ export class DateFieldRenderer extends BaseFieldRenderer {
             moment.locale(locale);
         }
         if (this.props.defaultValue) {
-            this.setValue(DateHelper.toLocaleDate(moment(this.props.defaultValue).toDate(), this._timeZone ? this._timeZone.Information.Bias : 0));
+            const date = DateHelper.parseLocalDate(this.props.defaultValue, this._timeZone ? this._timeZone.Information.Bias : 0);
+            this.setValue(date);
         }
     }
 
@@ -46,10 +47,11 @@ export class DateFieldRenderer extends BaseFieldRenderer {
         super.componentDidUpdate(prevProps, prevState);
         if (prevProps.defaultValue != this.props.defaultValue) {
             if (this.props.defaultValue && !this.state.value) {
-                this.setValue(DateHelper.toLocaleDate(moment(this.props.defaultValue).toDate(), this._timeZone ? this._timeZone.Information.Bias : 0));
+                const date = DateHelper.parseLocalDate(this.props.defaultValue, this._timeZone ? this._timeZone.Information.Bias : 0);
+                this.setValue(date);
             }
         }
-    }
+    }  
 
     protected onRenderNewForm() {
         return this._renderNewOrEditForm();
@@ -88,5 +90,9 @@ export class DateFieldRenderer extends BaseFieldRenderer {
 
     private _onParseDateFromString(value: string, format: string) {
         return moment(value, format).toDate();
+    }
+
+    public getValue() {
+        return DateHelper.toUTCString(this.state.value, this._timeZone ? this._timeZone.Information.Bias : 0);
     }
 }

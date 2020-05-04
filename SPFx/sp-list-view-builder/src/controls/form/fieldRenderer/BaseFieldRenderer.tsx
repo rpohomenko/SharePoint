@@ -49,17 +49,17 @@ export class BaseFieldRenderer extends React.Component<IBaseFieldRendererProps, 
 
     public get isValid(): boolean {
         const { validationResult } = this.state;
-        return validationResult.isValid;
+        return validationResult && validationResult.isValid;
     }
 
     public get isDirty(): boolean {
-        const { mode, defaultValue } = this.props;
-        const { value } = this.state;
-        return mode === FormMode.New ? this.hasValue() : value !== defaultValue;
+        const { mode, defaultValue } = this.props;     
+        return mode === FormMode.New ? this.hasValue() : this.getValue() !== defaultValue;
     }
 
     public hasValue(): boolean {
-        return this.getValue() !== null && this.getValue() !== undefined;
+        const value = this.getValue();
+        return value !== null && value !== undefined;
     }
 
     public async validate(disableEvents?: boolean): Promise<ValidationResult> {
@@ -92,15 +92,18 @@ export class BaseFieldRenderer extends React.Component<IBaseFieldRendererProps, 
     }
 
     public getValue() {
+        if(this.state.value === undefined){
+            return null;
+        }
         return this.state.value;
     }
 
     public setValue(newValue: any) {
         this.setState({ value: newValue }, () => {
             this.validate().then(validationResult => {
-                if (validationResult.isValid) {
-                    this.onChange(newValue);
-                }
+                //if (validationResult.isValid /*&& this.isDirty === true*/) {
+                    this.onChange(this.getValue());
+                //}
             });
         });
     }
@@ -130,7 +133,7 @@ export class BaseFieldRenderer extends React.Component<IBaseFieldRendererProps, 
     protected onChange(value: any) {
         const { onChange } = this.props;
         if (onChange instanceof Function) {
-            onChange(value);
+            onChange(value, this.isDirty);
         }
     }
 

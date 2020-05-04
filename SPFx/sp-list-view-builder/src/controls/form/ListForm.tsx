@@ -1,14 +1,18 @@
 import * as React from 'react';
 import { IListFormProps, IListFormState } from './IListFormProps';
 import { FormField } from './FormField';
-import { FormMode, IListItem } from '../../utilities/Entities';
+import { FormMode, IListItem, IFormField, DataType } from '../../utilities/Entities';
 import { cancelable, CancelablePromise } from 'cancelable-promise';
 import { ProgressIndicator } from 'office-ui-fabric-react/lib/ProgressIndicator';
-import { IList } from '@pnp/sp/lists';
-import { IItemAddResult, IItem } from '@pnp/sp/items';
+import { IItem } from '@pnp/sp/items';
+import { IListItemFormUpdateValue } from '@pnp/sp/lists';
+import moment from 'moment';
+import { IRegionalSettingsInfo } from '@pnp/sp/regional-settings';
+import SPService from '../../utilities/SPService';
 
-interface CancelablePromise {
+interface CancelablePromise extends Promise<any> {
     cancel: () => void;
+    finally: (onfinally?: (() => void) | undefined | null) => Promise<any>;
 }
 
 export class ListForm extends React.Component<IListFormProps, IListFormState> {
@@ -17,6 +21,8 @@ export class ListForm extends React.Component<IListFormProps, IListFormState> {
     private _promise: CancelablePromise;
     private _itemChanges: IListItem;
     private _isValid: boolean;
+    private _isMounted: boolean;
+    private _regionalSettings: IRegionalSettingsInfo;
 
     constructor(props: IListFormProps) {
         super(props);
@@ -28,33 +34,57 @@ export class ListForm extends React.Component<IListFormProps, IListFormState> {
     }
 
     public async componentDidMount() {
-        const { itemPromise } = this.props;
-        if (itemPromise) {
-            this.setState({
-                isLoading: true
-            });
-            this._promise = cancelable(itemPromise).finally(() => {
-                this.setState({
-                    isLoading: false
-                });
-            });
-            const item = await itemPromise;
-            this._promise = undefined;
-            this.setState({
-                item: item
-            });
+        if (this.props.regionalSettings) {
+            this._regionalSettings = await this.props.regionalSettings;
         }
+        if (this._regionalSettings) {
+            const locale = SPService.getLocaleName(this._regionalSettings.LocaleId);
+            moment.locale(locale);
+        }
+        if (this.state.mode === FormMode.Edit || this.state.mode === FormMode.Display) {
+            await this.loadItem();
+        }
+        this._isMounted = true;
     }
 
     public componentWillUnmount() {
         if (this._promise) {
             this._promise.cancel();
         }
+        this._isMounted = false;
     }
 
-    public componentDidUpdate(prevProps: IListFormProps, prevState: IListFormState) {
+    public async componentDidUpdate(prevProps: IListFormProps, prevState: IListFormState) {
         if (prevProps.mode != this.props.mode) {
             this.setState({ mode: this.props.mode });
+        }
+        if (prevProps.itemId != this.props.itemId || prevProps.list != this.props.list) {
+            await this.loadItem();
+        }
+    }
+
+    public async loadItem(): Promise<IListItem> {
+        if (this._promise) {
+            //this._promise.cancel();
+            //this._promise = undefined;
+            return;
+        }
+        if (this.props.list && (this.props.mode === FormMode.Display || this.props.mode === FormMode.Edit)) {
+            if (this.props.itemId && this.props.itemId > 0) {
+                const spItem = this.props.list.items.getById(this.props.itemId);
+                this.setState({ isLoading: true });
+                this._promise = cancelable(this.getItem(spItem));
+                this._promise.finally(() => {
+                    this._promise = null;
+                    this.setState({ isLoading: false });
+                });
+                const item = await this._promise;
+                this.setState({ item: item });
+                return item;
+            }
+            else {
+                this.setState({ item: null });
+            }
         }
     }
 
@@ -81,62 +111,179 @@ export class ListForm extends React.Component<IListFormProps, IListFormState> {
                             this._formFields.push(ref);
                         }
                     }}
-                    field={field} mode={mode}
+                    field={field}
+                    mode={mode}
+                    regionalSettings={this.props.regionalSettings}
+                    timeZone={this.props.timeZone}
                     onValidate={(result) => {
 
                     }}
-                    onChange={(value) => {
-                        const item: IListItem = this._itemChanges || {} as IListItem;
-                        item[field.Name] = value;
-                        this._itemChanges = item;
+                    onChange={(value, isDirty) => {
+                        const itemChanges: IListItem = this._itemChanges || {} as IListItem;
+                        if (isDirty === true) {
+                            itemChanges[field.Name] = value;
+                        }
+                        else {
+                            delete itemChanges[field.Name];
+                        }
+                        this._itemChanges = itemChanges;
                         if (onChange instanceof Function) {
-                            onChange(field, value);
+                            onChange(field, value, isDirty);
                         }
                     }} />)}
         </div>;
     }
 
-    public async save(list: IList): Promise<IItem> {
+    public async save(): Promise<IListItem> {
+        const { list, itemId } = this.props;
         const { mode, item } = this.state;
+        if (this._promise) {
+            //this._promise.cancel();
+            //this._promise = undefined;
+            return;
+        }
         if (list && this._itemChanges) {
-            if (mode === FormMode.New) {
-                await this.validate(true);
-                if (this.isValid && this.isDirty) {
+            if (mode === FormMode.New) {             
+                await this.validate(true);              
+                if (this.isValid && this.isDirty) {  
+                    this.setState({ /*item: null,*/ isLoading: true });
                     this.setState({ isSaving: true, error: undefined });
-                    const result = await cancelable(list.items.add(this._itemChanges))
-                        .catch((error) => {
-                            this.setState({ error: error.message });
-                        })
-                        .finally(() => {
-                            this.setState({ isSaving: false });
-                        });
+                    this._promise = cancelable(list.items.add(this._itemChanges));
+                    this._promise.finally(() => {
+                        this._promise = null;
+                        this.setState({ isSaving: false });
+                    }).catch((error) => {
+                        this.setState({ error: error.message });
+                    });
+
+                    const result = await this._promise;
+
                     if (result) {
                         this._itemChanges = undefined;
-                        return result.item;
+                        this._promise = cancelable(this.getItem(result.item));
+                        this._promise.finally(() => {
+                            this._promise = null;
+                            this.setState({ isLoading: false });
+                        });
+                        const updatedItem = await this._promise;
+                        this.setState({ item: updatedItem });
+                        return updatedItem;
                     }
                 }
             }
             else if (mode === FormMode.Edit) {
+                const formUpdateValues: IListItemFormUpdateValue[] = [];
+                for (const fName in this._itemChanges) {
+                    formUpdateValues.push({ FieldName: fName, FieldValue: this.fieldValueToString(fName, this._itemChanges[fName]) });
+                }
+                if (item["owshiddenversion"]) {
+                    formUpdateValues.push({ FieldName: "owshiddenversion", FieldValue: String(item["owshiddenversion"]) });
+                }
                 await this.validate(true);
                 if (this.isValid && this.isDirty) {
                     this.setState({ isSaving: true, error: undefined });
-                    const result = await cancelable(list.items.getById(item.ID).update({
-                        ...this._itemChanges,
-                        "owshiddenversion": item["owshiddenversion"]
-                    }))
-                        .catch((error) => {
-                            this.setState({ error: error.message });
-                        })
-                        .finally(() => {
-                            this.setState({ isSaving: false });
-                        });
-                    if (result) {
-                        this._itemChanges = undefined;
-                        return result.item;
+                    this._promise = cancelable(list.items.getById(item.ID).validateUpdateListItem(formUpdateValues, false).then(formValues => {
+                        return (formValues as any).ValidateUpdateListItem ? (formValues as any).ValidateUpdateListItem.results : formValues;
+                    }));
+                    this._promise.finally(() => {
+                        this._promise = null;
+                        this.setState({ isSaving: false });
+                    }).catch((error) => {
+                        this.setState({ error: error.message });
+                    });
+
+                    const result: IListItemFormUpdateValue[] = await this._promise;
+
+                    if (result instanceof Array) {
+                        const errors = result.filter(field => field.HasException === true).map(field => field.ErrorMessage);
+                        if (errors.length > 0) {
+                            this.setState({ error: errors.join('\\n') });
+                        }
+                        else {
+                            this._itemChanges = undefined;
+                            this._promise = cancelable(this.getItem(list.items.getById(itemId)))
+                                .finally(() => {
+                                    this._promise = null;
+                                    this.setState({ isLoading: false });
+                                });
+                            const updatedItem = await this._promise;
+                            this.setState({ item: updatedItem });
+
+                            return updatedItem;
+                        }
                     }
                 }
             }
         }
+    }
+
+    private fieldValueToString(fieldName: string, value: any) {
+        const fields = this.props.fields.filter(f => f.Name === fieldName);
+        if (fields.length > 0) {
+            const field = fields[0];
+            if (field.DataType === DataType.Date || field.DataType === DataType.DateTime) {
+                value = value ? moment(new Date(value)).format("L LT") : value;               
+            }
+        }
+        return value;
+    }
+
+    private async getItem(item: IItem): Promise<IListItem> {
+        if (!item) return;
+        let select = [], expand = [];
+        select.push("ID");
+        select.push("EffectiveBasePermissions");
+        select.push("ContentTypeId");
+        select.push("owshiddenversion");
+
+        for (const formField of this.props.fields) {
+            if (formField.Name === "DocIcon") {
+                continue;
+            }
+            else if (formField.Name === "LinkTitle" || formField.Name === "LinkTitleNoMenu") {
+                if (select.indexOf("Title") === -1) {
+                    select.push("Title");
+                }
+            }
+            else if (formField.Name === "ContentType") {
+                select.push("ContentType/Name");
+                expand.push("ContentType");
+            }
+            else if (formField.DataType === DataType.Lookup
+                || formField.DataType === DataType.MultiLookup
+            ) {
+                const lookupField = formField as IFormField;
+                if (lookupField.PrimaryFieldName && lookupField.LookupFieldName) {
+                    select.push(`${lookupField.PrimaryFieldName}/${lookupField.LookupFieldName}`);
+                    if (expand.indexOf(lookupField.PrimaryFieldName) === -1) {
+                        expand.push(lookupField.PrimaryFieldName);
+                    }
+                }
+                else {
+                    select.push(`${lookupField.Name}/ID`);
+                    select.push(`${lookupField.Name}/${lookupField.LookupFieldName || "Title"}`);
+                    if (expand.indexOf(lookupField.Name) === -1) {
+                        expand.push(lookupField.Name);
+                    }
+                }
+            }
+            else if (formField.DataType === DataType.User
+                || formField.DataType === DataType.MultiUser
+            ) {
+                const lookupField = formField as IFormField;
+                select.push(`${lookupField.Name}/ID`);
+                select.push(`${lookupField.Name}/Title`);
+                select.push(`${lookupField.Name}/Name`);
+                select.push(`${lookupField.Name}/EMail`);
+                expand.push(lookupField.Name);
+            }
+            else {
+                if (select.indexOf(formField.Name) === -1) {
+                    select.push(formField.Name);
+                }
+            }
+        }
+        return await item.select(...select).expand(...expand).get();
     }
 
     public set_Mode(mode: FormMode) {
@@ -158,7 +305,7 @@ export class ListForm extends React.Component<IListFormProps, IListFormState> {
     public get isValid(): boolean {
         if (this._formFields instanceof Array) {
             for (const formField of this._formFields) {
-                if (formField.isValid === false) {
+                if (formField && formField.isValid === false) {
                     return false;
                 }
             }
@@ -169,7 +316,7 @@ export class ListForm extends React.Component<IListFormProps, IListFormState> {
     public get isDirty(): boolean {
         if (this._formFields instanceof Array) {
             for (const formField of this._formFields) {
-                if (formField.isDirty === true) {
+                if (formField && formField.isDirty === true) {
                     return true;
                 }
             }

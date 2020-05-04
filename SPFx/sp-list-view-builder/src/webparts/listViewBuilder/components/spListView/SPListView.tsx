@@ -132,64 +132,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
     private renderListForm() {
         const { list, formFields } = this.props;
         const { isEditFormOpen, isNewFormOpen, isViewFormOpen, selection, refreshCommandEnabled, saveCommandEnabled } = this.state;
-        const itemId: number = selection instanceof Array && selection.length > 0 ? selection[0].ID : 0;
-        const loadItem = async (item: IItem): Promise<IListItem> => {
-            if (!item) return;
-            let select = [], expand = [];
-            select.push("ID");
-            select.push("EffectiveBasePermissions");
-            select.push("ContentTypeId");
-            select.push("owshiddenversion");
-
-            for (const formField of formFields) {
-                if (formField.Name === "DocIcon") {
-                    continue;
-                }
-                else if (formField.Name === "LinkTitle" || formField.Name === "LinkTitleNoMenu") {
-                    if (select.indexOf("Title") === -1) {
-                        select.push("Title");
-                    }
-                }
-                else if (formField.Name === "ContentType") {
-                    select.push("ContentType/Name");
-                    expand.push("ContentType");
-                }
-                else if (formField.DataType === DataType.Lookup
-                    || formField.DataType === DataType.MultiLookup
-                ) {
-                    const lookupField = formField as IViewLookupField;
-                    if (lookupField.PrimaryFieldName && lookupField.LookupFieldName) {
-                        select.push(`${lookupField.PrimaryFieldName}/${lookupField.LookupFieldName}`);
-                        if (expand.indexOf(lookupField.PrimaryFieldName) === -1) {
-                            expand.push(lookupField.PrimaryFieldName);
-                        }
-                    }
-                    else {
-                        select.push(`${lookupField.Name}/ID`);
-                        select.push(`${lookupField.Name}/${lookupField.LookupFieldName || "Title"}`);
-                        if (expand.indexOf(lookupField.Name) === -1) {
-                            expand.push(lookupField.Name);
-                        }
-                    }
-                }
-                else if (formField.DataType === DataType.User
-                    || formField.DataType === DataType.MultiUser
-                ) {
-                    const lookupField = formField as IViewLookupField;
-                    select.push(`${lookupField.Name}/ID`);
-                    select.push(`${lookupField.Name}/Title`);
-                    select.push(`${lookupField.Name}/Name`);
-                    select.push(`${lookupField.Name}/EMail`);
-                    expand.push(lookupField.Name);
-                }
-                else {
-                    if (select.indexOf(formField.Name) === -1) {
-                        select.push(formField.Name);
-                    }
-                }
-            }
-            return await item.select(...select).expand(...expand).get();
-        };
+        const itemId: number = selection instanceof Array && selection.length > 0 ? selection[0].ID : 0;       
         return <Panel isLightDismiss isOpen={isEditFormOpen === true || isNewFormOpen === true || isViewFormOpen === true} onDismiss={() => {
             this.setState({ isEditFormOpen: false, isNewFormOpen: false, isViewFormOpen: false });
         }} closeButtonAriaLabel={"Close"}
@@ -201,23 +144,21 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
             <CommandBar items={[
                 {
                     key: 'save', text: 'Save', iconProps: { iconName: 'Save' }, iconOnly: true,
-                    disabled: isEditFormOpen !== true || !saveCommandEnabled,
+                    disabled: (isNewFormOpen !== true && isEditFormOpen !== true) || !saveCommandEnabled,
                     onClick: () => {
                         if (this._listForm.current) {
                             if (!this._listForm.current.state.isLoading) {
                                 this.setState({ saveCommandEnabled: false, refreshCommandEnabled: false });
-                                cancelable(this._listForm.current.save(this.props.list).then((it) => {
-                                    this._listForm.current.setState({ /*item: null,*/ isLoading: true });
-                                    return cancelable(loadItem(it).then(item => {
-                                        if (item) {
-                                            this._listForm.current.setState({ item: item });
-                                        }
-                                    })).finally(() => {
-                                        this._listForm.current.setState({ isLoading: false });
+                                cancelable(this._listForm.current.save())
+                                    .then((item) =>{
+                                        this.setState({ saveCommandEnabled: !item });
+                                    })
+                                    .catch(() =>{
+                                        this.setState({ saveCommandEnabled: true });
+                                    })
+                                    .finally(() => {
+                                        this.setState({ refreshCommandEnabled: true });
                                     });
-                                })).finally(() => {
-                                    this.setState({ saveCommandEnabled: true, refreshCommandEnabled: true });
-                                });
                             }
                         }
                     }
@@ -229,34 +170,27 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
                         disabled: isNewFormOpen === true || !refreshCommandEnabled,
                         onClick: () => {
                             if (this._listForm.current) {
-                                if (!this._listForm.current.state.isLoading) {
-                                    this.setState({ refreshCommandEnabled: false, saveCommandEnabled: false });
-                                    this._listForm.current.setState({ /*item: null,*/ isLoading: true }, () => {
-                                        cancelable(loadItem(list.items.getById(itemId)).then(item => {
-                                            if (item) {
-                                                this._listForm.current.setState({ item: item });
-                                            }
-                                        })).finally(() => {
-                                            this._listForm.current.setState({ isLoading: false });
-                                            this.setState({ refreshCommandEnabled: true, saveCommandEnabled: true });
-                                        });
+                                this.setState({ refreshCommandEnabled: false, saveCommandEnabled: false });
+                                cancelable(this._listForm.current.loadItem())
+                                    .finally(() => {
+                                        this.setState({ refreshCommandEnabled: true });
                                     });
-                                }
                             }
                         }
                     }
                 ]} />
-            <ListForm ref={this._listForm} itemPromise={isEditFormOpen === true
-                || isViewFormOpen === true && itemId > 0 ? loadItem(list.items.getById(itemId)).then((item) => {                 
-                    this.setState({ refreshCommandEnabled: true, saveCommandEnabled: true });
-                    return item;
-                }) : undefined}
-                fields={this.props.formFields} mode={isEditFormOpen ? FormMode.Edit : (isNewFormOpen ? FormMode.New : FormMode.Display)}
-                onChange={(field, value) => {
+            <ListForm ref={this._listForm} itemId={itemId} list={list}
+                regionalSettings={this.props.regionalSettings}
+                timeZone={this.props.timeZone}
+                fields={formFields} mode={isEditFormOpen ? FormMode.Edit : (isNewFormOpen ? FormMode.New : FormMode.Display)}
+                onItemLoaded={(item) => {
+                    this.setState({ refreshCommandEnabled: true, saveCommandEnabled: (isEditFormOpen || isNewFormOpen) && this._listForm.current.isDirty === true });
+                }}
+                onChange={(field, value, isDirty) => {
                     if (this._listForm.current) {
-                        //const isValid = this._listForm.current.isValid;
-                        const isDirty = this._listForm.current.isDirty;
-                        this.setState({ refreshCommandEnabled: true, saveCommandEnabled: isDirty === true });
+                        const isValid = this._listForm.current.isValid;
+                        isDirty = isDirty || this._listForm.current.isDirty;                        
+                        this.setState({ refreshCommandEnabled: true, saveCommandEnabled: isDirty === true && isValid === true });
                     }
                 }} />
         </Panel>;
@@ -623,7 +557,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
         switch (dataType) {
             case DataType.Date:
             case DataType.DateTime:
-                const dateValue = DateHelper.toLocaleDate(new Date(value), this._timeZone ? this._timeZone.Information.Bias : 0);
+                const dateValue = DateHelper.toLocalDate(new Date(value), this._timeZone ? this._timeZone.Information.Bias : 0);
                 return dataType === DataType.Date ? moment(dateValue).format("L") : moment(dateValue).format("L LT");
             case DataType.Number:
                 return Number(value).toString();

@@ -6,7 +6,7 @@ export interface IBaseFieldRendererProps {
     required?: boolean;
     title?: string;
     disabled?: boolean;
-    onChange: (value: any) => void;
+    onChange: (value: any, isDirty: boolean) => void;
     onValidate: (validationResult: ValidationResult) => void;
     defaultValue?: any;
 }

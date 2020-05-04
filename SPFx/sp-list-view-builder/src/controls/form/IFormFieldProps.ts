@@ -8,7 +8,7 @@ export interface IFormFieldProps {
     field: IFormField;
     defaultValue?: any;
     disabled?: boolean;
-    onChange: (value: any) => void;
+    onChange: (value: any, isDirty: boolean) => void;
     onValidate: (validationResult: ValidationResult) => void;
     onGetFieldRenderer?: (ref: React.Ref<any>, defaultRenderer: () => JSX.Element) => BaseFieldRenderer | JSX.Element;
 }
