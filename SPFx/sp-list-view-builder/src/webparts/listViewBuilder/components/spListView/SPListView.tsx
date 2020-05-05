@@ -150,9 +150,14 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
                             if (!this._listForm.current.state.isLoading) {
                                 this.setState({ saveCommandEnabled: false, refreshCommandEnabled: false });
                                 cancelable(this._listForm.current.save())
-                                    .then((item) =>{
-                                        this.setState({ saveCommandEnabled: !item, isNewFormOpen: false, isEditFormOpen: true });
-                                        this.refresh();
+                                    .then((item) => {
+                                        if (item) {
+                                            this.setState({ isNewFormOpen: false, isEditFormOpen: true });
+                                            this.refresh();
+                                        }
+                                        else{
+                                            //this.setState({ saveCommandEnabled: true });
+                                        }
                                     })
                                     .catch(() =>{
                                         this.setState({ saveCommandEnabled: true });

@@ -77,11 +77,13 @@ export class ListForm extends React.Component<IListFormProps, IListFormState> {
             const itemId = this.state.item ? this.state.item.ID : this.props.itemId;
             if (itemId && itemId > 0) {
                 const spItem = this.props.list.items.getById(itemId);
-                this.setState({ isLoading: true });
+                this.setState({ isLoading: true, error: undefined });
                 this._promise = cancelable(this.getItem(spItem));
                 this._promise.finally(() => {
                     this._promise = null;
                     this.setState({ isLoading: false });
+                }).catch(error => {
+                    this.setState({ error: error });
                 });
                 const item = await this._promise;
                 this.setState({ item: item });
@@ -96,20 +98,10 @@ export class ListForm extends React.Component<IListFormProps, IListFormState> {
     public render() {
         const { fields, onChange } = this.props;
         const { mode, item, isLoading, isSaving, error } = this.state;
-
         this._formFields = [];
         return <div className="list-form">
-            <div style={{ minHeight: 40 }}>
-                {isLoading && <ProgressIndicator label="Loading..." />}
-                {isSaving && <ProgressIndicator label="Saving..." />}
-                {error && <span style={{
-                    color: 'red',
-                    display: 'block',
-                    textOverflow: 'ellipsis',
-                    overflow: 'hidden'
-                }}>{error}</span>}
-            </div>
-            <div style={{ marginTop: 2 }}>
+            {isLoading && <ProgressIndicator label="Loading..." />}
+            <div style={{ marginTop: 5 }}>
                 {!isLoading && fields instanceof Array && fields.length > 0
                     && fields.map(field => <FormField key={field.Id || field.Name}
                         disabled={isLoading || isSaving}
@@ -140,6 +132,13 @@ export class ListForm extends React.Component<IListFormProps, IListFormState> {
                             }
                         }} />)}
             </div>
+            {isSaving && <ProgressIndicator label="Saving..." />}
+            {error && <span style={{
+                color: 'red',
+                display: 'block',
+                textOverflow: 'ellipsis',
+                overflow: 'hidden'
+            }}>{error}</span>}
         </div>;
     }
 
@@ -152,9 +151,9 @@ export class ListForm extends React.Component<IListFormProps, IListFormState> {
             return;
         }
         if (list && this._itemChanges && (mode === FormMode.New || mode === FormMode.Edit)) {
-            if (mode === FormMode.New) {
-                await this.validate(true);
-                if (this.isValid && this.isDirty) {
+            await this.validate(true);
+            if (this.isValid && this.isDirty) {
+                if (mode === FormMode.New) {
                     this.setState({ isSaving: true, error: undefined });
                     this._promise = cancelable(list.items.add(this._itemChanges));
                     this._promise.finally(() => {
@@ -183,57 +182,57 @@ export class ListForm extends React.Component<IListFormProps, IListFormState> {
                         return updatedItem;
                     }
                 }
-            }
-            else if (item && mode === FormMode.Edit) {
-                const formUpdateValues: IListItemFormUpdateValue[] = [];
-                for (const fName in this._itemChanges) {
-                    formUpdateValues.push({ FieldName: fName, FieldValue: this.fieldValueToString(fName, this._itemChanges[fName]) });
-                }
-                if (item["owshiddenversion"]) {
-                    formUpdateValues.push({ FieldName: "owshiddenversion", FieldValue: String(item["owshiddenversion"]) });
-                }
-                await this.validate(true);
-                if (this.isValid && this.isDirty) {
-                    this.setState({ isSaving: true, error: undefined });
-                    this._promise = cancelable(list.items.getById(item.ID).validateUpdateListItem(formUpdateValues, false).then(formValues => {
-                        return (formValues as any).ValidateUpdateListItem ? (formValues as any).ValidateUpdateListItem.results : formValues;
-                    }));
-                    this._promise.finally(() => {
-                        this._promise = null;
-                        this.setState({ isSaving: false });
-                    }).catch((error) => {
-                        this.setState({ error: error.message });
-                    });
+                else if (item && mode === FormMode.Edit) {
+                    const formUpdateValues: IListItemFormUpdateValue[] = [];
+                    for (const fName in this._itemChanges) {
+                        formUpdateValues.push({ FieldName: fName, FieldValue: this.fieldValueToString(fName, this._itemChanges[fName]) });
+                    }
+                    if (item["owshiddenversion"]) {
+                        formUpdateValues.push({ FieldName: "owshiddenversion", FieldValue: String(item["owshiddenversion"]) });
+                    }
+                    await this.validate(true);
+                    if (this.isValid && this.isDirty) {
+                        this.setState({ isSaving: true, error: undefined });
+                        this._promise = cancelable(list.items.getById(item.ID).validateUpdateListItem(formUpdateValues, false).then(formValues => {
+                            return (formValues as any).ValidateUpdateListItem ? (formValues as any).ValidateUpdateListItem.results : formValues;
+                        }));
+                        this._promise.finally(() => {
+                            this._promise = null;
+                            this.setState({ isSaving: false });
+                        }).catch((error) => {
+                            this.setState({ error: error.message });
+                        });
 
-                    const result: IListItemFormUpdateValue[] = await this._promise;
+                        const result: IListItemFormUpdateValue[] = await this._promise;
 
-                    if (result instanceof Array) {
-                        const errors = result.filter(field => field.HasException === true);
-                        if (errors.length > 0) {
-                            for (const formField of this._formFields) {
-                                const validationResult: IValidationResult = { isValid: false, validationErrors: [] };
-                                for (const error of errors.filter(err => formField.name === err.FieldName)) {
-                                    validationResult.validationErrors.push(error.ErrorMessage);
-                                }
-                                if (validationResult.validationErrors.length > 0) {
-                                    formField.renderer.setValidationResult(validationResult);
+                        if (result instanceof Array) {
+                            const errors = result.filter(field => field.HasException === true);
+                            if (errors.length > 0) {
+                                for (const formField of this._formFields) {
+                                    const validationResult: IValidationResult = { isValid: false, validationErrors: [] };
+                                    for (const error of errors.filter(err => formField.name === err.FieldName)) {
+                                        validationResult.validationErrors.push(error.ErrorMessage);
+                                    }
+                                    if (validationResult.validationErrors.length > 0) {
+                                        formField.renderer.setValidationResult(validationResult);
+                                    }
                                 }
                             }
-                        }
-                        else {
-                            this._itemChanges = undefined;
-                            this._promise = cancelable(this.getItem(list.items.getById(item.ID)))
-                                .finally(() => {
-                                    this._promise = null;
-                                    this.setState({ isLoading: false });
-                                }).catch((error) => {
-                                    this.setState({ error: error.message });
-                                });
-                            const updatedItem = await this._promise;
-                            if (updatedItem) {
-                                this.setState({ item: updatedItem });
+                            else {
+                                this._itemChanges = undefined;
+                                this._promise = cancelable(this.getItem(list.items.getById(item.ID)))
+                                    .finally(() => {
+                                        this._promise = null;
+                                        this.setState({ isLoading: false });
+                                    }).catch((error) => {
+                                        this.setState({ error: error.message });
+                                    });
+                                const updatedItem = await this._promise;
+                                if (updatedItem) {
+                                    this.setState({ item: updatedItem });
+                                }
+                                return updatedItem;
                             }
-                            return updatedItem;
                         }
                     }
                 }
@@ -245,8 +244,14 @@ export class ListForm extends React.Component<IListFormProps, IListFormState> {
         const fields = this.props.fields.filter(f => f.Name === fieldName);
         if (fields.length > 0) {
             const field = fields[0];
-            if (field.DataType === DataType.Date || field.DataType === DataType.DateTime) {
-                value = value ? moment(new Date(value)).format("L LT") : value;
+            switch (field.DataType) {
+                case DataType.Date:
+                case DataType.DateTime:
+                    value = value ? moment(new Date(value)).format("L LT") : null;
+                    break;
+                case DataType.Boolean:
+                    value = value === true ? "1" : value === false ? "0" : null;
+                    break;
             }
         }
         return value;

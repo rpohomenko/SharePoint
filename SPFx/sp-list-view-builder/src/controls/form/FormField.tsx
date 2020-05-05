@@ -8,6 +8,7 @@ import { IFormFieldProps, IFormFieldState, IDateFormFieldProps, ITextFormFieldPr
 import { getId } from 'office-ui-fabric-react/lib/Utilities';
 import { TextFieldRenderer, ITextFieldRendererProps } from './fieldRenderer/TextFieldRenderer';
 import { DateFieldRenderer, IDateFieldRendererProps } from './fieldRenderer/DateFieldRenderer';
+import { BooleanFieldRenderer, IBooleanFieldRendererProps } from './fieldRenderer/BooleanFieldRenderer';
 import { IValidationResult } from './fieldRenderer/IBaseFieldRendererProps';
 import { DataType, FormMode } from '../../utilities/Entities';
 import { BaseFieldRenderer } from './fieldRenderer/BaseFieldRenderer';
@@ -118,43 +119,58 @@ export class FormField extends React.Component<IFormFieldProps | IDateFormFieldP
             field.ReadOnly = true;
             return defaultValue ? defaultValue.Name : null;
         }
-        if (field.DataType === DataType.Text || field.DataType === DataType.MultiLineText) {
-            return React.createElement(TextFieldRenderer, {
-                key: field.Name,
-                ref: this._fieldControl,
-                disabled: field.ReadOnly === true || disabled === true,
-                defaultValue: defaultValue,
-                required: field.Required === true,
-                mode: mode,
-                dataType: field.DataType,
-                title: field.Title,
-                multiline: field.DataType === DataType.MultiLineText,
-                maxLength: (this.props as ITextFormFieldProps).maxLength,
-                onValidate: onValidate,
-                onChange: onChange
-            } as ITextFieldRendererProps);
+        switch (field.DataType) {
+            case DataType.Text:
+            case DataType.MultiLineText:
+                return React.createElement(TextFieldRenderer, {
+                    key: field.Name,
+                    ref: this._fieldControl,
+                    disabled: field.ReadOnly === true || disabled === true,
+                    defaultValue: defaultValue,
+                    required: field.Required === true,
+                    mode: mode,
+                    dataType: field.DataType,
+                    title: field.Title,
+                    multiline: field.DataType === DataType.MultiLineText,
+                    maxLength: (this.props as ITextFormFieldProps).maxLength,
+                    onValidate: onValidate,
+                    onChange: onChange
+                } as ITextFieldRendererProps);
+            case DataType.Date:
+            case DataType.DateTime:
+                return React.createElement(DateFieldRenderer, {
+                    key: field.Name,
+                    ref: this._fieldControl,
+                    disabled: field.ReadOnly === true || disabled === true,
+                    defaultValue: defaultValue,
+                    required: field.Required === true,
+                    mode: mode,
+                    dataType: field.DataType,
+                    title: field.Title,
+                    firstDayOfWeek: (this.props as IDateFormFieldProps).firstDayOfWeek,
+                    regionalSettings: (this.props as IDateFormFieldProps).regionalSettings,
+                    timeZone: (this.props as IDateFormFieldProps).timeZone,
+                    shortDateFormat: (this.props as IDateFormFieldProps).shortDateFormat,
+                    onValidate: onValidate,
+                    onChange: onChange
+                } as IDateFieldRendererProps);
+            case DataType.Boolean:
+                return React.createElement(BooleanFieldRenderer, {
+                    key: field.Name,
+                    ref: this._fieldControl,
+                    disabled: field.ReadOnly === true || disabled === true,
+                    defaultValue: defaultValue,
+                    required: field.Required === true,
+                    mode: mode,
+                    dataType: field.DataType,
+                    title: field.Title,                   
+                    onValidate: onValidate,
+                    onChange: onChange
+                } as IBooleanFieldRendererProps);
         }
-        else if (field.DataType === DataType.Date || field.DataType === DataType.DateTime) {
-            return React.createElement(DateFieldRenderer, {
-                key: field.Name,
-                ref: this._fieldControl,
-                disabled: field.ReadOnly === true || disabled === true,
-                defaultValue: defaultValue,
-                required: field.Required === true,
-                mode: mode,
-                dataType: field.DataType,
-                title: field.Title,
-                firstDayOfWeek: (this.props as IDateFormFieldProps).firstDayOfWeek,
-                regionalSettings: (this.props as IDateFormFieldProps).regionalSettings,
-                timeZone: (this.props as IDateFormFieldProps).timeZone,
-                shortDateFormat: (this.props as IDateFormFieldProps).shortDateFormat,
-                onValidate: onValidate,
-                onChange: onChange
-            } as IDateFieldRendererProps);
-        }
-        else {
-            return null;
-            //throw `Field Type "${field.DataType[field.DataType]}" is not supported.`;
-        }
+
+        return null;
+        //throw `Field Type "${field.DataType[field.DataType]}" is not supported.`;
+
     }
 }
