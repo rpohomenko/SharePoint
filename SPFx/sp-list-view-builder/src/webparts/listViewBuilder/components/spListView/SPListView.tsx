@@ -151,7 +151,8 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
                                 this.setState({ saveCommandEnabled: false, refreshCommandEnabled: false });
                                 cancelable(this._listForm.current.save())
                                     .then((item) =>{
-                                        this.setState({ saveCommandEnabled: !item });
+                                        this.setState({ saveCommandEnabled: !item, isNewFormOpen: false, isEditFormOpen: true });
+                                        this.refresh();
                                     })
                                     .catch(() =>{
                                         this.setState({ saveCommandEnabled: true });
@@ -167,7 +168,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
                 farItems={[
                     {
                         key: 'refresh', text: 'Refresh', iconProps: { iconName: 'Refresh' }, iconOnly: true,
-                        disabled: isNewFormOpen === true || !refreshCommandEnabled,
+                        disabled: isNewFormOpen || !refreshCommandEnabled,
                         onClick: () => {
                             if (this._listForm.current) {
                                 this.setState({ refreshCommandEnabled: false, saveCommandEnabled: false });
@@ -717,7 +718,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
                 disabled: this.state.isLoading === true || !this.props.list || !canAddItem
                     || (selection instanceof Array && selection.length > 0),
                 onClick: () => {
-                    this.setState({ isNewFormOpen: true });
+                    this.setState({ isNewFormOpen: true, saveCommandEnabled: false });
                 }
             },
             {
@@ -725,7 +726,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
                 disabled: this.state.isLoading === true || !canEdit,
                 onClick: () => {
                     if (selection instanceof Array && selection.length > 0) {
-                        this.setState({ isEditFormOpen: true });
+                        this.setState({ isEditFormOpen: true, saveCommandEnabled: false });
                     }
                 }
             },
@@ -734,7 +735,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
                 disabled: this.state.isLoading === true || !canEdit,
                 onClick: () => {
                     if (selection instanceof Array && selection.length > 0) {
-                        this.setState({ isViewFormOpen: true });
+                        this.setState({ isViewFormOpen: true, saveCommandEnabled: false });
                     }
                 }
             },

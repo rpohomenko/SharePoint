@@ -8,13 +8,14 @@ import { IFormFieldProps, IFormFieldState, IDateFormFieldProps, ITextFormFieldPr
 import { getId } from 'office-ui-fabric-react/lib/Utilities';
 import { TextFieldRenderer, ITextFieldRendererProps } from './fieldRenderer/TextFieldRenderer';
 import { DateFieldRenderer, IDateFieldRendererProps } from './fieldRenderer/DateFieldRenderer';
-import { ValidationResult } from './fieldRenderer/IBaseFieldRendererProps';
+import { IValidationResult } from './fieldRenderer/IBaseFieldRendererProps';
 import { DataType, FormMode } from '../../utilities/Entities';
+import { BaseFieldRenderer } from './fieldRenderer/BaseFieldRenderer';
 
 export class FormField extends React.Component<IFormFieldProps | IDateFormFieldProps | ITextFormFieldProps, IFormFieldState> {
 
     private _iconButtonId = getId('iFieldInfo');
-    private _fieldControl: React.RefObject<any>;
+    private _fieldControl: React.RefObject<BaseFieldRenderer>;
 
     constructor(props: IFormFieldProps) {
         super(props);
@@ -34,7 +35,7 @@ export class FormField extends React.Component<IFormFieldProps | IDateFormFieldP
             this.setState({
                 mode: this.props.mode
             });
-        }       
+        }
     }
 
     public render() {
@@ -76,7 +77,7 @@ export class FormField extends React.Component<IFormFieldProps | IDateFormFieldP
         </div>;
     }
 
-    public async validate(disableEvents?: boolean): Promise<ValidationResult> {
+    public async validate(disableEvents?: boolean): Promise<IValidationResult> {
         if (this._fieldControl.current) {
             return await this._fieldControl.current.validate(disableEvents);
         }
@@ -94,6 +95,18 @@ export class FormField extends React.Component<IFormFieldProps | IDateFormFieldP
         }
     }
 
+    public get renderer(): BaseFieldRenderer {
+        if (this._fieldControl.current) {
+            return this._fieldControl.current;
+        }
+    }
+
+    public get name(): string {
+        if (this.props.field) {
+            return this.props.field.Name;
+        }
+    }
+
     private _setCalloutVisible = (visible: boolean) => {
         this.setState({ isCalloutVisible: visible });
     }
@@ -101,7 +114,7 @@ export class FormField extends React.Component<IFormFieldProps | IDateFormFieldP
     private _getFieldRenderer(): JSX.Element {
         const { field, defaultValue, onChange, onValidate, disabled } = this.props;
         const { mode } = this.state;
-        if(field.Name === "ContentType"){
+        if (field.Name === "ContentType") {
             field.ReadOnly = true;
             return defaultValue ? defaultValue.Name : null;
         }

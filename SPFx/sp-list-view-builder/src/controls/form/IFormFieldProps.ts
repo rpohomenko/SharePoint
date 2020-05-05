@@ -1,6 +1,6 @@
 import { FormMode, IFormField } from '../../utilities/Entities';
 import { BaseFieldRenderer } from './fieldRenderer/BaseFieldRenderer';
-import { IBaseFieldRendererProps, ValidationResult } from './fieldRenderer/IBaseFieldRendererProps';
+import { IBaseFieldRendererProps, IValidationResult } from './fieldRenderer/IBaseFieldRendererProps';
 import { IRegionalSettingsInfo, ITimeZoneInfo } from '@pnp/sp/regional-settings';
 
 export interface IFormFieldProps {
@@ -9,7 +9,7 @@ export interface IFormFieldProps {
     defaultValue?: any;
     disabled?: boolean;
     onChange: (value: any, isDirty: boolean) => void;
-    onValidate: (validationResult: ValidationResult) => void;
+    onValidate: (validationResult: IValidationResult) => void;
     onGetFieldRenderer?: (ref: React.Ref<any>, defaultRenderer: () => JSX.Element) => BaseFieldRenderer | JSX.Element;
 }
 

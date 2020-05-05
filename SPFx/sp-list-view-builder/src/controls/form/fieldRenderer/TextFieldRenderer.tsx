@@ -2,7 +2,7 @@ import * as React from 'react';
 import { TextField, ITextField } from 'office-ui-fabric-react/lib/TextField';
 import { Label } from 'office-ui-fabric-react/lib/Label';
 import { BaseFieldRenderer } from './BaseFieldRenderer';
-import { IBaseFieldRendererProps, IBaseFieldRendererState, ValidationResult } from './IBaseFieldRendererProps';
+import { IBaseFieldRendererProps, IBaseFieldRendererState } from './IBaseFieldRendererProps';
 
 export interface ITextFieldRendererProps extends IBaseFieldRendererProps {
     multiline?: boolean;
@@ -16,6 +16,22 @@ export class TextFieldRenderer extends BaseFieldRenderer {
     constructor(props: ITextFieldRendererProps) {
         super(props);
         this._textField = React.createRef();
+    }
+
+
+    public componentDidMount() {
+        if (typeof this.props.defaultValue === "string") {
+            this.setValue(this.props.defaultValue);
+        }
+    }
+
+    public componentDidUpdate(prevProps: ITextFieldRendererProps, prevState: IBaseFieldRendererState) {
+        super.componentDidUpdate(prevProps, prevState);
+        if (prevProps.defaultValue !== this.props.defaultValue) {
+            if (typeof this.props.defaultValue === "string") {
+                this.setValue(this.props.defaultValue);
+            }
+        }
     }
 
     protected onRenderNewForm() {
@@ -41,8 +57,8 @@ export class TextFieldRenderer extends BaseFieldRenderer {
             onChange={(ev, newValue) => {
                 this.setValue(newValue);
             }}
-            placeholder={typeof defaultValue === "string" ? defaultValue : undefined}
-            value={typeof value === "string" ? value : undefined}
+            placeholder={typeof defaultValue === "string" ? defaultValue : ""}
+            value={typeof value === "string" ? value : ""}
         />;
     }
 

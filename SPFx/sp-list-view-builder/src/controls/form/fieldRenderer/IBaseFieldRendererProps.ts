@@ -7,17 +7,17 @@ export interface IBaseFieldRendererProps {
     title?: string;
     disabled?: boolean;
     onChange: (value: any, isDirty: boolean) => void;
-    onValidate: (validationResult: ValidationResult) => void;
+    onValidate: (validationResult: IValidationResult) => void;
     defaultValue?: any;
 }
 
 export interface IBaseFieldRendererState {
     mode: FormMode;
     value?: any;
-    validationResult?: ValidationResult;
+    validationResult?: IValidationResult;
 }
 
-export interface ValidationResult {
+export interface IValidationResult {
     validationErrors: string[];
     isValid: boolean;
 }

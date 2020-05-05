@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Label } from 'office-ui-fabric-react/lib/Label';
 import { BaseFieldRenderer } from './BaseFieldRenderer';
-import { IBaseFieldRendererProps, IBaseFieldRendererState, ValidationResult } from './IBaseFieldRendererProps';
+import { IBaseFieldRendererProps, IBaseFieldRendererState } from './IBaseFieldRendererProps';
 import { DatePicker, DayOfWeek, IDatePicker, IDatePickerStrings } from 'office-ui-fabric-react/lib/DatePicker';
 import moment from 'moment';
 import { ITimeZoneInfo, IRegionalSettingsInfo } from '@pnp/sp/regional-settings/types';
@@ -45,13 +45,16 @@ export class DateFieldRenderer extends BaseFieldRenderer {
 
     public componentDidUpdate(prevProps: IBaseFieldRendererProps, prevState: IBaseFieldRendererState) {
         super.componentDidUpdate(prevProps, prevState);
-        if (prevProps.defaultValue != this.props.defaultValue) {
-            if (this.props.defaultValue && !this.state.value) {
+        if (prevProps.defaultValue !== this.props.defaultValue) {
+            if (this.props.defaultValue /*&& !this.state.value*/) {
                 const date = DateHelper.parseLocalDate(this.props.defaultValue, this._timeZone ? this._timeZone.Information.Bias : 0);
                 this.setValue(date);
             }
+            else{
+                this.setValue(null);
+            }
         }
-    }  
+    }
 
     protected onRenderNewForm() {
         return this._renderNewOrEditForm();

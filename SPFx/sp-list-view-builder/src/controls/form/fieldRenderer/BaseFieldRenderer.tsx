@@ -1,8 +1,7 @@
 import * as React from 'react';
 import ErrorBoundary from '../../ErrorBoundary';
-import { IBaseFieldRendererProps, IBaseFieldRendererState, ValidationResult } from './IBaseFieldRendererProps';
-import { DataType, FormMode } from '../../../utilities/Entities';
-import { isEqual } from '@microsoft/sp-lodash-subset';
+import { IBaseFieldRendererProps, IBaseFieldRendererState, IValidationResult } from './IBaseFieldRendererProps';
+import { FormMode } from '../../../utilities/Entities';
 
 export class BaseFieldRenderer extends React.Component<IBaseFieldRendererProps, IBaseFieldRendererState> {
 
@@ -11,7 +10,7 @@ export class BaseFieldRenderer extends React.Component<IBaseFieldRendererProps, 
 
         this.state = {
             mode: props.mode,
-            value: props.defaultValue,
+            //value: props.defaultValue,
             validationResult: undefined
         };
     }
@@ -25,12 +24,12 @@ export class BaseFieldRenderer extends React.Component<IBaseFieldRendererProps, 
                 mode: this.props.mode
             });
         }
-        if (prevProps.defaultValue != this.props.defaultValue) {
-            if (this.state.value === undefined) {
+        if (prevProps.defaultValue !== this.props.defaultValue) {
+            //if (this.state.value === undefined) {
                 this.setState({
-                    value: this.props.defaultValue,
+                    value: undefined //this.props.defaultValue,
                 });
-            }
+            //}
         }
     }
 
@@ -43,7 +42,7 @@ export class BaseFieldRenderer extends React.Component<IBaseFieldRendererProps, 
                 {mode === FormMode.Edit ? this.onRenderEditForm() : null}
                 {mode === FormMode.Display ? this.onRenderDispForm() : null}
             </ErrorBoundary>
-            {validationResult && !validationResult.isValid ? this._renderValidationErrors(validationResult.validationErrors) : null}
+            {validationResult && validationResult.isValid === false ? this._renderValidationErrors(validationResult.validationErrors) : null}
         </>);
     }
 
@@ -62,9 +61,9 @@ export class BaseFieldRenderer extends React.Component<IBaseFieldRendererProps, 
         return value !== null && value !== undefined;
     }
 
-    public async validate(disableEvents?: boolean): Promise<ValidationResult> {
+    public async validate(disableEvents?: boolean): Promise<IValidationResult> {
         const { onValidate, required, title } = this.props;
-        const result = this.onValidate() || { isValid: true } as ValidationResult;
+        const result = this.onValidate() || { isValid: true } as IValidationResult;
         if (!(result.validationErrors instanceof Array)) {
             result.validationErrors = [];
         }
@@ -120,12 +119,12 @@ export class BaseFieldRenderer extends React.Component<IBaseFieldRendererProps, 
         throw (`Method onRenderDispForm is not yet implemented, field type: ${this.props.dataType}.`);
     }
 
-    protected onValidate(): ValidationResult {
+    protected onValidate(): IValidationResult {
         return null;
         //throw (`Method onValidate is not yet implemented, field type: ${this.props.dataType}.`);
     }
 
-    protected async onValidateAsync(): Promise<ValidationResult> {
+    protected async onValidateAsync(): Promise<IValidationResult> {
         return null;
         //throw (`Method onValidateAsync is not yet implemented, field type: ${this.props.dataType}.`);
     }
@@ -135,6 +134,10 @@ export class BaseFieldRenderer extends React.Component<IBaseFieldRendererProps, 
         if (onChange instanceof Function) {
             onChange(value, this.isDirty);
         }
+    }
+
+    public setValidationResult(validationResult: IValidationResult) {
+        this.setState({ validationResult: validationResult });
     }
 
     private _renderValidationErrors = (validationErrors: string[]) => {

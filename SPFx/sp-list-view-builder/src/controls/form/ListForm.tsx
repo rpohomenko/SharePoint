@@ -9,6 +9,7 @@ import { IListItemFormUpdateValue } from '@pnp/sp/lists';
 import moment from 'moment';
 import { IRegionalSettingsInfo } from '@pnp/sp/regional-settings';
 import SPService from '../../utilities/SPService';
+import { IValidationResult } from './fieldRenderer/IBaseFieldRendererProps';
 
 interface CancelablePromise extends Promise<any> {
     cancel: () => void;
@@ -59,7 +60,9 @@ export class ListForm extends React.Component<IListFormProps, IListFormState> {
             this.setState({ mode: this.props.mode });
         }
         if (prevProps.itemId != this.props.itemId || prevProps.list != this.props.list) {
-            await this.loadItem();
+            if (this.props.itemId > 0) {
+                await this.loadItem();
+            }
         }
     }
 
@@ -69,9 +72,11 @@ export class ListForm extends React.Component<IListFormProps, IListFormState> {
             //this._promise = undefined;
             return;
         }
+        this._itemChanges = undefined;
         if (this.props.list && (this.props.mode === FormMode.Display || this.props.mode === FormMode.Edit)) {
-            if (this.props.itemId && this.props.itemId > 0) {
-                const spItem = this.props.list.items.getById(this.props.itemId);
+            const itemId = this.state.item ? this.state.item.ID : this.props.itemId;
+            if (itemId && itemId > 0) {
+                const spItem = this.props.list.items.getById(itemId);
                 this.setState({ isLoading: true });
                 this._promise = cancelable(this.getItem(spItem));
                 this._promise.finally(() => {
@@ -83,7 +88,7 @@ export class ListForm extends React.Component<IListFormProps, IListFormState> {
                 return item;
             }
             else {
-                this.setState({ item: null });
+                //this.setState({ item: null });
             }
         }
     }
@@ -94,43 +99,47 @@ export class ListForm extends React.Component<IListFormProps, IListFormState> {
 
         this._formFields = [];
         return <div className="list-form">
-            {isLoading && <ProgressIndicator label="Loading..." />}
-            {isSaving && <ProgressIndicator label="Saving..." />}
-            {error && <span style={{
-                color: 'red',
-                display: 'block',
-                textOverflow: 'ellipsis',
-                overflow: 'hidden'
-            }}>{error}</span>}
-            {fields instanceof Array && fields.length > 0
-                && fields.map(field => <FormField key={field.Id || field.Name}
-                    disabled={isLoading || isSaving}
-                    defaultValue={item ? item[field.Name] : undefined}
-                    ref={ref => {
-                        if (ref != null) {
-                            this._formFields.push(ref);
-                        }
-                    }}
-                    field={field}
-                    mode={mode}
-                    regionalSettings={this.props.regionalSettings}
-                    timeZone={this.props.timeZone}
-                    onValidate={(result) => {
+            <div style={{ minHeight: 40 }}>
+                {isLoading && <ProgressIndicator label="Loading..." />}
+                {isSaving && <ProgressIndicator label="Saving..." />}
+                {error && <span style={{
+                    color: 'red',
+                    display: 'block',
+                    textOverflow: 'ellipsis',
+                    overflow: 'hidden'
+                }}>{error}</span>}
+            </div>
+            <div style={{ marginTop: 2 }}>
+                {!isLoading && fields instanceof Array && fields.length > 0
+                    && fields.map(field => <FormField key={field.Id || field.Name}
+                        disabled={isLoading || isSaving}
+                        defaultValue={item ? item[field.Name] : undefined}
+                        ref={ref => {
+                            if (ref != null) {
+                                this._formFields.push(ref);
+                            }
+                        }}
+                        field={field}
+                        mode={mode}
+                        regionalSettings={this.props.regionalSettings}
+                        timeZone={this.props.timeZone}
+                        onValidate={(result) => {
 
-                    }}
-                    onChange={(value, isDirty) => {
-                        const itemChanges: IListItem = this._itemChanges || {} as IListItem;
-                        if (isDirty === true) {
-                            itemChanges[field.Name] = value;
-                        }
-                        else {
-                            delete itemChanges[field.Name];
-                        }
-                        this._itemChanges = itemChanges;
-                        if (onChange instanceof Function) {
-                            onChange(field, value, isDirty);
-                        }
-                    }} />)}
+                        }}
+                        onChange={(value, isDirty) => {
+                            const itemChanges: IListItem = this._itemChanges || {} as IListItem;
+                            if (isDirty === true) {
+                                itemChanges[field.Name] = value;
+                            }
+                            else {
+                                delete itemChanges[field.Name];
+                            }
+                            this._itemChanges = itemChanges;
+                            if (onChange instanceof Function) {
+                                onChange(field, value, isDirty);
+                            }
+                        }} />)}
+            </div>
         </div>;
     }
 
@@ -142,11 +151,10 @@ export class ListForm extends React.Component<IListFormProps, IListFormState> {
             //this._promise = undefined;
             return;
         }
-        if (list && this._itemChanges) {
-            if (mode === FormMode.New) {             
-                await this.validate(true);              
-                if (this.isValid && this.isDirty) {  
-                    this.setState({ /*item: null,*/ isLoading: true });
+        if (list && this._itemChanges && (mode === FormMode.New || mode === FormMode.Edit)) {
+            if (mode === FormMode.New) {
+                await this.validate(true);
+                if (this.isValid && this.isDirty) {
                     this.setState({ isSaving: true, error: undefined });
                     this._promise = cancelable(list.items.add(this._itemChanges));
                     this._promise.finally(() => {
@@ -160,18 +168,23 @@ export class ListForm extends React.Component<IListFormProps, IListFormState> {
 
                     if (result) {
                         this._itemChanges = undefined;
+                        this.setState({ isLoading: true });
                         this._promise = cancelable(this.getItem(result.item));
                         this._promise.finally(() => {
                             this._promise = null;
                             this.setState({ isLoading: false });
+                        }).catch((error) => {
+                            this.setState({ error: error.message });
                         });
                         const updatedItem = await this._promise;
-                        this.setState({ item: updatedItem });
+                        if (updatedItem) {
+                            this.setState({ item: updatedItem, mode: FormMode.Edit });
+                        }
                         return updatedItem;
                     }
                 }
             }
-            else if (mode === FormMode.Edit) {
+            else if (item && mode === FormMode.Edit) {
                 const formUpdateValues: IListItemFormUpdateValue[] = [];
                 for (const fName in this._itemChanges) {
                     formUpdateValues.push({ FieldName: fName, FieldValue: this.fieldValueToString(fName, this._itemChanges[fName]) });
@@ -195,20 +208,31 @@ export class ListForm extends React.Component<IListFormProps, IListFormState> {
                     const result: IListItemFormUpdateValue[] = await this._promise;
 
                     if (result instanceof Array) {
-                        const errors = result.filter(field => field.HasException === true).map(field => field.ErrorMessage);
+                        const errors = result.filter(field => field.HasException === true);
                         if (errors.length > 0) {
-                            this.setState({ error: errors.join('\\n') });
+                            for (const formField of this._formFields) {
+                                const validationResult: IValidationResult = { isValid: false, validationErrors: [] };
+                                for (const error of errors.filter(err => formField.name === err.FieldName)) {
+                                    validationResult.validationErrors.push(error.ErrorMessage);
+                                }
+                                if (validationResult.validationErrors.length > 0) {
+                                    formField.renderer.setValidationResult(validationResult);
+                                }
+                            }
                         }
                         else {
                             this._itemChanges = undefined;
-                            this._promise = cancelable(this.getItem(list.items.getById(itemId)))
+                            this._promise = cancelable(this.getItem(list.items.getById(item.ID)))
                                 .finally(() => {
                                     this._promise = null;
                                     this.setState({ isLoading: false });
+                                }).catch((error) => {
+                                    this.setState({ error: error.message });
                                 });
                             const updatedItem = await this._promise;
-                            this.setState({ item: updatedItem });
-
+                            if (updatedItem) {
+                                this.setState({ item: updatedItem });
+                            }
                             return updatedItem;
                         }
                     }
@@ -222,7 +246,7 @@ export class ListForm extends React.Component<IListFormProps, IListFormState> {
         if (fields.length > 0) {
             const field = fields[0];
             if (field.DataType === DataType.Date || field.DataType === DataType.DateTime) {
-                value = value ? moment(new Date(value)).format("L LT") : value;               
+                value = value ? moment(new Date(value)).format("L LT") : value;
             }
         }
         return value;
