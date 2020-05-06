@@ -121,3 +121,13 @@ export interface IUserInfo {
     IsShareByEmailGuestUser?: boolean;
     IsSiteAdmin?: boolean;
 }
+
+export interface ILookupFieldValue {
+    Id: number;
+    Title: string;
+}
+
+export interface IUserFieldValue extends ILookupFieldValue {
+    Name: string;
+    Email: string;
+}

@@ -17,6 +17,15 @@ export interface ITextFormFieldProps extends IFormFieldProps {
     maxLength?: number;
 }
 
+export interface ILookupFormFieldProps extends IFormFieldProps {
+
+}
+
+export interface IUserFormFieldProps extends IFormFieldProps {
+   limit?: number;
+   suggestionsLimit?: number;
+}
+
 export interface IDateFormFieldProps extends IFormFieldProps {
     firstDayOfWeek?: number;
     shortDateFormat?: string;

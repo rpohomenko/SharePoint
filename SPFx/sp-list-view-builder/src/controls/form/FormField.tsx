@@ -4,16 +4,17 @@ import { IconButton } from 'office-ui-fabric-react/lib/Button';
 import { Callout } from 'office-ui-fabric-react/lib/Callout';
 import { Stack } from 'office-ui-fabric-react/lib/Stack';
 import { Text } from 'office-ui-fabric-react/lib/Text';
-import { IFormFieldProps, IFormFieldState, IDateFormFieldProps, ITextFormFieldProps } from './IFormFieldProps';
+import { IFormFieldProps, IFormFieldState, IDateFormFieldProps, ITextFormFieldProps, ILookupFormFieldProps, IUserFormFieldProps } from './IFormFieldProps';
 import { getId } from 'office-ui-fabric-react/lib/Utilities';
 import { TextFieldRenderer, ITextFieldRendererProps } from './fieldRenderer/TextFieldRenderer';
 import { DateFieldRenderer, IDateFieldRendererProps } from './fieldRenderer/DateFieldRenderer';
+import { UserFieldRenderer, IUserFieldRendererProps } from './fieldRenderer/UserFieldRenderer';
 import { BooleanFieldRenderer, IBooleanFieldRendererProps } from './fieldRenderer/BooleanFieldRenderer';
 import { IValidationResult } from './fieldRenderer/IBaseFieldRendererProps';
-import { DataType, FormMode } from '../../utilities/Entities';
+import { DataType, FormMode, ILookupFieldValue, IUserFieldValue } from '../../utilities/Entities';
 import { BaseFieldRenderer } from './fieldRenderer/BaseFieldRenderer';
 
-export class FormField extends React.Component<IFormFieldProps | IDateFormFieldProps | ITextFormFieldProps, IFormFieldState> {
+export class FormField extends React.Component<IFormFieldProps | IDateFormFieldProps | ITextFormFieldProps | ILookupFormFieldProps | IUserFormFieldProps, IFormFieldState> {
 
     private _iconButtonId = getId('iFieldInfo');
     private _fieldControl: React.RefObject<BaseFieldRenderer>;
@@ -163,10 +164,30 @@ export class FormField extends React.Component<IFormFieldProps | IDateFormFieldP
                     required: field.Required === true,
                     mode: mode,
                     dataType: field.DataType,
-                    title: field.Title,                   
+                    title: field.Title,
                     onValidate: onValidate,
                     onChange: onChange
                 } as IBooleanFieldRendererProps);
+            case DataType.User:
+            case DataType.MultiUser:
+                return React.createElement(UserFieldRenderer, {
+                    key: field.Name,
+                    ref: this._fieldControl,
+                    suggestionsLimit: (this.props as IUserFormFieldProps).suggestionsLimit || 10,
+                    itemLimit: field.DataType === DataType.MultiUser ? (this.props as IUserFormFieldProps).limit || 5 : 1,
+                    disabled: field.ReadOnly === true || disabled === true,
+                    defaultValue: defaultValue
+                        ? field.DataType === DataType.MultiUser
+                            ? defaultValue.map((v: any) => { return { Id: v.ID, Title: v.Title, Email: v.EMail, Name: v.Name } as IUserFieldValue })
+                            : (defaultValue.ID > 0 ? [{ Id: defaultValue.ID, Title: defaultValue.Title, Email: defaultValue.EMail, Name: defaultValue.Name } as IUserFieldValue] : null)
+                        : null,
+                    required: field.Required === true,
+                    mode: mode,
+                    dataType: field.DataType,
+                    title: field.Title,
+                    onValidate: onValidate,
+                    onChange: onChange
+                } as IUserFieldRendererProps);
         }
 
         return null;

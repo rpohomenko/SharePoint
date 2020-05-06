@@ -1,10 +1,10 @@
 import * as React from 'react';
 import { IPersonaProps } from 'office-ui-fabric-react/lib/Persona';
-import { CompactPeoplePicker, IBasePickerSuggestionsProps, ValidationState, IBasePicker } from 'office-ui-fabric-react/lib/Pickers';
+import { NormalPeoplePicker, IBasePickerSuggestionsProps, ValidationState, IBasePicker } from 'office-ui-fabric-react/lib/Pickers';
 import { Label } from 'office-ui-fabric-react/lib/Label';
 import { BaseFieldRenderer } from './BaseFieldRenderer';
 import { IBaseFieldRendererProps, IBaseFieldRendererState } from './IBaseFieldRendererProps';
-import { PrincipalType } from '../../../utilities/Entities';
+import { PrincipalType, FormMode, IUserFieldValue } from '../../../utilities/Entities';
 import SPService from '../../../utilities/SPService';
 import { isEqual, uniqBy } from "@microsoft/sp-lodash-subset";
 
@@ -19,7 +19,7 @@ export interface IUserFieldRendererProps extends IBaseFieldRendererProps {
 }
 
 export interface IUserFieldRendererState extends IBaseFieldRendererState {
-    mostRecentlyUsedPersons;
+    mostRecentlyUsedPersons?: IPersonaProps[];
 }
 
 export class UserFieldRenderer extends BaseFieldRenderer {
@@ -31,29 +31,29 @@ export class UserFieldRenderer extends BaseFieldRenderer {
         this._userField = React.createRef();
     }
 
-
     public componentDidMount() {
-        /* if (typeof this.props.defaultValue === "boolean") {          
-             this.setValue(this.props.defaultValue);
-         }
-         else if (this.props.defaultValue === "0" || this.props.defaultValue === "1" || this.props.defaultValue === "false" || this.props.defaultValue === "true") {
-             this.setValue(Boolean(this.props.defaultValue));
-         }*/
+        if (this.props.defaultValue instanceof Array) {
+            const value = this.props.defaultValue as IUserFieldValue[];
+            const personas: IPersonaProps[] = value.map(v => {
+                return {
+                    id: String(v.Id),
+                    //loginName: v.Name,
+                    imageUrl: this.getUserPhotoLink("", v.Email),
+                    imageInitials: this.getFullNameInitials(v.Title),
+                    text: v.Title,
+                    secondaryText: v.Email,
+                    tertiaryText: "",
+                    optionalText: "" // anything
+                } as IPersonaProps;
+            });
+            this.setValue(personas);
+        }
     }
 
     public componentDidUpdate(prevProps: IUserFieldRendererProps, prevState: IBaseFieldRendererState) {
         super.componentDidUpdate(prevProps, prevState);
-        if (prevProps.defaultValue !== this.props.defaultValue) {
-            if (this.props.defaultValue instanceof Array) {
-                this.setValue(this.props.defaultValue.map(item => {
-                    return {
-                        text: item.Title,
-                        id: item.ID,
-                        imageUrl: "",
-                        imageAlt: ""
-                    } as IPersonaProps;
-                }));
-            }
+        if (!isEqual(prevProps.defaultValue, this.props.defaultValue)) {
+            this.componentDidMount();
         }
     }
 
@@ -65,15 +65,12 @@ export class UserFieldRenderer extends BaseFieldRenderer {
         return this._renderNewOrEditForm();
     }
 
-    protected onRenderDispForm() {
-        /* if (typeof this.props.defaultValue === "boolean" || this.props.defaultValue === "0" || this.props.defaultValue === "1" || this.props.defaultValue === "false" || this.props.defaultValue === "true") {
-             return <Label>{Boolean(this.props.defaultValue) === true ? "Yes" : "No"}</Label>;
-         }*/
+    protected onRenderDispForm() {       
         return null;
     }
 
     private _renderNewOrEditForm() {
-        const { defaultValue, disabled, suggestionsLimit, selectionLimit, resolveDelay } = this.props as IUserFieldRendererProps;
+        const { disabled, suggestionsLimit, selectionLimit, resolveDelay } = this.props as IUserFieldRendererProps;
         const { value } = this.state;
         const items: IPersonaProps[] = value instanceof Array ? suggestionsLimit > 0 ? value.slice(0, suggestionsLimit) : value : [];
         const suggestionProps: IBasePickerSuggestionsProps = {
@@ -86,12 +83,12 @@ export class UserFieldRenderer extends BaseFieldRenderer {
             suggestionsAvailableAlertText: 'People Picker Suggestions available',
             suggestionsContainerAriaLabel: 'Suggested contacts',
         };
-        return <CompactPeoplePicker
-            onResolveSuggestions={this.onFilterChanged}
-            onEmptyInputFocus={this.returnMostRecentlyUsedPerson}
-            getTextFromItem={(peoplePersonaMenu: IPersonaProps) => peoplePersonaMenu.text}
+        return <NormalPeoplePicker
+            onResolveSuggestions={this.onFilterChanged.bind(this)}
+            onEmptyInputFocus={this.returnMostRecentlyUsedPerson.bind(this)}
+            getTextFromItem={(persona: IPersonaProps) => persona.text}
             className={'ms-PeoplePicker'}
-            itemLimit={selectionLimit || 1}
+            itemLimit={selectionLimit || 1}        
             selectedItems={items}
             key={"peoplePicker"}
             pickerSuggestionsProps={suggestionProps}
@@ -102,21 +99,33 @@ export class UserFieldRenderer extends BaseFieldRenderer {
             componentRef={this._userField}
             resolveDelay={resolveDelay || 300}
             disabled={disabled}
-            onChange={this.onChange}
+            onChange={this.setValue.bind(this)}
         />;
     }
 
     private async onFilterChanged(searchText: string, currentSelected: IPersonaProps[]): Promise<IPersonaProps[]> {
-        const { defaultValue, disabled, suggestionsLimit, principalTypes, selectionLimit, resolveDelay } = this.props as IUserFieldRendererProps;
+        const { suggestionsLimit, principalTypes } = this.props as IUserFieldRendererProps;
         if (searchText.length > 2) {
-            const users = await SPService.searchPeople(searchText, suggestionsLimit, principalTypes, false);
-            const results = null;
+            //const users = await SPService.searchPeople(searchText, suggestionsLimit, principalTypes, false);
+            const users = await SPService.findSiteUsers(searchText, suggestionsLimit, principalTypes) || [];
+            const personas: IPersonaProps[] = users.map(user => {
+                return {
+                    id: String(user.Id),
+                    //loginName: user.LoginName,
+                    imageUrl: this.getUserPhotoLink("", user.Email),
+                    imageInitials: this.getFullNameInitials(user.Title),
+                    text: user.Title,
+                    secondaryText: user.Email,
+                    tertiaryText: "",
+                    optionalText: "" // anything
+                } as IPersonaProps;
+            });
             // Remove duplicates
             const { value, mostRecentlyUsedPersons } = this.state as IUserFieldRendererState;
-            const filteredPersons = this.removeDuplicates(results, value);
+            const filteredPersons = this.removeDuplicates(personas, value);
             // Add the users to the most recently used ones
-            let recentlyUsed = [...filteredPersons, ...mostRecentlyUsedPersons];
-            recentlyUsed = uniqBy(recentlyUsed, "text");
+            let recentlyUsed = mostRecentlyUsedPersons instanceof Array ? [...filteredPersons, ...mostRecentlyUsedPersons] : filteredPersons;
+            recentlyUsed = uniqBy(recentlyUsed, "id");
             this.setState({
                 mostRecentlyUsedPersons: recentlyUsed.slice(0, suggestionsLimit)
             } as IUserFieldRendererState);
@@ -126,6 +135,25 @@ export class UserFieldRenderer extends BaseFieldRenderer {
         }
     }
 
+    /**
+  * Generates Initials from a full name
+  */
+    private getFullNameInitials(fullName: string): string {
+        if (fullName === null) {
+            return fullName;
+        }
+
+        const words: string[] = fullName.split(' ');
+        if (words.length === 0) {
+            return '';
+        } else if (words.length === 1) {
+            return words[0].charAt(0);
+        } else {
+            return (words[0].charAt(0) + words[1].charAt(0));
+        }
+    }
+
+
 
     /**
  * Returns the most recently used person
@@ -133,7 +161,7 @@ export class UserFieldRenderer extends BaseFieldRenderer {
  * @param currentPersonas
  */
     private returnMostRecentlyUsedPerson = (currentPersonas: IPersonaProps[]): IPersonaProps[] => {
-        let { mostRecentlyUsedPersons } = this.state as IUserFieldRendererState;
+        const { mostRecentlyUsedPersons } = this.state as IUserFieldRendererState;
         return this.removeDuplicates(mostRecentlyUsedPersons, currentPersonas);
     }
 
@@ -145,7 +173,7 @@ export class UserFieldRenderer extends BaseFieldRenderer {
      * @param possibleDupes
      */
     private removeDuplicates = (personas: IPersonaProps[], possibleDupes: IPersonaProps[]): IPersonaProps[] => {
-        return personas.filter(persona => !this.listContainsPersona(persona, possibleDupes));
+        return personas instanceof Array ? personas.filter(persona => !this.listContainsPersona(persona, possibleDupes)) : possibleDupes;
     }
 
     /**
@@ -154,11 +182,11 @@ export class UserFieldRenderer extends BaseFieldRenderer {
     * @param persona
     * @param personas
     */
-    private listContainsPersona = (persona: IPersonaProps, personas: IPersonaProps[]): boolean => {
-        if (!personas || !personas.length || personas.length === 0) {
+    private listContainsPersona(persona: IPersonaProps, personas: IPersonaProps[]): boolean {
+        if (!(personas instanceof Array) || personas.length === 0) {
             return false;
         }
-        return personas.filter(item => item.text === persona.text).length > 0;
+        return personas.filter(item => item.id === persona.id).length > 0;
     }
 
     private getUserPhotoLink(siteUrl: string, accountName: string): string {
@@ -166,6 +194,44 @@ export class UserFieldRenderer extends BaseFieldRenderer {
     }
 
     public hasValue() {
-        return super.hasValue();
+        const value = this.getValue();
+        return super.hasValue() && value instanceof Array && value.length > 0;
+    }
+
+    public getValue(): IUserFieldValue[] {
+        const personas: IPersonaProps[] = this.state.value;
+        if (personas instanceof Array) {
+            return personas.map(persona => {
+                const id = Number(persona.id);
+                return { Id: isNaN(id) ? 0 : id, Title: persona.text, Email: persona.secondaryText } as IUserFieldValue;
+            }).filter(u => u.Id > 0);
+        }
+        return null;
+    }   
+
+    public get isDirty(): boolean {
+        const { mode, defaultValue } = this.props;
+        if (mode === FormMode.New) {
+            return this.hasValue()
+        }
+        else {
+            const value = this.getValue();
+            if (value instanceof Array && defaultValue instanceof Array) {
+                if (value.length !== defaultValue.length) return true;
+                const arr1 = value.sort((a, b) => a.Id - b.Id);
+                const arr2 = defaultValue.sort((a, b) => a.Id - b.Id);
+                for (let i = 0; i < arr1.length; i++) {
+                    if (arr1[i].Id !== arr2[i].Id) return true;
+                }
+                return false;
+            }
+            if (!value) {
+                return !!defaultValue;
+            }
+            if (!defaultValue) {
+                return !!value;
+            }
+            return false;
+        }
     }
 }

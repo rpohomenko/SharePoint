@@ -2,6 +2,7 @@ import * as React from 'react';
 import ErrorBoundary from '../../ErrorBoundary';
 import { IBaseFieldRendererProps, IBaseFieldRendererState, IValidationResult } from './IBaseFieldRendererProps';
 import { FormMode } from '../../../utilities/Entities';
+import { isEqual } from "@microsoft/sp-lodash-subset";
 
 export class BaseFieldRenderer extends React.Component<IBaseFieldRendererProps, IBaseFieldRendererState> {
 
@@ -24,11 +25,11 @@ export class BaseFieldRenderer extends React.Component<IBaseFieldRendererProps, 
                 mode: this.props.mode
             });
         }
-        if (prevProps.defaultValue !== this.props.defaultValue) {
+        if (!isEqual(prevProps.defaultValue, this.props.defaultValue)) {
             //if (this.state.value === undefined) {
-                this.setState({
-                    value: undefined //this.props.defaultValue,
-                });
+            this.setState({
+                value: undefined //this.props.defaultValue,
+            });
             //}
         }
     }
@@ -52,7 +53,7 @@ export class BaseFieldRenderer extends React.Component<IBaseFieldRendererProps, 
     }
 
     public get isDirty(): boolean {
-        const { mode, defaultValue } = this.props;     
+        const { mode, defaultValue } = this.props;
         return mode === FormMode.New ? this.hasValue() : this.getValue() !== defaultValue;
     }
 
@@ -91,7 +92,7 @@ export class BaseFieldRenderer extends React.Component<IBaseFieldRendererProps, 
     }
 
     public getValue() {
-        if(this.state.value === undefined){
+        if (this.state.value === undefined) {
             return null;
         }
         return this.state.value;
@@ -101,7 +102,7 @@ export class BaseFieldRenderer extends React.Component<IBaseFieldRendererProps, 
         this.setState({ value: newValue }, () => {
             this.validate().then(validationResult => {
                 //if (validationResult.isValid /*&& this.isDirty === true*/) {
-                    this.onChange(this.getValue());
+                this.onChange(this.getValue());
                 //}
             });
         });

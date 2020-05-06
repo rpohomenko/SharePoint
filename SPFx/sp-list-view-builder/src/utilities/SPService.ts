@@ -331,6 +331,15 @@ export default class SPService {
     return await this.searchUsers(query, maximumSuggestions, principalTypes, ensureUser);
   }
 
+  public static async findSiteUsers(query: string, maximumSuggestions: number, principalTypes: PrincipalType[]): Promise<IUserInfo[]> {
+    let filter = `startswith(Title, '${encodeURIComponent(query)}') or startswith(Email,'${encodeURIComponent(query)}') or startswith(UserPrincipalName,'${encodeURIComponent(query)}')`;
+    if (principalTypes instanceof Array && principalTypes.length > 0) {
+      filter += ` and ${principalTypes.map(principalType => `PrincipalType eq ${principalType}`).join(' or ')}`;
+    }
+    let users = await sp.web.siteUsers.filter(filter).top(maximumSuggestions).get();
+    return users as IUserInfo[];
+  }
+
   private static async searchUsers(query: string, maximumSuggestions: number, principalTypes: PrincipalType[], ensureUser: boolean): Promise<IUserInfo[]> {
     let users = await sp.profiles.clientPeoplePickerSearchUser({
       AllowEmailAddresses: true,
@@ -356,15 +365,15 @@ export default class SPService {
         }
       }
       else {
+        let email: string = user.EntityData.Email !== null ? user.EntityData.Email : user.Description;
         switch (user.EntityType) {
           case 'User':
-            let email: string = user.EntityData.Email !== null ? user.EntityData.Email : user.Description;
             userInfo = {
               Id: undefined,
               LoginName: user.Key,
               Title: user.DisplayText,
               PrincipalType: PrincipalType.User,
-              Email: ""
+              Email: email
             };
             break;
           case 'SecGroup':
@@ -373,7 +382,7 @@ export default class SPService {
               LoginName: user.Key,
               Title: user.DisplayText,
               PrincipalType: PrincipalType.SecurityGroup,
-              Email: ""
+              Email: email
             };
             break;
           case 'FormsRole':
@@ -383,7 +392,7 @@ export default class SPService {
               LoginName: user.Key,
               Title: user.DisplayText,
               PrincipalType: PrincipalType.User,
-              Email: ""
+              Email: email
             };
             break;
         }

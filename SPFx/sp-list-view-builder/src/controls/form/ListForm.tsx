@@ -2,7 +2,7 @@ import * as React from 'react';
 import styles from './listform.module.scss';
 import { IListFormProps, IListFormState } from './IListFormProps';
 import { FormField } from './FormField';
-import { FormMode, IListItem, IFormField, DataType } from '../../utilities/Entities';
+import { FormMode, IListItem, IFormField, DataType, IUserFieldValue } from '../../utilities/Entities';
 import { cancelable, CancelablePromise } from 'cancelable-promise';
 import { ProgressIndicator } from 'office-ui-fabric-react/lib/ProgressIndicator';
 import { IItem } from '@pnp/sp/items';
@@ -257,6 +257,19 @@ export class ListForm extends React.Component<IListFormProps, IListFormState> {
                     break;
                 case DataType.Boolean:
                     value = value === true ? "1" : value === false ? "0" : null;
+                    break;
+                case DataType.User:
+                    value = value
+                        ? (value instanceof Array && value.length > 0
+                            ? (value[0] as IUserFieldValue).Id
+                            : (value as IUserFieldValue).Id)
+                        : null;
+                    if (value > 0) {
+                        value = String(value);
+                    }
+                    else {
+                        value = null;
+                    }
                     break;
             }
         }
