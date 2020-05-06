@@ -77,6 +77,16 @@ export class FormFieldEditor extends React.Component<IFormFieldEditorProps, IFor
             }}
           />
           }
+          <TextField
+            label="Description"
+            multiline={true}
+            value={changedField.Description || ""}
+            onChange={(event, value) => {
+              changedField.Description = value;
+              const isChanged = changedField.Description !== field.Description;
+              this.setState({ isChanged: isChanged, changedField: changedField });
+            }}
+          />
           <Dropdown
             label="Mode"
             placeholder="Select..."

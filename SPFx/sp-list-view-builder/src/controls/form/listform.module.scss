@@ -1,0 +1,8 @@
+
+.listform{
+    width: 100%;
+    
+    :global {
+        @import 'listform';
+      }
+}

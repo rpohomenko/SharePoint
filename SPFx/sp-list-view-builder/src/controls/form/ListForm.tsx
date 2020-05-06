@@ -1,4 +1,5 @@
 import * as React from 'react';
+import styles from './listform.module.scss';
 import { IListFormProps, IListFormState } from './IListFormProps';
 import { FormField } from './FormField';
 import { FormMode, IListItem, IFormField, DataType } from '../../utilities/Entities';
@@ -35,12 +36,14 @@ export class ListForm extends React.Component<IListFormProps, IListFormState> {
     }
 
     public async componentDidMount() {
-        if (this.props.regionalSettings) {
-            this._regionalSettings = await this.props.regionalSettings;
-        }
-        if (this._regionalSettings) {
-            const locale = SPService.getLocaleName(this._regionalSettings.LocaleId);
-            moment.locale(locale);
+        if (!this._isMounted) {
+            if (this.props.regionalSettings) {
+                this._regionalSettings = await this.props.regionalSettings;
+            }
+            if (this._regionalSettings) {
+                const locale = SPService.getLocaleName(this._regionalSettings.LocaleId);
+                moment.locale(locale);
+            }
         }
         if (this.state.mode === FormMode.Edit || this.state.mode === FormMode.Display) {
             await this.loadItem();
@@ -60,7 +63,7 @@ export class ListForm extends React.Component<IListFormProps, IListFormState> {
             this.setState({ mode: this.props.mode });
         }
         if (prevProps.itemId != this.props.itemId || prevProps.list != this.props.list) {
-            if (this.props.itemId > 0) {
+            if (this.state.mode === FormMode.Edit || this.state.mode === FormMode.Display && this.props.itemId > 0) {
                 await this.loadItem();
             }
         }
@@ -99,11 +102,14 @@ export class ListForm extends React.Component<IListFormProps, IListFormState> {
         const { fields, onChange } = this.props;
         const { mode, item, isLoading, isSaving, error } = this.state;
         this._formFields = [];
-        return <div className="list-form">
+        const visibleFields = fields instanceof Array && fields.length > 0
+            ? fields.filter(f => !(f.Modes instanceof Array) || f.Modes.length === 0 || f.Modes.indexOf(mode) !== -1)
+            : null;
+        return <div className={styles.listform}>
             {isLoading && <ProgressIndicator label="Loading..." />}
             <div style={{ marginTop: 5 }}>
-                {!isLoading && fields instanceof Array && fields.length > 0
-                    && fields.map(field => <FormField key={field.Id || field.Name}
+                {!isLoading && visibleFields instanceof Array && visibleFields.length > 0
+                    && visibleFields.map(field => <FormField key={field.Id || field.Name}
                         disabled={isLoading || isSaving}
                         defaultValue={item ? item[field.Name] : undefined}
                         ref={ref => {

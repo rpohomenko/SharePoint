@@ -101,3 +101,23 @@ export interface IEditableListItem extends IListItem {
     CanEdit?: boolean;
     CanDelete?: boolean;
 }
+
+
+export enum PrincipalType {
+    User = 1,
+    DistributionList = 2,
+    SecurityGroup = 4,
+    SharePointGroup = 8
+}
+
+export interface IUserInfo {
+    Id: number;
+    IsHiddenInUI?: boolean;
+    LoginName: string;
+    Title: string;
+    PrincipalType: number;
+    Email: string;
+    IsEmailAuthenticationGuestUser?: boolean;
+    IsShareByEmailGuestUser?: boolean;
+    IsSiteAdmin?: boolean;
+}

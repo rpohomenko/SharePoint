@@ -57,7 +57,7 @@ export class FormField extends React.Component<IFormFieldProps | IDateFormFieldP
                         (<IconButton
                             id={this._iconButtonId}
                             iconProps={{ iconName: 'Info' }}
-                            title="Info"
+                            title="Description"
                             ariaLabel="Info"
                             onClick={() => this._setCalloutVisible(!this.state.isCalloutVisible)} />)}
                 </Stack>)}

@@ -1,7 +1,7 @@
 import { sp, IList, PermissionKind, IListInfo, IFieldInfo, FieldTypes } from "@pnp/sp/presets/all";
 import { ITimeZoneInfo, IRegionalSettingsInfo } from "@pnp/sp/regional-settings/types";
 import { ISPListInfo } from "../controls/components/listPicker";
-import { IListItem, DataType, IFieldDateInfo, IFieldLookupInfo, IFieldMultiLineTextInfo, IFieldUserInfo, IFormField } from "./Entities";
+import { IListItem, DataType, IFieldDateInfo, IFieldLookupInfo, IFieldMultiLineTextInfo, IFieldUserInfo, IFormField, PrincipalType, IUserInfo } from "./Entities";
 import DateHelper from "./DateHelper";
 
 export default class SPService {
@@ -313,5 +313,97 @@ export default class SPService {
         return DataType.User;
       default: return DataType.Text;
     }
-  } 
+  }
+
+  /**
+   * Search person by its email or login name
+   */
+  public static async searchPersonByEmailOrLogin(email: string, principalTypes: PrincipalType[], ensureUser: boolean = false): Promise<IUserInfo> {
+    const userResults = await this.searchUsers(email, 1, principalTypes, ensureUser);
+    return (userResults && userResults.length > 0) ? userResults[0] : null;
+
+  }
+
+  /**
+   * Search All Users from the SharePoint People database
+   */
+  public static async searchPeople(query: string, maximumSuggestions: number, principalTypes: PrincipalType[], ensureUser: boolean = false): Promise<IUserInfo[]> {
+    return await this.searchUsers(query, maximumSuggestions, principalTypes, ensureUser);
+  }
+
+  private static async searchUsers(query: string, maximumSuggestions: number, principalTypes: PrincipalType[], ensureUser: boolean): Promise<IUserInfo[]> {
+    let users = await sp.profiles.clientPeoplePickerSearchUser({
+      AllowEmailAddresses: true,
+      AllowMultipleEntities: false,
+      AllUrlZones: false,
+      MaximumEntitySuggestions: maximumSuggestions,
+      PrincipalSource: 15,
+      PrincipalType: this.getSumOfPrincipalTypes(principalTypes),
+      QueryString: query
+    });
+
+    // Filter out "UNVALIDATED_EMAIL_ADDRESS"
+    users = users.filter(u => u.Key !== null && !(u.EntityData && u.EntityData.PrincipalType && u.EntityData.PrincipalType === "UNVALIDATED_EMAIL_ADDRESS"));
+
+    const result: IUserInfo[] = [];
+    // Check if local user IDs need to be retrieved     
+    for (const user of users) {
+      let userInfo: IUserInfo;
+      if (ensureUser === true) {
+        // Only ensure the user if it is not a SharePoint group
+        if (!user.EntityData || (user.EntityData && typeof user.EntityData.SPGroupID === "undefined")) {
+          userInfo = await this.ensureUser(user.Key);
+        }
+      }
+      else {
+        switch (user.EntityType) {
+          case 'User':
+            let email: string = user.EntityData.Email !== null ? user.EntityData.Email : user.Description;
+            userInfo = {
+              Id: undefined,
+              LoginName: user.Key,
+              Title: user.DisplayText,
+              PrincipalType: PrincipalType.User,
+              Email: ""
+            };
+            break;
+          case 'SecGroup':
+            userInfo = {
+              Id: undefined,
+              LoginName: user.Key,
+              Title: user.DisplayText,
+              PrincipalType: PrincipalType.SecurityGroup,
+              Email: ""
+            };
+            break;
+          case 'FormsRole':
+          default:
+            userInfo = {
+              Id: undefined,
+              LoginName: user.Key,
+              Title: user.DisplayText,
+              PrincipalType: PrincipalType.User,
+              Email: ""
+            };
+            break;
+        }
+      }
+      result.push(userInfo);
+    }
+    return result;
+  }
+
+  private static getSumOfPrincipalTypes(principalTypes: PrincipalType[]) {
+    return !!principalTypes && principalTypes.length > 0 ? principalTypes.reduce((a, b) => a + b, 0) : 1;
+  }
+
+  /**
+  * Retrieves the local user ID
+  *
+  * @param userId
+  */
+  private static async ensureUser(loginName: string): Promise<IUserInfo> {
+    const user = await sp.web.ensureUser(loginName);
+    return user ? user.data as IUserInfo : undefined;
+  }
 }

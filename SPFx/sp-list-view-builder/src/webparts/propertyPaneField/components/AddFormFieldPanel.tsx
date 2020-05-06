@@ -179,7 +179,7 @@ export default class AddFormFieldPanel extends React.Component<IAddFormFieldPane
   private loadContentTypeFields(list: IList, contentTypeId: string): Promise<IFormField[]> {
     return new Promise<IFormField[]>((resolve: (options: IFormField[]) => void, reject: (error: any) => void) => {
       try {
-        return list.contentTypes.getById(contentTypeId).fields.filter('Hidden eq false')/*.orderBy('Title')*/.select('Id', 'InternalName', 'EntityPropertyName', 'Title', 'FieldTypeKind', 'AllowMultipleValues', 'Required', 'ReadOnlyField', 'RichText', 'DisplayFormat', 'LookupField', 'LookupList', 'LookupWebId', 'IsRelationship', 'PrimaryFieldId'/*, 'SchemaXml'*/).get()
+        return list.contentTypes.getById(contentTypeId).fields.filter('Hidden eq false')/*.orderBy('Title')*/.select('Id', 'InternalName', 'EntityPropertyName', 'Title', 'Description', 'FieldTypeKind', 'AllowMultipleValues', 'Required', 'ReadOnlyField', 'RichText', 'DisplayFormat', 'LookupField', 'LookupList', 'LookupWebId', 'IsRelationship', 'PrimaryFieldId'/*, 'SchemaXml'*/).get()
           .then(fields => {
             const formFields = fields.map(f => this.get_Field(f, fields));
             resolve(formFields);
@@ -193,7 +193,7 @@ export default class AddFormFieldPanel extends React.Component<IAddFormFieldPane
   }
 
   private get_Field(field: IFieldInfo, fields: IFieldInfo[]): IFormField {
-    let formField = { Id: field.Id, Name: field.EntityPropertyName || field.InternalName, Title: field.Title, DataType: SPService.get_DataType(field), Required: field.Required, ReadOnly: field.ReadOnlyField } as IFormField;
+    let formField = { Id: field.Id, Name: field.EntityPropertyName || field.InternalName, Title: field.Title, Description: field.Description, DataType: SPService.get_DataType(field), Required: field.Required, ReadOnly: field.ReadOnlyField } as IFormField;
     if (field.FieldTypeKind === FieldTypes.Lookup || field.FieldTypeKind === FieldTypes.User) {
       const lookupField = field as IFieldLookupInfo;
       if (lookupField.PrimaryFieldId) {
