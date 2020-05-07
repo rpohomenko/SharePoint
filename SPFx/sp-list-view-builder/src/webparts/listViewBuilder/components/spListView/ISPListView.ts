@@ -27,11 +27,6 @@ export interface ISPListViewState {
   folder?: IFolder;
   sortColumn?: IColumn;
   groupBy?: IGrouping[];
-  canAddItem?: boolean;
+  canAddItem?: boolean; 
   isDeleting?: boolean;
-  isEditFormOpen?: boolean;
-  isNewFormOpen?: boolean;
-  isViewFormOpen?: boolean;
-  refreshCommandEnabled?: boolean;
-  saveCommandEnabled?: boolean;
 }

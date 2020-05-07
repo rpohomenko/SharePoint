@@ -1,7 +1,7 @@
 import * as React from 'react';
 import "@pnp/sp/webs";
 import "@pnp/sp/lists";
-import { PagedItemCollection, Item, IItem } from "@pnp/sp/items";
+import { PagedItemCollection } from "@pnp/sp/items";
 import { isEqual } from '@microsoft/sp-lodash-subset';
 import { Spinner, SpinnerSize } from 'office-ui-fabric-react/lib/Spinner';
 import { Stack } from 'office-ui-fabric-react/lib/Stack';
@@ -21,12 +21,11 @@ import styles from './spListView.module.scss';
 import { CommandBar, ICommandBarItemProps } from 'office-ui-fabric-react/lib/CommandBar';
 import { PermissionKind } from '@pnp/sp/security';
 import { FontIcon } from 'office-ui-fabric-react/lib/Icon';
-import { getTheme } from 'office-ui-fabric-react/lib/Styling';
+import { getTheme, ThemeSettingName } from 'office-ui-fabric-react/lib/Styling';
 import { Dialog, DialogType, DialogFooter } from 'office-ui-fabric-react/lib/Dialog';
 import { PrimaryButton, DefaultButton } from 'office-ui-fabric-react/lib/Button';
-import { Panel } from 'office-ui-fabric-react/lib/Panel';
 import { cancelable, CancelablePromise } from 'cancelable-promise';
-import { ListForm } from '../../../../controls/form/ListForm';
+import { SPListForm, ISPListFormProps } from './SPListForm';
 
 const theme = getTheme();
 
@@ -42,7 +41,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
     private _shimItemCount = 5;
     private _page?: PagedItemCollection<IListItem[]>;
     private _promises: CancelablePromise[] = [];
-    private _listForm: React.RefObject<ListForm>;
+    private _listForm: React.RefObject<SPListForm>;
 
     constructor(props: ISPListViewProps) {
         super(props);
@@ -89,7 +88,8 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
     }
 
     public render(): React.ReactElement {
-        const { items, columns, groupBy, isLoading } = this.state;
+        const { list, formFields } = this.props;
+        const { items, columns, groupBy, isLoading, selection } = this.state;
         const page = this._page;
         return <div>
             {this._isMounted === true && this.props.showCommandBar === true && this.renderCommandBar()}
@@ -125,81 +125,12 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
                 />
             </Stack>}
             {this._renderDeleteDialog()}
-            {this.renderListForm()}
+            <SPListForm ref={this._listForm} isOpen={false} list={list} listView={this} fields={formFields}
+                headerText={this.props.rootFolder ? this.props.rootFolder.Name : ""}
+                regionalSettings={this._regionalSettings} timeZone={this._timeZone}
+                itemId={selection instanceof Array && selection.length > 0 ? selection[0].ID : 0}
+            />
         </div>;
-    }
-
-    private renderListForm() {
-        const { list, formFields } = this.props;
-        const { isEditFormOpen, isNewFormOpen, isViewFormOpen, selection, refreshCommandEnabled, saveCommandEnabled } = this.state;
-        const itemId: number = selection instanceof Array && selection.length > 0 ? selection[0].ID : 0;       
-        return <Panel isLightDismiss isOpen={isEditFormOpen === true || isNewFormOpen === true || isViewFormOpen === true} onDismiss={() => {
-            this.setState({ isEditFormOpen: false, isNewFormOpen: false, isViewFormOpen: false });
-        }} closeButtonAriaLabel={"Close"}
-            headerText={`${this.props.rootFolder ? this.props.rootFolder.Name + ": " : ""}${isEditFormOpen ? "Edit" : (isNewFormOpen ? "New" : "View")}`}
-            onRenderFooterContent={() => {
-                return null;
-            }}
-            isFooterAtBottom={false}>
-            <CommandBar items={[
-                {
-                    key: 'save', text: 'Save', iconProps: { iconName: 'Save' }, iconOnly: true,
-                    disabled: (isNewFormOpen !== true && isEditFormOpen !== true) || !saveCommandEnabled,
-                    onClick: () => {
-                        if (this._listForm.current) {
-                            if (!this._listForm.current.state.isLoading) {
-                                this.setState({ saveCommandEnabled: false, refreshCommandEnabled: false });
-                                cancelable(this._listForm.current.save())
-                                    .then((item) => {
-                                        if (item) {
-                                            this.setState({ isNewFormOpen: false, isEditFormOpen: true });
-                                            this.refresh();
-                                        }
-                                        else{
-                                            //this.setState({ saveCommandEnabled: true });
-                                        }
-                                    })
-                                    .catch(() =>{
-                                        this.setState({ saveCommandEnabled: true });
-                                    })
-                                    .finally(() => {
-                                        this.setState({ refreshCommandEnabled: true });
-                                    });
-                            }
-                        }
-                    }
-                }
-            ]}
-                farItems={[
-                    {
-                        key: 'refresh', text: 'Refresh', iconProps: { iconName: 'Refresh' }, iconOnly: true,
-                        disabled: isNewFormOpen || !refreshCommandEnabled,
-                        onClick: () => {
-                            if (this._listForm.current) {
-                                this.setState({ refreshCommandEnabled: false, saveCommandEnabled: false });
-                                cancelable(this._listForm.current.loadItem())
-                                    .finally(() => {
-                                        this.setState({ refreshCommandEnabled: true });
-                                    });
-                            }
-                        }
-                    }
-                ]} />
-            <ListForm ref={this._listForm} itemId={itemId} list={list}
-                regionalSettings={this.props.regionalSettings}
-                timeZone={this.props.timeZone}
-                fields={formFields} mode={isEditFormOpen ? FormMode.Edit : (isNewFormOpen ? FormMode.New : FormMode.Display)}
-                onItemLoaded={(item) => {
-                    this.setState({ refreshCommandEnabled: true, saveCommandEnabled: (isEditFormOpen || isNewFormOpen) && this._listForm.current.isDirty === true });
-                }}
-                onChange={(field, value, isDirty) => {
-                    if (this._listForm.current) {
-                        const isValid = this._listForm.current.isValid;
-                        isDirty = isDirty || this._listForm.current.isDirty;                        
-                        this.setState({ refreshCommandEnabled: true, saveCommandEnabled: isDirty === true && isValid === true });
-                    }
-                }} />
-        </Panel>;
     }
 
     private _renderDeleteDialog() {
@@ -723,7 +654,9 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
                 disabled: this.state.isLoading === true || !this.props.list || !canAddItem
                     || (selection instanceof Array && selection.length > 0),
                 onClick: () => {
-                    this.setState({ isNewFormOpen: true, saveCommandEnabled: false });
+                    if (this._listForm.current) {
+                        this._listForm.current.open(FormMode.New);
+                    }
                 }
             },
             {
@@ -731,7 +664,9 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
                 disabled: this.state.isLoading === true || !canEdit,
                 onClick: () => {
                     if (selection instanceof Array && selection.length > 0) {
-                        this.setState({ isEditFormOpen: true, saveCommandEnabled: false });
+                        if (this._listForm.current) {
+                            this._listForm.current.open(FormMode.Edit, selection[0].ID);
+                        }
                     }
                 }
             },
@@ -740,7 +675,9 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
                 disabled: this.state.isLoading === true || !canEdit,
                 onClick: () => {
                     if (selection instanceof Array && selection.length > 0) {
-                        this.setState({ isViewFormOpen: true, saveCommandEnabled: false });
+                        if (this._listForm.current) {
+                            this._listForm.current.open(FormMode.Display, selection[0].ID);
+                        }
                     }
                 }
             },

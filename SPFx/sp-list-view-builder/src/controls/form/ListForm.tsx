@@ -89,7 +89,11 @@ export class ListForm extends React.Component<IListFormProps, IListFormState> {
                     this.setState({ error: error });
                 });
                 const item = await this._promise;
-                this.setState({ item: item });
+                this.setState({ item: item }, () => {
+                    if (this.props.onItemLoaded instanceof Function) {
+                        this.props.onItemLoaded(item);
+                    }
+                })
                 return item;
             }
             else {

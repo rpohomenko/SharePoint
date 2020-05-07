@@ -7,8 +7,8 @@ export interface IListFormProps {
     list: IList;
     itemId?: number;
     fields: IFormField[];
-    regionalSettings?: Promise<IRegionalSettingsInfo>;
-    timeZone?: Promise<ITimeZoneInfo>;
+    regionalSettings?: IRegionalSettingsInfo;
+    timeZone?: ITimeZoneInfo;
     onItemLoaded: (item: IListItem) => void;
     onChange: (field: IFormField, value: any, isDirty: boolean) => void;
 }

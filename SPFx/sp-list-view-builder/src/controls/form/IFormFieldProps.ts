@@ -29,8 +29,8 @@ export interface IUserFormFieldProps extends IFormFieldProps {
 export interface IDateFormFieldProps extends IFormFieldProps {
     firstDayOfWeek?: number;
     shortDateFormat?: string;
-    regionalSettings?: Promise<IRegionalSettingsInfo>;
-    timeZone?: Promise<ITimeZoneInfo>;
+    regionalSettings?: IRegionalSettingsInfo;
+    timeZone?: ITimeZoneInfo;
 }
 
 export interface IFormFieldState {

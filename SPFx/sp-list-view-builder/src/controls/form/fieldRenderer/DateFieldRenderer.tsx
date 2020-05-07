@@ -11,8 +11,8 @@ import DateHelper from '../../../utilities/DateHelper';
 export interface IDateFieldRendererProps extends IBaseFieldRendererProps {
     firstDayOfWeek?: number;
     shortDateFormat?: string;
-    regionalSettings?: Promise<IRegionalSettingsInfo>;
-    timeZone?: Promise<ITimeZoneInfo>;
+    regionalSettings?: IRegionalSettingsInfo;
+    timeZone?: ITimeZoneInfo;
 }
 
 export class DateFieldRenderer extends BaseFieldRenderer {

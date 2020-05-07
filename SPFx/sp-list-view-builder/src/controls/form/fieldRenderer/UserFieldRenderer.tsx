@@ -212,7 +212,7 @@ export class UserFieldRenderer extends BaseFieldRenderer {
     public get isDirty(): boolean {
         const { mode, defaultValue } = this.props;
         if (mode === FormMode.New) {
-            return this.hasValue()
+            return this.hasValue();
         }
         else {
             const value = this.getValue();

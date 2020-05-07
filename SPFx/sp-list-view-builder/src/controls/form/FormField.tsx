@@ -178,7 +178,7 @@ export class FormField extends React.Component<IFormFieldProps | IDateFormFieldP
                     disabled: field.ReadOnly === true || disabled === true,
                     defaultValue: defaultValue
                         ? field.DataType === DataType.MultiUser
-                            ? defaultValue.map((v: any) => { return { Id: v.ID, Title: v.Title, Email: v.EMail, Name: v.Name } as IUserFieldValue })
+                            ? defaultValue.map((v: any) => { return { Id: v.ID, Title: v.Title, Email: v.EMail, Name: v.Name } as IUserFieldValue; })
                             : (defaultValue.ID > 0 ? [{ Id: defaultValue.ID, Title: defaultValue.Title, Email: defaultValue.EMail, Name: defaultValue.Name } as IUserFieldValue] : null)
                         : null,
                     required: field.Required === true,
