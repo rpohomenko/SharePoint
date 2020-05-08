@@ -8,24 +8,21 @@ import { Stack } from 'office-ui-fabric-react/lib/Stack';
 import { IconButton, Icon, Link } from 'office-ui-fabric-react';
 import { IColumn, IGroup } from 'office-ui-fabric-react/lib/DetailsList';
 import { Breadcrumb, IBreadcrumbItem } from "office-ui-fabric-react/lib/Breadcrumb";
-import { ListView, IListViewProps, IGrouping } from '../../../../controls/listView';
+import { ListView, IGrouping } from '../../../../controls/listView';
 import { IList, IListInfo } from "@pnp/sp/lists";
 import { IViewColumn } from '../../../../controls/listView';
 import { ITimeZoneInfo, IRegionalSettingsInfo } from "@pnp/sp/regional-settings/types";
 import { ISPListViewProps, ISPListViewState } from './ISPListView';
-import { DataType, IViewField, IViewLookupField, IFolder, IEditableListItem, IListItem, FormMode } from '../../../../utilities/Entities';
+import { DataType, IViewField, IViewLookupField, IFolder, IEditableListItem, IListItem } from '../../../../utilities/Entities';
 import moment from 'moment';
 import SPService from '../../../../utilities/SPService';
 import DateHelper from '../../../../utilities/DateHelper';
 import styles from './spListView.module.scss';
-import { CommandBar, ICommandBarItemProps } from 'office-ui-fabric-react/lib/CommandBar';
 import { PermissionKind } from '@pnp/sp/security';
 import { FontIcon } from 'office-ui-fabric-react/lib/Icon';
-import { getTheme, ThemeSettingName } from 'office-ui-fabric-react/lib/Styling';
-import { Dialog, DialogType, DialogFooter } from 'office-ui-fabric-react/lib/Dialog';
-import { PrimaryButton, DefaultButton } from 'office-ui-fabric-react/lib/Button';
+import { getTheme } from 'office-ui-fabric-react/lib/Styling';
 import { cancelable, CancelablePromise } from 'cancelable-promise';
-import { SPListForm, ISPListFormProps } from './SPListForm';
+import { SPListForm } from './SPListForm';
 import { SPListViewCommandBar } from './SPListViewCommandBar';
 
 const theme = getTheme();
@@ -125,11 +122,17 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
                     }}
                 />
             </Stack>}
-            <SPListForm ref={this._listForm} isOpen={false} list={list} listView={this} fields={formFields}
+            {!error && <SPListForm ref={this._listForm} isOpen={false} list={list} listView={this} fields={formFields}
                 headerText={this.props.rootFolder ? this.props.rootFolder.Name : ""}
                 regionalSettings={this._regionalSettings} timeZone={this._timeZone}
                 itemId={selection instanceof Array && selection.length > 0 ? selection[0].ID : 0}
-            />
+            />}
+            {error && <span style={{
+                color: 'red',
+                display: 'block',
+                textOverflow: 'ellipsis',
+                overflow: 'hidden'
+            }}>{error}</span>}
         </div>;
     }
 
@@ -137,7 +140,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
         this.setState({ selection: selection });
     }
 
-    private async _addPromise(promise: Promise<any>): Promise<any> {
+    private _addPromise(promise: Promise<any>): Promise<any> {
         if (promise) {
             const cancelablePromise = cancelable(promise)
                 .catch(error => {
@@ -608,20 +611,22 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
         const { formFields } = this.props;
         const { canAddItem } = this.state;
         const selection = this._processListItems(...this.state.selection);
-        /* const items = this.getCommandItems(this.state.items, selection);
-         const farItems = this.getFarCommandItems(this.state.items, this.state.selection);
-         return <CommandBar items={items} farItems={farItems} />;*/
-        return <SPListViewCommandBar listView={this} listForm={this._listForm.current} items={selection} formFields={formFields} canAddItem={canAddItem} />
+        return <SPListViewCommandBar listView={this} listForm={this._listForm.current} items={selection} formFields={formFields} canAddItem={canAddItem} />;
     }
 
     public async deleteItem(...items: IEditableListItem[]): Promise<any> {
         const { list } = this.props;
         if (list && items instanceof Array && items.length > 0) {
             this.setState({ isLoading: true, error: undefined, groupBy: undefined, items: new Array(this._shimItemCount) });
-            const deleted = items.map(item => list.items.getById(item.ID).delete());
-            return this._addPromise(Promise.all(deleted).then(() => {
+            const deleted = items.map(item => list.items.getById(item.ID).delete()
+                .catch(error => {
+
+                }));
+            return await this._addPromise(Promise.all(deleted).then(() => {
                 //this.refresh();
-            }));
+            })).catch(error => {
+                this.setState({ error: error, isLoading: false, items: [] });
+            });
         }
     }
 

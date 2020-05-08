@@ -88,7 +88,7 @@ export default class AddViewFieldPanel extends React.Component<IAddViewFieldPane
           </Stack.Item>
           <Stack.Item>
             {isLoading && <Spinner size={SpinnerSize.large} />}
-            {!isLoading && <DetailsList
+            {!isLoading && !!viewId && <DetailsList
               items={fields || []}
               columns={[
                 { key: 'title', name: 'Title', fieldName: 'Title', minWidth: 100, maxWidth: 200, isResizable: true },

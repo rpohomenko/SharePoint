@@ -87,7 +87,7 @@ export default class AddFormFieldPanel extends React.Component<IAddFormFieldPane
           </Stack.Item>
           <Stack.Item>
             {isLoading && <Spinner size={SpinnerSize.large} />}
-            {!isLoading && <DetailsList
+            {!isLoading && !!contentTypeId && <DetailsList
               items={fields || []}
               columns={[
                 { key: 'title', name: 'Title', fieldName: 'Title', minWidth: 100, maxWidth: 200, isResizable: true },

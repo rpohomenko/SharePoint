@@ -6,11 +6,12 @@ import { FormMode, IListItem, IFormField, DataType, IUserFieldValue } from '../.
 import { cancelable, CancelablePromise } from 'cancelable-promise';
 import { ProgressIndicator } from 'office-ui-fabric-react/lib/ProgressIndicator';
 import { IItem } from '@pnp/sp/items';
-import { IListItemFormUpdateValue } from '@pnp/sp/lists';
+import { IListItemFormUpdateValue, IList } from '@pnp/sp/lists';
 import moment from 'moment';
 import { IRegionalSettingsInfo } from '@pnp/sp/regional-settings';
 import SPService from '../../utilities/SPService';
 import { IValidationResult } from './fieldRenderer/IBaseFieldRendererProps';
+import ErrorBoundary from '../ErrorBoundary';
 
 interface CancelablePromise extends Promise<any> {
     cancel: () => void;
@@ -69,7 +70,7 @@ export class ListForm extends React.Component<IListFormProps, IListFormState> {
         }
     }
 
-    public async loadItem(): Promise<IListItem> {
+    public loadItem(): Promise<IListItem> {
         if (this._promise) {
             //this._promise.cancel();
             //this._promise = undefined;
@@ -81,24 +82,29 @@ export class ListForm extends React.Component<IListFormProps, IListFormState> {
             if (itemId && itemId > 0) {
                 const spItem = this.props.list.items.getById(itemId);
                 this.setState({ isLoading: true, error: undefined });
-                this._promise = cancelable(this.getItem(spItem));
-                this._promise.finally(() => {
-                    this._promise = null;
-                    this.setState({ isLoading: false });
-                }).catch(error => {
-                    this.setState({ error: error });
-                });
-                const item = await this._promise;
-                this.setState({ item: item }, () => {
-                    if (this.props.onItemLoaded instanceof Function) {
-                        this.props.onItemLoaded(item);
-                    }
-                });
-                return item;
+                this._promise = cancelable(this.getItem(spItem)
+                    .then(item => {
+                        if (item) {
+                            this.setState({ item: item }, () => {
+                                if (this.props.onItemLoaded instanceof Function) {
+                                    this.props.onItemLoaded(item);
+                                }
+                            });
+                            return item;
+                        }
+                    })
+                    .catch(error => {
+                        this.setState({ error: error });
+                    })).finally(() => {
+                        this._promise = null;
+                        this.setState({ isLoading: false });
+                    });
+
+                return this._promise;
             }
-            else {
-                //this.setState({ item: null });
-            }
+        }
+        else {
+            //this.setState({ item: null });
         }
     }
 
@@ -109,47 +115,106 @@ export class ListForm extends React.Component<IListFormProps, IListFormState> {
         const visibleFields = fields instanceof Array && fields.length > 0
             ? fields.filter(f => !(f.Modes instanceof Array) || f.Modes.length === 0 || f.Modes.indexOf(mode) !== -1)
             : null;
-        return <div className={styles.listform}>
-            {isLoading && <ProgressIndicator label="Loading..." />}
-            <div style={{ marginTop: 5 }}>
-                {!isLoading && visibleFields instanceof Array && visibleFields.length > 0
-                    && visibleFields.map(field => <FormField key={field.Id || field.Name}
-                        disabled={isLoading || isSaving}
-                        defaultValue={item ? item[field.Name] : undefined}
-                        ref={ref => {
-                            if (ref != null) {
-                                this._formFields.push(ref);
-                            }
-                        }}
-                        field={field}
-                        mode={mode}
-                        regionalSettings={this.props.regionalSettings}
-                        timeZone={this.props.timeZone}
-                        onValidate={(result) => {
+        return <ErrorBoundary>
+            <div className={styles.listform}>
+                {isLoading && <ProgressIndicator label="Loading..." />}
+                <div style={{ marginTop: 5 }}>
+                    {!isLoading && visibleFields instanceof Array && visibleFields.length > 0
+                        && visibleFields.map(field => <FormField key={field.Id || field.Name}
+                            disabled={isLoading || isSaving}
+                            defaultValue={item ? item[field.Name] : undefined}
+                            ref={ref => {
+                                if (ref != null) {
+                                    this._formFields.push(ref);
+                                }
+                            }}
+                            field={field}
+                            mode={mode}
+                            regionalSettings={this.props.regionalSettings}
+                            timeZone={this.props.timeZone}
+                            onValidate={(result) => {
 
-                        }}
-                        onChange={(value, isDirty) => {
-                            const itemChanges: IListItem = this._itemChanges || {} as IListItem;
-                            if (isDirty === true) {
-                                itemChanges[field.Name] = value;
-                            }
-                            else {
-                                delete itemChanges[field.Name];
-                            }
-                            this._itemChanges = itemChanges;
-                            if (onChange instanceof Function) {
-                                onChange(field, value, isDirty);
-                            }
-                        }} />)}
+                            }}
+                            onChange={(value, isDirty) => {
+                                const itemChanges: IListItem = this._itemChanges || {} as IListItem;
+                                if (isDirty === true) {
+                                    itemChanges[field.Name] = value;
+                                }
+                                else {
+                                    delete itemChanges[field.Name];
+                                }
+                                this._itemChanges = itemChanges;
+                                if (onChange instanceof Function) {
+                                    onChange(field, value, isDirty);
+                                }
+                            }} />)}
+                </div>
+                {isSaving && <ProgressIndicator label="Saving..." />}
+                {error && <span style={{
+                    color: 'red',
+                    display: 'block',
+                    textOverflow: 'ellipsis',
+                    overflow: 'hidden'
+                }}>{error}</span>}
             </div>
-            {isSaving && <ProgressIndicator label="Saving..." />}
-            {error && <span style={{
-                color: 'red',
-                display: 'block',
-                textOverflow: 'ellipsis',
-                overflow: 'hidden'
-            }}>{error}</span>}
-        </div>;
+        </ErrorBoundary>;
+    }
+
+    private _addItem(list: IList, item: IListItem): Promise<IItem> {
+        this.setState({ isSaving: true, error: undefined });
+        this._promise = cancelable(list.items.add(item)
+            .then((result) => {
+                if (result) {
+                    return result.item;
+                }
+                return null;
+            })
+            .catch((error) => {
+                this.setState({ error: error.message });
+            }))
+            .finally(() => {
+                this._promise = null;
+                this.setState({ isSaving: false });
+            });
+        return this._promise;
+    }
+
+    private _updateItem(list: IList, itemId: number, item: IListItem, itemVersion: number): Promise<IItem> {
+
+        const formUpdateValues: IListItemFormUpdateValue[] = [];
+        for (const fName in item) {
+            formUpdateValues.push({ FieldName: fName, FieldValue: this.fieldValueToString(fName, item[fName]) });
+        }
+        if (itemVersion > 0) {
+            formUpdateValues.push({ FieldName: "owshiddenversion", FieldValue: String(itemVersion) });
+        }
+
+        this.setState({ isSaving: true, error: undefined });
+        this._promise = cancelable(list.items.getById(itemId).validateUpdateListItem(formUpdateValues, false).then(formValues => {
+            formValues = (formValues as any).ValidateUpdateListItem ? (formValues as any).ValidateUpdateListItem.results : formValues;
+            const errors = formValues.filter(field => field.HasException === true);
+            if (errors.length > 0) {
+                for (const formField of this._formFields) {
+                    const validationResult: IValidationResult = { isValid: false, validationErrors: [] };
+                    for (const error of errors.filter(err => formField.name === err.FieldName)) {
+                        validationResult.validationErrors.push(error.ErrorMessage);
+                    }
+                    if (validationResult.validationErrors.length > 0) {
+                        formField.renderer.setValidationResult(validationResult);
+                    }
+                }
+                return null;
+            }
+            else {
+                return list.items.getById(itemId);
+            }
+        }).catch((error) => {
+            this.setState({ error: error.message });
+        })).finally(() => {
+            this._promise = null;
+            this.setState({ isSaving: false });
+        });
+        return this._promise;
     }
 
     public async save(): Promise<IListItem> {
@@ -163,87 +228,30 @@ export class ListForm extends React.Component<IListFormProps, IListFormState> {
         if (list && this._itemChanges && (mode === FormMode.New || mode === FormMode.Edit)) {
             await this.validate(true);
             if (this.isValid && this.isDirty) {
-                if (mode === FormMode.New) {
-                    this.setState({ isSaving: true, error: undefined });
-                    this._promise = cancelable(list.items.add(this._itemChanges));
-                    this._promise.finally(() => {
-                        this._promise = null;
-                        this.setState({ isSaving: false });
-                    }).catch((error) => {
+                const spItem = await (mode === FormMode.New
+                    ? this._addItem(list, this._itemChanges)
+                    : this._updateItem(list, item ? item.ID : itemId, this._itemChanges, item ? item["owshiddenversion"] : 0));
+                if (spItem) {
+                    this._itemChanges = undefined;
+                    this.setState({ isLoading: true });
+                    this._promise = cancelable(this.getItem(spItem).catch((error) => {
                         this.setState({ error: error.message });
+                    })).finally(() => {
+                        this._promise = null;
+                        this.setState({ isLoading: false });
                     });
-
-                    const result = await this._promise;
-
-                    if (result) {
-                        this._itemChanges = undefined;
-                        this.setState({ isLoading: true });
-                        this._promise = cancelable(this.getItem(result.item));
-                        this._promise.finally(() => {
-                            this._promise = null;
-                            this.setState({ isLoading: false });
-                        }).catch((error) => {
-                            this.setState({ error: error.message });
-                        });
-                        const updatedItem = await this._promise;
-                        if (updatedItem) {
-                            this.setState({ item: updatedItem, mode: FormMode.Edit });
-                        }
-                        return updatedItem;
+                    const savedItem = await this._promise;
+                    if (savedItem) {
+                        this.setState({ item: savedItem, mode: FormMode.Edit });
                     }
+                    return savedItem;
                 }
-                else if (item && mode === FormMode.Edit) {
-                    const formUpdateValues: IListItemFormUpdateValue[] = [];
-                    for (const fName in this._itemChanges) {
-                        formUpdateValues.push({ FieldName: fName, FieldValue: this.fieldValueToString(fName, this._itemChanges[fName]) });
+                else {
+                    if (mode === FormMode.New) {
+                        throw "Error on item adding!";
                     }
-                    if (item["owshiddenversion"]) {
-                        formUpdateValues.push({ FieldName: "owshiddenversion", FieldValue: String(item["owshiddenversion"]) });
-                    }
-                    await this.validate(true);
-                    if (this.isValid && this.isDirty) {
-                        this.setState({ isSaving: true, error: undefined });
-                        this._promise = cancelable(list.items.getById(item.ID).validateUpdateListItem(formUpdateValues, false).then(formValues => {
-                            return (formValues as any).ValidateUpdateListItem ? (formValues as any).ValidateUpdateListItem.results : formValues;
-                        }));
-                        this._promise.finally(() => {
-                            this._promise = null;
-                            this.setState({ isSaving: false });
-                        }).catch((error) => {
-                            this.setState({ error: error.message });
-                        });
-
-                        const result: IListItemFormUpdateValue[] = await this._promise;
-
-                        if (result instanceof Array) {
-                            const errors = result.filter(field => field.HasException === true);
-                            if (errors.length > 0) {
-                                for (const formField of this._formFields) {
-                                    const validationResult: IValidationResult = { isValid: false, validationErrors: [] };
-                                    for (const error of errors.filter(err => formField.name === err.FieldName)) {
-                                        validationResult.validationErrors.push(error.ErrorMessage);
-                                    }
-                                    if (validationResult.validationErrors.length > 0) {
-                                        formField.renderer.setValidationResult(validationResult);
-                                    }
-                                }
-                            }
-                            else {
-                                this._itemChanges = undefined;
-                                this._promise = cancelable(this.getItem(list.items.getById(item.ID)))
-                                    .finally(() => {
-                                        this._promise = null;
-                                        this.setState({ isLoading: false });
-                                    }).catch((error) => {
-                                        this.setState({ error: error.message });
-                                    });
-                                const updatedItem = await this._promise;
-                                if (updatedItem) {
-                                    this.setState({ item: updatedItem });
-                                }
-                                return updatedItem;
-                            }
-                        }
+                    else {
+                        throw "Error on item updating!";
                     }
                 }
             }
@@ -280,7 +288,7 @@ export class ListForm extends React.Component<IListFormProps, IListFormState> {
         return value;
     }
 
-    private async getItem(item: IItem): Promise<IListItem> {
+    private getItem(item: IItem): Promise<IListItem> {
         if (!item) return;
         let select = [], expand = [];
         select.push("ID");
@@ -335,7 +343,8 @@ export class ListForm extends React.Component<IListFormProps, IListFormState> {
                 }
             }
         }
-        return await item.select(...select).expand(...expand).get();
+
+        return item.select(...select).expand(...expand).get();
     }
 
     public set_Mode(mode: FormMode) {
@@ -374,5 +383,16 @@ export class ListForm extends React.Component<IListFormProps, IListFormState> {
             }
         }
         return false;
+    }
+
+    public deleteItem(itemId: number): Promise<void> {
+        const { list } = this.props;
+        if (list && itemId > 0) {
+            this._promise = cancelable(list.items.getById(itemId).delete()
+                .catch((error) => {
+                    this.setState({ error: error.message });
+                }));
+            return this._promise;
+        }
     }
 }

@@ -7,7 +7,7 @@ import { SPListView } from '../spListView';
 import { Dialog, DialogType, DialogFooter, PrimaryButton, DefaultButton } from 'office-ui-fabric-react';
 import { SPListForm } from './SPListForm';
 
-export interface ISPListViewCommandBarProps {   
+export interface ISPListViewCommandBarProps {
     formFields: IFormField[];
     canAddItem: boolean;
     items?: IEditableListItem[];
@@ -184,9 +184,12 @@ export class SPListViewCommandBar extends React.Component<ISPListViewCommandBarP
                         if (onItemDeleted instanceof Function) {
                             onItemDeleted();
                         }
-                    })).finally(() => {
+                    }).catch(_ => {
 
-                    });
+                    }))
+                        .finally(() => {
+
+                        });
                 }} text="Delete" />
                 <DefaultButton onClick={() => {
                     this.setState({ isDeleting: false, addCommandEnabled: canAddItem, editCommandEnabled: true, viewCommandEnabled: true, deleteCommandEnabled: true });
