@@ -93,7 +93,7 @@ export class ListForm extends React.Component<IListFormProps, IListFormState> {
                     if (this.props.onItemLoaded instanceof Function) {
                         this.props.onItemLoaded(item);
                     }
-                })
+                });
                 return item;
             }
             else {

@@ -10,7 +10,7 @@ export interface IListFormProps {
     regionalSettings?: IRegionalSettingsInfo;
     timeZone?: ITimeZoneInfo;
     onItemLoaded: (item: IListItem) => void;
-    onChange: (field: IFormField, value: any, isDirty: boolean) => void;
+    onChange: (field: IFormField, value: any, isDirty: boolean) => void; 
 }
 
 export interface IListFormState {

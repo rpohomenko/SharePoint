@@ -37,7 +37,8 @@ export interface ISPListFormState {
     canDelete?: boolean;
     isDeleteOpen?: boolean;
     isDeleting?: boolean;
-    error?: string | JSX.Element
+    error?: string | JSX.Element;
+    onClose?: () => void
 }
 
 export class SPListForm extends React.Component<ISPListFormProps, ISPListFormState> {
@@ -71,14 +72,20 @@ export class SPListForm extends React.Component<ISPListFormProps, ISPListFormSta
     }
 
     public componentWillUnmount() {
-
+        if (this._loadPromise) {
+            this._loadPromise.cancel();
+        }
     }
 
     public render(): React.ReactElement {
         const { list, fields, headerText, regionalSettings, timeZone } = this.props;
-        const { mode, itemId, refreshCommandEnabled, isOpen, isDeleting, error } = this.state;
+        const { mode, itemId, refreshCommandEnabled, isOpen, isDeleting, error, onClose } = this.state;
         return isOpen === true && <Panel isLightDismiss isOpen={isOpen === true} onDismiss={() => {
-            this.setState({ isOpen: false });
+            this.setState({ isOpen: false }, () => {
+                if (onClose instanceof Function) {
+                    onClose();
+                }
+            });
         }} closeButtonAriaLabel={"Close"}
             headerText={`${headerText ? headerText + ": " : ""}${mode === FormMode.Edit ? "Edit" : (mode === FormMode.New ? "New" : "View")}`}
             onRenderFooterContent={() => {
@@ -185,7 +192,7 @@ export class SPListForm extends React.Component<ISPListFormProps, ISPListFormSta
                 key: 'delete', text: 'Delete', iconProps: { iconName: 'Delete' }, iconOnly: true,
                 disabled: !canDelete || itemId === 0 || isDeleting === true,
                 onClick: () => {
-                   this.setState({isDeleteOpen: true});
+                    this.setState({ isDeleteOpen: true });
                 }
             });
         }
@@ -212,12 +219,12 @@ export class SPListForm extends React.Component<ISPListFormProps, ISPListFormSta
             }}>
             <DialogFooter>
                 <PrimaryButton onClick={() => {
-                    this.setState({ isDeleting: true, isDeleteOpen: false });
+                    this.setState({ isDeleting: true, isDeleteOpen: false, refreshCommandEnabled: false, saveCommandEnabled: false });
                     cancelable(this.deleteItem(itemId).then(_ => {
                         if (listView) {
                             listView.refresh();
                         }
-                        this.setState({isOpen: false});
+                        this.setState({ isOpen: false });
                     }).catch(error => this.setState({ error: error })))
                         .finally(() => {
                             this.setState({ isDeleting: false });
@@ -237,13 +244,16 @@ export class SPListForm extends React.Component<ISPListFormProps, ISPListFormSta
         }
     }
 
-    public open(mode: FormMode, itemId?: number) {
+    public open(mode: FormMode, itemId?: number, onClose?: () => void) {
         this.setState({ isOpen: true, mode: mode });
         if (mode === FormMode.New) {
             this.setState({ itemId: 0 });
         }
         else if (itemId > 0) {
             this.setState({ itemId: itemId });
+        }
+        if (onClose instanceof Function) {
+            this.setState({ onClose: onClose });
         }
     }
 

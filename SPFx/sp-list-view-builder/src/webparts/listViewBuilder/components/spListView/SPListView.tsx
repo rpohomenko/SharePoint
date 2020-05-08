@@ -26,6 +26,7 @@ import { Dialog, DialogType, DialogFooter } from 'office-ui-fabric-react/lib/Dia
 import { PrimaryButton, DefaultButton } from 'office-ui-fabric-react/lib/Button';
 import { cancelable, CancelablePromise } from 'cancelable-promise';
 import { SPListForm, ISPListFormProps } from './SPListForm';
+import { SPListViewCommandBar } from './SPListViewCommandBar';
 
 const theme = getTheme();
 
@@ -89,7 +90,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
 
     public render(): React.ReactElement {
         const { list, formFields } = this.props;
-        const { items, columns, groupBy, isLoading, selection } = this.state;
+        const { items, columns, groupBy, isLoading, selection, error } = this.state;
         const page = this._page;
         return <div>
             {this._isMounted === true && this.props.showCommandBar === true && this.renderCommandBar()}
@@ -124,7 +125,6 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
                     }}
                 />
             </Stack>}
-            {this._renderDeleteDialog()}
             <SPListForm ref={this._listForm} isOpen={false} list={list} listView={this} fields={formFields}
                 headerText={this.props.rootFolder ? this.props.rootFolder.Name : ""}
                 regionalSettings={this._regionalSettings} timeZone={this._timeZone}
@@ -133,45 +133,19 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
         </div>;
     }
 
-    private _renderDeleteDialog() {
-        return <Dialog
-            hidden={this.state.isDeleting !== true}
-            onDismiss={() => {
-                this.setState({ isDeleting: false });
-            }}
-            dialogContentProps={{
-                type: DialogType.normal,
-                title: 'Delete?',
-                closeButtonAriaLabel: 'Close',
-                subText: 'Are you sure you want to delete the item(s)?',
-            }}
-            modalProps={{
-                isBlocking: false,
-                styles: { main: { maxWidth: 450 } },
-            }}>
-            <DialogFooter>
-                <PrimaryButton onClick={() => {
-                    this.setState({ isLoading: true, isDeleting: false });
-                    this._deleteItem(...this.state.selection).then(_ => {
-                        this.refresh();
-                    });
-                }} text="Delete" />
-                <DefaultButton onClick={() => {
-                    this.setState({ isDeleting: false });
-                }} text="Cancel" />
-            </DialogFooter>
-        </Dialog>;
-    }
-
     protected onSelectItems(selection: IListItem[]) {
         this.setState({ selection: selection });
     }
 
     private async _addPromise(promise: Promise<any>): Promise<any> {
         if (promise) {
-            const cancelablePromise = cancelable(promise).finally(() => {
-                this._removePromise(cancelablePromise);
-            });
+            const cancelablePromise = cancelable(promise)
+                .catch(error => {
+                    this.setState({ error: error });
+                })
+                .finally(() => {
+                    this._removePromise(cancelablePromise);
+                });
             this._promises.push(cancelablePromise);
         }
         return promise;
@@ -194,7 +168,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
     private async loadNextData(page: PagedItemCollection<IEditableListItem[]>) {
         if (page && page.hasNext === true) {
             const { groupBy, items } = this.state;
-            this.setState({ isLoading: true, groupBy: undefined, items: [...items, ...new Array(this._shimItemCount)] });
+            this.setState({ isLoading: true, error: undefined, groupBy: undefined, items: [...items, ...new Array(this._shimItemCount)] });
             await this._waitForPromises();
             const nextPage = await this._addPromise(page.getNext());
             const newItems = [...items, ...nextPage.results];
@@ -206,7 +180,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
     private loadItemsInFolder(folder: IFolder) {
         const { groupBy } = this.state;
         this._abortPromises();
-        this.setState({ isLoading: true, groupBy: undefined, folder: folder, items: new Array(this._shimItemCount) }, () => {
+        this.setState({ isLoading: true, error: undefined, groupBy: undefined, folder: folder, items: new Array(this._shimItemCount) }, () => {
             this._addPromise(this.getData(this.props.list, this.state.sortColumn, this.state.groupBy, folder)).then(page => {
                 this._page = page;
                 this.setState({ items: page.results, groupBy: groupBy, isLoading: false });
@@ -376,7 +350,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
     private onSortItems(column: IViewColumn) {
         const { groupBy } = this.state;
         this._abortPromises();
-        this.setState({ isLoading: true, groupBy: undefined, sortColumn: column, items: new Array(this._shimItemCount) }, () => {
+        this.setState({ isLoading: true, error: undefined, groupBy: undefined, sortColumn: column, items: new Array(this._shimItemCount) }, () => {
             const folder = this.state.folder || this.props.rootFolder;
             this._addPromise(this.getData(this.props.list, column, groupBy, folder)).then(page => {
                 this._page = page;
@@ -631,84 +605,30 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
 
 
     private renderCommandBar() {
+        const { formFields } = this.props;
+        const { canAddItem } = this.state;
         const selection = this._processListItems(...this.state.selection);
-        const items = this.getCommandItems(this.state.items, selection);
-        const farItems = this.getFarCommandItems(this.state.items, this.state.selection);
-        return <CommandBar items={items} farItems={farItems} />;
+        /* const items = this.getCommandItems(this.state.items, selection);
+         const farItems = this.getFarCommandItems(this.state.items, this.state.selection);
+         return <CommandBar items={items} farItems={farItems} />;*/
+        return <SPListViewCommandBar listView={this} listForm={this._listForm.current} items={selection} formFields={formFields} canAddItem={canAddItem} />
     }
 
-    private async _deleteItem(...items: IEditableListItem[]) {
-        if (items instanceof Array) {
-            const deleted = items.map(item => this.props.list.items.getById(item.ID).delete());
-            return Promise.all(deleted);
+    public async deleteItem(...items: IEditableListItem[]): Promise<any> {
+        const { list } = this.props;
+        if (list && items instanceof Array && items.length > 0) {
+            this.setState({ isLoading: true, error: undefined, groupBy: undefined, items: new Array(this._shimItemCount) });
+            const deleted = items.map(item => list.items.getById(item.ID).delete());
+            return this._addPromise(Promise.all(deleted).then(() => {
+                //this.refresh();
+            }));
         }
-    }
-
-    protected getCommandItems(items: IEditableListItem[], selection?: IEditableListItem[]): ICommandBarItemProps[] {
-        const canEdit = selection instanceof Array && selection.length === 1 && selection[0].CanEdit && this.props.formFields instanceof Array && this.props.formFields.length > 0;
-        const canDelete = selection instanceof Array && selection.length > 0 && selection.filter(item => item.CanDelete === true).length === selection.length;
-        const canAddItem = this.state.canAddItem && this.props.formFields instanceof Array && this.props.formFields.length > 0;
-        return [
-            {
-                key: 'add', text: 'Add', iconProps: { iconName: 'Add' }, iconOnly: true,
-                disabled: this.state.isLoading === true || !this.props.list || !canAddItem
-                    || (selection instanceof Array && selection.length > 0),
-                onClick: () => {
-                    if (this._listForm.current) {
-                        this._listForm.current.open(FormMode.New);
-                    }
-                }
-            },
-            {
-                key: 'edit', text: 'Edit', iconProps: { iconName: 'Edit' }, iconOnly: true,
-                disabled: this.state.isLoading === true || !canEdit,
-                onClick: () => {
-                    if (selection instanceof Array && selection.length > 0) {
-                        if (this._listForm.current) {
-                            this._listForm.current.open(FormMode.Edit, selection[0].ID);
-                        }
-                    }
-                }
-            },
-            {
-                key: 'view', text: 'View', iconProps: { iconName: 'View' }, iconOnly: true,
-                disabled: this.state.isLoading === true || !canEdit,
-                onClick: () => {
-                    if (selection instanceof Array && selection.length > 0) {
-                        if (this._listForm.current) {
-                            this._listForm.current.open(FormMode.Display, selection[0].ID);
-                        }
-                    }
-                }
-            },
-            {
-                key: 'delete', text: 'Delete', iconProps: { iconName: 'Delete' }, iconOnly: true,
-                disabled: this.state.isLoading === true || !canDelete,
-                onClick: () => {
-                    if (selection instanceof Array && selection.length > 0) {
-                        this.setState({ isDeleting: true });
-                    }
-                }
-            }
-        ];
-    }
-
-    protected getFarCommandItems(items: IEditableListItem[], selection?: IEditableListItem[]): ICommandBarItemProps[] {
-        return [
-            {
-                key: 'refresh', text: 'Refresh', iconProps: { iconName: 'Refresh' }, iconOnly: true,
-                disabled: !this.props.list || this.state.isLoading === true,
-                onClick: () => {
-                    this.refresh();
-                }
-            }
-        ];
     }
 
     public async refresh() {
         const { groupBy } = this.state;
         this._abortPromises();
-        this.setState({ isLoading: true, items: new Array(this._shimItemCount), groupBy: undefined });
+        this.setState({ isLoading: true, error: undefined, items: new Array(this._shimItemCount), groupBy: undefined });
         const page = await this._addPromise(this.getData(this.props.list, this.state.sortColumn, this.state.groupBy, this.state.folder));
         this._page = page;
         this.setState({ items: page.results, groupBy: groupBy, isLoading: false });

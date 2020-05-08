@@ -3,6 +3,7 @@ import { TextField, ITextField } from 'office-ui-fabric-react/lib/TextField';
 import { Label } from 'office-ui-fabric-react/lib/Label';
 import { BaseFieldRenderer } from './BaseFieldRenderer';
 import { IBaseFieldRendererProps, IBaseFieldRendererState } from './IBaseFieldRendererProps';
+import { FormMode } from '../../../utilities/Entities';
 
 export interface ITextFieldRendererProps extends IBaseFieldRendererProps {
     multiline?: boolean;
@@ -65,4 +66,18 @@ export class TextFieldRenderer extends BaseFieldRenderer {
     public hasValue() {
         return this.getValue() !== "" && super.hasValue();
     }
+
+    public getValue() {
+        const value = super.getValue();
+        if (value === undefined || value === null || value === "") {
+            return null;
+        }
+        return String(value);
+    }
+
+    public get isDirty(): boolean {
+        const { mode, defaultValue } = this.props;
+        return mode === FormMode.New ? this.hasValue() : (this.getValue() || "") !== (defaultValue || "");
+    }
+
 }

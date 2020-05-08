@@ -29,4 +29,5 @@ export interface ISPListViewState {
   groupBy?: IGrouping[];
   canAddItem?: boolean; 
   isDeleting?: boolean;
+  error?: string;
 }
