@@ -2,7 +2,7 @@ import * as React from 'react';
 import styles from './listform.module.scss';
 import { IListFormProps, IListFormState } from './IListFormProps';
 import { FormField } from './FormField';
-import { FormMode, IListItem, IFormField, DataType, IUserFieldValue } from '../../utilities/Entities';
+import { FormMode, IListItem, IFormField, DataType, IUserFieldValue, ILookupFieldValue } from '../../utilities/Entities';
 import { cancelable, CancelablePromise } from 'cancelable-promise';
 import { ProgressIndicator } from 'office-ui-fabric-react/lib/ProgressIndicator';
 import { IItem } from '@pnp/sp/items';
@@ -161,6 +161,24 @@ export class ListForm extends React.Component<IListFormProps, IListFormState> {
     }
 
     private _addItem(list: IList, item: IListItem): Promise<IItem> {
+        for (const fName in item) {
+            const fields = this.props.fields.filter(f => f.Name === fName);
+            if (fields.length > 0) {
+                const field = fields[0];
+                const value = this.getFieldValue(field, item, FormMode.New);
+                if (field.DataType === DataType.Lookup
+                    || field.DataType === DataType.MultiLookup
+                    || field.DataType === DataType.User
+                    || field.DataType === DataType.MultiUser) {
+                    item[`${field.Name}Id`] = value;
+                    delete item[field.Name];
+                }
+                else {
+                    item[field.Name] = value;
+                }
+            }
+        }
+
         this.setState({ isSaving: true, error: undefined });
         this._promise = cancelable(list.items.add(item)
             .then((result) => {
@@ -183,7 +201,14 @@ export class ListForm extends React.Component<IListFormProps, IListFormState> {
 
         const formUpdateValues: IListItemFormUpdateValue[] = [];
         for (const fName in item) {
-            formUpdateValues.push({ FieldName: fName, FieldValue: this.fieldValueToString(fName, item[fName]) });
+            const fields = this.props.fields.filter(f => f.Name === fName);
+            if (fields.length > 0) {
+                const field = fields[0];
+                formUpdateValues.push({
+                    FieldName: field.Name,
+                    FieldValue: this.getFieldValue(field, item, FormMode.Edit)
+                });
+            }
         }
         if (itemVersion > 0) {
             formUpdateValues.push({ FieldName: "owshiddenversion", FieldValue: String(itemVersion) });
@@ -258,10 +283,9 @@ export class ListForm extends React.Component<IListFormProps, IListFormState> {
         }
     }
 
-    private fieldValueToString(fieldName: string, value: any) {
-        const fields = this.props.fields.filter(f => f.Name === fieldName);
-        if (fields.length > 0) {
-            const field = fields[0];
+    private getFieldValue(field: IFormField, item: any, mode: FormMode) {
+        if (field && item) {
+            let value = item[field.Name];
             switch (field.DataType) {
                 case DataType.Date:
                 case DataType.DateTime:
@@ -270,22 +294,57 @@ export class ListForm extends React.Component<IListFormProps, IListFormState> {
                 case DataType.Boolean:
                     value = value === true ? "1" : value === false ? "0" : null;
                     break;
-                case DataType.User:
+                case DataType.Lookup:
                     value = value
                         ? (value instanceof Array && value.length > 0
-                            ? (value[0] as IUserFieldValue).Id
-                            : (value as IUserFieldValue).Id)
+                            ? (value[0] as ILookupFieldValue).Id
+                            : (value as ILookupFieldValue).Id)
                         : null;
                     if (value > 0) {
+                        if(mode === FormMode.Edit){
                         value = String(value);
+                        }
                     }
                     else {
                         value = null;
                     }
                     break;
+                case DataType.MultiLookup:
+                    value = value && value instanceof Array && value.length > 0
+                        ? { results: value.map(v => (v as ILookupFieldValue).Id) }
+                        : null;                   
+                    break;
+                case DataType.User:
+                    value = value
+                        ? (value instanceof Array && value.length > 0
+                            ? value[0]
+                            : value)
+                        : null;
+                    if (mode === FormMode.New) {
+                        if (value && (value as IUserFieldValue).Id > 0) {
+                            value = (value as IUserFieldValue).Id;
+                        }
+                        else {
+                            value = null;
+                        }
+                    }
+                    else {
+                        if (value && (value as IUserFieldValue).Name) {
+                            value = JSON.stringify([{ "Key": (value as IUserFieldValue).Name }]);
+                        }
+                        else{
+                            value = null;
+                        }
+                    }
+                    break;
+                case DataType.MultiUser:
+                    value = value && value instanceof Array && value.length > 0
+                        ? { results: value.map(v => (v as IUserFieldValue).Id) }
+                        : null;
+                    break;
             }
+            return value;
         }
-        return value;
     }
 
     private getItem(item: IItem): Promise<IListItem> {

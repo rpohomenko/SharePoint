@@ -36,13 +36,12 @@ export class UserFieldRenderer extends BaseFieldRenderer {
             const value = this.props.defaultValue as IUserFieldValue[];
             const personas: IPersonaProps[] = value.map(v => {
                 return {
-                    id: String(v.Id),
-                    //loginName: v.Name,
+                    id: String(v.Id),                  
                     imageUrl: this.getUserPhotoLink("", v.Email),
                     imageInitials: this.getFullNameInitials(v.Title),
                     text: v.Title,
                     secondaryText: v.Email,
-                    tertiaryText: "",
+                    tertiaryText: v.Name,
                     optionalText: "" // anything
                 } as IPersonaProps;
             });
@@ -106,17 +105,16 @@ export class UserFieldRenderer extends BaseFieldRenderer {
     private async onFilterChanged(searchText: string, currentSelected: IPersonaProps[]): Promise<IPersonaProps[]> {
         const { suggestionsLimit, principalTypes } = this.props as IUserFieldRendererProps;
         if (searchText.length > 2) {
-            //const users = await SPService.searchPeople(searchText, suggestionsLimit, principalTypes, false);
-            const users = await SPService.findSiteUsers(searchText, suggestionsLimit, principalTypes) || [];
+            const users = await SPService.searchPeople(searchText, suggestionsLimit, principalTypes, true);
+            //const users = await SPService.findSiteUsers(searchText, suggestionsLimit, principalTypes) || [];
             const personas: IPersonaProps[] = users.map(user => {
                 return {
-                    id: String(user.Id),
-                    //loginName: user.LoginName,
+                    id: String(user.Id),                 
                     imageUrl: this.getUserPhotoLink("", user.Email),
                     imageInitials: this.getFullNameInitials(user.Title),
                     text: user.Title,
                     secondaryText: user.Email,
-                    tertiaryText: "",
+                    tertiaryText: user.LoginName,
                     optionalText: "" // anything
                 } as IPersonaProps;
             });
@@ -203,7 +201,7 @@ export class UserFieldRenderer extends BaseFieldRenderer {
         if (personas instanceof Array) {
             return personas.map(persona => {
                 const id = Number(persona.id);
-                return { Id: isNaN(id) ? 0 : id, Title: persona.text, Email: persona.secondaryText } as IUserFieldValue;
+                return { Id: isNaN(id) ? 0 : id, Title: persona.text, Email: persona.secondaryText, Name: persona.tertiaryText } as IUserFieldValue;
             }).filter(u => u.Id > 0);
         }
         return null;

@@ -614,27 +614,33 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
         return <SPListViewCommandBar listView={this} listForm={this._listForm.current} items={selection} formFields={formFields} canAddItem={canAddItem} />;
     }
 
-    public async deleteItem(...items: IEditableListItem[]): Promise<any> {
+    public async deleteItem(...deletedItems: IEditableListItem[]): Promise<void> {
         const { list } = this.props;
-        if (list && items instanceof Array && items.length > 0) {
+        const { items } = this.state;
+        if (list && deletedItems instanceof Array && deletedItems.length > 0) {
             this.setState({ isLoading: true, error: undefined, groupBy: undefined, items: new Array(this._shimItemCount) });
-            const deleted = items.map(item => list.items.getById(item.ID).delete()
-                .catch(error => {
-
+            let error = "";
+            const promises = deletedItems.map(item => list.items.getById(item.ID).delete()
+                .catch(e => {
+                    error += e;
                 }));
-            return await this._addPromise(Promise.all(deleted).then(() => {
-                //this.refresh();
-            })).catch(error => {
-                this.setState({ error: error, isLoading: false, items: [] });
-            });
+            await this._addPromise(Promise.all(promises));
+            if (error) {
+                await this.refresh();
+                this.setState({ error: error });
+            }
+            else {
+                this.setState({ error: error, isLoading: false, items: items.filter(item => !deletedItems.some(deletedItem => deletedItem.ID === item.ID)) });
+            }
         }
     }
 
     public async refresh() {
-        const { groupBy } = this.state;
+        const { list } = this.props;
+        const { folder, groupBy, sortColumn, } = this.state;
         this._abortPromises();
         this.setState({ isLoading: true, error: undefined, items: new Array(this._shimItemCount), groupBy: undefined });
-        const page = await this._addPromise(this.getData(this.props.list, this.state.sortColumn, this.state.groupBy, this.state.folder));
+        const page = await this._addPromise(this.getData(list, sortColumn, groupBy, folder));
         this._page = page;
         this.setState({ items: page.results, groupBy: groupBy, isLoading: false });
     }

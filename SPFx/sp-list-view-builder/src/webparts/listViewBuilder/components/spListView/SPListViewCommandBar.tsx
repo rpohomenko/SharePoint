@@ -179,7 +179,7 @@ export class SPListViewCommandBar extends React.Component<ISPListViewCommandBarP
                         });
                     cancelable(listView.deleteItem(...items).then(_ => {
                         if (listView) {
-                            listView.refresh();
+                            //listView.refresh();
                         }
                         if (onItemDeleted instanceof Function) {
                             onItemDeleted();

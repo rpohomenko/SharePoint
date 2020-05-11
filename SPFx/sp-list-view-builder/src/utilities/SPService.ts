@@ -332,7 +332,7 @@ export default class SPService {
   }
 
   public static async findSiteUsers(query: string, maximumSuggestions: number, principalTypes: PrincipalType[]): Promise<IUserInfo[]> {
-    let filter = `startswith(Title, '${encodeURIComponent(query)}') or startswith(Email,'${encodeURIComponent(query)}') or startswith(UserPrincipalName,'${encodeURIComponent(query)}')`;
+    let filter = `substringof('${encodeURIComponent(query)}', Title) or startswith(Email,'${encodeURIComponent(query)}') or startswith(UserPrincipalName,'${encodeURIComponent(query)}')`;
     if (principalTypes instanceof Array && principalTypes.length > 0) {
       filter += ` and ${principalTypes.map(principalType => `PrincipalType eq ${principalType}`).join(' or ')}`;
     }
