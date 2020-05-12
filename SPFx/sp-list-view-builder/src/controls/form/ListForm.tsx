@@ -4,7 +4,7 @@ import { IListFormProps, IListFormState } from './IListFormProps';
 import { FormField } from './FormField';
 import { FormMode, IListItem, IFormField, DataType, IUserFieldValue, ILookupFieldValue } from '../../utilities/Entities';
 import { cancelable, CancelablePromise } from 'cancelable-promise';
-import { ProgressIndicator } from 'office-ui-fabric-react/lib/ProgressIndicator';
+import { ProgressIndicator } from 'office-ui-fabric-react' /* '@fluentui/react'*/;
 import { IItem } from '@pnp/sp/items';
 import { IListItemFormUpdateValue, IList } from '@pnp/sp/lists';
 import moment from 'moment';
@@ -289,10 +289,14 @@ export class ListForm extends React.Component<IListFormProps, IListFormState> {
             switch (field.DataType) {
                 case DataType.Date:
                 case DataType.DateTime:
-                    value = value ? moment(new Date(value)).format("L LT") : null;
+                    if (mode === FormMode.Edit) {
+                        value = value ? moment(new Date(value)).format("L LT") : null;
+                    }
                     break;
                 case DataType.Boolean:
-                    value = value === true ? "1" : value === false ? "0" : null;
+                    if (mode === FormMode.Edit) {
+                        value = value === true ? "1" : value === false ? "0" : null;
+                    }
                     break;
                 case DataType.Lookup:
                     value = value
@@ -301,8 +305,8 @@ export class ListForm extends React.Component<IListFormProps, IListFormState> {
                             : (value as ILookupFieldValue).Id)
                         : null;
                     if (value > 0) {
-                        if(mode === FormMode.Edit){
-                        value = String(value);
+                        if (mode === FormMode.Edit) {
+                            value = String(value);
                         }
                     }
                     else {
@@ -312,7 +316,7 @@ export class ListForm extends React.Component<IListFormProps, IListFormState> {
                 case DataType.MultiLookup:
                     value = value && value instanceof Array && value.length > 0
                         ? { results: value.map(v => (v as ILookupFieldValue).Id) }
-                        : null;                   
+                        : null;
                     break;
                 case DataType.User:
                     value = value
@@ -332,7 +336,7 @@ export class ListForm extends React.Component<IListFormProps, IListFormState> {
                         if (value && (value as IUserFieldValue).Name) {
                             value = JSON.stringify([{ "Key": (value as IUserFieldValue).Name }]);
                         }
-                        else{
+                        else {
                             value = null;
                         }
                     }

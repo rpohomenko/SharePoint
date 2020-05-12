@@ -1,5 +1,4 @@
-import { IColumn, IGroup, IDetailsListProps } from 'office-ui-fabric-react/lib/components/DetailsList';
-import { IContextualMenuProps } from 'office-ui-fabric-react/lib/ContextualMenu';
+import { IColumn, IGroup, IDetailsListProps, IContextualMenuProps } from 'office-ui-fabric-react' /* '@fluentui/react'*/;
 
 export interface IViewColumn extends IColumn {
     sortable?: boolean;

@@ -1,7 +1,5 @@
 import * as React from 'react';
-import { DetailsList, ColumnActionsMode, DetailsListLayoutMode, Selection, SelectionMode, IColumn, IGroup, IGroupRenderProps } from 'office-ui-fabric-react/lib/DetailsList';
-import { ShimmeredDetailsList } from 'office-ui-fabric-react/lib/ShimmeredDetailsList';
-import { DirectionalHint, ContextualMenu, IContextualMenuProps } from 'office-ui-fabric-react/lib/ContextualMenu';
+import { DetailsList, ColumnActionsMode, DetailsListLayoutMode, Selection, SelectionMode, IColumn, IGroup, IGroupRenderProps, ShimmeredDetailsList, DirectionalHint, ContextualMenu, IContextualMenuProps } from 'office-ui-fabric-react' /* '@fluentui/react'*/;
 import { IListViewProps, IListViewState, IViewColumn, IGrouping, GroupOrder } from './IListView';
 import { findIndex, has, isEqual, sortBy } from '@microsoft/sp-lodash-subset';
 

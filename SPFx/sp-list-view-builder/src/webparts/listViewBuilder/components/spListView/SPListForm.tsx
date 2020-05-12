@@ -2,15 +2,13 @@ import * as React from 'react';
 import { isEqual } from '@microsoft/sp-lodash-subset';
 import { IList } from "@pnp/sp/lists";
 import { ITimeZoneInfo, IRegionalSettingsInfo } from "@pnp/sp/regional-settings/types";
-import { IListItem, FormMode, IFormField } from '../../../../utilities/Entities';
-import { CommandBar, ICommandBarItemProps } from 'office-ui-fabric-react/lib/CommandBar';
-import { Panel } from 'office-ui-fabric-react/lib/Panel';
+import { FormMode, IFormField } from '../../../../utilities/Entities';
 import { cancelable, CancelablePromise } from 'cancelable-promise';
 import { ListForm } from '../../../../controls/form/ListForm';
 import { SPListView } from '../spListView';
 import SPService from '../../../../utilities/SPService';
 import { PermissionKind } from '@pnp/sp/security';
-import { Dialog, DialogType, DialogFooter, PrimaryButton, DefaultButton, ProgressIndicator } from 'office-ui-fabric-react';
+import { Dialog, DialogType, DialogFooter, PrimaryButton, DefaultButton, ProgressIndicator, Panel, CommandBar, ICommandBarItemProps } from 'office-ui-fabric-react' /* '@fluentui/react'*/;
 
 interface CancelablePromise {
     cancel: () => void;

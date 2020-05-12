@@ -1,8 +1,7 @@
 import * as React from 'react';
-import { Label } from 'office-ui-fabric-react/lib/Label';
 import { BaseFieldRenderer } from './BaseFieldRenderer';
 import { IBaseFieldRendererProps, IBaseFieldRendererState } from './IBaseFieldRendererProps';
-import { DatePicker, DayOfWeek, IDatePicker, IDatePickerStrings } from 'office-ui-fabric-react/lib/DatePicker';
+import { DatePicker, DayOfWeek, IDatePicker, IDatePickerStrings, Label } from 'office-ui-fabric-react' /* '@fluentui/react'*/;
 import moment from 'moment';
 import { ITimeZoneInfo, IRegionalSettingsInfo } from '@pnp/sp/regional-settings/types';
 import SPService from '../../../utilities/SPService';

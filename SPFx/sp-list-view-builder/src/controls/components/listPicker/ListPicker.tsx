@@ -1,7 +1,6 @@
 
 import * as React from 'react';
-import { IDropdownOption, IDropdownProps, Dropdown } from 'office-ui-fabric-react/lib/components/Dropdown';
-import { Spinner, SpinnerSize } from 'office-ui-fabric-react/lib/components/Spinner';
+import { Spinner, SpinnerSize, IDropdownOption, IDropdownProps, Dropdown } from 'office-ui-fabric-react' /* '@fluentui/react'*/;
 
 import "@pnp/sp/webs";
 import { IWeb } from "@pnp/sp/webs";

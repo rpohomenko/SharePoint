@@ -1,7 +1,5 @@
 import * as React from 'react';
-import { IPersonaProps } from 'office-ui-fabric-react/lib/Persona';
-import { NormalPeoplePicker, IBasePickerSuggestionsProps, ValidationState, IBasePicker } from 'office-ui-fabric-react/lib/Pickers';
-import { Label } from 'office-ui-fabric-react/lib/Label';
+import { NormalPeoplePicker, IBasePickerSuggestionsProps, IBasePicker, IPersonaProps } from 'office-ui-fabric-react' /* '@fluentui/react'*/;
 import { BaseFieldRenderer } from './BaseFieldRenderer';
 import { IBaseFieldRendererProps, IBaseFieldRendererState } from './IBaseFieldRendererProps';
 import { PrincipalType, FormMode, IUserFieldValue } from '../../../utilities/Entities';

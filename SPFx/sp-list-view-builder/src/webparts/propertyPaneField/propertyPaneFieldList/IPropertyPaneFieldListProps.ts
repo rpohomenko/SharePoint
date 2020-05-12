@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {  IColumn } from 'office-ui-fabric-react/lib/DetailsList';
+import {  IColumn } from 'office-ui-fabric-react' /* '@fluentui/react'*/;
 import { IPropertyPaneCustomFieldProps } from "@microsoft/sp-property-pane";
 
 export interface IPropertyPaneFieldListProps {

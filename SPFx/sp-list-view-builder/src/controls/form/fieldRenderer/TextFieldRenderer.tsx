@@ -1,6 +1,5 @@
 import * as React from 'react';
-import { TextField, ITextField } from 'office-ui-fabric-react/lib/TextField';
-import { Label } from 'office-ui-fabric-react/lib/Label';
+import { TextField, ITextField, Label } from 'office-ui-fabric-react' /* '@fluentui/react'*/;
 import { BaseFieldRenderer } from './BaseFieldRenderer';
 import { IBaseFieldRendererProps, IBaseFieldRendererState } from './IBaseFieldRendererProps';
 import { FormMode } from '../../../utilities/Entities';

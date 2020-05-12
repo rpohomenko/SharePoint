@@ -1,7 +1,6 @@
 import { IList } from "@pnp/sp/lists";
 import { IField } from "../../../utilities/Entities";
 import { IFieldInfo } from "@pnp/sp/fields";
-import { ITag } from 'office-ui-fabric-react/lib/Pickers';
 
 export interface IFieldPickerProps {
     label?: string;

@@ -1,4 +1,4 @@
-import { IDropdownOption } from 'office-ui-fabric-react/lib/components/Dropdown';
+import { IDropdownOption } from 'office-ui-fabric-react' /* '@fluentui/react'*/;
 
 export interface IAsyncDropdownState {
   loading: boolean;

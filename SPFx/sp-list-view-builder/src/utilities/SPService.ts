@@ -2,7 +2,6 @@ import { sp, IList, PermissionKind, IListInfo, IFieldInfo, FieldTypes } from "@p
 import { ITimeZoneInfo, IRegionalSettingsInfo } from "@pnp/sp/regional-settings/types";
 import { ISPListInfo } from "../controls/components/listPicker";
 import { IListItem, DataType, IFieldDateInfo, IFieldLookupInfo, IFieldMultiLineTextInfo, IFieldUserInfo, IFormField, PrincipalType, IUserInfo } from "./Entities";
-import DateHelper from "./DateHelper";
 
 export default class SPService {
 

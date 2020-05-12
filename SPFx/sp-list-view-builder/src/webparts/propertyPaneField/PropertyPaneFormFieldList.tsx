@@ -1,8 +1,7 @@
 import * as React from 'react';
 import * as strings from 'ListViewBuilderWebPartStrings';
 
-import { ICommandBarItemProps } from 'office-ui-fabric-react/lib/CommandBar';
-import { IconButton, getTheme, mergeStyleSets, IColumn } from 'office-ui-fabric-react';
+import { ICommandBarItemProps, IconButton, getTheme, mergeStyleSets, IColumn } from 'office-ui-fabric-react' /* '@fluentui/react'*/;
 import { PropertyPaneFieldList, IPropertyPaneFieldListProps } from './propertyPaneFieldList';
 import { IFormField, DataType } from '../../utilities/Entities';
 import AddFormFieldPanel from './components/AddFormFieldPanel';

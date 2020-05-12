@@ -1,10 +1,9 @@
 import * as React from 'react';
 import { isEqual } from '@microsoft/sp-lodash-subset';
 import { FormMode, IFormField, IEditableListItem } from '../../../../utilities/Entities';
-import { CommandBar, ICommandBarItemProps } from 'office-ui-fabric-react/lib/CommandBar';
 import { cancelable, CancelablePromise } from 'cancelable-promise';
 import { SPListView } from '../spListView';
-import { Dialog, DialogType, DialogFooter, PrimaryButton, DefaultButton } from 'office-ui-fabric-react';
+import { Dialog, DialogType, DialogFooter, PrimaryButton, DefaultButton, CommandBar, ICommandBarItemProps } from 'office-ui-fabric-react' /* '@fluentui/react'*/;
 import { SPListForm } from './SPListForm';
 
 export interface ISPListViewCommandBarProps {

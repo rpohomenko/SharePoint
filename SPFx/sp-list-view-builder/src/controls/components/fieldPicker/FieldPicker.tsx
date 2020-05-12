@@ -1,10 +1,8 @@
 import * as React from 'react';
-import { Label } from 'office-ui-fabric-react/lib/Label';
-import { TagPicker, IBasePicker, ITag } from 'office-ui-fabric-react/lib/Pickers';
+import { TagPicker, IBasePicker, ITag, Label } from 'office-ui-fabric-react' /* '@fluentui/react'*/;
 import { IList } from "@pnp/sp/lists";
 import { IFieldInfo, Field } from "@pnp/sp/fields";
 import { IFieldPickerState, IFieldPickerProps } from './IFieldPickerProps';
-import { IField } from "../../../utilities/Entities";
 
 export class FieldPicker extends React.Component<IFieldPickerProps, IFieldPickerState> {
 

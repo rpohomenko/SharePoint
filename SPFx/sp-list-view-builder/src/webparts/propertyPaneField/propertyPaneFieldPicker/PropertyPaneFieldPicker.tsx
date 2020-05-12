@@ -1,8 +1,7 @@
 import * as React from 'react';
 import * as ReactDom from 'react-dom';
 import { IPropertyPaneField, PropertyPaneFieldType } from "@microsoft/sp-property-pane";
-import { Stack } from 'office-ui-fabric-react/lib/components/Stack';
-import { Separator } from 'office-ui-fabric-react/lib/components/Separator';
+import { Separator, Stack } from 'office-ui-fabric-react' /* '@fluentui/react'*/;
 import { IPropertyPaneFieldPickerInternalProps, IPropertyPaneFieldPickerProps } from './IPropertyPaneFieldPickerProps';
 import { FieldPicker } from '../../../controls/components/fieldPicker';
 import { IField } from '../../../utilities/Entities';

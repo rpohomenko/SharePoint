@@ -1,11 +1,6 @@
 import * as React from 'react';
-import { Label } from 'office-ui-fabric-react/lib/Label';
-import { IconButton } from 'office-ui-fabric-react/lib/Button';
-import { Callout } from 'office-ui-fabric-react/lib/Callout';
-import { Stack } from 'office-ui-fabric-react/lib/Stack';
-import { Text } from 'office-ui-fabric-react/lib/Text';
+import { Label, IconButton, Callout, Stack, Text, getId } from 'office-ui-fabric-react' /* '@fluentui/react'*/;
 import { IFormFieldProps, IFormFieldState, IDateFormFieldProps, ITextFormFieldProps, ILookupFormFieldProps, IUserFormFieldProps } from './IFormFieldProps';
-import { getId } from 'office-ui-fabric-react/lib/Utilities';
 import { TextFieldRenderer, ITextFieldRendererProps } from './fieldRenderer/TextFieldRenderer';
 import { DateFieldRenderer, IDateFieldRendererProps } from './fieldRenderer/DateFieldRenderer';
 import { UserFieldRenderer, IUserFieldRendererProps } from './fieldRenderer/UserFieldRenderer';

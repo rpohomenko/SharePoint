@@ -1,24 +1,14 @@
 import * as React from 'react';
-import { Separator } from 'office-ui-fabric-react/lib/Separator';
-import { Toggle } from 'office-ui-fabric-react/lib/Toggle';
 import styles from "./formFieldEditor.module.scss";
-
-import { Panel } from 'office-ui-fabric-react/lib/Panel';
-import { Label } from 'office-ui-fabric-react/lib/Label';
-import { TextField } from 'office-ui-fabric-react/lib/TextField';
-import { Stack, Dropdown, IDropdownOption, Spinner, SpinnerSize } from 'office-ui-fabric-react';
-import { DefaultButton, PrimaryButton } from 'office-ui-fabric-react/lib/Button';
-
+import { Stack, Dropdown, DefaultButton, PrimaryButton, Panel, Toggle, TextField, getTheme } from 'office-ui-fabric-react' /* '@fluentui/react'*/;
 import "@pnp/sp/webs";
 import "@pnp/sp/lists";
 import "@pnp/sp/items";
 import "@pnp/sp/views";
 import "@pnp/sp/fields";
 import { isEqual } from '@microsoft/sp-lodash-subset';
-import { IFormField, DataType, FormMode } from '../../../../utilities/Entities';
+import { DataType, FormMode } from '../../../../utilities/Entities';
 import { IFormFieldEditorProps, IFormFieldEditorState } from './IFormFieldEditorProps';
-
-import { getTheme } from 'office-ui-fabric-react/lib/Styling';
 
 const theme = getTheme();
 

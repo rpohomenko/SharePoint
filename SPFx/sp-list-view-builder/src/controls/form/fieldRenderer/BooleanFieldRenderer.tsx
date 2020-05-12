@@ -1,6 +1,5 @@
 import * as React from 'react';
-import { Toggle, IToggle } from 'office-ui-fabric-react/lib/Toggle';
-import { Label } from 'office-ui-fabric-react/lib/Label';
+import { Toggle, IToggle, Label } from 'office-ui-fabric-react' /* '@fluentui/react'*/;
 import { BaseFieldRenderer } from './BaseFieldRenderer';
 import { IBaseFieldRendererProps, IBaseFieldRendererState } from './IBaseFieldRendererProps';
 

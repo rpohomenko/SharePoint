@@ -1,4 +1,4 @@
-import { IColumn } from 'office-ui-fabric-react/lib/DetailsList';
+import { IColumn } from 'office-ui-fabric-react' /* '@fluentui/react'*/;
 import { ITimeZoneInfo, IRegionalSettingsInfo } from "@pnp/sp/regional-settings/types";
 import { IViewField, IFolder, IOrderByField, IListItem, IFormField } from '../../../../utilities/Entities';
 import { IGrouping } from "../../../../controls/listView";

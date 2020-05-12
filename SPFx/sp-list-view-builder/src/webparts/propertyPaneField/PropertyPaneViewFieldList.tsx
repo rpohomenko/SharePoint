@@ -1,8 +1,6 @@
 import * as React from 'react';
 import * as strings from 'ListViewBuilderWebPartStrings';
-
-import { ICommandBarItemProps } from 'office-ui-fabric-react/lib/CommandBar';
-import { IconButton, getTheme, mergeStyleSets, IColumn } from 'office-ui-fabric-react';
+import { IconButton, getTheme, mergeStyleSets, IColumn, ICommandBarItemProps } from 'office-ui-fabric-react' /* '@fluentui/react'*/;
 import { PropertyPaneFieldList, IPropertyPaneFieldListProps } from './propertyPaneFieldList';
 import { IViewField, DataType } from '../../utilities/Entities';
 import AddViewFieldPanel from './components/AddViewFieldPanel';

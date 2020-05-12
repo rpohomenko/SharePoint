@@ -1,6 +1,5 @@
 import * as React from 'react';
-import { Dropdown, IDropdownOption } from 'office-ui-fabric-react/lib/components/Dropdown';
-import { Spinner } from 'office-ui-fabric-react/lib/components/Spinner';
+import { Dropdown, IDropdownOption, Spinner } from 'office-ui-fabric-react' /* '@fluentui/react'*/;
 import { IAsyncDropdownProps } from './IAsyncDropdownProps';
 import { IAsyncDropdownState } from './IAsyncDropdownState';
 

@@ -3,20 +3,20 @@ import * as ReactDom from 'react-dom';
 import styles from './PropertyPaneFieldList.module.scss';
 
 import { IPropertyPaneField, PropertyPaneFieldType } from "@microsoft/sp-property-pane";
-import { Stack } from 'office-ui-fabric-react/lib/components/Stack';
-import { Separator } from 'office-ui-fabric-react/lib/components/Separator';
-import { MarqueeSelection } from 'office-ui-fabric-react/lib/MarqueeSelection';
+
 import {
+  Stack, Separator, MarqueeSelection,
+  CommandBar, ICommandBarItemProps,
+  getTheme, mergeStyles,
   IDetailsListProps,
   DetailsList, DetailsListLayoutMode, Selection, IColumn,
   IDragDropEvents,
   IDragDropContext,
   IObjectWithKey
-} from 'office-ui-fabric-react/lib/DetailsList';
-import { CommandBar, ICommandBarItemProps } from 'office-ui-fabric-react/lib/CommandBar';
-import { getTheme, mergeStyles } from 'office-ui-fabric-react/lib/Styling';
+} from 'office-ui-fabric-react' /* '@fluentui/react'*/;
+
 import { isEqual } from '@microsoft/sp-lodash-subset';
-import {IPropertyPaneFieldListProps, IPropertyPaneFieldListInternalProps} from './IPropertyPaneFieldListProps';
+import { IPropertyPaneFieldListProps, IPropertyPaneFieldListInternalProps } from './IPropertyPaneFieldListProps';
 
 const theme = getTheme();
 const dragEnterClass = mergeStyles({
@@ -139,7 +139,7 @@ export class PropertyPaneListBuilder extends React.Component<{
     const draggedItems = this._selection.isIndexSelected(this._draggedIndex)
       ? (this._selection.getSelection())
       : [this._draggedItem!];
-   
+
     const items = this.state.items.filter(itm => draggedItems.indexOf(itm) === -1);
     const insertIndex = items.indexOf(item);
     items.splice(insertIndex, 0, ...draggedItems);
@@ -151,7 +151,7 @@ export class PropertyPaneListBuilder extends React.Component<{
     const draggedItems = this._selection.isIndexSelected(this._draggedIndex)
       ? (this._selection.getSelection())
       : [this._draggedItem!];
-   
+
     const items = this.state.items.filter(itm => draggedItems.indexOf(itm) === -1);
     const insertIndex = items.indexOf(item);
     items.splice(insertIndex + 1, 0, ...draggedItems);
@@ -221,17 +221,17 @@ export class PropertyPaneFieldList implements IPropertyPaneField<IPropertyPaneFi
 
   protected onRenderElement(): React.ReactElement {
     return <PropertyPaneListBuilder items={this.properties.items} columns={this.properties.columns}
-    onSelect={this.onSelect.bind(this)}
-    getCommandItems={this.getCommandItems.bind(this)}
+      onSelect={this.onSelect.bind(this)}
+      getCommandItems={this.getCommandItems.bind(this)}
       noItemsMessage={this.properties.noItemsMessage}
       onChange={(items) => {
         this.set_items(items);
       }} />;
   }
 
-  protected onSelect(selection: any[]){
-     this.selection = selection;
-     this.onRenderElement();
+  protected onSelect(selection: any[]) {
+    this.selection = selection;
+    this.onRenderElement();
   }
 
   public delete_items(...deletedItems: any[]): void {

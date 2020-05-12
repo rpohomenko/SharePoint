@@ -1,12 +1,9 @@
 import * as React from 'react';
-import { Separator } from 'office-ui-fabric-react/lib/Separator';
-import { Panel } from 'office-ui-fabric-react/lib/Panel';
-import { Stack, IDropdownOption, Spinner, SpinnerSize } from 'office-ui-fabric-react';
-import { DefaultButton, PrimaryButton } from 'office-ui-fabric-react/lib/Button';
 
 import {
+  Panel, Separator, Stack, IDropdownOption, Spinner, SpinnerSize, DefaultButton, PrimaryButton, getTheme,
   DetailsList, DetailsRow, IDetailsRowProps, IDetailsRowStyles, DetailsListLayoutMode, Selection
-} from 'office-ui-fabric-react/lib/DetailsList';
+} from 'office-ui-fabric-react' /* '@fluentui/react'*/;
 
 import "@pnp/sp/webs";
 import "@pnp/sp/lists";
@@ -16,11 +13,8 @@ import "@pnp/sp/fields";
 import { isArray } from '@pnp/common';
 
 import { FieldTypes, IFieldInfo } from "@pnp/sp/fields";
-
 import { IViewField, IViewLookupField, IFieldLookupInfo, IFieldUserInfo } from '../../../utilities/Entities';
 import { AsyncDropdown } from '../../../controls/components/asyncDropdown';
-
-import { getTheme } from 'office-ui-fabric-react/lib/Styling';
 import SPService from '../../../utilities/SPService';
 import { IList } from '@pnp/sp/lists';
 

@@ -1,15 +1,6 @@
 import * as React from 'react';
-import { Separator } from 'office-ui-fabric-react/lib/Separator';
-
 import styles from "./viewFieldEditor.module.scss";
-
-import { Panel } from 'office-ui-fabric-react/lib/Panel';
-import { Label } from 'office-ui-fabric-react/lib/Label';
-import { TextField } from 'office-ui-fabric-react/lib/TextField';
-import { Stack, Dropdown, IDropdownOption, Spinner, SpinnerSize } from 'office-ui-fabric-react';
-import { DefaultButton, PrimaryButton } from 'office-ui-fabric-react/lib/Button';
-
-import { sp } from "@pnp/sp";
+import { Stack, Dropdown, DefaultButton, PrimaryButton, Label, TextField, Panel, getTheme } from 'office-ui-fabric-react' /* '@fluentui/react'*/;
 import "@pnp/sp/webs";
 import "@pnp/sp/lists";
 import "@pnp/sp/items";
@@ -19,8 +10,6 @@ import { isEqual } from '@microsoft/sp-lodash-subset';
 import { IViewField, IViewLookupField, DataType } from '../../../../utilities/Entities';
 import { IViewFieldEditorProps, IViewFieldEditorState } from './IViewFieldEditorProps';
 
-import { getTheme } from 'office-ui-fabric-react/lib/Styling';
-
 const theme = getTheme();
 
 export class ViewFieldEditor extends React.Component<IViewFieldEditorProps, IViewFieldEditorState> {
@@ -28,7 +17,7 @@ export class ViewFieldEditor extends React.Component<IViewFieldEditorProps, IVie
   constructor(props) {
     super(props);
     this.state = {
-      field: { ...props.field },     
+      field: { ...props.field },
       isOpen: props.isOpen
     };
   }
@@ -54,8 +43,8 @@ export class ViewFieldEditor extends React.Component<IViewFieldEditorProps, IVie
           <TextField label={"Title"} required placeholder={field.Title} value={changedField.Title} onChange={(event, value) => {
             changedField.Title = value; /*|| field.Title;*/
             this.setState({ isChanged: !!value && changedField.Title !== field.Title, changedField: changedField });
-          }} />         
-          { (field.DataType === DataType.Lookup || field.DataType === DataType.MultiLookup) && <Dropdown
+          }} />
+          {(field.DataType === DataType.Lookup || field.DataType === DataType.MultiLookup) && <Dropdown
             label="Field Type"
             options={[
               { key: DataType.Boolean.toString(), text: 'Boolean' },

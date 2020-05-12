@@ -1,4 +1,4 @@
-import { IDropdownOption } from "office-ui-fabric-react/lib/Dropdown";
+import { IDropdownOption } from 'office-ui-fabric-react' /* '@fluentui/react'*/;
 import { IWeb } from "@pnp/sp/webs";
 
 export enum ListOrderBy {
