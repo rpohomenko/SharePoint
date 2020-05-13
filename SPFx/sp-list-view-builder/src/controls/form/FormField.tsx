@@ -5,9 +5,12 @@ import { TextFieldRenderer, ITextFieldRendererProps } from './fieldRenderer/Text
 import { DateFieldRenderer, IDateFieldRendererProps } from './fieldRenderer/DateFieldRenderer';
 import { UserFieldRenderer, IUserFieldRendererProps } from './fieldRenderer/UserFieldRenderer';
 import { BooleanFieldRenderer, IBooleanFieldRendererProps } from './fieldRenderer/BooleanFieldRenderer';
+import { LookupFieldRenderer, ILookupFieldRendererProps } from './fieldRenderer/LookupFieldRenderer';
 import { IValidationResult } from './fieldRenderer/IBaseFieldRendererProps';
-import { DataType, FormMode, ILookupFieldValue, IUserFieldValue } from '../../utilities/Entities';
+import { DataType, FormMode, ILookupFieldValue, IUserFieldValue, IListItem } from '../../utilities/Entities';
 import { BaseFieldRenderer } from './fieldRenderer/BaseFieldRenderer';
+import { sp } from '@pnp/sp/presets/all';
+import { isEqual } from "@microsoft/sp-lodash-subset";
 
 export class FormField extends React.Component<IFormFieldProps | IDateFormFieldProps | ITextFormFieldProps | ILookupFormFieldProps | IUserFormFieldProps, IFormFieldState> {
 
@@ -28,7 +31,7 @@ export class FormField extends React.Component<IFormFieldProps | IDateFormFieldP
     }
 
     public componentDidUpdate(prevProps: IFormFieldProps, prevState: IFormFieldState) {
-        if (prevProps.mode != this.props.mode) {
+        if (!isEqual(prevProps.mode, this.props.mode)) {
             this.setState({
                 mode: this.props.mode
             });
@@ -183,6 +186,28 @@ export class FormField extends React.Component<IFormFieldProps | IDateFormFieldP
                     onValidate: onValidate,
                     onChange: onChange
                 } as IUserFieldRendererProps);
+            case DataType.Lookup:
+            case DataType.MultiLookup:
+                return React.createElement(LookupFieldRenderer, {
+                    key: field.Name,
+                    ref: this._fieldControl,
+                    list: sp.web.lists.getById(field.LookupListId),
+                    fieldName: field.LookupFieldName,
+                    suggestionsLimit: (this.props as ILookupFormFieldProps).suggestionsLimit || 10,
+                    itemLimit: field.DataType === DataType.MultiLookup ? (this.props as ILookupFormFieldProps).limit || 5 : 1,
+                    disabled: field.ReadOnly === true || disabled === true,
+                    defaultValue: defaultValue
+                        ? field.DataType === DataType.MultiLookup
+                            ? defaultValue.results instanceof Array ? defaultValue.results : null
+                            : (defaultValue.ID > 0 ? [defaultValue] : null)
+                        : null,
+                    required: field.Required === true,
+                    mode: mode,
+                    dataType: field.DataType,
+                    title: field.Title,
+                    onValidate: onValidate,
+                    onChange: onChange
+                } as ILookupFieldRendererProps);
         }
 
         return null;

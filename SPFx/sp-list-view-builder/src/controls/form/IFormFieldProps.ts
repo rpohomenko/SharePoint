@@ -2,6 +2,7 @@ import { FormMode, IFormField } from '../../utilities/Entities';
 import { BaseFieldRenderer } from './fieldRenderer/BaseFieldRenderer';
 import { IBaseFieldRendererProps, IValidationResult } from './fieldRenderer/IBaseFieldRendererProps';
 import { IRegionalSettingsInfo, ITimeZoneInfo } from '@pnp/sp/regional-settings';
+import { IList } from '@pnp/sp/lists';
 
 export interface IFormFieldProps {
     mode: FormMode;
@@ -17,8 +18,9 @@ export interface ITextFormFieldProps extends IFormFieldProps {
     maxLength?: number;
 }
 
-export interface ILookupFormFieldProps extends IFormFieldProps {
-
+export interface ILookupFormFieldProps extends IFormFieldProps {  
+    limit?: number;
+    suggestionsLimit?: number;
 }
 
 export interface IUserFormFieldProps extends IFormFieldProps {

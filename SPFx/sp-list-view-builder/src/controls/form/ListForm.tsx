@@ -12,6 +12,7 @@ import { IRegionalSettingsInfo } from '@pnp/sp/regional-settings';
 import SPService from '../../utilities/SPService';
 import { IValidationResult } from './fieldRenderer/IBaseFieldRendererProps';
 import ErrorBoundary from '../ErrorBoundary';
+import '../../utilities/StringExtensions';
 
 interface CancelablePromise extends Promise<any> {
     cancel: () => void;
@@ -109,7 +110,7 @@ export class ListForm extends React.Component<IListFormProps, IListFormState> {
     }
 
     public render() {
-        const { fields, onChange } = this.props;
+        const { list, fields, onChange } = this.props;
         const { mode, item, isLoading, isSaving, error } = this.state;
         this._formFields = [];
         const visibleFields = fields instanceof Array && fields.length > 0
@@ -127,7 +128,7 @@ export class ListForm extends React.Component<IListFormProps, IListFormState> {
                                 if (ref != null) {
                                     this._formFields.push(ref);
                                 }
-                            }}
+                            }}                           
                             field={field}
                             mode={mode}
                             regionalSettings={this.props.regionalSettings}
@@ -205,7 +206,7 @@ export class ListForm extends React.Component<IListFormProps, IListFormState> {
             if (fields.length > 0) {
                 const field = fields[0];
                 formUpdateValues.push({
-                    FieldName: field.Name,
+                    FieldName: field.Name.removePrefix("OData_"),
                     FieldValue: this.getFieldValue(field, item, FormMode.Edit)
                 });
             }
@@ -253,9 +254,10 @@ export class ListForm extends React.Component<IListFormProps, IListFormState> {
         if (list && this._itemChanges && (mode === FormMode.New || mode === FormMode.Edit)) {
             await this.validate(true);
             if (this.isValid && this.isDirty) {
+                const changes = {/*...item,*/ ...this._itemChanges };
                 const spItem = await (mode === FormMode.New
-                    ? this._addItem(list, this._itemChanges)
-                    : this._updateItem(list, item ? item.ID : itemId, this._itemChanges, item ? item["owshiddenversion"] : 0));
+                    ? this._addItem(list, changes)
+                    : this._updateItem(list, item ? item.ID : itemId, changes, item ? item["owshiddenversion"] : 0));
                 if (spItem) {
                     this._itemChanges = undefined;
                     this.setState({ isLoading: true });

@@ -10,6 +10,7 @@ export interface IUserFieldRendererProps extends IBaseFieldRendererProps {
     suggestionsLimit?: number;
     resolveDelay?: number;
     selectionLimit?: number;
+    minCharacters?: number;
     /**
    * Specify the user / group types to retrieve
    */
@@ -101,8 +102,8 @@ export class UserFieldRenderer extends BaseFieldRenderer {
     }
 
     private async onFilterChanged(searchText: string, currentSelected: IPersonaProps[]): Promise<IPersonaProps[]> {
-        const { suggestionsLimit, principalTypes } = this.props as IUserFieldRendererProps;
-        if (searchText.length > 2) {
+        const { suggestionsLimit, principalTypes, minCharacters } = this.props as IUserFieldRendererProps;
+        if (searchText.length >= (minCharacters !== undefined ? minCharacters : 3)) {
             const users = await SPService.searchPeople(searchText, suggestionsLimit, principalTypes, true);
             //const users = await SPService.findSiteUsers(searchText, suggestionsLimit, principalTypes) || [];
             const personas: IPersonaProps[] = users.map(user => {
@@ -214,10 +215,11 @@ export class UserFieldRenderer extends BaseFieldRenderer {
             const value = this.getValue();
             if (value instanceof Array && defaultValue instanceof Array) {
                 if (value.length !== defaultValue.length) return true;
-                const arr1 = value.sort((a, b) => a.Id - b.Id);
-                const arr2 = defaultValue.sort((a, b) => a.Id - b.Id);
+                const arr1 = value.sort((a, b) => a.Id - b.Id) as IUserFieldValue[];
+                const arr2 = defaultValue.sort((a, b) => a.Id - b.Id) as IUserFieldValue[];
                 for (let i = 0; i < arr1.length; i++) {
                     if (arr1[i].Id !== arr2[i].Id) return true;
+                    if (arr1[i].Name !== arr2[i].Name) return true;
                 }
                 return false;
             }

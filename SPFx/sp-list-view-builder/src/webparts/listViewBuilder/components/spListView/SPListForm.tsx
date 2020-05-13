@@ -78,7 +78,7 @@ export class SPListForm extends React.Component<ISPListFormProps, ISPListFormSta
 
     public render(): React.ReactElement {
         const { list, fields, headerText, regionalSettings, timeZone } = this.props;
-        const { mode, itemId, refreshCommandEnabled, isOpen, isDeleting, onClose } = this.state;
+        const { mode, itemId, refreshCommandEnabled, saveCommandEnabled, isOpen, isDeleting, onClose } = this.state;
         return isOpen === true && <Panel isLightDismiss isOpen={isOpen === true} onDismiss={() => {
             this.setState({ isOpen: false }, () => {
                 if (onClose instanceof Function) {
@@ -125,7 +125,9 @@ export class SPListForm extends React.Component<ISPListFormProps, ISPListFormSta
                     if (this._listForm.current) {
                         const isValid = this._listForm.current.isValid;
                         isDirty = isDirty || this._listForm.current.isDirty;
-                        this.setState({ refreshCommandEnabled: true, saveCommandEnabled: isDirty === true && isValid === true });
+                        if (refreshCommandEnabled !== true || saveCommandEnabled !== (isDirty === true && isValid === true)) {
+                            this.setState({ refreshCommandEnabled: true, saveCommandEnabled: isDirty === true && isValid === true });
+                        }
                     }
                 }} />}
             {this.renderDeleteDialog()}

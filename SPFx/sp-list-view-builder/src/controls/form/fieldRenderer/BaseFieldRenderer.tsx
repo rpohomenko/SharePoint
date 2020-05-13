@@ -20,7 +20,7 @@ export class BaseFieldRenderer extends React.Component<IBaseFieldRendererProps, 
     }
 
     public componentDidUpdate(prevProps: IBaseFieldRendererProps, prevState: IBaseFieldRendererState) {
-        if (prevProps.mode != this.props.mode) {
+        if (!isEqual(prevProps.mode, this.props.mode)) {
             this.setState({
                 mode: this.props.mode
             });
@@ -54,7 +54,7 @@ export class BaseFieldRenderer extends React.Component<IBaseFieldRendererProps, 
 
     public get isDirty(): boolean {
         const { mode, defaultValue } = this.props;
-        return mode === FormMode.New ? this.hasValue() : this.getValue() !== defaultValue;
+        return mode === FormMode.New ? this.hasValue() : !isEqual(this.getValue(), defaultValue);
     }
 
     public hasValue(): boolean {
