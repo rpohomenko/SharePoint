@@ -316,9 +316,18 @@ export class ListForm extends React.Component<IListFormProps, IListFormState> {
                     }
                     break;
                 case DataType.MultiLookup:
-                    value = value && value instanceof Array && value.length > 0
-                        ? { results: value.map(v => (v as ILookupFieldValue).Id) }
-                        : null;
+                    if (value && value instanceof Array && value.length > 0) {
+                        value = value.map((v: ILookupFieldValue) => v.Id).filter(id => id > 0);
+                        if (mode === FormMode.New) {
+                            value = { results: value };
+                        }
+                        else {
+                            value = (value as number[]).map(id => `${id};#`).join(';#');
+                        }
+                    }
+                    else {
+                        value = null;
+                    }
                     break;
                 case DataType.User:
                     value = value
@@ -344,9 +353,17 @@ export class ListForm extends React.Component<IListFormProps, IListFormState> {
                     }
                     break;
                 case DataType.MultiUser:
-                    value = value && value instanceof Array && value.length > 0
-                        ? { results: value.map(v => (v as IUserFieldValue).Id) }
-                        : null;
+                    if (value instanceof Array && value.length > 0) {
+                        if (mode === FormMode.New) {
+                            value = { results: value.map((v: IUserFieldValue) => v.Id) };
+                        }
+                        else {
+                            value = JSON.stringify(value.map((v: IUserFieldValue) => { return { "Key": v.Name }; }));
+                        }
+                    }
+                    else {
+                        value = null;
+                    }
                     break;
             }
             return value;

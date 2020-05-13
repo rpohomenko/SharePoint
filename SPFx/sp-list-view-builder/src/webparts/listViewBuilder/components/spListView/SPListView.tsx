@@ -520,8 +520,9 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
     }
 
     private renderMultiUser(item, index, column: IColumn, viewField: IViewField, viewFields: IViewField[]) {
-        const values = item[viewField.Name] ? item[viewField.Name].results : [] as string[];
-        return <span>{values.map(value => value[(viewField as IViewLookupField).LookupFieldName || "Title"]).join(', ')}</span>;
+        const values = item[viewField.Name] ? item[viewField.Name].results : null;
+        if (values instanceof Array)
+            return <span>{values.map(value => value["Title"]).join(', ')}</span>;
     }
 
     private renderDateTime(item, index, column: IColumn, viewField: IViewField, viewFields: IViewField[]) {

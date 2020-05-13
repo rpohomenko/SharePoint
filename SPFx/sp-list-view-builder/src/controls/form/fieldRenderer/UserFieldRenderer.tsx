@@ -5,6 +5,12 @@ import { IBaseFieldRendererProps, IBaseFieldRendererState } from './IBaseFieldRe
 import { PrincipalType, FormMode, IUserFieldValue } from '../../../utilities/Entities';
 import SPService from '../../../utilities/SPService';
 import { isEqual, uniqBy } from "@microsoft/sp-lodash-subset";
+import { cancelable, CancelablePromise } from 'cancelable-promise';
+
+interface CancelablePromise extends Promise<any> {
+    cancel: () => void;
+    finally: (onfinally?: (() => void) | undefined | null) => Promise<any>;
+}
 
 export interface IUserFieldRendererProps extends IBaseFieldRendererProps {
     suggestionsLimit?: number;
@@ -23,6 +29,7 @@ export interface IUserFieldRendererState extends IBaseFieldRendererState {
 
 export class UserFieldRenderer extends BaseFieldRenderer {
 
+    private _promise: CancelablePromise;
     private _userField: React.RefObject<IBasePicker<IPersonaProps>>;
 
     constructor(props: IUserFieldRendererProps) {
@@ -35,7 +42,7 @@ export class UserFieldRenderer extends BaseFieldRenderer {
             const value = this.props.defaultValue as IUserFieldValue[];
             const personas: IPersonaProps[] = value.map(v => {
                 return {
-                    id: String(v.Id),                  
+                    id: String(v.Id),
                     imageUrl: this.getUserPhotoLink("", v.Email),
                     imageInitials: this.getFullNameInitials(v.Title),
                     text: v.Title,
@@ -44,6 +51,7 @@ export class UserFieldRenderer extends BaseFieldRenderer {
                     optionalText: "" // anything
                 } as IPersonaProps;
             });
+            this.setState({ mostRecentlyUsedPersons: [...personas] } as IUserFieldRendererState);
             this.setValue(personas);
         }
     }
@@ -55,6 +63,12 @@ export class UserFieldRenderer extends BaseFieldRenderer {
         }
     }
 
+    public componentWillUnmount() {
+        if (this._promise) {
+            this._promise.cancel();
+        }
+    }
+
     protected onRenderNewForm() {
         return this._renderNewOrEditForm();
     }
@@ -63,7 +77,7 @@ export class UserFieldRenderer extends BaseFieldRenderer {
         return this._renderNewOrEditForm();
     }
 
-    protected onRenderDispForm() {       
+    protected onRenderDispForm() {
         return null;
     }
 
@@ -86,13 +100,19 @@ export class UserFieldRenderer extends BaseFieldRenderer {
             onEmptyInputFocus={this.returnMostRecentlyUsedPerson.bind(this)}
             getTextFromItem={(persona: IPersonaProps) => persona.text}
             className={'ms-PeoplePicker'}
-            itemLimit={selectionLimit || 1}        
+            itemLimit={selectionLimit || 1}
             selectedItems={items}
             key={"peoplePicker"}
             pickerSuggestionsProps={suggestionProps}
             inputProps={{
                 'aria-label': 'People Picker',
                 placeholder: ''
+            }}
+            onItemSelected={(item: IPersonaProps): IPersonaProps | null => {
+                if (this._userField.current && this.listContainsPersona(item, this._userField.current.items)) {
+                    return null;
+                }
+                return item;
             }}
             componentRef={this._userField}
             resolveDelay={resolveDelay || 300}
@@ -104,29 +124,39 @@ export class UserFieldRenderer extends BaseFieldRenderer {
     private async onFilterChanged(searchText: string, currentSelected: IPersonaProps[]): Promise<IPersonaProps[]> {
         const { suggestionsLimit, principalTypes, minCharacters } = this.props as IUserFieldRendererProps;
         if (searchText.length >= (minCharacters !== undefined ? minCharacters : 3)) {
-            const users = await SPService.searchPeople(searchText, suggestionsLimit, principalTypes, true);
+
+            if (this._promise) {
+                this._promise.cancel();
+            }
+
+            const users = await cancelable(SPService.searchPeople(searchText, suggestionsLimit, principalTypes, true))
+                .finally(() => {
+                    this._promise = null;
+                });
             //const users = await SPService.findSiteUsers(searchText, suggestionsLimit, principalTypes) || [];
-            const personas: IPersonaProps[] = users.map(user => {
-                return {
-                    id: String(user.Id),                 
-                    imageUrl: this.getUserPhotoLink("", user.Email),
-                    imageInitials: this.getFullNameInitials(user.Title),
-                    text: user.Title,
-                    secondaryText: user.Email,
-                    tertiaryText: user.LoginName,
-                    optionalText: "" // anything
-                } as IPersonaProps;
-            });
-            // Remove duplicates
-            const { value, mostRecentlyUsedPersons } = this.state as IUserFieldRendererState;
-            const filteredPersons = this.removeDuplicates(personas, value);
-            // Add the users to the most recently used ones
-            let recentlyUsed = mostRecentlyUsedPersons instanceof Array ? [...filteredPersons, ...mostRecentlyUsedPersons] : filteredPersons;
-            recentlyUsed = uniqBy(recentlyUsed, "id");
-            this.setState({
-                mostRecentlyUsedPersons: recentlyUsed.slice(0, suggestionsLimit)
-            } as IUserFieldRendererState);
-            return filteredPersons;
+            if (users instanceof Array) {
+                const personas: IPersonaProps[] = users.map(user => {
+                    return {
+                        id: String(user.Id),
+                        imageUrl: this.getUserPhotoLink("", user.Email),
+                        imageInitials: this.getFullNameInitials(user.Title),
+                        text: user.Title,
+                        secondaryText: user.Email,
+                        tertiaryText: user.LoginName,
+                        optionalText: "" // anything
+                    } as IPersonaProps;
+                });
+                // Remove duplicates
+                const { value, mostRecentlyUsedPersons } = this.state as IUserFieldRendererState;
+                const filteredPersons = this.removeDuplicates(personas, value);
+                // Add the users to the most recently used ones
+                let recentlyUsed = mostRecentlyUsedPersons instanceof Array ? [...filteredPersons, ...mostRecentlyUsedPersons] : filteredPersons;
+                recentlyUsed = uniqBy(recentlyUsed, "id");
+                this.setState({
+                    mostRecentlyUsedPersons: recentlyUsed.slice(0, suggestionsLimit)
+                } as IUserFieldRendererState);
+                return filteredPersons;
+            }
         } else {
             return [];
         }
@@ -204,7 +234,7 @@ export class UserFieldRenderer extends BaseFieldRenderer {
             }).filter(u => u.Id > 0);
         }
         return null;
-    }   
+    }
 
     public get isDirty(): boolean {
         const { mode, defaultValue } = this.props;
