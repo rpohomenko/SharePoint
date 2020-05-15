@@ -123,7 +123,7 @@ export class ListForm extends React.Component<IListFormProps, IListFormState> {
                     {!isLoading && visibleFields instanceof Array && visibleFields.length > 0
                         && visibleFields.map(field => <FormField key={field.Id || field.Name}
                             disabled={isLoading || isSaving}
-                            defaultValue={item ? item[field.Name] : undefined}
+                            defaultValue={item ? item[field.PrimaryFieldName ? field.PrimaryFieldName : field.Name] : undefined}
                             ref={ref => {
                                 if (ref != null) {
                                     this._formFields.push(ref);
@@ -396,14 +396,18 @@ export class ListForm extends React.Component<IListFormProps, IListFormState> {
             ) {
                 const lookupField = formField as IFormField;
                 if (lookupField.PrimaryFieldName && lookupField.LookupFieldName) {
-                    select.push(`${lookupField.PrimaryFieldName}/${lookupField.LookupFieldName}`);
+                    if (select.indexOf(`${lookupField.PrimaryFieldName}/${lookupField.LookupFieldName || "Title"}`) === -1) {
+                        select.push(`${lookupField.PrimaryFieldName}/${lookupField.LookupFieldName || "Title"}`);
+                    }
                     if (expand.indexOf(lookupField.PrimaryFieldName) === -1) {
                         expand.push(lookupField.PrimaryFieldName);
                     }
                 }
-                else {
+                else {                    
                     select.push(`${lookupField.Name}/ID`);
-                    select.push(`${lookupField.Name}/${lookupField.LookupFieldName || "Title"}`);
+                    if (select.indexOf(`${lookupField.Name}/${lookupField.LookupFieldName || "Title"}`) === -1) {
+                      select.push(`${lookupField.Name}/${lookupField.LookupFieldName || "Title"}`);
+                    }
                     if (expand.indexOf(lookupField.Name) === -1) {
                         expand.push(lookupField.Name);
                     }

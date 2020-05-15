@@ -3,7 +3,7 @@ import { TagPicker, IBasePicker, ITag, Label } from 'office-ui-fabric-react' /* 
 import { IList } from "@pnp/sp/lists";
 import "@pnp/sp/items";
 import { IListItemPickerProps, IListItemPickerState } from './IListItemPickerProps';
-import { IListItem } from '../../../utilities/Entities';
+import { IListItem, ILookupFieldValue } from '../../../utilities/Entities';
 import { cancelable, CancelablePromise } from 'cancelable-promise';
 
 interface CancelablePromise extends Promise<any> {
@@ -34,8 +34,8 @@ export class ListItemPicker extends React.Component<IListItemPickerProps, IListI
 
     }
 
-    public componentWillUnmount(){
-        if(this._promise){
+    public componentWillUnmount() {
+        if (this._promise) {
             this._promise.cancel();
         }
     }
@@ -49,8 +49,8 @@ export class ListItemPicker extends React.Component<IListItemPickerProps, IListI
                 itemLimit={itemLimit}
                 removeButtonAriaLabel="Remove"
                 componentRef={this._picker}
-                selectedItems={selected instanceof Array ? selected.map((item: IListItem) => {
-                    return { key: item.ID, name: item.Title } as ITag;
+                selectedItems={selected instanceof Array ? selected.map((item: ILookupFieldValue) => {
+                    return { key: item.Id, name: item.Title } as ITag;
                 }) : []}
                 onResolveSuggestions={(filter: string, selectedItems?: ITag[]) => {
                     if (!filter) return null;
@@ -72,8 +72,8 @@ export class ListItemPicker extends React.Component<IListItemPickerProps, IListI
                 }}
                 onChange={(items?: ITag[]) => {
                     if (this.props.onChange instanceof Function) {
-                        const spItems = items instanceof Array ? items.map(item => { return { ID: Number(item.key), Title: item.name } as IListItem; }) : null;
-                        this.props.onChange(spItems);
+                        const lookupValues = items instanceof Array ? items.map(item => { return { Id: Number(item.key), Title: item.name } as ILookupFieldValue; }) : null;
+                        this.props.onChange(lookupValues);
                     }
                 }}
                 onItemSelected={(item: ITag): ITag | null => {

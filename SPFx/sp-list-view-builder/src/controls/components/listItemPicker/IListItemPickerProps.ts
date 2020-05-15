@@ -1,16 +1,16 @@
 import { IList } from "@pnp/sp/lists";
-import { IField, IListItem } from "../../../utilities/Entities";
+import { IListItem, ILookupFieldValue } from "../../../utilities/Entities";
 
 export interface IListItemPickerProps {
     label?: string;
     list: IList;
     disabled?: boolean;
     placeholder?: string;
-    selected?: IListItem[];
+    selected?: ILookupFieldValue[];
     itemLimit?: number;
     fieldName?: string;
     minCharacters?: number;
-    onChange?: (items: IListItem[]) => void;
+    onChange?: (lookupValues: ILookupFieldValue[]) => void;
     onFilter?: (item: IListItem) => boolean;
 }
 

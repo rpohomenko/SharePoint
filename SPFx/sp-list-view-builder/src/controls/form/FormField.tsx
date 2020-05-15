@@ -168,17 +168,18 @@ export class FormField extends React.Component<IFormFieldProps | IDateFormFieldP
                 } as IBooleanFieldRendererProps);
             case DataType.User:
             case DataType.MultiUser:
+                const userValues: IUserFieldValue[] = defaultValue
+                    ? field.DataType === DataType.MultiUser
+                        ? defaultValue.results instanceof Array && defaultValue.results.length > 0 ? defaultValue.results.map((v: any) => { return { Id: v.ID, Title: v.Title, Email: v.EMail, Name: v.Name } as IUserFieldValue; }) : null
+                        : (defaultValue.ID > 0 ? [{ Id: defaultValue.ID, Title: defaultValue.Title, Email: defaultValue.EMail, Name: defaultValue.Name } as IUserFieldValue] : null)
+                    : null;
                 return React.createElement(UserFieldRenderer, {
                     key: field.Name,
                     ref: this._fieldControl,
                     suggestionsLimit: (this.props as IUserFormFieldProps).suggestionsLimit || 10,
                     selectionLimit: field.DataType === DataType.MultiUser ? (this.props as IUserFormFieldProps).limit || 5 : 1,
                     disabled: field.ReadOnly === true || disabled === true,
-                    defaultValue: defaultValue
-                        ? field.DataType === DataType.MultiUser
-                            ? defaultValue.results instanceof Array && defaultValue.results.length > 0 ? defaultValue.results.map((v: any) => { return { Id: v.ID, Title: v.Title, Email: v.EMail, Name: v.Name } as IUserFieldValue; }) : null
-                            : (defaultValue.ID > 0 ? [{ Id: defaultValue.ID, Title: defaultValue.Title, Email: defaultValue.EMail, Name: defaultValue.Name } as IUserFieldValue] : null)
-                        : null,
+                    defaultValue: userValues,
                     required: field.Required === true,
                     mode: mode,
                     dataType: field.DataType,
@@ -188,6 +189,11 @@ export class FormField extends React.Component<IFormFieldProps | IDateFormFieldP
                 } as IUserFieldRendererProps);
             case DataType.Lookup:
             case DataType.MultiLookup:
+                const lookupValues = defaultValue
+                    ? field.DataType === DataType.MultiLookup
+                        ? defaultValue.results instanceof Array ? defaultValue.results.map(v => { return { Id: v.ID, Title: v[field.LookupFieldName || "Title"] } as ILookupFieldValue; }) : null
+                        : (defaultValue.ID > 0 ? [{ Id: defaultValue.ID, Title: defaultValue[field.LookupFieldName || "Title"] } as ILookupFieldValue] : null)
+                    : null;
                 return React.createElement(LookupFieldRenderer, {
                     key: field.Name,
                     ref: this._fieldControl,
@@ -196,14 +202,12 @@ export class FormField extends React.Component<IFormFieldProps | IDateFormFieldP
                     suggestionsLimit: (this.props as ILookupFormFieldProps).suggestionsLimit || 10,
                     itemLimit: field.DataType === DataType.MultiLookup ? (this.props as ILookupFormFieldProps).limit || 5 : 1,
                     disabled: field.ReadOnly === true || disabled === true,
-                    defaultValue: defaultValue
-                        ? field.DataType === DataType.MultiLookup
-                            ? defaultValue.results instanceof Array ? defaultValue.results : null
-                            : (defaultValue.ID > 0 ? [defaultValue] : null)
-                        : null,
+                    defaultValue: lookupValues,
                     required: field.Required === true,
                     mode: mode,
-                    dataType: field.DataType,
+                    dataType: field.OutputType !== undefined ? field.OutputType: field.DataType,
+                    regionalSettings: (this.props as IDateFormFieldProps).regionalSettings,
+                    timeZone: (this.props as IDateFormFieldProps).timeZone,
                     title: field.Title,
                     onValidate: onValidate,
                     onChange: onChange

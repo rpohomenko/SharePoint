@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { NormalPeoplePicker, IBasePickerSuggestionsProps, IBasePicker, IPersonaProps } from 'office-ui-fabric-react' /* '@fluentui/react'*/;
+import { NormalPeoplePicker, IBasePickerSuggestionsProps, IBasePicker, IPersonaProps, Label } from 'office-ui-fabric-react' /* '@fluentui/react'*/;
 import { BaseFieldRenderer } from './BaseFieldRenderer';
 import { IBaseFieldRendererProps, IBaseFieldRendererState } from './IBaseFieldRendererProps';
 import { PrincipalType, FormMode, IUserFieldValue } from '../../../utilities/Entities';
@@ -59,7 +59,15 @@ export class UserFieldRenderer extends BaseFieldRenderer {
     public componentDidUpdate(prevProps: IUserFieldRendererProps, prevState: IBaseFieldRendererState) {
         super.componentDidUpdate(prevProps, prevState);
         if (!isEqual(prevProps.defaultValue, this.props.defaultValue)) {
-            this.componentDidMount();
+            let prevValue = prevProps.defaultValue as IUserFieldValue[];
+            let currentValue = this.props.defaultValue as IUserFieldValue[];
+            if (currentValue instanceof Array && prevValue instanceof Array) {
+                prevValue = prevValue.sort((a, b) => a.Id - b.Id);
+                currentValue = currentValue.sort((a, b) => a.Id - b.Id);
+            }
+            if (!isEqual(prevValue, currentValue)) {
+                this.componentDidMount();
+            }
         }
     }
 
@@ -78,13 +86,16 @@ export class UserFieldRenderer extends BaseFieldRenderer {
     }
 
     protected onRenderDispForm() {
-        return null;
+        const { defaultValue } = this.props as IUserFieldRendererProps;
+        const userValues = defaultValue as IUserFieldValue[];
+        return userValues instanceof Array && userValues.length > 0
+            ? <>{userValues.map(userValue => <Label>{userValue.Title}</Label>)}</> : null;
     }
 
     private _renderNewOrEditForm() {
         const { disabled, suggestionsLimit, selectionLimit, resolveDelay } = this.props as IUserFieldRendererProps;
         const { value } = this.state;
-        const items: IPersonaProps[] = value instanceof Array ? suggestionsLimit > 0 ? value.slice(0, suggestionsLimit) : value : [];
+        const items: IPersonaProps[] = value instanceof Array && value.length > 0 ? suggestionsLimit > 0 ? value.slice(0, suggestionsLimit) : value : null;
         const suggestionProps: IBasePickerSuggestionsProps = {
             suggestionsHeaderText: 'Suggested People',
             mostRecentlyUsedHeaderText: 'Suggested Contacts',
@@ -106,7 +117,7 @@ export class UserFieldRenderer extends BaseFieldRenderer {
             pickerSuggestionsProps={suggestionProps}
             inputProps={{
                 'aria-label': 'People Picker',
-                placeholder: ''
+                placeholder: 'Enter a name or email address...'
             }}
             onItemSelected={(item: IPersonaProps): IPersonaProps | null => {
                 if (this._userField.current && this.listContainsPersona(item, this._userField.current.items)) {
@@ -242,22 +253,23 @@ export class UserFieldRenderer extends BaseFieldRenderer {
             return this.hasValue();
         }
         else {
-            const value = this.getValue();
-            if (value instanceof Array && defaultValue instanceof Array) {
-                if (value.length !== defaultValue.length) return true;
-                const arr1 = value.sort((a, b) => a.Id - b.Id) as IUserFieldValue[];
-                const arr2 = defaultValue.sort((a, b) => a.Id - b.Id) as IUserFieldValue[];
-                for (let i = 0; i < arr1.length; i++) {
-                    if (arr1[i].Id !== arr2[i].Id) return true;
-                    if (arr1[i].Name !== arr2[i].Name) return true;
+            let currentValue = this.getValue() as IUserFieldValue[];
+            let prevValue = defaultValue as IUserFieldValue[];
+            if (currentValue instanceof Array && prevValue instanceof Array) {
+                if (currentValue.length !== prevValue.length) return true;
+                currentValue = currentValue.sort((a, b) => a.Id - b.Id) as IUserFieldValue[];
+                prevValue = prevValue.sort((a, b) => a.Id - b.Id) as IUserFieldValue[];
+                for (let i = 0; i < currentValue.length; i++) {
+                    if (currentValue[i].Id !== prevValue[i].Id) return true;
+                    if (currentValue[i].Name !== prevValue[i].Name) return true;
                 }
                 return false;
             }
-            if (!value) {
-                return !!defaultValue;
+            if (!currentValue) {
+                return !!prevValue;
             }
-            if (!defaultValue) {
-                return !!value;
+            if (!prevValue) {
+                return !!currentValue;
             }
             return false;
         }

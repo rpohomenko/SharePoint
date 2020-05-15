@@ -2,15 +2,20 @@ import * as React from 'react';
 import { Label } from 'office-ui-fabric-react' /* '@fluentui/react'*/;
 import { BaseFieldRenderer } from './BaseFieldRenderer';
 import { IBaseFieldRendererProps, IBaseFieldRendererState } from './IBaseFieldRendererProps';
-import { ListItemPicker, IListItemPickerProps } from '../../components/listItemPicker';
+import { ListItemPicker } from '../../components/listItemPicker';
 import { IList } from '@pnp/sp/lists';
-import { ILookupFieldValue, IListItem, FormMode } from '../../../utilities/Entities';
+import { ILookupFieldValue, FormMode, DataType } from '../../../utilities/Entities';
 import { isEqual } from "@microsoft/sp-lodash-subset";
+import DateHelper from '../../../utilities/DateHelper';
+import moment from 'moment';
+import { IRegionalSettingsInfo, ITimeZoneInfo } from '@pnp/sp/regional-settings/types';
 
 export interface ILookupFieldRendererProps extends IBaseFieldRendererProps {
     list: IList;
     fieldName: string;
-    itemLimit: number;    
+    itemLimit: number;
+    regionalSettings?: IRegionalSettingsInfo;
+    timeZone?: ITimeZoneInfo;
 }
 
 export class LookupFieldRenderer extends BaseFieldRenderer {
@@ -26,7 +31,7 @@ export class LookupFieldRenderer extends BaseFieldRenderer {
     public componentDidMount() {
         const { defaultValue } = this.props as ILookupFieldRendererProps;
         if (defaultValue instanceof Array) {
-            this.setValue((defaultValue as IListItem[]).map(v => { return { ID: v.ID, Title: v[(this.props as ILookupFieldRendererProps).fieldName || 'Title'] } as IListItem; }));
+            this.setValue(defaultValue);
         }
     }
 
@@ -34,7 +39,7 @@ export class LookupFieldRenderer extends BaseFieldRenderer {
         super.componentDidUpdate(prevProps, prevState);
         if (!isEqual(prevProps.defaultValue, this.props.defaultValue)) {
             if (this.props.defaultValue instanceof Array) {
-                this.setValue((this.props.defaultValue as IListItem[]).map(v => { return { ID: v.ID, Title: v[(this.props as ILookupFieldRendererProps).fieldName || 'Title'] } as IListItem; }));
+                this.setValue(this.props.defaultValue);
             }
             else {
                 this.setValue(null);
@@ -51,8 +56,29 @@ export class LookupFieldRenderer extends BaseFieldRenderer {
     }
 
     protected onRenderDispForm() {
-        const { defaultValue } = this.props as ILookupFieldRendererProps;
-        return defaultValue ? <Label>{(defaultValue as ILookupFieldValue).Title}</Label> : null;
+        const { defaultValue, dataType } = this.props as ILookupFieldRendererProps;
+        const lookupValues = defaultValue as ILookupFieldValue[];
+        return lookupValues instanceof Array && lookupValues.length > 0
+            ? <>{lookupValues.map(lookupValue => <Label>{this.formatFieldValue(lookupValue.Title, dataType)}</Label>)}</> : null;
+    }
+
+    private formatFieldValue(value: string, dataType: DataType): string {
+        const { timeZone } = this.props as ILookupFieldRendererProps;
+        
+        if (value === undefined || value === null) {
+            return "";
+        }
+        switch (dataType) {
+            case DataType.Date:
+            case DataType.DateTime:
+                const dateValue = DateHelper.toLocalDate(new Date(value), timeZone ? timeZone.Information.Bias : 0);
+                return dataType === DataType.Date ? moment(dateValue).format("L") : moment(dateValue).format("L LT");
+            case DataType.Number:
+                return Number(value).toString();
+            case DataType.Boolean:
+                return Boolean(value) === true ? "Yes" : "No";
+        }
+        return value;
     }
 
     private _renderNewOrEditForm() {
@@ -66,43 +92,37 @@ export class LookupFieldRenderer extends BaseFieldRenderer {
             selected={value}
             itemLimit={itemLimit || 5}
             placeholder={"Search..."}
-            onChange={(items: IListItem[]) => {
-                this.setValue(items);
+            onChange={(lookupValues: ILookupFieldValue[]) => {
+                this.setValue(lookupValues);
             }} />;
-    }
-
-    public getValue() {
-        if (this.state.value instanceof Array && this.state.value.length > 0) {
-            return (this.state.value as IListItem[]).map(v => { return { Id: v.ID, Title: v.Title } as ILookupFieldValue; });
-        }
-        return null;
-    }
+    }   
 
     public hasValue() {
         return this.state.value instanceof Array && this.state.value.length > 0;
     }
 
     public get isDirty(): boolean {
-        const { mode, defaultValue } = this.props;
+        const { mode, defaultValue } = this.props as ILookupFieldRendererProps;
         if (mode === FormMode.New) {
             return this.hasValue();
         }
         else {
-            const value = this.getValue();
-            if (value instanceof Array && defaultValue instanceof Array) {
-                if (value.length !== defaultValue.length) return true;
-                const arr1 = value.sort((a, b) => a.Id - b.Id) as ILookupFieldValue[];
-                const arr2 = defaultValue.sort((a, b) => a.Id - b.Id) as ILookupFieldValue[];
-                for (let i = 0; i < arr1.length; i++) {
-                    if (arr1[i].Id !== arr2[i].Id) return true;                   
+            let currentValue = this.getValue() as ILookupFieldValue[];
+            let prevValue = defaultValue as ILookupFieldValue[];
+            if (currentValue instanceof Array && prevValue instanceof Array) {
+                if (currentValue.length !== prevValue.length) return true;
+                currentValue = currentValue.sort((a, b) => a.Id - b.Id);
+                prevValue = prevValue.sort((a, b) => a.Id - b.Id);
+                for (let i = 0; i < currentValue.length; i++) {
+                    if (currentValue[i].Id !== prevValue[i].Id) return true;
                 }
                 return false;
             }
-            if (!value) {
-                return !!defaultValue;
+            if (!currentValue) {
+                return !!prevValue;
             }
-            if (!defaultValue) {
-                return !!value;
+            if (!prevValue) {
+                return !!currentValue;
             }
             return false;
         }
