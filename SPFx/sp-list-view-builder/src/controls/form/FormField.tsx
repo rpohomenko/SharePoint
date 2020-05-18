@@ -11,6 +11,7 @@ import { DataType, FormMode, ILookupFieldValue, IUserFieldValue, IListItem } fro
 import { BaseFieldRenderer } from './fieldRenderer/BaseFieldRenderer';
 import { sp } from '@pnp/sp/presets/all';
 import { isEqual } from "@microsoft/sp-lodash-subset";
+import { RichTextFieldRenderer } from './fieldRenderer/RichTextFieldRenderer';
 
 export class FormField extends React.Component<IFormFieldProps | IDateFormFieldProps | ITextFormFieldProps | ILookupFormFieldProps | IUserFormFieldProps, IFormFieldState> {
 
@@ -135,6 +136,19 @@ export class FormField extends React.Component<IFormFieldProps | IDateFormFieldP
                     onValidate: onValidate,
                     onChange: onChange
                 } as ITextFieldRendererProps);
+            case DataType.RichText:           
+                return React.createElement(RichTextFieldRenderer, {
+                    key: field.Name,
+                    ref: this._fieldControl,
+                    disabled: field.ReadOnly === true || disabled === true,
+                    defaultValue: this.decodeHtml(defaultValue),
+                    required: field.Required === true,
+                    mode: mode,
+                    dataType: field.DataType,
+                    title: field.Title,                
+                    onValidate: onValidate,
+                    onChange: onChange
+                } as ITextFieldRendererProps);
             case DataType.Date:
             case DataType.DateTime:
                 return React.createElement(DateFieldRenderer, {
@@ -216,6 +230,14 @@ export class FormField extends React.Component<IFormFieldProps | IDateFormFieldP
 
         return null;
         //throw `Field Type "${field.DataType[field.DataType]}" is not supported.`;
+    }
 
+    private decodeHtml(html: string) {
+        if (html) {
+            const textarea = document.createElement("textarea");
+            textarea.innerHTML = html;
+            return textarea.value;
+        }
+        return null;
     }
 }

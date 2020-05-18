@@ -26,7 +26,7 @@
     "@pnp/logging": "^2.0.4",
     "@pnp/odata": "^2.0.4",
     "@pnp/sp": "^2.0.4",
-    "@pnp/spfx-controls-react": "^1.17.0",
+    "@pnp/spfx-controls-react": "^1.18.0",
     "@types/camljs": "^2.8.1",
     "@types/es6-promise": "0.0.33",
     "@types/react": "16.8.8",
