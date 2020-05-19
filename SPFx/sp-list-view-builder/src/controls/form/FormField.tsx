@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Label, IconButton, Callout, Stack, Text, getId } from 'office-ui-fabric-react' /* '@fluentui/react'*/;
-import { IFormFieldProps, IFormFieldState, IDateFormFieldProps, ITextFormFieldProps, ILookupFormFieldProps, IUserFormFieldProps } from './IFormFieldProps';
+import { IFormFieldProps, IFormFieldState, IDateFormFieldProps, ITextFormFieldProps, ILookupFormFieldProps, IUserFormFieldProps, INumberFormFieldProps } from './IFormFieldProps';
 import { TextFieldRenderer, ITextFieldRendererProps } from './fieldRenderer/TextFieldRenderer';
 import { DateFieldRenderer, IDateFieldRendererProps } from './fieldRenderer/DateFieldRenderer';
 import { UserFieldRenderer, IUserFieldRendererProps } from './fieldRenderer/UserFieldRenderer';
@@ -12,8 +12,9 @@ import { BaseFieldRenderer } from './fieldRenderer/BaseFieldRenderer';
 import { sp } from '@pnp/sp/presets/all';
 import { isEqual } from "@microsoft/sp-lodash-subset";
 import { RichTextFieldRenderer } from './fieldRenderer/RichTextFieldRenderer';
+import { NumberFieldRenderer } from './fieldRenderer/NumberFieldRenderer';
 
-export class FormField extends React.Component<IFormFieldProps | IDateFormFieldProps | ITextFormFieldProps | ILookupFormFieldProps | IUserFormFieldProps, IFormFieldState> {
+export class FormField extends React.Component<IFormFieldProps | IDateFormFieldProps | ITextFormFieldProps | INumberFormFieldProps | ILookupFormFieldProps | IUserFormFieldProps, IFormFieldState> {
 
     private _iconButtonId = getId('iFieldInfo');
     private _fieldControl: React.RefObject<BaseFieldRenderer>;
@@ -145,7 +146,22 @@ export class FormField extends React.Component<IFormFieldProps | IDateFormFieldP
                     required: field.Required === true,
                     mode: mode,
                     dataType: field.DataType,
-                    title: field.Title,                
+                    title: field.Title,
+                    onValidate: onValidate,
+                    onChange: onChange
+                } as ITextFieldRendererProps);
+            case DataType.Number:
+                return React.createElement(NumberFieldRenderer, {
+                    key: field.Name,
+                    ref: this._fieldControl,
+                    disabled: field.ReadOnly === true || disabled === true,
+                    defaultValue: defaultValue,
+                    required: field.Required === true,
+                    mode: mode,
+                    dataType: field.DataType,
+                    title: field.Title,
+                    min: (this.props as INumberFormFieldProps).min,
+                    max: (this.props as INumberFormFieldProps).max,
                     onValidate: onValidate,
                     onChange: onChange
                 } as ITextFieldRendererProps);

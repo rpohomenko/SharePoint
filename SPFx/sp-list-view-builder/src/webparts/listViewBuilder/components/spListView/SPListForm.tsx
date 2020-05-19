@@ -115,17 +115,20 @@ export class SPListForm extends React.Component<ISPListFormProps, ISPListFormSta
                     const canDelete = SPService.doesItemHavePermissions(item, PermissionKind.DeleteListItems);
                     this.setState({ itemId: item ? item.ID : 0, canEdit: canEdit, canDelete: canDelete, refreshCommandEnabled: true, saveCommandEnabled: (mode === FormMode.Edit || mode === FormMode.New) && this._listForm.current.isDirty === true });
                 }}
-                onChange={(field, value, isDirty) => {
-                    if (this._listForm.current) {
-                        const isValid = this._listForm.current.isValid;
-                        isDirty = isDirty || this._listForm.current.isDirty;
-                        if (refreshCommandEnabled !== true || saveCommandEnabled !== (isDirty === true && isValid === true)) {
-                            this.setState({ refreshCommandEnabled: true, saveCommandEnabled: isDirty === true && isValid === true });
-                        }
-                    }
-                }} />}
+                onChange={this.onFieldValueChange.bind(this)} />}
             {this.renderDeleteDialog()}
         </Panel>;
+    }
+
+    protected onFieldValueChange(field: IFormField, value: any, isDirty: boolean) {
+        if (this._listForm.current) {
+            const { refreshCommandEnabled, saveCommandEnabled } = this.state;
+            const isValid = this._listForm.current.isValid;
+            isDirty = (isDirty || this._listForm.current.isDirty) && !this._listForm.current.state.isLoading;
+            if (refreshCommandEnabled !== (!this._listForm.current.state.isLoading) || saveCommandEnabled !== (isDirty === true && isValid === true)) {
+                this.setState({ refreshCommandEnabled: !this._listForm.current.state.isLoading, saveCommandEnabled: isDirty === true && isValid === true });
+            }
+        }
     }
 
     private renderFooterContent = () => {
@@ -171,7 +174,7 @@ export class SPListForm extends React.Component<ISPListFormProps, ISPListFormSta
             });
         }
         return items;
-    } 
+    }
 
     private save() {
         if (this._listForm.current) {

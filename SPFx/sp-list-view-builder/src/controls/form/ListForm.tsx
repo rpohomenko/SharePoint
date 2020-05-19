@@ -300,6 +300,11 @@ export class ListForm extends React.Component<IListFormProps, IListFormState> {
                         value = value === true ? "1" : value === false ? "0" : null;
                     }
                     break;
+                case DataType.Number:
+                    if (mode === FormMode.Edit) {
+                        value = !isNaN(Number(value)) ? String(value) : null;
+                    }
+                    break;
                 case DataType.Lookup:
                     value = value
                         ? (value instanceof Array && value.length > 0
