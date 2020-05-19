@@ -78,18 +78,12 @@ export class SPListForm extends React.Component<ISPListFormProps, ISPListFormSta
 
     public render(): React.ReactElement {
         const { list, fields, headerText, regionalSettings, timeZone } = this.props;
-        const { mode, itemId, refreshCommandEnabled, saveCommandEnabled, isOpen, isDeleting, onClose } = this.state;
+        const { mode, itemId, refreshCommandEnabled, saveCommandEnabled, isOpen, isDeleting } = this.state;
         return isOpen === true && <Panel isLightDismiss isOpen={isOpen === true} onDismiss={() => {
-            this.setState({ isOpen: false }, () => {
-                if (onClose instanceof Function) {
-                    onClose();
-                }
-            });
+            this.close();
         }} closeButtonAriaLabel={"Close"}
             headerText={`${headerText ? headerText + ": " : ""}${mode === FormMode.Edit ? "Edit" : (mode === FormMode.New ? "New" : "View")}`}
-            onRenderFooterContent={() => {
-                return null;
-            }}
+            onRenderFooterContent={this.renderFooterContent.bind(this)}
             isFooterAtBottom={false}>
             <CommandBar items={this.getCommandItems()}
                 farItems={[
@@ -134,8 +128,19 @@ export class SPListForm extends React.Component<ISPListFormProps, ISPListFormSta
         </Panel>;
     }
 
+    private renderFooterContent = () => {
+        const { saveCommandEnabled } = this.state;
+        return (<div>
+            <PrimaryButton disabled={!saveCommandEnabled} onClick={() => {
+                this.save();
+            }} styles={{ root: { marginRight: 8 } }}>
+                {"Save"}
+            </PrimaryButton>
+            <DefaultButton onClick={() => this.close()}>{"Cancel"}</DefaultButton>
+        </div>);
+    }
+
     private getCommandItems(): ICommandBarItemProps[] {
-        const { listView, list } = this.props;
         const { mode, itemId, saveCommandEnabled, canEdit, canDelete, isDeleting } = this.state;
         const items: ICommandBarItemProps[] = [];
         if (mode === FormMode.Edit || mode === FormMode.New) {
@@ -143,33 +148,7 @@ export class SPListForm extends React.Component<ISPListFormProps, ISPListFormSta
                 key: 'save', text: 'Save', iconProps: { iconName: 'Save' }, iconOnly: true,
                 disabled: (mode !== FormMode.New && mode !== FormMode.Edit) || !saveCommandEnabled || isDeleting === true,
                 onClick: () => {
-                    if (this._listForm.current) {
-                        if (!this._listForm.current.state.isSaving) {
-                            if (this._savePromise) {
-                                this._savePromise.cancel();
-                            }
-                            this.setState({ saveCommandEnabled: false, refreshCommandEnabled: false });
-                            this._savePromise = cancelable(this._listForm.current.save()
-                                .then((item) => {
-                                    if (item) {
-                                        this.setState({ isOpen: false });
-                                        if (listView) {
-                                            listView.refresh();
-                                        }
-                                    }
-                                    else {
-                                        //this.setState({ saveCommandEnabled: true });
-                                    }
-                                })
-                                .catch(() => {
-                                    this.setState({ saveCommandEnabled: true });
-                                }))
-                                .finally(() => {
-                                    this._savePromise = null;
-                                    this.setState({ refreshCommandEnabled: true });
-                                });
-                        }
-                    }
+                    this.save()
                 }
             });
         }
@@ -192,6 +171,37 @@ export class SPListForm extends React.Component<ISPListFormProps, ISPListFormSta
             });
         }
         return items;
+    } 
+
+    private save() {
+        if (this._listForm.current) {
+            const { listView, list } = this.props;
+            if (!this._listForm.current.state.isSaving) {
+                if (this._savePromise) {
+                    this._savePromise.cancel();
+                }
+                this.setState({ saveCommandEnabled: false, refreshCommandEnabled: false });
+                this._savePromise = cancelable(this._listForm.current.save()
+                    .then((item) => {
+                        if (item) {
+                            this.setState({ isOpen: false });
+                            if (listView) {
+                                listView.refresh();
+                            }
+                        }
+                        else {
+                            //this.setState({ saveCommandEnabled: true });
+                        }
+                    })
+                    .catch(() => {
+                        this.setState({ saveCommandEnabled: true });
+                    }))
+                    .finally(() => {
+                        this._savePromise = null;
+                        this.setState({ refreshCommandEnabled: true });
+                    });
+            }
+        }
     }
 
     private renderDeleteDialog() {
@@ -244,6 +254,15 @@ export class SPListForm extends React.Component<ISPListFormProps, ISPListFormSta
         if (onClose instanceof Function) {
             this.setState({ onClose: onClose });
         }
+    }
+
+    public close() {
+        const { onClose } = this.state;
+        this.setState({ isOpen: false }, () => {
+            if (onClose instanceof Function) {
+                onClose();
+            }
+        });
     }
 
 }

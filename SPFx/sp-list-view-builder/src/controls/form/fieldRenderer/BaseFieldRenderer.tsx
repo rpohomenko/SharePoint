@@ -25,13 +25,13 @@ export class BaseFieldRenderer extends React.Component<IBaseFieldRendererProps, 
                 mode: this.props.mode
             });
         }
-        if (!isEqual(prevProps.defaultValue, this.props.defaultValue)) {
-            //if (this.state.value === undefined) {
-            this.setState({
-                value: undefined //this.props.defaultValue,
-            });
-            //}
-        }
+        //if (!isEqual(prevProps.defaultValue, this.props.defaultValue)) {
+        //if (this.state.value === undefined) {
+        //this.setState({
+        // value: undefined //this.props.defaultValue,
+        // });
+        //}
+        //}
     }
 
     public render() {

@@ -95,7 +95,7 @@ export class UserFieldRenderer extends BaseFieldRenderer {
     private _renderNewOrEditForm() {
         const { disabled, suggestionsLimit, selectionLimit, resolveDelay } = this.props as IUserFieldRendererProps;
         const { value } = this.state;
-        const items: IPersonaProps[] = value instanceof Array && value.length > 0 ? suggestionsLimit > 0 ? value.slice(0, suggestionsLimit) : value : null;
+        const items: IPersonaProps[] = value instanceof Array && value.length > 0 ? suggestionsLimit > 0 ? value.slice(0, suggestionsLimit) : value : [];
         const suggestionProps: IBasePickerSuggestionsProps = {
             suggestionsHeaderText: 'Suggested People',
             mostRecentlyUsedHeaderText: 'Suggested Contacts',
@@ -128,7 +128,9 @@ export class UserFieldRenderer extends BaseFieldRenderer {
             componentRef={this._userField}
             resolveDelay={resolveDelay || 300}
             disabled={disabled}
-            onChange={this.setValue.bind(this)}
+            onChange={(items) => {
+                this.setValue(items);
+            }}
         />;
     }
 
