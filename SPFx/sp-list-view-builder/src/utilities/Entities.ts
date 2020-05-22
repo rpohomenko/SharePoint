@@ -47,6 +47,7 @@ export interface IFormField extends IField {
     ReadOnly?: boolean;
     Modes?: FormMode[];
     Description?: string;
+    Choices?: string[];
 }
 
 export interface IOrderByField extends IField {
@@ -81,6 +82,11 @@ export interface IFieldLookupInfo extends IFieldInfo {
 }
 
 export interface IFieldUserInfo extends IFieldLookupInfo {
+}
+
+
+export interface IFieldChoiceInfo extends IFieldInfo {
+    Choices: { results: string[] };
 }
 
 export interface IFieldMultiLineTextInfo extends IFieldInfo {

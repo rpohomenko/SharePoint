@@ -8,7 +8,7 @@ import "@pnp/sp/items";
 import "@pnp/sp/fields";
 import { isArray } from '@pnp/common';
 import { FieldTypes, IFieldInfo } from "@pnp/sp/fields";
-import { IFieldLookupInfo, IFormField } from '../../../utilities/Entities';
+import { IFieldLookupInfo, IFormField, IFieldChoiceInfo } from '../../../utilities/Entities';
 import { AsyncDropdown } from '../../../controls/components/asyncDropdown';
 import SPService from '../../../utilities/SPService';
 import { IList } from '@pnp/sp/lists';
@@ -169,7 +169,7 @@ export default class AddFormFieldPanel extends React.Component<IAddFormFieldPane
   private loadContentTypeFields(list: IList, contentTypeId: string): Promise<IFormField[]> {
     return new Promise<IFormField[]>((resolve: (options: IFormField[]) => void, reject: (error: any) => void) => {
       try {
-        return list.contentTypes.getById(contentTypeId).fields.filter('Hidden eq false')/*.orderBy('Title')*/.select('Id', 'InternalName', 'EntityPropertyName', 'Title', 'Description', 'FieldTypeKind', 'AllowMultipleValues', 'Required', 'ReadOnlyField', 'RichText', 'DisplayFormat', 'LookupField', 'LookupList', 'LookupWebId', 'IsRelationship', 'PrimaryFieldId'/*, 'SchemaXml'*/).get()
+        return list.contentTypes.getById(contentTypeId).fields.filter('Hidden eq false')/*.orderBy('Title')*/.select('Id', 'InternalName', 'EntityPropertyName', 'Title', 'Description', 'FieldTypeKind', 'AllowMultipleValues', 'Required', 'ReadOnlyField', 'RichText', 'DisplayFormat', 'LookupField', 'LookupList', 'LookupWebId', 'IsRelationship', 'PrimaryFieldId', 'Choices'/*, 'SchemaXml'*/).get()
           .then(fields => {
             const formFields = fields.map(f => this.get_Field(f, fields));
             resolve(formFields);
@@ -204,6 +204,13 @@ export default class AddFormFieldPanel extends React.Component<IAddFormFieldPane
           LookupWebId: lookupField.LookupWebId,
         }) as IFormField;
       }
+    }
+    else if (field.FieldTypeKind === FieldTypes.Choice || field.FieldTypeKind === FieldTypes.MultiChoice) {
+      const choiceField = field as IFieldChoiceInfo;
+      formField = ({
+        ...formField,
+        Choices: choiceField.Choices ? choiceField.Choices.results : null
+      }) as IFormField;
     }
     return formField;
   }

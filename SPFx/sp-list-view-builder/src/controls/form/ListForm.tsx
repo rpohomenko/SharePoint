@@ -128,7 +128,7 @@ export class ListForm extends React.Component<IListFormProps, IListFormState> {
                                 if (ref != null) {
                                     this._formFields.push(ref);
                                 }
-                            }}                           
+                            }}
                             field={field}
                             mode={mode}
                             regionalSettings={this.props.regionalSettings}
@@ -305,6 +305,12 @@ export class ListForm extends React.Component<IListFormProps, IListFormState> {
                         value = !isNaN(Number(value)) ? String(value) : null;
                     }
                     break;
+                case DataType.Choice:
+                    value = (value instanceof Array && value.length > 0) ? value[0] : null;
+                    break;
+                case DataType.MultiChoice:
+
+                    break;
                 case DataType.Lookup:
                     value = value
                         ? (value instanceof Array && value.length > 0
@@ -408,10 +414,10 @@ export class ListForm extends React.Component<IListFormProps, IListFormState> {
                         expand.push(lookupField.PrimaryFieldName);
                     }
                 }
-                else {                    
+                else {
                     select.push(`${lookupField.Name}/ID`);
                     if (select.indexOf(`${lookupField.Name}/${lookupField.LookupFieldName || "Title"}`) === -1) {
-                      select.push(`${lookupField.Name}/${lookupField.LookupFieldName || "Title"}`);
+                        select.push(`${lookupField.Name}/${lookupField.LookupFieldName || "Title"}`);
                     }
                     if (expand.indexOf(lookupField.Name) === -1) {
                         expand.push(lookupField.Name);

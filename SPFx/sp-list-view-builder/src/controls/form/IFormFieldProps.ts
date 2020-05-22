@@ -27,6 +27,11 @@ export interface ILookupFormFieldProps extends IFormFieldProps {
     suggestionsLimit?: number;
 }
 
+
+export interface IChoiceFormFieldProps extends IFormFieldProps {  
+    //choices: string[];   
+}
+
 export interface IUserFormFieldProps extends IFormFieldProps {
    limit?: number;
    suggestionsLimit?: number;

@@ -128,8 +128,8 @@ export class UserFieldRenderer extends BaseFieldRenderer {
             componentRef={this._userField}
             resolveDelay={resolveDelay || 300}
             disabled={disabled}
-            onChange={(items) => {
-                this.setValue(items);
+            onChange={(newItems) => {
+                this.setValue(newItems);
             }}
         />;
     }

@@ -151,7 +151,7 @@ export class SPListForm extends React.Component<ISPListFormProps, ISPListFormSta
                 key: 'save', text: 'Save', iconProps: { iconName: 'Save' }, iconOnly: true,
                 disabled: (mode !== FormMode.New && mode !== FormMode.Edit) || !saveCommandEnabled || isDeleting === true,
                 onClick: () => {
-                    this.save()
+                    this.save();
                 }
             });
         }

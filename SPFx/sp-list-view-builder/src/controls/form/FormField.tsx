@@ -1,20 +1,21 @@
 import * as React from 'react';
 import { Label, IconButton, Callout, Stack, Text, getId } from 'office-ui-fabric-react' /* '@fluentui/react'*/;
-import { IFormFieldProps, IFormFieldState, IDateFormFieldProps, ITextFormFieldProps, ILookupFormFieldProps, IUserFormFieldProps, INumberFormFieldProps } from './IFormFieldProps';
+import { IFormFieldProps, IFormFieldState, IDateFormFieldProps, ITextFormFieldProps, ILookupFormFieldProps, IUserFormFieldProps, INumberFormFieldProps, IChoiceFormFieldProps } from './IFormFieldProps';
 import { TextFieldRenderer, ITextFieldRendererProps } from './fieldRenderer/TextFieldRenderer';
 import { DateFieldRenderer, IDateFieldRendererProps } from './fieldRenderer/DateFieldRenderer';
 import { UserFieldRenderer, IUserFieldRendererProps } from './fieldRenderer/UserFieldRenderer';
 import { BooleanFieldRenderer, IBooleanFieldRendererProps } from './fieldRenderer/BooleanFieldRenderer';
 import { LookupFieldRenderer, ILookupFieldRendererProps } from './fieldRenderer/LookupFieldRenderer';
 import { IValidationResult } from './fieldRenderer/IBaseFieldRendererProps';
-import { DataType, FormMode, ILookupFieldValue, IUserFieldValue, IListItem } from '../../utilities/Entities';
+import { DataType, FormMode, ILookupFieldValue, IUserFieldValue, IListItem, IFormField } from '../../utilities/Entities';
 import { BaseFieldRenderer } from './fieldRenderer/BaseFieldRenderer';
 import { sp } from '@pnp/sp/presets/all';
 import { isEqual } from "@microsoft/sp-lodash-subset";
 import { RichTextFieldRenderer } from './fieldRenderer/RichTextFieldRenderer';
 import { NumberFieldRenderer } from './fieldRenderer/NumberFieldRenderer';
+import { ChoiceFieldRenderer, IChoiceFieldRendererProps } from './fieldRenderer/ChoiceFieldRenderer';
 
-export class FormField extends React.Component<IFormFieldProps | IDateFormFieldProps | ITextFormFieldProps | INumberFormFieldProps | ILookupFormFieldProps | IUserFormFieldProps, IFormFieldState> {
+export class FormField extends React.Component<IFormFieldProps | IDateFormFieldProps | ITextFormFieldProps | IChoiceFormFieldProps | INumberFormFieldProps | ILookupFormFieldProps | IUserFormFieldProps, IFormFieldState> {
 
     private _iconButtonId = getId('iFieldInfo');
     private _fieldControl: React.RefObject<BaseFieldRenderer>;
@@ -137,7 +138,7 @@ export class FormField extends React.Component<IFormFieldProps | IDateFormFieldP
                     onValidate: onValidate,
                     onChange: onChange
                 } as ITextFieldRendererProps);
-            case DataType.RichText:           
+            case DataType.RichText:
                 return React.createElement(RichTextFieldRenderer, {
                     key: field.Name,
                     ref: this._fieldControl,
@@ -196,6 +197,23 @@ export class FormField extends React.Component<IFormFieldProps | IDateFormFieldP
                     onValidate: onValidate,
                     onChange: onChange
                 } as IBooleanFieldRendererProps);
+
+            case DataType.Choice:
+            case DataType.MultiChoice:
+                return React.createElement(ChoiceFieldRenderer, {
+                    key: field.Name,
+                    ref: this._fieldControl,
+                    multiSelect: field.DataType === DataType.MultiChoice,
+                    choices: field.Choices,
+                    disabled: field.ReadOnly === true || disabled === true,
+                    defaultValue: !!defaultValue ? (field.DataType === DataType.Choice ? [defaultValue] : defaultValue) : null,
+                    required: field.Required === true,
+                    mode: mode,
+                    dataType: field.DataType,
+                    title: field.Title,
+                    onValidate: onValidate,
+                    onChange: onChange
+                } as IChoiceFieldRendererProps);
             case DataType.User:
             case DataType.MultiUser:
                 const userValues: IUserFieldValue[] = defaultValue
@@ -235,7 +253,7 @@ export class FormField extends React.Component<IFormFieldProps | IDateFormFieldP
                     defaultValue: lookupValues,
                     required: field.Required === true,
                     mode: mode,
-                    dataType: field.OutputType !== undefined ? field.OutputType: field.DataType,
+                    dataType: field.OutputType !== undefined ? field.OutputType : field.DataType,
                     regionalSettings: (this.props as IDateFormFieldProps).regionalSettings,
                     timeZone: (this.props as IDateFormFieldProps).timeZone,
                     title: field.Title,
