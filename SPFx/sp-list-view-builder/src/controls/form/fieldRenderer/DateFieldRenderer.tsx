@@ -6,6 +6,7 @@ import moment from 'moment';
 import { ITimeZoneInfo, IRegionalSettingsInfo } from '@pnp/sp/regional-settings/types';
 import SPService from '../../../utilities/SPService';
 import DateHelper from '../../../utilities/DateHelper';
+import { DataType } from '../../../utilities/Entities';
 
 export interface IDateFieldRendererProps extends IBaseFieldRendererProps {
     firstDayOfWeek?: number;
@@ -27,10 +28,10 @@ export class DateFieldRenderer extends BaseFieldRenderer {
 
     public async componentDidMount() {
         if ((this.props as IDateFieldRendererProps).regionalSettings) {
-            this._regionalSettings = await (this.props as IDateFieldRendererProps).regionalSettings;
+            this._regionalSettings = (this.props as IDateFieldRendererProps).regionalSettings;
         }
         if ((this.props as IDateFieldRendererProps).timeZone) {
-            this._timeZone = await (this.props as IDateFieldRendererProps).timeZone;
+            this._timeZone = (this.props as IDateFieldRendererProps).timeZone;
         }
         if (this._regionalSettings) {
             const locale = SPService.getLocaleName(this._regionalSettings.LocaleId);
@@ -45,11 +46,11 @@ export class DateFieldRenderer extends BaseFieldRenderer {
     public componentDidUpdate(prevProps: IBaseFieldRendererProps, prevState: IBaseFieldRendererState) {
         super.componentDidUpdate(prevProps, prevState);
         if (prevProps.defaultValue !== this.props.defaultValue) {
-            if (this.props.defaultValue /*&& !this.state.value*/) {
+            if (this.props.defaultValue) {
                 const date = DateHelper.parseLocalDate(this.props.defaultValue, this._timeZone ? this._timeZone.Information.Bias : 0);
                 this.setValue(date);
             }
-            else{
+            else {
                 this.setValue(null);
             }
         }
@@ -64,7 +65,12 @@ export class DateFieldRenderer extends BaseFieldRenderer {
     }
 
     protected onRenderDispForm() {
-        return typeof this.props.defaultValue === "string" ? (<Label>{this.props.defaultValue}</Label>) : null;
+        if (this.props.defaultValue) {
+            const date = DateHelper.parseLocalDate(this.props.defaultValue, this._timeZone ? this._timeZone.Information.Bias : 0);
+            const dateString = this.props.dataType === DataType.Date ? moment(date).format("L") : moment(date).format("L LT");
+            return <Label>{dateString}</Label>;
+        }
+        return null;
     }
 
     private _renderNewOrEditForm() {
