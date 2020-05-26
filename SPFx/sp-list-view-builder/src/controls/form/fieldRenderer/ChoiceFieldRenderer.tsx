@@ -87,18 +87,36 @@ export class ChoiceFieldRenderer extends BaseFieldRenderer {
         const { value, options } = this.state as IChoiceFieldRendererState;
         const dropdownStyles: Partial<IDropdownStyles> = { dropdown: { maxWidth: 300 } };
 
-        return <Dropdown
-            componentRef={this._choiceField}
-            disabled={disabled}
-            selectedKey={value}
-            multiSelect={multiSelect}
-            onChange={(ev, option?: IDropdownOption) => {
-                this.setValue(option ? [option.key] : null);
-            }}
-            placeholder="Select an option..."
-            options={options}
-            styles={dropdownStyles}
-        />;
+        return multiSelect === true
+            ? <Dropdown
+                componentRef={this._choiceField}
+                disabled={disabled}
+                selectedKeys={value}
+                multiSelect={true}
+                onChange={(ev, option?: IDropdownOption) => {
+                    if (option) {
+                        const newValue = value instanceof Array ? [...value.filter(v => v !== option.key)] : [];
+                        if (option.selected === true) {
+                            newValue.push(option.key);
+                        }
+                        this.setValue(newValue);
+                    }
+                }}
+                placeholder="Select options..."
+                options={options}
+                styles={dropdownStyles}
+            />
+            : <Dropdown
+                componentRef={this._choiceField}
+                disabled={disabled}
+                selectedKey={value}
+                onChange={(ev, option?: IDropdownOption) => {
+                    this.setValue(option ? [option.key] : null);
+                }}
+                placeholder="Select an option..."
+                options={options}
+                styles={dropdownStyles}
+            />;
     }
 
     public getValue() {

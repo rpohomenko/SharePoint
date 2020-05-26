@@ -14,7 +14,8 @@ export enum DataType {
     Choice = 9,
     MultiChoice = 10,
     User = 11,
-    MultiUser = 12
+    MultiUser = 12,
+    URL = 13
 }
 
 export enum FormMode {
@@ -34,6 +35,10 @@ export interface IViewField extends IField {
     OutputType?: DataType.Text | DataType.Number | DataType.Boolean | DataType.DateTime | DataType.Date;
     Sortable?: boolean;
     Filterable?: boolean;
+}
+
+export interface IViewUrlField extends IViewField {
+    AsImage?: boolean;
 }
 
 export interface IFormField extends IField {
@@ -136,4 +141,9 @@ export interface ILookupFieldValue {
 export interface IUserFieldValue extends ILookupFieldValue {
     Name: string;
     Email: string;
+}
+
+export interface IUrlFieldValue {
+    Url: string;
+    Description?: string;
 }

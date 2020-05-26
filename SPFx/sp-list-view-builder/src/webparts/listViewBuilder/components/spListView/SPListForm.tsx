@@ -73,6 +73,7 @@ export class SPListForm extends React.Component<ISPListFormProps, ISPListFormSta
     public componentWillUnmount() {
         if (this._loadPromise) {
             this._loadPromise.cancel();
+            this._loadPromise = null;
         }
     }
 

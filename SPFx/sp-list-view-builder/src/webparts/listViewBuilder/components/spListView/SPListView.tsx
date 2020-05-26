@@ -9,7 +9,7 @@ import { IList, IListInfo } from "@pnp/sp/lists";
 import { IViewColumn } from '../../../../controls/listView';
 import { ITimeZoneInfo, IRegionalSettingsInfo } from "@pnp/sp/regional-settings/types";
 import { ISPListViewProps, ISPListViewState } from './ISPListView';
-import { DataType, IViewField, IViewLookupField, IFolder, IEditableListItem, IListItem } from '../../../../utilities/Entities';
+import { DataType, IViewField, IViewLookupField, IFolder, IEditableListItem, IListItem, IUrlFieldValue, IViewUrlField } from '../../../../utilities/Entities';
 import moment from 'moment';
 import SPService from '../../../../utilities/SPService';
 import DateHelper from '../../../../utilities/DateHelper';
@@ -455,6 +455,9 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
         else if (viewField.DataType === DataType.RichText) {
             column.onRender = (item, index, col) => this.renderRichText(item, index, col, viewField, viewFields);
         }
+        else if (viewField.DataType === DataType.URL) {
+            column.onRender = (item, index, col) => this.renderURL(item, index, col, viewField as IViewUrlField, viewFields);
+        }
         return column;
     }
 
@@ -533,6 +536,20 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
     private renderRichText(item, index, column: IColumn, viewField: IViewField, viewFields: IViewField[]) {
         const value = item[viewField.Name];
         return <div dangerouslySetInnerHTML={{ __html: value }} />;
+    }
+
+    private renderURL(item, index, column: IColumn, viewField: IViewUrlField, viewFields: IViewField[]) {
+        const fieldValue = item[viewField.Name] as IUrlFieldValue;
+        if (fieldValue) {
+            if (viewField.AsImage === true) {
+                return (<div onClick={() => {
+                    window.open(fieldValue.Url, '_blank');
+                }}><img src={fieldValue.Url} alt={fieldValue.Description || fieldValue.Url} /></div>);
+            }
+            else {
+                return (<Link target={'_blank'} href={fieldValue.Url}>{fieldValue.Description || fieldValue.Url}</Link>);
+            }
+        }
     }
 
     private renderTitle(item, index, column: IColumn, viewField: IViewField, viewFields: IViewField[]) {

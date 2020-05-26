@@ -310,6 +310,8 @@ export default class SPService {
           return DataType.MultiUser;
         }
         return DataType.User;
+      case FieldTypes.URL:
+        return DataType.URL;
       default: return DataType.Text;
     }
   }

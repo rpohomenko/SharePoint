@@ -14,6 +14,7 @@ import { isEqual } from "@microsoft/sp-lodash-subset";
 import { RichTextFieldRenderer } from './fieldRenderer/RichTextFieldRenderer';
 import { NumberFieldRenderer } from './fieldRenderer/NumberFieldRenderer';
 import { ChoiceFieldRenderer, IChoiceFieldRendererProps } from './fieldRenderer/ChoiceFieldRenderer';
+import { UrlFieldRenderer, IUrlFieldRendererProps } from './fieldRenderer/UrlFieldRenderer';
 
 export class FormField extends React.Component<IFormFieldProps | IDateFormFieldProps | ITextFormFieldProps | IChoiceFormFieldProps | INumberFormFieldProps | ILookupFormFieldProps | IUserFormFieldProps, IFormFieldState> {
 
@@ -38,6 +39,12 @@ export class FormField extends React.Component<IFormFieldProps | IDateFormFieldP
             this.setState({
                 mode: this.props.mode
             });
+        }
+    }
+
+    public componentWillUnmount() {
+        if (this._fieldControl) {
+            this._fieldControl = undefined;
         }
     }
 
@@ -206,7 +213,7 @@ export class FormField extends React.Component<IFormFieldProps | IDateFormFieldP
                     multiSelect: field.DataType === DataType.MultiChoice,
                     choices: field.Choices,
                     disabled: field.ReadOnly === true || disabled === true,
-                    defaultValue: !!defaultValue ? (field.DataType === DataType.Choice ? [defaultValue] : defaultValue) : null,
+                    defaultValue: !!defaultValue ? (field.DataType === DataType.Choice ? [defaultValue] : defaultValue.results) : null,
                     required: field.Required === true,
                     mode: mode,
                     dataType: field.DataType,
@@ -260,6 +267,19 @@ export class FormField extends React.Component<IFormFieldProps | IDateFormFieldP
                     onValidate: onValidate,
                     onChange: onChange
                 } as ILookupFieldRendererProps);
+            case DataType.URL:
+                return React.createElement(UrlFieldRenderer, {
+                    key: field.Name,
+                    ref: this._fieldControl,
+                    disabled: field.ReadOnly === true || disabled === true,
+                    defaultValue: defaultValue,
+                    required: field.Required === true,
+                    mode: mode,
+                    dataType: field.DataType,
+                    title: field.Title,
+                    onValidate: onValidate,
+                    onChange: onChange
+                } as IUrlFieldRendererProps);
         }
 
         return null;

@@ -2,7 +2,7 @@ import * as React from 'react';
 import styles from './listform.module.scss';
 import { IListFormProps, IListFormState } from './IListFormProps';
 import { FormField } from './FormField';
-import { FormMode, IListItem, IFormField, DataType, IUserFieldValue, ILookupFieldValue } from '../../utilities/Entities';
+import { FormMode, IListItem, IFormField, DataType, IUserFieldValue, ILookupFieldValue, IUrlFieldValue } from '../../utilities/Entities';
 import { cancelable, CancelablePromise } from 'cancelable-promise';
 import { ProgressIndicator } from 'office-ui-fabric-react' /* '@fluentui/react'*/;
 import { IItem } from '@pnp/sp/items';
@@ -56,6 +56,10 @@ export class ListForm extends React.Component<IListFormProps, IListFormState> {
     public componentWillUnmount() {
         if (this._promise) {
             this._promise.cancel();
+            this._promise = null;
+        }
+        if(this._formFields){
+            this._formFields = undefined;
         }
         this._isMounted = false;
     }
@@ -309,7 +313,27 @@ export class ListForm extends React.Component<IListFormProps, IListFormState> {
                     value = (value instanceof Array && value.length > 0) ? value[0] : null;
                     break;
                 case DataType.MultiChoice:
-
+                    if (value instanceof Array && value.length > 0) {
+                        if (mode === FormMode.New) {
+                            value = { results: value };
+                        }
+                        else {
+                            value = (value as string[]).join(';#');
+                        }
+                    }
+                    else{
+                        value = "";
+                    }
+                    break;
+                case DataType.URL:
+                    if (mode === FormMode.Edit) {
+                        if (value && (value as IUrlFieldValue).Url) {
+                            value = `${(value as IUrlFieldValue).Url}, ${(value as IUrlFieldValue).Description}`;
+                        }
+                        else{
+                            value = "";
+                        }
+                    }
                     break;
                 case DataType.Lookup:
                     value = value

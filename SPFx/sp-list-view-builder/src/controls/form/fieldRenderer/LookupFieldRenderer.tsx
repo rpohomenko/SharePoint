@@ -56,10 +56,10 @@ export class LookupFieldRenderer extends BaseFieldRenderer {
     }
 
     protected onRenderDispForm() {
-        const { defaultValue, dataType } = this.props as ILookupFieldRendererProps;
+        const { defaultValue, dataType, fieldName } = this.props as ILookupFieldRendererProps;
         const lookupValues = defaultValue as ILookupFieldValue[];
         return lookupValues instanceof Array && lookupValues.length > 0
-            ? <>{lookupValues.map(lookupValue => <Label>{this.formatFieldValue(lookupValue.Title, dataType)}</Label>)}</> : null;
+            ? <>{lookupValues.map((lookupValue, i) => <Label key={`${fieldName}_${i}`}>{this.formatFieldValue(lookupValue.Title, dataType)}</Label>)}</> : null;
     }
 
     private formatFieldValue(value: string, dataType: DataType): string {

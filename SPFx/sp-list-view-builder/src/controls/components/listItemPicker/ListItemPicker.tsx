@@ -37,6 +37,7 @@ export class ListItemPicker extends React.Component<IListItemPickerProps, IListI
     public componentWillUnmount() {
         if (this._promise) {
             this._promise.cancel();
+            this._promise = null;
         }
     }
 

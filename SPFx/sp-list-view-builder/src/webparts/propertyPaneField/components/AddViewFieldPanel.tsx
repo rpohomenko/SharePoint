@@ -243,6 +243,7 @@ export default class AddViewFieldPanel extends React.Component<IAddViewFieldPane
         return true;
       case FieldTypes.MultiChoice:
       case FieldTypes.Note:
+      case FieldTypes.URL:
       case FieldTypes.Calculated:
         return false;
       case FieldTypes.User:
@@ -263,6 +264,7 @@ export default class AddViewFieldPanel extends React.Component<IAddViewFieldPane
         return true;
       case FieldTypes.MultiChoice:
       case FieldTypes.Note:
+      case FieldTypes.URL:
         return false;
       case FieldTypes.User:
         if ((field as IFieldUserInfo).AllowMultipleValues) {
