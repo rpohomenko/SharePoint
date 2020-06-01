@@ -3,13 +3,13 @@ import "@pnp/sp/webs";
 import "@pnp/sp/lists";
 import { PagedItemCollection } from "@pnp/sp/items";
 import { isEqual } from '@microsoft/sp-lodash-subset';
-import { IconButton, Icon, Link, Spinner, SpinnerSize, Stack, Breadcrumb, IBreadcrumbItem, IColumn, IGroup, FontIcon, getTheme } from 'office-ui-fabric-react' /* '@fluentui/react'*/;
+import { IconButton, Icon, Link, Spinner, SpinnerSize, Stack, Breadcrumb, IBreadcrumbItem, IColumn, IGroup, FontIcon, getTheme, DefaultButton, DialogFooter, Dialog, PrimaryButton, DialogType, ContextualMenu, Target, IButton, IContextualMenuItem, CommandBarButton } from 'office-ui-fabric-react' /* '@fluentui/react'*/;
 import { ListView, IGrouping } from '../../../../controls/listView';
 import { IList, IListInfo } from "@pnp/sp/lists";
 import { IViewColumn } from '../../../../controls/listView';
 import { ITimeZoneInfo, IRegionalSettingsInfo } from "@pnp/sp/regional-settings/types";
 import { ISPListViewProps, ISPListViewState } from './ISPListView';
-import { DataType, IViewField, IViewLookupField, IFolder, IEditableListItem, IListItem, IUrlFieldValue, IViewUrlField } from '../../../../utilities/Entities';
+import { DataType, IViewField, IViewLookupField, IFolder, IEditableListItem, IListItem, IUrlFieldValue, IViewUrlField, FormMode } from '../../../../utilities/Entities';
 import moment from 'moment';
 import SPService from '../../../../utilities/SPService';
 import DateHelper from '../../../../utilities/DateHelper';
@@ -34,6 +34,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
     private _page?: PagedItemCollection<IListItem[]>;
     private _promises: CancelablePromise[] = [];
     private _listForm: React.RefObject<SPListForm>;
+    private _commandBar: React.RefObject<SPListViewCommandBar>;
 
     constructor(props: ISPListViewProps) {
         super(props);
@@ -44,6 +45,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
         };
 
         this._listForm = React.createRef();
+        this._commandBar = React.createRef();
     }
 
     public async componentDidMount() {
@@ -87,20 +89,21 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
             {this._isMounted === true && this.props.showCommandBar === true && this.renderCommandBar()}
             {!this._isMounted && isLoading && <Spinner size={SpinnerSize.large} />}
             {this._isMounted === true && this.renderBreadcrumb()}
-            {this._isMounted === true && <ListView items={items || []} columns={columns} groupBy={groupBy}
-                placeholder={(<div>
-                    <FontIcon iconName="Search" style={{
-                        fontSize: '2em',
-                        margin: 25,
-                        color: theme.palette.themePrimary
-                    }} />
-                    <span style={{
-                        fontSize: '1.3em',
-                    }}>{"No items"}</span>
-                </div>)}
-                onSelect={this.onSelectItems.bind(this)}
-                onSort={this.onSortItems.bind(this)}
-                onGroup={this.onGroupItems.bind(this)} />}
+            {this._isMounted === true &&
+                <ListView items={items || []} columns={columns} groupBy={groupBy}
+                    placeholder={(<div>
+                        <FontIcon iconName="Search" style={{
+                            fontSize: '2em',
+                            margin: 25,
+                            color: theme.palette.themePrimary
+                        }} />
+                        <span style={{
+                            fontSize: '1.3em',
+                        }}>{"No items"}</span>
+                    </div>)}
+                    onSelect={this.onSelectItems.bind(this)}
+                    onSort={this.onSortItems.bind(this)}
+                    onGroup={this.onGroupItems.bind(this)} />}
             {this._isMounted === true && !isLoading && (page && page.hasNext === true) && <Stack verticalAlign="center" horizontalAlign="center">
                 <IconButton
                     title={"More"}
@@ -108,7 +111,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
                     ariaLabel="More"
                     styles={{
                         root: {
-                            width: '100%'
+                            width: '100%'                     
                         }
                     }}
                     onClick={() => {
@@ -127,6 +130,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
                 textOverflow: 'ellipsis',
                 overflow: 'hidden'
             }}>{error}</span>}
+            {this._isMounted === true && !this.props.showCommandBar && this.renderDeleteDialog()}        
         </div>;
     }
 
@@ -461,7 +465,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
         return column;
     }
 
-    private formatFieldValue(value: string, dataType: DataType): string {
+    private formatFieldValue(value: any, dataType: DataType): string {
         if (value === undefined || value === null) {
             return "";
         }
@@ -478,7 +482,98 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
         return value;
     }
 
-    private renderBoolean(item, index, column: IColumn, viewField: IViewLookupField, viewFields: IViewField[]) {
+    protected getContextualMenu(item: IEditableListItem): IContextualMenuItem[]{
+        const { formFields } = this.props;      
+        const canEdit = item && item.CanEdit && formFields instanceof Array && formFields.length > 0;
+        const canDelete = item && item.CanDelete === true;
+        const canView = item && formFields instanceof Array && formFields.length > 0;
+
+        const menuItems = [  
+            {
+                key: 'view', text: 'View', iconProps: { iconName: 'View' }, iconOnly: false,
+                disabled: !canView,
+                onClick: () => {
+                    if (canView) { 
+                        this.setState({ showContextualMenu: false });
+                        if (this._listForm.current) {                           
+                            this._listForm.current.open(FormMode.Display, item.ID, () => {
+
+                            });
+                        }
+                    }
+                }
+            },         
+            {
+                key: 'edit', text: 'Edit', iconProps: { iconName: 'Edit' }, iconOnly: false,
+                disabled: !canEdit,
+                onClick: () => {
+                    if (canEdit) {
+                        this.setState({ showContextualMenu: false });
+                        if (this._listForm.current) {                           
+                            this._listForm.current.open(FormMode.Edit, item.ID, () => {
+
+                            });
+                        }
+                    }
+                }
+            },           
+            {
+                key: 'delete', text: 'Delete', iconProps: { iconName: 'Delete' }, iconOnly: false,
+                disabled: !canDelete,
+                onClick: () => {
+                    if (canDelete)
+                        if (this._commandBar.current) {
+                            this.setState({ showContextualMenu: false });
+                            this._commandBar.current.openDeleteDialog();
+                        }
+                        else {
+                            this.setState({ showContextualMenu: false, isDeleting: true });
+                        }
+                }
+            }
+        ];
+
+        return menuItems;
+    }  
+
+    private renderDeleteDialog() {
+        const { isDeleting } = this.state;
+        const selection = this._processListItems(...this.state.selection);
+        return selection instanceof Array && selection.length > 0 && <Dialog
+            hidden={isDeleting !== true}
+            onDismiss={() => {
+                this.setState({ isDeleting: false });
+            }}
+            dialogContentProps={{
+                type: DialogType.normal,
+                title: 'Delete?',
+                closeButtonAriaLabel: 'Close',
+                subText: 'Are you sure you want to delete the item(s)?',
+            }}
+            modalProps={{
+                isBlocking: false,
+                styles: { main: { maxWidth: 450 } },
+            }}>
+            <DialogFooter>
+                <PrimaryButton onClick={() => {
+                    this.setState({ isDeleting: false });
+                    cancelable(this.deleteItem(...selection).then(_ => {
+
+                    }).catch(_ => {
+
+                    }))
+                        .finally(() => {
+
+                        });
+                }} text="Delete" />
+                <DefaultButton onClick={() => {
+                    this.setState({ isDeleting: false });
+                }} text="Cancel" />
+            </DialogFooter>
+        </Dialog>;
+    }
+
+    private renderBoolean(item: IEditableListItem, index: number, column: IColumn, viewField: IViewLookupField, viewFields: IViewField[]) {
         const value = item[viewField.Name];
         if (value !== undefined && value !== null) {
             return value === true ? "Yes" : "No";
@@ -486,12 +581,12 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
         return value;
     }
 
-    private renderLookup(item, index: number, column: IColumn, viewField: IViewLookupField, viewFields: IViewField[]) {
+    private renderLookup(item: IEditableListItem, index: number, column: IColumn, viewField: IViewLookupField, viewFields: IViewField[]) {
         return <span>{this.getLookupValue(item, viewField)}</span>;
     }
 
     private getLookupValue(item: any, viewField: IViewLookupField) {
-        let value;
+        let value: any;
         if (viewField.PrimaryFieldName && viewField.LookupFieldName) {
             value = item[`${viewField.PrimaryFieldName}`][(viewField as IViewLookupField).LookupFieldName];
         }
@@ -501,17 +596,17 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
         return this.formatFieldValue(value, viewField.OutputType);
     }
 
-    private renderUser(item, index, column: IColumn, viewField: IViewLookupField, viewFields: IViewField[]) {
+    private renderUser(item: IEditableListItem, index: number, column: IColumn, viewField: IViewLookupField, viewFields: IViewField[]) {
         const value = this.getLookupValue(item, viewField);
         return <span>{value}</span>;
     }
 
-    private renderMultiChoice(item, index, column: IColumn, viewField: IViewField, viewFields: IViewField[]) {
+    private renderMultiChoice(item: IEditableListItem, index: number, column: IColumn, viewField: IViewField, viewFields: IViewField[]) {
         let values = item[viewField.Name] ? item[viewField.Name].results : [] as string[];
         return <span>{values.map(value => this.formatFieldValue(value, viewField.OutputType)).join(', ')}</span>;
     }
 
-    private renderMultiLookup(item, index, column: IColumn, viewField: IViewLookupField, viewFields: IViewField[]) {
+    private renderMultiLookup(item: IEditableListItem, index: number, column: IColumn, viewField: IViewLookupField, viewFields: IViewField[]) {
         let values;
         if (viewField.PrimaryFieldName && viewField.LookupFieldName) {
             values = item[viewField.PrimaryFieldName] ? item[viewField.PrimaryFieldName].results : [] as string[];
@@ -522,23 +617,23 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
         return <span>{values.map(value => this.formatFieldValue(value[(viewField as IViewLookupField).LookupFieldName || "Title"], viewField.OutputType)).join(', ')}</span>;
     }
 
-    private renderMultiUser(item, index, column: IColumn, viewField: IViewField, viewFields: IViewField[]) {
+    private renderMultiUser(item: IEditableListItem, index: number, column: IColumn, viewField: IViewField, viewFields: IViewField[]) {
         const values = item[viewField.Name] ? item[viewField.Name].results : null;
         if (values instanceof Array)
             return <span>{values.map(value => value["Title"]).join(', ')}</span>;
     }
 
-    private renderDateTime(item, index, column: IColumn, viewField: IViewField, viewFields: IViewField[]) {
+    private renderDateTime(item: IEditableListItem, index: number, column: IColumn, viewField: IViewField, viewFields: IViewField[]) {
         const value = item[viewField.Name];
         return this.formatFieldValue(value, viewField.DataType);
     }
 
-    private renderRichText(item, index, column: IColumn, viewField: IViewField, viewFields: IViewField[]) {
+    private renderRichText(item: IEditableListItem, index: number, column: IColumn, viewField: IViewField, viewFields: IViewField[]) {
         const value = item[viewField.Name];
         return <div dangerouslySetInnerHTML={{ __html: value }} />;
     }
 
-    private renderURL(item, index, column: IColumn, viewField: IViewUrlField, viewFields: IViewField[]) {
+    private renderURL(item: IEditableListItem, index: number, column: IColumn, viewField: IViewUrlField, viewFields: IViewField[]) {
         const fieldValue = item[viewField.Name] as IUrlFieldValue;
         if (fieldValue) {
             if (viewField.AsImage === true) {
@@ -552,19 +647,37 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
         }
     }
 
-    private renderTitle(item, index, column: IColumn, viewField: IViewField, viewFields: IViewField[]) {
-        const isFolder = item["FSObjType"] === 1;
-        return isFolder
-            ? <Link onClick={() => {
-                const folder = { Name: item[column.fieldName], ServerRelativeUrl: item["FileRef"] } as IFolder;
-                this.loadItemsInFolder(folder);
-            }}>
-                {item[column.fieldName]}
-            </Link>
-            : item[column.fieldName];
+    private renderTitle(item: IEditableListItem, index: number, column: IColumn, viewField: IViewField, viewFields: IViewField[]) {
+        const isFolder = item["FSObjType"] === 1;     
+        return <CommandBarButton
+            ariaLabel="Open Menu"
+            styles={{
+                root: {
+                    height: '100%',
+                    backgroundColor: 'transparent'                  
+                }
+            }}
+            menuProps={
+                {
+                    items: this.getContextualMenu(item)
+                }
+            }
+            onClick={() => {
+             
+            }}
+        >
+            {isFolder
+                ? <Link onClick={() => {
+                    const folder = { Name: item[column.fieldName], ServerRelativeUrl: item["FileRef"] } as IFolder;
+                    this.loadItemsInFolder(folder);
+                }}>
+                    {item[column.fieldName]}
+                </Link>
+                : item[column.fieldName]}
+        </CommandBarButton>;
     }
 
-    private renderDocIcon(item, index, column: IColumn, viewField: IViewField, viewFields: IViewField[]) {
+    private renderDocIcon(item: IEditableListItem, index: number, column: IColumn, viewField: IViewField, viewFields: IViewField[]) {
         const isFolder = item["FSObjType"] === 1;
         return isFolder ? <Icon iconName="FolderHorizontal" /> : <Icon iconName="Document" />;
     }
@@ -623,7 +736,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
         const { formFields } = this.props;
         const { canAddItem } = this.state;
         const selection = this._processListItems(...this.state.selection);
-        return <SPListViewCommandBar listView={this} listForm={this._listForm.current} items={selection} formFields={formFields} canAddItem={canAddItem} />;
+        return <SPListViewCommandBar ref={this._commandBar} listView={this} listForm={this._listForm.current} items={selection} formFields={formFields} canAddItem={canAddItem} />;
     }
 
     public async deleteItem(...deletedItems: IEditableListItem[]): Promise<void> {

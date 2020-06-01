@@ -124,11 +124,15 @@ export class SPListViewCommandBar extends React.Component<ISPListViewCommandBarP
                 disabled: !deleteCommandEnabled || !canDelete,
                 onClick: () => {
                     if (canDelete) {
-                        this.setState({ isDeleting: true, addCommandEnabled: false, editCommandEnabled: false, viewCommandEnabled: false, deleteCommandEnabled: false });
+                        this.openDeleteDialog();
                     }
                 }
             }
         ];
+    }
+
+    public openDeleteDialog(){
+        this.setState({ isDeleting: true, addCommandEnabled: false, editCommandEnabled: false, viewCommandEnabled: false, deleteCommandEnabled: false });
     }
 
     protected getFarCommandItems(): ICommandBarItemProps[] {
@@ -153,7 +157,7 @@ export class SPListViewCommandBar extends React.Component<ISPListViewCommandBarP
     private renderDeleteDialog() {
         const { listView, items, canAddItem, onItemDeleted, onItemDeleting } = this.props;
         const { isDeleting } = this.state;
-        return listView && <Dialog
+        return listView && items instanceof Array && items.length > 0 && <Dialog
             hidden={isDeleting !== true}
             onDismiss={() => {
                 this.setState({ isDeleting: false, addCommandEnabled: canAddItem, editCommandEnabled: true, viewCommandEnabled: true, deleteCommandEnabled: true });

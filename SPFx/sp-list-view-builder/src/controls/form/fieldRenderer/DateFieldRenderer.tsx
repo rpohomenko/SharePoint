@@ -109,10 +109,10 @@ export class DateFieldRenderer extends BaseFieldRenderer {
                         this.setValue(newDate);
                     }
                 }}
-                options={this.getTimePickerOptions(isTime24 !== undefined
+                options={this.getTimePickerOptions(/*isTime24 !== undefined
                     ? isTime24 === true
                     : (this._regionalSettings && this._regionalSettings.Time24 === true),
-                    this._regionalSettings ? this._regionalSettings.TimeSeparator : undefined)}
+                    this._regionalSettings ? this._regionalSettings.TimeSeparator : undefined*/)}
             />
         </Stack>;
         /*return <DateTimePicker
@@ -130,11 +130,11 @@ export class DateFieldRenderer extends BaseFieldRenderer {
             onChange={(date) => this.setValue(date)} />*/
     }
 
-    private getTimePickerOptions(isTime24: boolean, separator?: string): IComboBoxOption[] {
+    private getTimePickerOptions(/*isTime24: boolean, separator?: string*/): IComboBoxOption[] {
         const options: IComboBoxOption[] = [];
-        if (!separator) {
+        /*if (!separator) {
             separator = ":";
-        }
+        }*/
         for (let hh = 0; hh < 24; hh++) {
             for (let mmStep = 0; mmStep < 2; mmStep++) {
                 const timeStr = moment()/*.startOf('day')*/.set('hours', hh).set('minutes', mmStep > 0 ? 30 : 0).format("LT");
