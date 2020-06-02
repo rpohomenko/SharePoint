@@ -35,6 +35,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
     private _promises: CancelablePromise[] = [];
     private _listForm: React.RefObject<SPListForm>;
     private _commandBar: React.RefObject<SPListViewCommandBar>;
+    private _listView: React.RefObject<ListView>;
 
     constructor(props: ISPListViewProps) {
         super(props);
@@ -46,6 +47,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
 
         this._listForm = React.createRef();
         this._commandBar = React.createRef();
+        this._listView = React.createRef();
     }
 
     public async componentDidMount() {
@@ -79,7 +81,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
     public componentWillUnmount() {
         this._isMounted = false;
         this._abortPromises();
-    }
+    }  
 
     public render(): React.ReactElement {
         const { list, formFields } = this.props;
@@ -90,7 +92,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
             {!this._isMounted && isLoading && <Spinner size={SpinnerSize.large} />}
             {this._isMounted === true && this.renderBreadcrumb()}
             {this._isMounted === true &&
-                <ListView items={items || []} columns={columns} groupBy={groupBy}
+                <ListView ref={this._listView} items={items || []} columns={columns} groupBy={groupBy}
                     placeholder={(<div>
                         <FontIcon iconName="Search" style={{
                             fontSize: '2em',
@@ -132,6 +134,12 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
             }}>{error}</span>}
             {this._isMounted === true && !this.props.showCommandBar && this.renderDeleteDialog()}        
         </div>;
+    }
+
+    public deselect(){
+        if(this._listView.current){
+            this._listView.current.deselect();
+        }
     }
 
     protected onSelectItems(selection: IListItem[]) {

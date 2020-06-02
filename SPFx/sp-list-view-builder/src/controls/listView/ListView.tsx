@@ -77,6 +77,12 @@ export class ListView extends React.Component<IListViewProps, IListViewState> {
         </>;
     }
 
+    public deselect(){
+        if (this._selection) {
+            this._selection.setItems(this.props.items, true);
+        }
+    }
+
     protected renderList(items: any[], columns: IColumn[], groupProps: IGroupRenderProps, groups: IGroup[], selection: Selection): React.ReactElement {
         return React.createElement(ShimmeredDetailsList, {
             ...this.props,

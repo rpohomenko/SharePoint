@@ -35,13 +35,14 @@ export interface ISPListFormState {
     canDelete?: boolean;
     isDeleteOpen?: boolean;
     isDeleting?: boolean;
-    onClose?: () => void;
+    //onClose?: () => void;
 }
 
 export class SPListForm extends React.Component<ISPListFormProps, ISPListFormState> {
     private _listForm: React.RefObject<ListForm>;
     private _savePromise: CancelablePromise;
     private _loadPromise: CancelablePromise;
+    private _onClose?: () => void;
 
     constructor(props: ISPListFormProps) {
         super(props);
@@ -80,9 +81,15 @@ export class SPListForm extends React.Component<ISPListFormProps, ISPListFormSta
     public render(): React.ReactElement {
         const { list, fields, headerText, regionalSettings, timeZone } = this.props;
         const { mode, itemId, refreshCommandEnabled, saveCommandEnabled, isOpen, isDeleting } = this.state;
-        return isOpen === true && <Panel isLightDismiss isOpen={isOpen === true} onDismiss={() => {
-            this.close();
-        }} closeButtonAriaLabel={"Close"}
+        return isOpen === true && <Panel isLightDismiss isOpen={isOpen === true}
+            onLightDismissClick={() => {
+                if (this._listForm.current && this._listForm.current.isDirty) {
+                    return;
+                }
+                this.close();
+            }} onDismiss={() => {               
+                this.close();
+            }} closeButtonAriaLabel={"Close"}
             headerText={`${headerText ? headerText + ": " : ""}${mode === FormMode.Edit ? "Edit" : (mode === FormMode.New ? "New" : "View")}`}
             onRenderFooterContent={this.renderFooterContent.bind(this)}
             isFooterAtBottom={false}>
@@ -188,10 +195,11 @@ export class SPListForm extends React.Component<ISPListFormProps, ISPListFormSta
                 this._savePromise = cancelable(this._listForm.current.save()
                     .then((item) => {
                         if (item) {
-                            this.setState({ isOpen: false });
+                            //this.setState({ isOpen: false });
+                            this.close();
                             if (listView) {
                                 listView.refresh();
-                            }
+                            }                           
                         }
                         else {
                             //this.setState({ saveCommandEnabled: true });
@@ -250,18 +258,20 @@ export class SPListForm extends React.Component<ISPListFormProps, ISPListFormSta
     public open(mode: FormMode, itemId?: number, onClose?: () => void) {
         this.setState({ isOpen: true, mode: mode });
         if (mode === FormMode.New) {
-            this.setState({ itemId: 0 });
+            this.setState({ itemId: 0, refreshCommandEnabled: false });
         }
         else if (itemId > 0) {
             this.setState({ itemId: itemId, refreshCommandEnabled: itemId > 0 });
         }
         if (onClose instanceof Function) {
-            this.setState({ onClose: onClose });
+            this._onClose = onClose;
+            //this.setState({ onClose: onClose });
         }
     }
 
     public close() {
-        const { onClose } = this.state;
+        //const { onClose } = this.state;
+        const onClose = this._onClose;
         this.setState({ isOpen: false }, () => {
             if (onClose instanceof Function) {
                 onClose();

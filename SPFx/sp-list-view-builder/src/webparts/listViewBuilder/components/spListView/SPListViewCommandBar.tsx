@@ -131,14 +131,30 @@ export class SPListViewCommandBar extends React.Component<ISPListViewCommandBarP
         ];
     }
 
-    public openDeleteDialog(){
+    public openDeleteDialog() {
         this.setState({ isDeleting: true, addCommandEnabled: false, editCommandEnabled: false, viewCommandEnabled: false, deleteCommandEnabled: false });
     }
 
     protected getFarCommandItems(): ICommandBarItemProps[] {
-        const { listView, canAddItem } = this.props;
+        const { listView, canAddItem, items } = this.props;
         const { refreshCommandEnabled } = this.state;
-        return [
+        let commandItems = [];
+        if (items instanceof Array && items.length > 0) {
+            commandItems.push({
+                key: "selected",
+                iconProps: {
+                    iconName: "Cancel",
+                },
+                disabled: !listView || !(items instanceof Array && items.length > 0),
+                text: `${items instanceof Array ? items.length : 0} selected`,
+                onClick: () => {
+                    if (listView) {
+                        listView.deselect();
+                    }
+                }
+            });
+        }
+        commandItems.push(
             {
                 key: 'refresh', text: 'Refresh', iconProps: { iconName: 'Refresh' }, iconOnly: true,
                 disabled: !listView || !refreshCommandEnabled,
@@ -150,8 +166,8 @@ export class SPListViewCommandBar extends React.Component<ISPListViewCommandBarP
                         });
                     }
                 }
-            }
-        ];
+            });
+        return commandItems;
     }
 
     private renderDeleteDialog() {
