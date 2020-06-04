@@ -12,7 +12,8 @@ export class BaseFieldRenderer extends React.Component<IBaseFieldRendererProps, 
         this.state = {
             mode: props.mode,
             //value: props.defaultValue,
-            validationResult: undefined
+            validationResult: undefined,
+            value: null
         };
     }
 
@@ -99,13 +100,15 @@ export class BaseFieldRenderer extends React.Component<IBaseFieldRendererProps, 
     }
 
     public setValue(newValue: any) {
-        this.setState({ value: newValue }, () => {
-            this.validate().then(validationResult => {
-                //if (validationResult.isValid /*&& this.isDirty === true*/) {
-                this.onChange(this.getValue());
-                //}
+        if (!isEqual(this.state.value, newValue)) {
+            this.setState({ value: newValue }, () => {
+                this.validate().then(validationResult => {
+                    //if (validationResult.isValid /*&& this.isDirty === true*/) {
+                    this.onChange(this.getValue());
+                    //}
+                });
             });
-        });
+        }
     }
 
     protected onRenderNewForm(): JSX.Element {

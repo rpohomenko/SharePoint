@@ -31,13 +31,33 @@ export default class DateHelper {
 
     public static parseLocalDate(dateStr: string, tzBias: number): Date {
         if (dateStr) {
-            return DateHelper.toLocalDate(new Date(dateStr), tzBias);
+            let date: Date;
+            if (dateStr === "[today]" || dateStr === "[TODAY]") {
+                date = moment().startOf('day').toDate();
+            }
+            else if (dateStr === "[now]" || dateStr === "[NOW]") {
+                date = new Date();
+            }
+            else {
+                date = new Date(dateStr);
+            }
+            return DateHelper.toLocalDate(date, tzBias);
         }
     }
 
     public static parseUtcDate(dateStr: string, tzBias: number): Date {
         if (dateStr) {
-            return DateHelper.toUtcDate(new Date(dateStr), tzBias);
+            let date: Date;
+            if (dateStr === "[today]" || dateStr === "[TODAY]") {
+                date = moment().startOf('day').toDate();
+            }
+            else if (dateStr === "[now]" || dateStr === "[NOW]") {
+                date = new Date();
+            }
+            else {
+                date = new Date(dateStr);
+            }
+            return DateHelper.toUtcDate(date, tzBias);
         }
     }
 }

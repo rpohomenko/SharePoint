@@ -87,32 +87,14 @@ export class SPListForm extends React.Component<ISPListFormProps, ISPListFormSta
                     return;
                 }
                 this.close();
-            }} onDismiss={() => {               
+            }} onDismiss={() => {
                 this.close();
             }} closeButtonAriaLabel={"Close"}
             headerText={`${headerText ? headerText + ": " : ""}${mode === FormMode.Edit ? "Edit" : (mode === FormMode.New ? "New" : "View")}`}
             onRenderFooterContent={this.renderFooterContent.bind(this)}
             isFooterAtBottom={false}>
             <CommandBar items={this.getCommandItems()}
-                farItems={[
-                    {
-                        key: 'refresh', text: 'Refresh', iconProps: { iconName: 'Refresh' }, iconOnly: true,
-                        disabled: mode === FormMode.New || !refreshCommandEnabled,
-                        onClick: () => {
-                            if (this._listForm.current) {
-                                if (this._loadPromise) {
-                                    this._loadPromise.cancel();
-                                }
-                                this.setState({ refreshCommandEnabled: false, saveCommandEnabled: false });
-                                this._loadPromise = cancelable(this._listForm.current.loadItem())
-                                    .finally(() => {
-                                        this._loadPromise = null;
-                                        this.setState({ refreshCommandEnabled: true });
-                                    });
-                            }
-                        }
-                    }
-                ]} />
+                farItems={this.getFarCommandItems()} />
             {isDeleting && <ProgressIndicator label="Deleting..." />}
             {!isDeleting && <ListForm ref={this._listForm} itemId={mode === FormMode.New ? 0 : itemId} list={list}
                 regionalSettings={regionalSettings}
@@ -151,7 +133,32 @@ export class SPListForm extends React.Component<ISPListFormProps, ISPListFormSta
         </div>);
     }
 
-    private getCommandItems(): ICommandBarItemProps[] {
+    protected getFarCommandItems(): ICommandBarItemProps[] {
+        const { mode, refreshCommandEnabled } = this.state;
+        const items: ICommandBarItemProps[] = [];
+        if (mode !== FormMode.New) {
+            items.push({
+                key: 'refresh', text: 'Refresh', iconProps: { iconName: 'Refresh' }, iconOnly: true,
+                disabled: !refreshCommandEnabled,
+                onClick: () => {
+                    if (this._listForm.current) {
+                        if (this._loadPromise) {
+                            this._loadPromise.cancel();
+                        }
+                        this.setState({ refreshCommandEnabled: false, saveCommandEnabled: false });
+                        this._loadPromise = cancelable(this._listForm.current.loadItem())
+                            .finally(() => {
+                                this._loadPromise = null;
+                                this.setState({ refreshCommandEnabled: true });
+                            });
+                    }
+                }
+            });
+        }
+        return items;
+    }
+
+    protected getCommandItems(): ICommandBarItemProps[] {
         const { mode, itemId, saveCommandEnabled, canEdit, canDelete, isDeleting } = this.state;
         const items: ICommandBarItemProps[] = [];
         if (mode === FormMode.Edit || mode === FormMode.New) {
@@ -199,7 +206,7 @@ export class SPListForm extends React.Component<ISPListFormProps, ISPListFormSta
                             this.close();
                             if (listView) {
                                 listView.refresh();
-                            }                           
+                            }
                         }
                         else {
                             //this.setState({ saveCommandEnabled: true });

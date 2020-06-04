@@ -2,6 +2,8 @@ import * as React from 'react';
 import { Toggle, IToggle, Label } from 'office-ui-fabric-react' /* '@fluentui/react'*/;
 import { BaseFieldRenderer } from './BaseFieldRenderer';
 import { IBaseFieldRendererProps, IBaseFieldRendererState } from './IBaseFieldRendererProps';
+import { isEqual } from '@microsoft/sp-lodash-subset';
+import { FormMode } from '../../../utilities/Entities';
 
 export interface IBooleanFieldRendererProps extends IBaseFieldRendererProps {
 
@@ -16,25 +18,27 @@ export class BooleanFieldRenderer extends BaseFieldRenderer {
         this._booleanField = React.createRef();
     }
 
-
     public componentDidMount() {
-        if (typeof this.props.defaultValue === "boolean") {          
-            this.setValue(this.props.defaultValue);
+        this.setValue(this.parseValue(this.props.defaultValue));
+    }
+
+    private parseValue(value: any): boolean {
+        if (typeof this.props.defaultValue === "boolean") {
+            return this.props.defaultValue;
         }
-        else if (this.props.defaultValue === "0" || this.props.defaultValue === "1" || this.props.defaultValue === "false" || this.props.defaultValue === "true") {
-            this.setValue(Boolean(this.props.defaultValue));
+        else if (this.props.defaultValue === "0" || this.props.defaultValue === "false" || this.props.defaultValue === "FALSE") {
+            return false;
         }
+        else if (this.props.defaultValue === "1" || this.props.defaultValue === "true" || this.props.defaultValue === "TRUE") {
+            return true;
+        }
+        return null;
     }
 
     public componentDidUpdate(prevProps: IBooleanFieldRendererProps, prevState: IBaseFieldRendererState) {
         super.componentDidUpdate(prevProps, prevState);
-        if (prevProps.defaultValue !== this.props.defaultValue) {
-            if (typeof this.props.defaultValue === "boolean") {
-                this.setValue(this.props.defaultValue);
-            }
-            else if (this.props.defaultValue === "0" || this.props.defaultValue === "1" || this.props.defaultValue === "false" || this.props.defaultValue === "true") {
-                this.setValue(Boolean(this.props.defaultValue));
-            }
+        if (!isEqual(prevProps.defaultValue, this.props.defaultValue)) {
+            this.componentDidMount();
         }
     }
 
@@ -47,8 +51,14 @@ export class BooleanFieldRenderer extends BaseFieldRenderer {
     }
 
     protected onRenderDispForm() {
-        if (typeof this.props.defaultValue === "boolean" || this.props.defaultValue === "0" || this.props.defaultValue === "1" || this.props.defaultValue === "false" || this.props.defaultValue === "true") {
-            return <Label>{Boolean(this.props.defaultValue) === true ? "Yes" : "No"}</Label>;
+        if (typeof this.props.defaultValue === "boolean") {
+            return <Label>{this.props.defaultValue === true ? "Yes" : "No"}</Label>;
+        }
+        else if (this.props.defaultValue === "0" || this.props.defaultValue === "false" || this.props.defaultValue === "FALSE") {
+            return <Label>{"No"}</Label>;
+        }
+        else if (this.props.defaultValue === "1" || this.props.defaultValue === "true" || this.props.defaultValue === "TRUE") {
+            return <Label>{"Yes"}</Label>;
         }
         return null;
     }
@@ -67,7 +77,9 @@ export class BooleanFieldRenderer extends BaseFieldRenderer {
             }} />;
     }
 
-    public hasValue() {
-        return super.hasValue();
+    public get isDirty(): boolean {
+        const { mode, defaultValue } = this.props;
+        const prevValue = this.parseValue(defaultValue);        
+        return /*mode === FormMode.New ? this.hasValue() :*/ !isEqual(this.getValue(), prevValue);
     }
 }

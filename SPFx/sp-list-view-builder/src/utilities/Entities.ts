@@ -53,6 +53,7 @@ export interface IFormField extends IField {
     Modes?: FormMode[];
     Description?: string;
     Choices?: string[];
+    DefaultValue?: any;
 }
 
 export interface IOrderByField extends IField {

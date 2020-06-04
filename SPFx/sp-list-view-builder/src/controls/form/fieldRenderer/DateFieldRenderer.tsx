@@ -6,7 +6,8 @@ import moment from 'moment';
 import { ITimeZoneInfo, IRegionalSettingsInfo } from '@pnp/sp/regional-settings/types';
 import SPService from '../../../utilities/SPService';
 import DateHelper from '../../../utilities/DateHelper';
-import { DataType } from '../../../utilities/Entities';
+import { DataType, FormMode } from '../../../utilities/Entities';
+import { isEqual } from '@microsoft/sp-lodash-subset';
 //import { DateTimePicker, DateConvention, TimeConvention, TimeDisplayControlType } from '@pnp/spfx-controls-react/lib/dateTimePicker';
 
 export interface IDateFieldRendererProps extends IBaseFieldRendererProps {
@@ -193,6 +194,11 @@ export class DateFieldRenderer extends BaseFieldRenderer {
     }
 
     public getValue() {
-        return DateHelper.toUTCString(this.state.value, this._timeZone ? this._timeZone.Information.Bias : 0);
+        return this.state.value ? DateHelper.toUTCString(this.state.value, this._timeZone ? this._timeZone.Information.Bias : 0) : null;
     }
+
+    /*public get isDirty(): boolean {
+        const { mode, defaultValue } = this.props;
+        return mode === FormMode.New ? this.hasValue() : !isEqual(this.getValue(), defaultValue);
+    }*/
 }

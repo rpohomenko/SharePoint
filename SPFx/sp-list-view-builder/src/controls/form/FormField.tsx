@@ -128,6 +128,12 @@ export class FormField extends React.Component<IFormFieldProps | IDateFormFieldP
             field.ReadOnly = true;
             return defaultValue ? defaultValue.Name : null;
         }
+        let setDefaultValue: any = defaultValue;
+        if (mode === FormMode.New) {
+            if (defaultValue === null || defaultValue === undefined) {
+                setDefaultValue = field.DefaultValue;
+            }
+        }
         switch (field.DataType) {
             case DataType.Text:
             case DataType.MultiLineText:
@@ -135,7 +141,7 @@ export class FormField extends React.Component<IFormFieldProps | IDateFormFieldP
                     key: field.Name,
                     ref: this._fieldControl,
                     disabled: field.ReadOnly === true || disabled === true,
-                    defaultValue: defaultValue,
+                    defaultValue: setDefaultValue,
                     required: field.Required === true,
                     mode: mode,
                     dataType: field.DataType,
@@ -150,7 +156,7 @@ export class FormField extends React.Component<IFormFieldProps | IDateFormFieldP
                     key: field.Name,
                     ref: this._fieldControl,
                     disabled: field.ReadOnly === true || disabled === true,
-                    defaultValue: this.decodeHtml(defaultValue),
+                    defaultValue: this.decodeHtml(setDefaultValue),
                     required: field.Required === true,
                     mode: mode,
                     dataType: field.DataType,
@@ -163,7 +169,7 @@ export class FormField extends React.Component<IFormFieldProps | IDateFormFieldP
                     key: field.Name,
                     ref: this._fieldControl,
                     disabled: field.ReadOnly === true || disabled === true,
-                    defaultValue: defaultValue,
+                    defaultValue: setDefaultValue,
                     required: field.Required === true,
                     mode: mode,
                     dataType: field.DataType,
@@ -179,7 +185,7 @@ export class FormField extends React.Component<IFormFieldProps | IDateFormFieldP
                     key: field.Name,
                     ref: this._fieldControl,
                     disabled: field.ReadOnly === true || disabled === true,
-                    defaultValue: defaultValue,
+                    defaultValue: setDefaultValue,
                     required: field.Required === true,
                     mode: mode,
                     dataType: field.DataType,
@@ -191,12 +197,12 @@ export class FormField extends React.Component<IFormFieldProps | IDateFormFieldP
                     onValidate: onValidate,
                     onChange: onChange
                 } as IDateFieldRendererProps);
-            case DataType.Boolean:
+            case DataType.Boolean:              
                 return React.createElement(BooleanFieldRenderer, {
                     key: field.Name,
                     ref: this._fieldControl,
                     disabled: field.ReadOnly === true || disabled === true,
-                    defaultValue: defaultValue,
+                    defaultValue: setDefaultValue,
                     required: field.Required === true,
                     mode: mode,
                     dataType: field.DataType,
@@ -213,7 +219,7 @@ export class FormField extends React.Component<IFormFieldProps | IDateFormFieldP
                     multiSelect: field.DataType === DataType.MultiChoice,
                     choices: field.Choices,
                     disabled: field.ReadOnly === true || disabled === true,
-                    defaultValue: !!defaultValue ? (field.DataType === DataType.Choice ? [defaultValue] : defaultValue.results) : null,
+                    defaultValue: !!setDefaultValue ? (field.DataType === DataType.Choice ? [setDefaultValue] : defaultValue.results) : null,
                     required: field.Required === true,
                     mode: mode,
                     dataType: field.DataType,
@@ -272,7 +278,7 @@ export class FormField extends React.Component<IFormFieldProps | IDateFormFieldP
                     key: field.Name,
                     ref: this._fieldControl,
                     disabled: field.ReadOnly === true || disabled === true,
-                    defaultValue: defaultValue,
+                    defaultValue: setDefaultValue,
                     required: field.Required === true,
                     mode: mode,
                     dataType: field.DataType,
