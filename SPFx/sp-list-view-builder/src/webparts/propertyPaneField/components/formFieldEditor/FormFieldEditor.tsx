@@ -9,12 +9,13 @@ import "@pnp/sp/fields";
 import { isEqual } from '@microsoft/sp-lodash-subset';
 import { DataType, FormMode } from '../../../../utilities/Entities';
 import { IFormFieldEditorProps, IFormFieldEditorState } from './IFormFieldEditorProps';
+import { FormField } from '../../../../controls/form/FormField';
 
 const theme = getTheme();
 
 export class FormFieldEditor extends React.Component<IFormFieldEditorProps, IFormFieldEditorState> {
 
-  constructor(props) {
+  constructor(props: IFormFieldEditorProps) {
     super(props);
     this.state = {
       field: { ...props.field },
@@ -22,17 +23,40 @@ export class FormFieldEditor extends React.Component<IFormFieldEditorProps, IFor
     };
   }
 
-  public componentDidUpdate(prevProps: IFormFieldEditorProps) {
+  public async componentDidMount() {
+    if (this.props.regionalSettings) {
+      const regionalSettings = await this.props.regionalSettings;
+      this.setState({ regionalSettings: regionalSettings });
+    }
+    if (this.props.timeZone) {
+      const timeZone = await this.props.timeZone;
+      this.setState({ timeZone: timeZone });
+    }
+  }
+
+  public async componentDidUpdate(prevProps: IFormFieldEditorProps) {
     if (prevProps.isOpen !== this.props.isOpen) {
       this.setState({ isOpen: this.props.isOpen });
     }
     if (!isEqual(prevProps.field, this.props.field)) {
       this.setState({ field: this.props.field });
     }
+    if (!isEqual(prevProps.regionalSettings, this.props.regionalSettings)) {
+      if (this.props.regionalSettings) {
+        const regionalSettings = await this.props.regionalSettings;
+        this.setState({ regionalSettings: regionalSettings });
+      }
+    }
+    if (!isEqual(prevProps.timeZone, this.props.timeZone)) {
+      if (this.props.timeZone) {
+        const timeZone = await this.props.timeZone;
+        this.setState({ timeZone: timeZone });
+      }
+    }
   }
 
   public render(): React.ReactElement {
-    const { isOpen, field } = this.state;
+    const { isOpen, field, regionalSettings, timeZone } = this.state;
     const changedField = this.state.changedField || { ...field, Modes: field.Modes instanceof Array ? [...field.Modes] : [] };
     if (!field) return null;
     return (
@@ -112,6 +136,21 @@ export class FormFieldEditor extends React.Component<IFormFieldEditorProps, IFor
               }
             }}
           />
+          <FormField label={"Default"}
+            disabled={false}
+            defaultValue={field.DefaultValue}
+            field={field}
+            mode={FormMode.New}
+            regionalSettings={regionalSettings}
+            timeZone={timeZone}
+            onValidate={(result) => {
+
+            }}
+            onChange={(value, isDirty) => {
+              changedField.DefaultValue = value;
+              const isChanged = changedField.DefaultValue !== field.DefaultValue;
+              this.setState({ isChanged: isChanged, changedField: changedField });
+            }} />
         </Stack>
       </Panel>
     );

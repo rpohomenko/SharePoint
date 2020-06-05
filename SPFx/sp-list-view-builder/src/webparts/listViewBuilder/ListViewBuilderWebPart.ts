@@ -156,6 +156,9 @@ export default class ListViewBuilderWebPart extends BaseClientSideWebPart<IListV
 
   protected getPropertyPaneConfiguration(): IPropertyPaneConfiguration {
     const list = SPService.getList(this.properties.list);
+    const timeZone = SPService.getTimeZoneInfo();
+    const regionalSettings = SPService.getRegionalSettingsInfo();
+
     return {
       pages: [
         {
@@ -208,6 +211,8 @@ export default class ListViewBuilderWebPart extends BaseClientSideWebPart<IListV
                   list: list,
                   items: this.properties.formFields,                
                   //columns: [],
+                  regionalSettings: regionalSettings,
+                  timeZone: timeZone,
                   onPropertyChange: this.onCustomPropertyPaneFieldChanged.bind(this),
                   noItemsMessage: "Click on 'Add' to add fields."
                 }),

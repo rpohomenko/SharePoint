@@ -23,11 +23,11 @@ export default class DateHelper {
         }
     }
 
-    public static toUTCString2(date: Date, tzBias: number): string {
+    /*public static toUTCString2(date: Date, tzBias: number): string {
         if (date) {
             return moment(DateHelper.toUtcDate(date, tzBias)).format('D/M/YYYY h:m A');
         }
-    }
+    }*/
 
     public static parseLocalDate(dateStr: string, tzBias: number): Date {
         if (dateStr) {

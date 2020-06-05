@@ -49,7 +49,7 @@ export class FormField extends React.Component<IFormFieldProps | IDateFormFieldP
     }
 
     public render() {
-        const { field, onGetFieldRenderer } = this.props;
+        const { field, label, onGetFieldRenderer } = this.props;
         const { mode } = this.state;
         const isHidden = !field || (field.Modes instanceof Array && field.Modes.length > 0 && !field.Modes.some(m => m === mode));
         if (isHidden) {
@@ -59,9 +59,9 @@ export class FormField extends React.Component<IFormFieldProps | IDateFormFieldP
             ? onGetFieldRenderer(this._fieldControl, () => this._getFieldRenderer())
             : this._getFieldRenderer();
         return <div className="form-field">
-            {field.Title &&
+            { label || field.Title &&
                 (<Stack horizontal verticalAlign="center" styles={{ root: { padding: 2 } }}>
-                    <Label className="form-field-label" required={mode !== FormMode.Display && field.Required === true}>{field.Title}</Label>
+                    <Label className="form-field-label" required={mode !== FormMode.Display && field.Required === true}>{label || field.Title}</Label>
                     {field.Description &&
                         (<IconButton
                             id={this._iconButtonId}

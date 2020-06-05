@@ -4,6 +4,7 @@ import { IValidationResult } from './fieldRenderer/IBaseFieldRendererProps';
 import { IRegionalSettingsInfo, ITimeZoneInfo } from '@pnp/sp/regional-settings';
 
 export interface IFormFieldProps {
+    label?: string;
     mode: FormMode;
     field: IFormField;
     defaultValue?: any;

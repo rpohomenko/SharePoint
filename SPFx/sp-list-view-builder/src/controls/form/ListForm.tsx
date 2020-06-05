@@ -13,6 +13,7 @@ import SPService from '../../utilities/SPService';
 import { IValidationResult } from './fieldRenderer/IBaseFieldRendererProps';
 import ErrorBoundary from '../ErrorBoundary';
 import '../../utilities/StringExtensions';
+import { isEqual } from '@microsoft/sp-lodash-subset';
 
 interface CancelablePromise extends Promise<any> {
     cancel: () => void;
@@ -40,7 +41,7 @@ export class ListForm extends React.Component<IListFormProps, IListFormState> {
     public async componentDidMount() {
         if (!this._isMounted) {
             if (this.props.regionalSettings) {
-                this._regionalSettings = await this.props.regionalSettings;
+                this._regionalSettings = this.props.regionalSettings;
             }
             if (this._regionalSettings) {
                 const locale = SPService.getLocaleName(this._regionalSettings.LocaleId);
@@ -67,6 +68,13 @@ export class ListForm extends React.Component<IListFormProps, IListFormState> {
     public async componentDidUpdate(prevProps: IListFormProps, prevState: IListFormState) {
         if (prevProps.mode != this.props.mode) {
             this.setState({ mode: this.props.mode });
+        }
+        if (!isEqual(prevProps.regionalSettings, this.props.regionalSettings)) {
+            this._regionalSettings = this.props.regionalSettings;
+            if (this._regionalSettings) {
+                const locale = SPService.getLocaleName(this._regionalSettings.LocaleId);
+                moment.locale(locale);
+            }
         }
         if (prevProps.itemId != this.props.itemId || prevProps.list != this.props.list) {
             if (this.state.mode === FormMode.Edit || this.state.mode === FormMode.Display && this.props.itemId > 0) {

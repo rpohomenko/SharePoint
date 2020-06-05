@@ -23,23 +23,27 @@ const dragEnterClass = mergeStyles({
   backgroundColor: theme.palette.neutralLight,
 });
 
-export class PropertyPaneListBuilder extends React.Component<{
+interface PropertyPaneListBuilderProps {
   items: any[];
   columns: IColumn[];
   noItemsMessage: React.ReactElement | string;
   onChange?: (items: any[]) => void;
   onSelect?: (selection: any[]) => void;
   getCommandItems?: (items: any[], selection?: IObjectWithKey[]) => ICommandBarItemProps[];
-}, {
+}
+
+interface PropertyPaneListBuilderState {
   items: any[];
-  selection?: IObjectWithKey[]
-}> {
+  selection?: IObjectWithKey[];
+}
+
+export class PropertyPaneListBuilder extends React.Component<PropertyPaneListBuilderProps, PropertyPaneListBuilderState> {
   private _selection: Selection;
   private _dragDropEvents: IDragDropEvents;
   private _draggedItem: any | undefined;
   private _draggedIndex: number;
 
-  constructor(props) {
+  constructor(props: PropertyPaneListBuilderProps) {
     super(props);
 
     this._selection = new Selection({
@@ -178,6 +182,7 @@ export class PropertyPaneFieldList implements IPropertyPaneField<IPropertyPaneFi
   constructor(targetProperty: string, properties: IPropertyPaneFieldListProps) {
     this.targetProperty = targetProperty;
     this.properties = {
+      //...properties,
       key: properties.label,
       targetProperty: targetProperty,
       label: properties.label,

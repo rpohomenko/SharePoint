@@ -2,15 +2,18 @@ import * as React from 'react';
 import * as strings from 'ListViewBuilderWebPartStrings';
 
 import { ICommandBarItemProps, IconButton, getTheme, mergeStyleSets, IColumn } from 'office-ui-fabric-react' /* '@fluentui/react'*/;
-import { PropertyPaneFieldList, IPropertyPaneFieldListProps } from './propertyPaneFieldList';
+import { PropertyPaneFieldList, IPropertyPaneFieldListProps, IPropertyPaneFieldListInternalProps } from './propertyPaneFieldList';
 import { IFormField, DataType } from '../../utilities/Entities';
 import AddFormFieldPanel from './components/AddFormFieldPanel';
 import { FormFieldEditor } from './components/formFieldEditor';
 import { IList } from '@pnp/sp/lists';
+import { ITimeZoneInfo, IRegionalSettingsInfo } from '@pnp/sp/regional-settings/types';
 
 export interface IPropertyPaneFormFieldListProps extends IPropertyPaneFieldListProps {
    list: IList;
    items: IFormField[];
+   regionalSettings?: Promise<IRegionalSettingsInfo>;
+   timeZone?: Promise<ITimeZoneInfo>;
 }
 
 const theme = getTheme();
@@ -36,6 +39,8 @@ export class PropertyPaneFormFieldList extends PropertyPaneFieldList {
    private _addFormFieldPanel: React.RefObject<AddFormFieldPanel>;
    private _formFieldEditor: React.RefObject<FormFieldEditor>;
    private _list: IList;
+   private _regionalSettings: Promise<IRegionalSettingsInfo>;
+   private _timeZone: Promise<ITimeZoneInfo>;
 
    constructor(targetProperty: string, properties: IPropertyPaneFormFieldListProps) {
 
@@ -68,6 +73,8 @@ export class PropertyPaneFormFieldList extends PropertyPaneFieldList {
 
       super(targetProperty, properties);
 
+      this._regionalSettings = properties.regionalSettings;
+      this._timeZone = properties.timeZone;
       this._list = properties.list;
       this._addFormFieldPanel = React.createRef();
       this._formFieldEditor = React.createRef();
@@ -139,14 +146,14 @@ export class PropertyPaneFormFieldList extends PropertyPaneFieldList {
    }
 
    protected onRenderElement(): React.ReactElement {
-      const element = super.onRenderElement();
+      const element = super.onRenderElement();  
       return <div>
          {element}
          <AddFormFieldPanel ref={this._addFormFieldPanel} list={this._list} fields={this.properties.items} onAddFields={(fields) => {
             const items = this.properties.items instanceof Array ? [... this.properties.items, ...fields] : fields;
             this.set_items(items);
          }} />
-         <FormFieldEditor ref={this._formFieldEditor} onChange={(field) => {
+         <FormFieldEditor ref={this._formFieldEditor} timeZone={this._timeZone} regionalSettings={this._regionalSettings} onChange={(field) => {
             const items: IFormField[] =  this.properties.items instanceof Array ? [... this.properties.items] : [];
             for (const item of items.filter(i => i.Name === field.Name)) {
                items[items.indexOf(item)] = field;
