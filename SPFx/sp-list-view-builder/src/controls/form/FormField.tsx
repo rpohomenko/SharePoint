@@ -219,7 +219,8 @@ export class FormField extends React.Component<IFormFieldProps | IDateFormFieldP
                     multiSelect: field.DataType === DataType.MultiChoice,
                     choices: field.Choices,
                     disabled: field.ReadOnly === true || disabled === true,
-                    defaultValue: !!setDefaultValue ? (field.DataType === DataType.Choice ? [setDefaultValue] : defaultValue.results) : null,
+                    defaultValue: !!setDefaultValue ? (field.DataType === DataType.Choice ? (setDefaultValue instanceof Array ? setDefaultValue : [setDefaultValue])
+                     : (defaultValue ? defaultValue.results : (setDefaultValue instanceof Array ? setDefaultValue : [setDefaultValue]))) : null,
                     required: field.Required === true,
                     mode: mode,
                     dataType: field.DataType,

@@ -59,6 +59,10 @@ export class FormFieldEditor extends React.Component<IFormFieldEditorProps, IFor
     const { isOpen, field, regionalSettings, timeZone } = this.state;
     const changedField = this.state.changedField || { ...field, Modes: field.Modes instanceof Array ? [...field.Modes] : [] };
     if (!field) return null;
+    const isDefaultValueSupported = field.DataType === DataType.Text || field.DataType === DataType.Number
+      || field.DataType === DataType.Date || field.DataType === DataType.DateTime || field.DataType === DataType.Choice
+      || field.DataType === DataType.MultiChoice || field.DataType === DataType.Boolean;
+
     return (
       <Panel className={styles.formFieldEditor} isLightDismiss isOpen={isOpen} onDismiss={() => this.close()} closeButtonAriaLabel={"Close"} headerText={`Edit: ${field.Title}`}
         onRenderFooterContent={this.renderFooterContent.bind(this)}
@@ -86,7 +90,7 @@ export class FormFieldEditor extends React.Component<IFormFieldEditorProps, IFor
             onChange={(event, option, index) => {
               changedField.OutputType = Number(option.key);
               const isChanged = changedField.OutputType !== field.OutputType
-                    && !(changedField.OutputType === DataType.Text && field.OutputType === undefined);
+                && !(changedField.OutputType === DataType.Text && field.OutputType === undefined);
               this.setState({ isChanged: isChanged, changedField: changedField });
             }}
           />
@@ -136,7 +140,7 @@ export class FormFieldEditor extends React.Component<IFormFieldEditorProps, IFor
               }
             }}
           />
-          <FormField label={"Default"}
+          {isDefaultValueSupported && <FormField label={"Default"}
             disabled={false}
             defaultValue={field.DefaultValue}
             field={field}
@@ -151,6 +155,7 @@ export class FormFieldEditor extends React.Component<IFormFieldEditorProps, IFor
               const isChanged = changedField.DefaultValue !== field.DefaultValue;
               this.setState({ isChanged: isChanged, changedField: changedField });
             }} />
+          }
         </Stack>
       </Panel>
     );
