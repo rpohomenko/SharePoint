@@ -103,7 +103,7 @@ export class SPListForm extends React.Component<ISPListFormProps, ISPListFormSta
                 onItemLoaded={(item) => {
                     const canEdit = SPService.doesItemHavePermissions(item, PermissionKind.EditListItems);
                     const canDelete = SPService.doesItemHavePermissions(item, PermissionKind.DeleteListItems);
-                    this.setState({ itemId: item ? item.ID : 0, canEdit: canEdit, canDelete: canDelete, refreshCommandEnabled: true, saveCommandEnabled: (mode === FormMode.Edit || mode === FormMode.New) && this._listForm.current.isDirty === true });
+                    this.setState({ itemId: item ? item.ID : 0, canEdit: canEdit, canDelete: canDelete, refreshCommandEnabled: item && item.ID > 0, saveCommandEnabled: (mode === FormMode.Edit || mode === FormMode.New) && this._listForm.current.isDirty === true });
                 }}
                 onChange={this.onFieldValueChange.bind(this)} />}
             {this.renderDeleteDialog()}
@@ -268,7 +268,7 @@ export class SPListForm extends React.Component<ISPListFormProps, ISPListFormSta
             this.setState({ itemId: 0, refreshCommandEnabled: false });
         }
         else if (itemId > 0) {
-            this.setState({ itemId: itemId, refreshCommandEnabled: itemId > 0 });
+            this.setState({ itemId: itemId, refreshCommandEnabled: /*itemId > 0*/ false });
         }
         if (onClose instanceof Function) {
             this._onClose = onClose;

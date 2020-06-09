@@ -107,7 +107,8 @@ export class UrlFieldRenderer extends BaseFieldRenderer {
         const { mode, defaultValue } = this.props;
         const currentValue = this.getValue() as IUrlFieldValue;
         const prevValue = (defaultValue || null) as IUrlFieldValue;
-        return mode === FormMode.New ? this.hasValue() : (prevValue === null || (currentValue === null || prevValue.Url !== currentValue.Url || prevValue.Description !== currentValue.Description));
+        return mode === FormMode.New ? this.hasValue() : ((prevValue === null && currentValue !== null) || (currentValue !== null && prevValue === null) 
+        || (prevValue !== null && currentValue !== null && (prevValue.Url !== currentValue.Url || prevValue.Description !== currentValue.Description)));
     }
 
 }

@@ -336,7 +336,7 @@ export class ListForm extends React.Component<IListFormProps, IListFormState> {
                 case DataType.URL:
                     if (mode === FormMode.Edit) {
                         if (value && (value as IUrlFieldValue).Url) {
-                            value = `${(value as IUrlFieldValue).Url}, ${(value as IUrlFieldValue).Description}`;
+                            value = `${(value as IUrlFieldValue).Url}, ${(value as IUrlFieldValue).Description || ""}`;
                         }
                         else{
                             value = "";
