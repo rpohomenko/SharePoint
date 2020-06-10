@@ -5,12 +5,14 @@ import { cancelable, CancelablePromise } from 'cancelable-promise';
 import { SPListView } from '../spListView';
 import { Dialog, DialogType, DialogFooter, PrimaryButton, DefaultButton, CommandBar, ICommandBarItemProps } from 'office-ui-fabric-react' /* '@fluentui/react'*/;
 import { SPListForm } from './SPListForm';
+import { SPSearchForm } from './SPSearchForm';
 
 export interface ISPListViewCommandBarProps {
     formFields: IFormField[];
     canAddItem: boolean;
     items?: IEditableListItem[];
-    listForm: SPListForm;
+    listForm?: SPListForm;
+    searchForm?: SPSearchForm;
     listView: SPListView;
     onItemDeleting?: () => void;
     onItemDeleted?: () => void;
@@ -22,6 +24,7 @@ export interface ISPListViewCommandBarState {
     editCommandEnabled: boolean;
     viewCommandEnabled: boolean;
     deleteCommandEnabled: boolean;
+    filterCommandEnabled: boolean;
     isDeleting?: boolean;
 }
 
@@ -36,7 +39,8 @@ export class SPListViewCommandBar extends React.Component<ISPListViewCommandBarP
             addCommandEnabled: this.props.canAddItem,
             viewCommandEnabled: true,
             editCommandEnabled: true,
-            deleteCommandEnabled: true
+            deleteCommandEnabled: true,
+            filterCommandEnabled: true
         };
     }
 
@@ -53,7 +57,9 @@ export class SPListViewCommandBar extends React.Component<ISPListViewCommandBarP
                 addCommandEnabled: this.props.canAddItem,
                 viewCommandEnabled: true,
                 editCommandEnabled: true,
-                deleteCommandEnabled: true, refreshCommandEnabled: true,
+                deleteCommandEnabled: true,
+                refreshCommandEnabled: true,
+                filterCommandEnabled: true
             });
         }
     }
@@ -136,8 +142,8 @@ export class SPListViewCommandBar extends React.Component<ISPListViewCommandBarP
     }
 
     protected getFarCommandItems(): ICommandBarItemProps[] {
-        const { listView, canAddItem, items } = this.props;
-        const { refreshCommandEnabled } = this.state;
+        const { listView, canAddItem, items, searchForm } = this.props;
+        const { refreshCommandEnabled, filterCommandEnabled } = this.state;
         let commandItems = [];
         if (items instanceof Array && items.length > 0) {
             commandItems.push({
@@ -154,6 +160,23 @@ export class SPListViewCommandBar extends React.Component<ISPListViewCommandBarP
                 }
             });
         }
+
+        if (searchForm) {
+            commandItems.push(
+                {
+                    key: 'filter', text: 'Filter', iconProps: { iconName: 'Filter' }, iconOnly: true,
+                    disabled: !searchForm || !filterCommandEnabled,
+                    onClick: () => {
+                        if (searchForm) {
+                            this.setState({ filterCommandEnabled: false, refreshCommandEnabled: false, deleteCommandEnabled: false, addCommandEnabled: false, editCommandEnabled: false, viewCommandEnabled: false });
+                            searchForm.open(() => {
+                                this.setState({ filterCommandEnabled: true, refreshCommandEnabled: true, addCommandEnabled: canAddItem, editCommandEnabled: true, viewCommandEnabled: true, deleteCommandEnabled: true });
+                            });
+                        }
+                    }
+                });
+        }
+
         commandItems.push(
             {
                 key: 'refresh', text: 'Refresh', iconProps: { iconName: 'Refresh' }, iconOnly: true,

@@ -1,0 +1,11 @@
+.form-field{
+    padding: 8px 3px;
+    position: relative;
+}
+
+.form-field .form-field-label {
+    font-weight: 600;
+    font-size: 12px;
+    padding-top: 3px;
+    padding-bottom: 3px;
+}

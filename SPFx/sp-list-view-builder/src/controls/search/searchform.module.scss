@@ -1,0 +1,8 @@
+
+.searchform{
+    width: 100%;
+    
+    :global {
+        @import 'searchform';
+      }
+}

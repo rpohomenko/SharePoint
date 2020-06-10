@@ -9,7 +9,7 @@ import { IList, IListInfo } from "@pnp/sp/lists";
 import { IViewColumn } from '../../../../controls/listView';
 import { ITimeZoneInfo, IRegionalSettingsInfo } from "@pnp/sp/regional-settings/types";
 import { ISPListViewProps, ISPListViewState } from './ISPListView';
-import { DataType, IViewField, IViewLookupField, IFolder, IEditableListItem, IListItem, IUrlFieldValue, IViewUrlField, FormMode } from '../../../../utilities/Entities';
+import { DataType, IViewField, IViewLookupField, IFolder, IEditableListItem, IListItem, IUrlFieldValue, IViewUrlField, FormMode, IFilterGroup } from '../../../../utilities/Entities';
 import moment from 'moment';
 import SPService from '../../../../utilities/SPService';
 import DateHelper from '../../../../utilities/DateHelper';
@@ -17,6 +17,7 @@ import styles from './spListView.module.scss';
 import { PermissionKind } from '@pnp/sp/security';
 import { cancelable, CancelablePromise } from 'cancelable-promise';
 import { SPListForm } from './SPListForm';
+import { SPSearchForm } from './SPSearchForm';
 import { SPListViewCommandBar } from './SPListViewCommandBar';
 
 const theme = getTheme();
@@ -34,6 +35,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
     private _page?: PagedItemCollection<IListItem[]>;
     private _promises: CancelablePromise[] = [];
     private _listForm: React.RefObject<SPListForm>;
+    private _searchForm: React.RefObject<SPSearchForm>;
     private _commandBar: React.RefObject<SPListViewCommandBar>;
     private _listView: React.RefObject<ListView>;
 
@@ -48,6 +50,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
         this._listForm = React.createRef();
         this._commandBar = React.createRef();
         this._listView = React.createRef();
+        this._searchForm = React.createRef();
     }
 
     public async componentDidMount() {
@@ -81,7 +84,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
     public componentWillUnmount() {
         this._isMounted = false;
         this._abortPromises();
-    }  
+    }
 
     public render(): React.ReactElement {
         const { list, formFields } = this.props;
@@ -113,7 +116,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
                     ariaLabel="More"
                     styles={{
                         root: {
-                            width: '100%'                     
+                            width: '100%'
                         }
                     }}
                     onClick={() => {
@@ -126,18 +129,21 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
                 regionalSettings={this._regionalSettings} timeZone={this._timeZone}
                 itemId={selection instanceof Array && selection.length > 0 ? selection[0].ID : 0}
             />}
+            {!error && <SPSearchForm ref={this._searchForm} isOpen={false} listView={this} fields={formFields}
+                headerText={this.props.rootFolder ? this.props.rootFolder.Name : ""}
+                regionalSettings={this._regionalSettings} timeZone={this._timeZone} />}
             {error && <span style={{
                 color: 'red',
                 display: 'block',
                 textOverflow: 'ellipsis',
                 overflow: 'hidden'
             }}>{error}</span>}
-            {this._isMounted === true && !this.props.showCommandBar && this.renderDeleteDialog()}        
+            {this._isMounted === true && !this.props.showCommandBar && this.renderDeleteDialog()}
         </div>;
     }
 
-    public deselect(){
-        if(this._listView.current){
+    public deselect() {
+        if (this._listView.current) {
             this._listView.current.deselect();
         }
     }
@@ -190,14 +196,14 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
         const { groupBy } = this.state;
         this._abortPromises();
         this.setState({ isLoading: true, error: undefined, groupBy: undefined, folder: folder, items: new Array(this._shimItemCount) }, () => {
-            this._addPromise(this.getData(this.props.list, this.state.sortColumn, this.state.groupBy, folder)).then(page => {
+            this._addPromise(this.getData(this.props.list, this.state.sortColumn, this.state.groupBy, folder, this.state.filter)).then(page => {
                 this._page = page;
                 this.setState({ items: page.results, groupBy: groupBy, isLoading: false });
             });
         });
     }
 
-    private getFilter(showFolders?: boolean, includeSubFolders?: boolean, ...folderServerRelativeUrls: string[]): string {
+    private getFilter(showFolders?: boolean, includeSubFolders?: boolean, filterGroup?: IFilterGroup, ...folderServerRelativeUrls: string[]): string {
         let filter = !showFolders || includeSubFolders === true ? "FSObjType eq 0" : "";
         folderServerRelativeUrls = folderServerRelativeUrls.filter(url => !!url);
         if (folderServerRelativeUrls instanceof Array && folderServerRelativeUrls.length > 0) {
@@ -212,6 +218,9 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
                 filter += `( ${folderServerRelativeUrls.map(folderServerRelativeUrl =>
                     `FileDirRef eq '${folderServerRelativeUrl}'`).join(' or ')} )`;
             }
+        }
+        if (filterGroup) {
+            //todo: filter
         }
         return filter;
     }
@@ -241,7 +250,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
         }
     }
 
-    private async getData(list: IList, sortColumn?: IViewColumn, groupBy?: IGrouping[], folder?: IFolder): Promise<PagedItemCollection<IEditableListItem[]>> {
+    private async getData(list: IList, sortColumn?: IViewColumn, groupBy?: IGrouping[], folder?: IFolder, filterGroup?: IFilterGroup): Promise<PagedItemCollection<IEditableListItem[]>> {
 
         if (!list) return;
 
@@ -338,8 +347,8 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
 
         request = request.orderBy("ID", true);
 
-        const filter = folder ? this.getFilter(this.props.showFolders, this.props.includeSubFolders, folder.ServerRelativeUrl)
-            : this.getFilter(this.props.showFolders, this.props.includeSubFolders);
+        const filter = folder ? this.getFilter(this.props.showFolders, this.props.includeSubFolders, filterGroup, folder.ServerRelativeUrl)
+            : this.getFilter(this.props.showFolders, this.props.includeSubFolders, filterGroup);
 
         if (filter) {
             request = request.filter(filter);
@@ -357,11 +366,11 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
     }
 
     private onSortItems(column: IViewColumn) {
-        const { groupBy } = this.state;
+        const { groupBy, filter } = this.state;
         this._abortPromises();
         this.setState({ isLoading: true, error: undefined, groupBy: undefined, sortColumn: column, items: new Array(this._shimItemCount) }, () => {
             const folder = this.state.folder || this.props.rootFolder;
-            this._addPromise(this.getData(this.props.list, column, groupBy, folder)).then(page => {
+            this._addPromise(this.getData(this.props.list, column, groupBy, folder, filter)).then(page => {
                 this._page = page;
                 this.setState({ items: page.results, groupBy: groupBy, isLoading: false });
             });
@@ -490,41 +499,41 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
         return value;
     }
 
-    protected getContextualMenu(item: IEditableListItem): IContextualMenuItem[]{
-        const { formFields } = this.props;      
+    protected getContextualMenu(item: IEditableListItem): IContextualMenuItem[] {
+        const { formFields } = this.props;
         const canEdit = item && item.CanEdit && formFields instanceof Array && formFields.length > 0;
         const canDelete = item && item.CanDelete === true;
         const canView = item && formFields instanceof Array && formFields.length > 0;
 
-        const menuItems = [  
+        const menuItems = [
             {
                 key: 'view', text: 'View', iconProps: { iconName: 'View' }, iconOnly: false,
                 disabled: !canView,
                 onClick: () => {
-                    if (canView) { 
+                    if (canView) {
                         this.setState({ showContextualMenu: false });
-                        if (this._listForm.current) {                           
+                        if (this._listForm.current) {
                             this._listForm.current.open(FormMode.Display, item.ID, () => {
 
                             });
                         }
                     }
                 }
-            },         
+            },
             {
                 key: 'edit', text: 'Edit', iconProps: { iconName: 'Edit' }, iconOnly: false,
                 disabled: !canEdit,
                 onClick: () => {
                     if (canEdit) {
                         this.setState({ showContextualMenu: false });
-                        if (this._listForm.current) {                           
+                        if (this._listForm.current) {
                             this._listForm.current.open(FormMode.Edit, item.ID, () => {
 
                             });
                         }
                     }
                 }
-            },           
+            },
             {
                 key: 'delete', text: 'Delete', iconProps: { iconName: 'Delete' }, iconOnly: false,
                 disabled: !canDelete,
@@ -542,7 +551,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
         ];
 
         return menuItems;
-    }  
+    }
 
     private renderDeleteDialog() {
         const { isDeleting } = this.state;
@@ -656,13 +665,13 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
     }
 
     private renderTitle(item: IEditableListItem, index: number, column: IColumn, viewField: IViewField, viewFields: IViewField[]) {
-        const isFolder = item["FSObjType"] === 1;     
+        const isFolder = item["FSObjType"] === 1;
         return <CommandBarButton
             ariaLabel="Open Menu"
             styles={{
                 root: {
                     height: '100%',
-                    backgroundColor: 'transparent'                  
+                    backgroundColor: 'transparent'
                 }
             }}
             menuProps={
@@ -671,7 +680,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
                 }
             }
             onClick={() => {
-             
+
             }}
         >
             {isFolder
@@ -744,7 +753,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
         const { formFields } = this.props;
         const { canAddItem } = this.state;
         const selection = this._processListItems(...this.state.selection);
-        return <SPListViewCommandBar ref={this._commandBar} listView={this} listForm={this._listForm.current} items={selection} formFields={formFields} canAddItem={canAddItem} />;
+        return <SPListViewCommandBar ref={this._commandBar} listView={this} listForm={this._listForm.current} searchForm={this._searchForm.current} items={selection} formFields={formFields} canAddItem={canAddItem} />;
     }
 
     public async deleteItem(...deletedItems: IEditableListItem[]): Promise<void> {
@@ -770,11 +779,21 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
 
     public async refresh() {
         const { list } = this.props;
-        const { folder, groupBy, sortColumn, } = this.state;
+        const { folder, groupBy, sortColumn, filter } = this.state;
         this._abortPromises();
         this.setState({ isLoading: true, error: undefined, items: new Array(this._shimItemCount), groupBy: undefined });
-        const page = await this._addPromise(this.getData(list, sortColumn, groupBy, folder));
+        const page = await this._addPromise(this.getData(list, sortColumn, groupBy, folder, filter));
         this._page = page;
         this.setState({ items: page.results, groupBy: groupBy, isLoading: false });
+    }
+
+    public async search(filter: IFilterGroup) {
+        const { list } = this.props;
+        const { folder, groupBy, sortColumn } = this.state;
+        this._abortPromises();
+        this.setState({ isLoading: true, error: undefined, items: new Array(this._shimItemCount), groupBy: undefined });
+        const page = await this._addPromise(this.getData(list, sortColumn, groupBy, folder, filter));
+        this._page = page;
+        this.setState({ items: page.results, groupBy: groupBy, isLoading: false, filter: filter });
     }
 }

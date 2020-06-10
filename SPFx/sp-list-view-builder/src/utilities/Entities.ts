@@ -148,3 +148,34 @@ export interface IUrlFieldValue {
     Url: string;
     Description?: string;
 }
+
+export interface IFilterGroup {
+    LeftFilterGroup: IFilterGroup;
+    LeftFilter: IFilter;
+    Join: FilterJoin;
+    RightFilter: IFilter;
+}
+
+export interface IFilter {
+    Field: string;
+    Type: FilterType;
+    Value: any;
+}
+
+export enum FilterJoin {
+    Or = 0,
+    And = 1
+}
+
+export enum FilterType {
+    Equals = 0,
+    NotEquals = 1,
+    StartsWith = 2,
+    Contains = 3,
+    Less = 4,
+    LessOrEquals = 5,
+    Greater = 6,
+    GreaterOrEquals = 7,
+    Empty = 8,
+    NotEmpty = 9
+}
