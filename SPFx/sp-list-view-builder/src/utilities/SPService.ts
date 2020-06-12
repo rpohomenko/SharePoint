@@ -1,7 +1,7 @@
 import { sp, IList, PermissionKind, IListInfo, IFieldInfo, FieldTypes } from "@pnp/sp/presets/all";
 import { ITimeZoneInfo, IRegionalSettingsInfo } from "@pnp/sp/regional-settings/types";
 import { ISPListInfo } from "../controls/components/listPicker";
-import { IListItem, DataType, IFieldDateInfo, IFieldLookupInfo, IFieldMultiLineTextInfo, IFieldUserInfo, IFormField, PrincipalType, IUserInfo } from "./Entities";
+import { IListItem, DataType, IFieldDateInfo, IFieldLookupInfo, IFieldMultiLineTextInfo, IFieldUserInfo, IFormField, PrincipalType, IUserInfo, IFilterGroup, IFilter, FilterJoin, FilterType } from "./Entities";
 
 export default class SPService {
 
@@ -316,6 +316,19 @@ export default class SPService {
     }
   }
 
+  public static is_Filterable(dataType: DataType) {
+    switch (dataType) {
+      case DataType.MultiLookup:
+      case DataType.MultiChoice:
+      case DataType.MultiLineText:
+      case DataType.RichText:
+      case DataType.MultiUser:
+      case DataType.URL:
+        return false;
+      default: return true;
+    }
+  }
+
   /**
    * Search person by its email or login name
    */
@@ -415,5 +428,45 @@ export default class SPService {
   private static async ensureUser(loginName: string): Promise<IUserInfo> {
     const user = await sp.web.ensureUser(loginName);
     return user ? user.data as IUserInfo : undefined;
+  }
+
+
+  public static get_Filter(filterGroup: IFilterGroup): string {
+    let filter = "";
+
+    if (!!filterGroup) {
+      const rightFilter = this.get_FilterQuery(filterGroup.RightFilter);
+      let leftFilter: string;
+      if (filterGroup.LeftFilterGroup) {
+        leftFilter = this.get_Filter(filterGroup.LeftFilterGroup);
+      }
+      if (!leftFilter) {
+        leftFilter = this.get_FilterQuery(filterGroup.LeftFilter);
+      }
+      if (!leftFilter) {
+        filter = rightFilter;
+      }
+      else {
+        if (!rightFilter) {
+          filter = leftFilter;
+        }
+        else {
+          filter = `( ${leftFilter} ${filterGroup.Join === FilterJoin.Or ? "or" : "and"} ${rightFilter}  )`;
+        }
+      }
+    }
+    return filter;
+  }
+
+  private static get_FilterQuery(filter: IFilter): string {
+    let query = "";
+    if (!!filter) {
+      switch (filter.Type) {
+        case FilterType.Equals:
+          query = `${filter.Field} eq ${filter.Value}`;
+          break;
+      }
+    }
+    return query;
   }
 }

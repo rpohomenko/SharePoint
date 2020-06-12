@@ -220,7 +220,10 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
             }
         }
         if (filterGroup) {
-            //todo: filter
+            const subFilter = SPService.get_Filter(filterGroup);
+            if (subFilter) {
+                filter += ` and ${subFilter}`;
+            }
         }
         return filter;
     }

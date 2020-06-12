@@ -117,6 +117,12 @@ export class FormField extends React.Component<IFormFieldProps | IDateFormFieldP
         }
     }
 
+    public get value(): any {
+        if (this._fieldControl.current) {
+            return this._fieldControl.current.getValue();
+        }
+    }
+
     private _setCalloutVisible = (visible: boolean) => {
         this.setState({ isCalloutVisible: visible });
     }

@@ -10,6 +10,7 @@ import { isEqual } from '@microsoft/sp-lodash-subset';
 import { DataType, FormMode } from '../../../../utilities/Entities';
 import { IFormFieldEditorProps, IFormFieldEditorState } from './IFormFieldEditorProps';
 import { FormField } from '../../../../controls/form/FormField';
+import SPService from '../../../../utilities/SPService';
 
 const theme = getTheme();
 
@@ -59,6 +60,7 @@ export class FormFieldEditor extends React.Component<IFormFieldEditorProps, IFor
     const { isOpen, field, regionalSettings, timeZone } = this.state;
     const changedField = this.state.changedField || { ...field, Modes: field.Modes instanceof Array ? [...field.Modes] : [] };
     if (!field) return null;
+    const isFilterable = SPService.is_Filterable(changedField.DataType) && !changedField.PrimaryFieldName;
     const isDefaultValueSupported = field.DataType === DataType.Text || field.DataType === DataType.Number
       || field.DataType === DataType.Date || field.DataType === DataType.DateTime || field.DataType === DataType.Choice
       || field.DataType === DataType.MultiChoice || field.DataType === DataType.Boolean;
@@ -156,6 +158,10 @@ export class FormFieldEditor extends React.Component<IFormFieldEditorProps, IFor
               this.setState({ isChanged: isChanged, changedField: changedField });
             }} />
           }
+          <Toggle label="Filterable" disabled={!isFilterable} checked={changedField.Filterable === true && isFilterable} onChange={(event, checked) => {
+            changedField.Filterable = checked;
+            this.setState({ isChanged: changedField.Filterable !== field.Filterable, changedField: changedField });
+          }} />
         </Stack>
       </Panel>
     );

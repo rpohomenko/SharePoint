@@ -59,7 +59,7 @@ export class ListForm extends React.Component<IListFormProps, IListFormState> {
             this._promise.cancel();
             this._promise = null;
         }
-        if(this._formFields){
+        if (this._formFields) {
             this._formFields = undefined;
         }
         this._isMounted = false;
@@ -126,7 +126,8 @@ export class ListForm extends React.Component<IListFormProps, IListFormState> {
         const { mode, item, isLoading, isSaving, error } = this.state;
         this._formFields = [];
         const visibleFields = fields instanceof Array && fields.length > 0
-            ? fields.filter(f => !(f.Modes instanceof Array) || f.Modes.length === 0 || f.Modes.indexOf(mode) !== -1)
+            ? fields.filter(f => (f.ReadOnly !== true || f.ReadOnly === true && mode === FormMode.Display)
+                && !(f.Modes instanceof Array && f.Modes.length > 0 && f.Modes.indexOf(mode) === -1))
             : null;
         return <ErrorBoundary>
             <div className={styles.listform}>
@@ -329,7 +330,7 @@ export class ListForm extends React.Component<IListFormProps, IListFormState> {
                             value = (value as string[]).join(';#');
                         }
                     }
-                    else{
+                    else {
                         value = "";
                     }
                     break;
@@ -338,7 +339,7 @@ export class ListForm extends React.Component<IListFormProps, IListFormState> {
                         if (value && (value as IUrlFieldValue).Url) {
                             value = `${(value as IUrlFieldValue).Url}, ${(value as IUrlFieldValue).Description || ""}`;
                         }
-                        else{
+                        else {
                             value = "";
                         }
                     }

@@ -73,8 +73,7 @@ export class SPSearchForm extends React.Component<ISPSearchFormProps, ISPSearchF
             onRenderFooterContent={this.renderFooterContent.bind(this)}
             isFooterAtBottom={false}>
             <CommandBar items={this.getCommandItems()}
-                farItems={this.getFarCommandItems()} />
-            {isSearching && <ProgressIndicator label="Searching..." />}
+                farItems={this.getFarCommandItems()} />         
             {<SearchForm ref={this._searchForm}
                 regionalSettings={regionalSettings}
                 timeZone={timeZone}
@@ -104,14 +103,28 @@ export class SPSearchForm extends React.Component<ISPSearchFormProps, ISPSearchF
             <PrimaryButton disabled={!searchCommandEnabled} onClick={() => {
                 this.search();
             }} styles={{ root: { marginRight: 8 } }}>
-                {"Search"}
+                {"Filter"}
             </PrimaryButton>
             <DefaultButton onClick={() => this.close()}>{"Cancel"}</DefaultButton>
         </div>);
     }
 
     protected getFarCommandItems(): ICommandBarItemProps[] {
+        const { searchCommandEnabled, isSearching, filter } = this.state;
         const items: ICommandBarItemProps[] = [];
+        if (!!filter) {
+            items.push({
+                key: 'clearfilter', text: 'Clear Filter', iconProps: { iconName: 'ClearFilter' }, iconOnly: true,
+                disabled: !searchCommandEnabled || isSearching === true,
+                onClick: () => {
+                    this.setState({ filter: undefined }, () => {
+                        if (this._searchForm.current) {
+                            this._searchForm.current.clear();
+                        }
+                    });
+                }
+            });
+        }
         return items;
     }
 
@@ -120,7 +133,7 @@ export class SPSearchForm extends React.Component<ISPSearchFormProps, ISPSearchF
         const items: ICommandBarItemProps[] = [];
 
         items.push({
-            key: 'search', text: 'Search', iconProps: { iconName: 'Search' }, iconOnly: true,
+            key: 'filter', text: 'Filter', iconProps: { iconName: 'Filter' }, iconOnly: true,
             disabled: !searchCommandEnabled || isSearching === true,
             onClick: () => {
                 this.search();

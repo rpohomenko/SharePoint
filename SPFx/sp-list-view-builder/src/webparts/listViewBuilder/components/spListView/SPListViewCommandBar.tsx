@@ -175,6 +175,21 @@ export class SPListViewCommandBar extends React.Component<ISPListViewCommandBarP
                         }
                     }
                 });
+            if (!!searchForm.state.filter) {
+                commandItems.push(
+                    {
+                        key: 'clearfilter', text: 'Clear Filter', iconProps: { iconName: 'ClearFilter' }, iconOnly: true,
+                        disabled: !searchForm || !filterCommandEnabled,
+                        onClick: () => {
+                            if (listView) {
+                                this.setState({ filterCommandEnabled: false, refreshCommandEnabled: false, deleteCommandEnabled: false, addCommandEnabled: false, editCommandEnabled: false, viewCommandEnabled: false });
+                                listView.search(null).then(() => {
+                                    //this.setState({ filterCommandEnabled: true, refreshCommandEnabled: true, addCommandEnabled: canAddItem, editCommandEnabled: true, viewCommandEnabled: true, deleteCommandEnabled: true });
+                                });
+                            }
+                        }
+                    });
+            }
         }
 
         commandItems.push(

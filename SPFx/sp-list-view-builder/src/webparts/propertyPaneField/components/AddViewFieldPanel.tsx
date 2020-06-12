@@ -190,7 +190,7 @@ export default class AddViewFieldPanel extends React.Component<IAddViewFieldPane
   private loadFields(list: IList, fieldNames: string[]): Promise<IViewField[]> {
     return new Promise<IViewField[]>((resolve: (options: IViewField[]) => void, reject: (error: any) => void) => {
       try {
-        return list.fields.select('Id', 'InternalName', 'EntityPropertyName', 'Title', 'FieldTypeKind', 'AllowMultipleValues', 'RichText', 'DisplayFormat', 'LookupField', 'LookupList', 'LookupWebId', 'IsRelationship', 'PrimaryFieldId'/*, 'SchemaXml'*/).filter(`${
+        return list.fields.select('Id', 'InternalName', 'EntityPropertyName', 'Title', 'FieldTypeKind', 'AllowMultipleValues', 'RichText', 'DisplayFormat', 'LookupField', 'LookupList', 'LookupWebId', 'IsRelationship', 'PrimaryFieldId', 'Filterable'/*, 'SchemaXml'*/).filter(`${
           fieldNames.map(field => `InternalName eq '${field}'`).join(' or ')
           }`).get()
           .then(fields => {
@@ -256,6 +256,7 @@ export default class AddViewFieldPanel extends React.Component<IAddViewFieldPane
   }
 
   private is_Filterable(field: IFieldInfo) {
+    if(field.Filterable === false) return false;
     switch (field.FieldTypeKind) {
       case FieldTypes.Lookup:
         if ((field as IFieldLookupInfo).AllowMultipleValues) {

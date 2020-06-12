@@ -2,6 +2,7 @@ import * as React from 'react';
 import { DetailsList, ColumnActionsMode, DetailsListLayoutMode, Selection, SelectionMode, IColumn, IGroup, IGroupRenderProps, ShimmeredDetailsList, DirectionalHint, ContextualMenu, IContextualMenuProps } from 'office-ui-fabric-react' /* '@fluentui/react'*/;
 import { IListViewProps, IListViewState, IViewColumn, IGrouping, GroupOrder } from './IListView';
 import { findIndex, has, isEqual, sortBy } from '@microsoft/sp-lodash-subset';
+import ErrorBoundary from '../ErrorBoundary';
 
 interface IGroupsItems {
     items: any[];
@@ -71,13 +72,13 @@ export class ListView extends React.Component<IListViewProps, IListViewState> {
             };
         }
 
-        return <>
+        return <ErrorBoundary>
             {this.renderList(/*flattenItems*/ items, columns, groupProps, groups, this._selection)}
             {columnContextualMenuProps && <ContextualMenu {...columnContextualMenuProps} />}
-        </>;
+        </ErrorBoundary>;
     }
 
-    public deselect(){
+    public deselect() {
         if (this._selection) {
             this._selection.setItems(this.props.items, true);
         }
@@ -336,9 +337,9 @@ export class ListView extends React.Component<IListViewProps, IListViewState> {
     private static groupBy<T extends any, K extends keyof T>(array: T[], key: K | { (obj: T): string | number }): Record<string | number, T[]> {
         const keyFn = key instanceof Function ? key : (obj: T) => obj[key];
         return array.reduce(
-            (objectsByKeyValue, obj) => {
+            (objectsByKeyValue, obj) => {             
                 const value = keyFn(obj);
-                objectsByKeyValue[value] = (objectsByKeyValue[value] || []).concat(obj);
+                objectsByKeyValue[value as string | number] = (objectsByKeyValue[value as string | number] || []).concat(obj);
                 return objectsByKeyValue;
             },
             {} as Record<string | number, T[]>

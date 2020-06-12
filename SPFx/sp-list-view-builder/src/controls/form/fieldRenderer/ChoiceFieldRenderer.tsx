@@ -119,17 +119,13 @@ export class ChoiceFieldRenderer extends BaseFieldRenderer {
             />;
     }
 
-    public getValue() {
+    public getValue(): string[] {
         const value = super.getValue();
         const { options } = this.state as IChoiceFieldRendererState;
         if (value !== null && value instanceof Array) {
             return options.filter(option => value.some(v => v === option.key))
                 .map(option => option.text);
         }
-        return value;
-    }
-
-    public hasValue() {
-        return super.hasValue();
-    }
+        return null;
+    }  
 }

@@ -54,6 +54,7 @@ export interface IFormField extends IField {
     Description?: string;
     Choices?: string[];
     DefaultValue?: any;
+    Filterable?: boolean;
 }
 
 export interface IOrderByField extends IField {
@@ -150,16 +151,16 @@ export interface IUrlFieldValue {
 }
 
 export interface IFilterGroup {
-    LeftFilterGroup: IFilterGroup;
-    LeftFilter: IFilter;
+    LeftFilterGroup?: IFilterGroup;
+    LeftFilter?: IFilter;
     Join: FilterJoin;
-    RightFilter: IFilter;
+    RightFilter?: IFilter;
 }
 
 export interface IFilter {
     Field: string;
     Type: FilterType;
-    Value: any;
+    Value: string;
 }
 
 export enum FilterJoin {
