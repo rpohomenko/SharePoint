@@ -19,6 +19,7 @@ import { cancelable, CancelablePromise } from 'cancelable-promise';
 import { SPListForm } from './SPListForm';
 import { SPSearchForm } from './SPSearchForm';
 import { SPListViewCommandBar } from './SPListViewCommandBar';
+import ErrorBoundary from '../../../../controls/ErrorBoundary';
 
 const theme = getTheme();
 
@@ -90,7 +91,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
         const { list, formFields } = this.props;
         const { items, columns, groupBy, isLoading, selection, error } = this.state;
         const page = this._page;
-        return <div>
+        return <ErrorBoundary>
             {this._isMounted === true && this.props.showCommandBar === true && this.renderCommandBar()}
             {!this._isMounted && isLoading && <Spinner size={SpinnerSize.large} />}
             {this._isMounted === true && this.renderBreadcrumb()}
@@ -139,7 +140,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
                 overflow: 'hidden'
             }}>{error}</span>}
             {this._isMounted === true && !this.props.showCommandBar && this.renderDeleteDialog()}
-        </div>;
+        </ErrorBoundary>;
     }
 
     public deselect() {
@@ -354,6 +355,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
             : this.getFilter(this.props.showFolders, this.props.includeSubFolders, filterGroup);
 
         if (filter) {
+            console.log(`Filter: ${filter}`);
             request = request.filter(filter);
         }
 

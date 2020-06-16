@@ -155,12 +155,14 @@ export interface IFilterGroup {
     LeftFilter?: IFilter;
     Join: FilterJoin;
     RightFilter?: IFilter;
+    RightFilterGroup?: IFilterGroup;
 }
 
 export interface IFilter {
     Field: string;
     Type: FilterType;
-    Value: string;
+    Value: any;
+    FilterValue?: string;
 }
 
 export enum FilterJoin {

@@ -64,7 +64,7 @@ export class LookupFieldRenderer extends BaseFieldRenderer {
 
     private formatFieldValue(value: string, dataType: DataType): string {
         const { timeZone } = this.props as ILookupFieldRendererProps;
-        
+
         if (value === undefined || value === null) {
             return "";
         }
@@ -90,12 +90,12 @@ export class LookupFieldRenderer extends BaseFieldRenderer {
             fieldName={fieldName}
             disabled={disabled}
             selected={value}
-            itemLimit={itemLimit || 5}
+            selectionLimit={itemLimit || 5}
             placeholder={"Search..."}
             onChange={(lookupValues: ILookupFieldValue[]) => {
                 this.setValue(lookupValues);
             }} />;
-    }   
+    }
 
     public hasValue() {
         return this.state.value instanceof Array && this.state.value.length > 0;

@@ -7,7 +7,9 @@ export interface IListItemPickerProps {
     disabled?: boolean;
     placeholder?: string;
     selected?: ILookupFieldValue[];
-    itemLimit?: number;
+    suggestionsLimit?: number;
+    resolveDelay?: number;
+    selectionLimit?: number;
     fieldName?: string;
     minCharacters?: number;
     onChange?: (lookupValues: ILookupFieldValue[]) => void;

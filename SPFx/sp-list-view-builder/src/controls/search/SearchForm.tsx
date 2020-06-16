@@ -89,10 +89,10 @@ export class SearchForm extends React.Component<ISearchFormProps, ISearchFormSta
                                 }}
                                 onChange={(filter) => {
                                     const filters = this._searchFields instanceof Array
-                                        ? this._searchFields.filter(searchField => !isEqual(searchField.props.field, field)).map(searchField => searchField.get_Filter())
+                                        ? this._searchFields/*.filter(searchField => !isEqual(searchField.props.field, field))*/.map(searchField => searchField.get_Filter())
                                             .filter(f => f !== null)
-                                        : null;
-                                    filter = this.get_Filter(filter as IFilter, filters, this.props.filterJoin === undefined ? FilterJoin.And : this.props.filterJoin);
+                                        : [];
+                                    filter = SPService.get_FilterGroup(this.props.filterJoin === undefined ? FilterJoin.And : this.props.filterJoin, ...filters);
                                     if (onChange instanceof Function) {
                                         onChange(filter);
                                     }
@@ -103,7 +103,7 @@ export class SearchForm extends React.Component<ISearchFormProps, ISearchFormSta
         </ErrorBoundary>;
     }
 
-    private get_Filter(rightFilter: IFilter, filters: IFilter[], filterJoin?: FilterJoin): IFilterGroup {
+   /* private get_Filter(rightFilter: IFilter, filters: IFilter[], filterJoin?: FilterJoin): IFilterGroup {
         if (!rightFilter && !(filters instanceof Array && filters.length > 0)) return null;
 
         if (!filterJoin) {
@@ -139,7 +139,7 @@ export class SearchForm extends React.Component<ISearchFormProps, ISearchFormSta
             RightFilter: rightFilter
         };
         return filterGroup;
-    }
+    }*/
 
     public async search(): Promise<any> {
         await this.validate(true);

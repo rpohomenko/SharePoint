@@ -430,12 +430,72 @@ export default class SPService {
     return user ? user.data as IUserInfo : undefined;
   }
 
+  public static get_FilterGroup(filterJoin: FilterJoin, ...filters: Array<IFilter | IFilterGroup>): IFilterGroup {
+    if (!(filters instanceof Array && filters.length > 0)) return null;
+
+    if (filterJoin === undefined) {
+      filterJoin = FilterJoin.And;
+    }
+
+    let leftFilter: IFilter = null;
+    let leftFilterGroup: IFilterGroup = null;
+    let rightFilter: IFilter = null;
+    let rightFilterGroup: IFilterGroup = null;
+
+    do {
+      const firstFilter: IFilter | IFilterGroup = filters instanceof Array && filters.length > 0 ? filters[0] : null;
+      filters = filters.slice(1);
+      if (firstFilter) {
+        if ((firstFilter as IFilter).Field) {
+          leftFilter = firstFilter as IFilter;
+        }
+        else if (((firstFilter as IFilterGroup).LeftFilter || (firstFilter as IFilterGroup).LeftFilterGroup) || (firstFilter as IFilterGroup).RightFilter || (firstFilter as IFilterGroup).RightFilterGroup) {
+          leftFilterGroup = firstFilter as IFilterGroup;
+          if (leftFilterGroup && !(leftFilterGroup.RightFilter || leftFilterGroup.RightFilterGroup)) {
+            leftFilter = leftFilterGroup.LeftFilter;
+            leftFilterGroup = leftFilterGroup.LeftFilterGroup;
+          }
+        }
+        if (leftFilter || leftFilterGroup) {
+          rightFilterGroup = this.get_FilterGroup(filterJoin, ...filters);
+          if (rightFilterGroup && !(rightFilterGroup.LeftFilter || rightFilterGroup.LeftFilterGroup)) {
+            rightFilter = rightFilterGroup.RightFilter;
+            rightFilterGroup = rightFilterGroup.RightFilterGroup;
+          }
+        }
+      }
+    }
+    while (leftFilter === null && leftFilterGroup === null && filters.length > 0);
+
+    if (rightFilterGroup === null && rightFilter === null) {
+      return leftFilterGroup !== null ? leftFilterGroup :
+        (leftFilter !== null ? {
+          LeftFilter: null,
+          LeftFilterGroup: null,
+          RightFilter: leftFilter,
+          RightFilterGroup: null,
+          Join: filterJoin
+        } as IFilterGroup : null);
+    }
+
+    if (leftFilterGroup && !leftFilterGroup.LeftFilter && !leftFilterGroup.LeftFilterGroup) {
+      leftFilterGroup = null;
+      leftFilter = leftFilterGroup.RightFilter;
+    }
+
+    const filterGroup: IFilterGroup = {
+      LeftFilter: !!leftFilterGroup ? null : leftFilter,
+      LeftFilterGroup: leftFilterGroup,
+      Join: filterJoin,
+      RightFilter: rightFilter,
+      RightFilterGroup: rightFilterGroup
+    };
+    return filterGroup;
+  }
 
   public static get_Filter(filterGroup: IFilterGroup): string {
     let filter = "";
-
     if (!!filterGroup) {
-      const rightFilter = this.get_FilterQuery(filterGroup.RightFilter);
       let leftFilter: string;
       if (filterGroup.LeftFilterGroup) {
         leftFilter = this.get_Filter(filterGroup.LeftFilterGroup);
@@ -443,6 +503,14 @@ export default class SPService {
       if (!leftFilter) {
         leftFilter = this.get_FilterQuery(filterGroup.LeftFilter);
       }
+      let rightFilter: string;
+      if (filterGroup.RightFilterGroup) {
+        rightFilter = this.get_Filter(filterGroup.RightFilterGroup);
+      }
+      if (!rightFilter) {
+        rightFilter = this.get_FilterQuery(filterGroup.RightFilter);
+      }
+
       if (!leftFilter) {
         filter = rightFilter;
       }
@@ -463,7 +531,34 @@ export default class SPService {
     if (!!filter) {
       switch (filter.Type) {
         case FilterType.Equals:
-          query = `${filter.Field} eq ${filter.Value}`;
+          query = `${filter.Field} eq ${filter.FilterValue}`;
+          break;
+        case FilterType.NotEquals:
+          query = `${filter.Field} ne ${filter.FilterValue}`;
+          break;
+        case FilterType.Empty:
+          query = `${filter.Field} eq null`;
+          break;
+        case FilterType.NotEmpty:
+          query = `${filter.Field} ne null`;
+          break;
+        case FilterType.Contains:
+          query = `substringof(${filter.FilterValue},${filter.Field})`;
+          break;
+        case FilterType.StartsWith:
+          query = `startswith(${filter.Field},${filter.FilterValue})`;
+          break;
+        case FilterType.Greater:
+          query = `${filter.Field} lt ${filter.FilterValue}`;
+          break;
+        case FilterType.GreaterOrEquals:
+          query = `${filter.Field} le ${filter.FilterValue}`;
+          break;
+        case FilterType.Greater:
+          query = `${filter.Field} gt ${filter.FilterValue}`;
+          break;
+        case FilterType.GreaterOrEquals:
+          query = `${filter.Field} ge ${filter.FilterValue}`;
           break;
       }
     }

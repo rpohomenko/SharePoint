@@ -1,8 +1,9 @@
 import * as React from 'react';
-import { FormMode, IFilter, FilterType, DataType, IUrlFieldValue, ILookupFieldValue, IUserFieldValue } from '../../utilities/Entities';
+import { FormMode, IFilter, FilterType, DataType, IUrlFieldValue, ILookupFieldValue, IUserFieldValue, IFilterGroup, FilterJoin } from '../../utilities/Entities';
 import { ISearchFieldProps, ISearchFieldState } from './ISearchFieldProps';
 import { FormField } from '../form/FormField';
 import { IValidationResult } from '../form/fieldRenderer/IBaseFieldRendererProps';
+import SPService from '../../utilities/SPService';
 
 export class SearchField extends React.Component<ISearchFieldProps, ISearchFieldState> {
 
@@ -31,11 +32,23 @@ export class SearchField extends React.Component<ISearchFieldProps, ISearchField
 
     public render() {
         const { field, filterType, defaultValue, disabled, regionalSettings, timeZone, onChange, onGetFieldRenderer, onValidate } = this.props;
-        field.DefaultValue = null
-        field.Required = false;      
-        return field && <FormField ref={this._formField}
+        const f = field ? { ...field } : null;
+        if (f) {
+            f.DefaultValue = null;
+            f.Required = false;
+            if (f.DataType === DataType.Lookup) {
+                f.DataType = DataType.MultiLookup;
+            }
+            else if (f.DataType === DataType.User) {
+                f.DataType = DataType.MultiUser;
+            }
+            else if (f.DataType === DataType.Choice) {
+                f.DataType = DataType.MultiChoice;
+            }
+        }
+        return f && <FormField ref={this._formField}
             label={null}
-            field={field}
+            field={f}
             mode={FormMode.New}
             disabled={disabled}
             regionalSettings={regionalSettings}
@@ -73,7 +86,7 @@ export class SearchField extends React.Component<ISearchFieldProps, ISearchField
         }
     }
 
-    public get_Filter(): IFilter {
+    public get_Filter(): IFilter | IFilterGroup {
         const { field, filterType } = this.props;
 
         if (!this.isDirty || !this.isValid) return null;
@@ -83,47 +96,67 @@ export class SearchField extends React.Component<ISearchFieldProps, ISearchField
             const filter: IFilter = {
                 Field: this._formField.current.name,
                 Type: filterType || FilterType.Equals,
-                Value: null
+                Value: value
             };
 
             switch (field.DataType) {
                 case DataType.Text:
-                    filter.Value = `'${value}'`;
+                    filter.FilterValue = `'${value}'`;
                     break;
                 case DataType.Boolean:
-                    filter.Value = value === true ? "1" : "0";
+                    filter.FilterValue = value === true ? "1" : "0";
                     break;
                 case DataType.Date:
+                    filter.FilterValue = `'${value}'`;
+                    break;
                 case DataType.DateTime:
-                    filter.Value = `datetime'${value}'`;
+                    filter.FilterValue = `datetime'${value}'`;
                     break;
                 case DataType.URL:
-                    filter.Value = !value ? null : (value as IUrlFieldValue).Url;
+                    filter.FilterValue = !value ? null : (value as IUrlFieldValue).Url;
                     break;
-                case DataType.Lookup:
-                    filter.Value = !(value instanceof Array && value.length > 0) ? null : `${(value as ILookupFieldValue[])[0].Id}`;
+                case DataType.Lookup:                   
+                case DataType.MultiLookup:
+                    if ((value instanceof Array && value.length > 0)) {
+                        const lookupValues = (value as ILookupFieldValue[]).filter(v => v.Id > 0);
+                        if (lookupValues.length === 1) {
+                            filter.FilterValue = String(lookupValues[0].Id);
+                        }
+                        else if (lookupValues.length > 1) {
+                            const filters = lookupValues.map(lookupValue => {
+                                return {
+                                    ...filter,
+                                    Value: lookupValue,
+                                    FilterValue: String(lookupValue.Id)
+                                } as IFilter;
+                            });
+                            const filterGroup = SPService.get_FilterGroup(FilterJoin.Or, ...filters);
+                            return filterGroup;
+                        }
+                    }
                     break;
                 case DataType.User:
-                    filter.Value = !(value instanceof Array && value.length > 0) ? null : `${(value as IUserFieldValue[])[0].Id}`;
+                case DataType.MultiUser:
+                    //filter.FilterValue = !(value instanceof Array && value.length > 0) ? null : (value as IUserFieldValue[]).map(v => `'${v.Name}'`);
                     break;
                 case DataType.Choice:
-                    filter.Value = !(value instanceof Array && value.length > 0) ? null : `${(value as string[])[0]}`;
+                case DataType.MultiChoice:
+                    //filter.FilterValue = !(value instanceof Array && value.length > 0) ? null : `${value as string[]}`;
                     break;
                 case DataType.Number:
-                    filter.Value = `${value}`;
+                    filter.FilterValue = `${value}`;
                     break;
                 default:
-                    //filter.Value = `${value}`;
                     break;
             }
 
             if (filterType === FilterType.Equals || filterType === FilterType.NotEquals) {
-                if (filter.Value === "" || filter.Value === null) {
+                if (filter.Value === "" || filter.Value === null || (filter.Value instanceof Array && filter.Value.length === 0)) {
                     filter.Value = null;
+                    filter.FilterValue = null;
                     filter.Type = filterType === FilterType.Equals ? FilterType.Empty : FilterType.NotEmpty;
                 }
             }
-
             return filter;
         }
         return null;

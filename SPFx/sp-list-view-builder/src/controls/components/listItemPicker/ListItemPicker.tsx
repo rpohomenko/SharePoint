@@ -42,12 +42,12 @@ export class ListItemPicker extends React.Component<IListItemPickerProps, IListI
     }
 
     public render(): React.ReactElement {
-        const { list, disabled, placeholder, itemLimit, selected, fieldName, minCharacters } = this.props;
+        const { label, list, disabled, placeholder, suggestionsLimit, selectionLimit, resolveDelay, selected, fieldName, minCharacters } = this.props;
 
         return <div>
-            <Label>{this.props.label}</Label>
+            <Label>{label}</Label>
             <TagPicker
-                itemLimit={itemLimit}
+                itemLimit={selectionLimit || 1}
                 removeButtonAriaLabel="Remove"
                 componentRef={this._picker}
                 selectedItems={selected instanceof Array ? selected.map((item: ILookupFieldValue) => {
@@ -92,9 +92,11 @@ export class ListItemPicker extends React.Component<IListItemPickerProps, IListI
                     placeholder: placeholder,
                     "aria-label": placeholder
                 }}
+                resolveDelay={resolveDelay || 300}
                 pickerSuggestionsProps={{
                     suggestionsHeaderText: 'Suggested List Items',
-                    noResultsFoundText: 'No items found'
+                    noResultsFoundText: 'No items found',
+                    resultsMaximumNumber: suggestionsLimit ? suggestionsLimit : 10,              
                 }}
                 disabled={disabled}
             />
@@ -116,7 +118,7 @@ export class ListItemPicker extends React.Component<IListItemPickerProps, IListI
                     .select('ID', this.props.fieldName || "Title")
                     .filter(filter)
                     .orderBy(this.props.fieldName || "Title")
-                    .top(this.props.itemLimit || 30)
+                    .top(this.props.suggestionsLimit || 10)
                     .usingCaching()
                     .get()
                     .then((items) => {
