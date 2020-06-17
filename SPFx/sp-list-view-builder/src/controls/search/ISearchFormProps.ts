@@ -6,7 +6,8 @@ export interface ISearchFormProps {
     regionalSettings?: IRegionalSettingsInfo;
     timeZone?: ITimeZoneInfo;
     filterJoin?: FilterJoin;
-    onChange: (filter: IFilterGroup) => void;    
+    onChange: (filter: IFilterGroup) => void;
+    filter?: IFilterGroup;
 }
 
 export interface ISearchFormState {

@@ -3,6 +3,7 @@ import ErrorBoundary from '../../ErrorBoundary';
 import { IBaseFieldRendererProps, IBaseFieldRendererState, IValidationResult } from './IBaseFieldRendererProps';
 import { FormMode } from '../../../utilities/Entities';
 import { isEqual } from "@microsoft/sp-lodash-subset";
+import { Stack } from 'office-ui-fabric-react';
 
 export class BaseFieldRenderer extends React.Component<IBaseFieldRendererProps, IBaseFieldRendererState> {
 
@@ -38,14 +39,14 @@ export class BaseFieldRenderer extends React.Component<IBaseFieldRendererProps, 
     public render() {
         const { mode, validationResult } = this.state;
 
-        return (<>
+        return (<Stack verticalFill>
             <ErrorBoundary>
                 {mode === FormMode.New ? this.onRenderNewForm() : null}
                 {mode === FormMode.Edit ? this.onRenderEditForm() : null}
                 {mode === FormMode.Display ? this.onRenderDispForm() : null}
             </ErrorBoundary>
             {validationResult && validationResult.isValid === false ? this._renderValidationErrors(validationResult.validationErrors) : null}
-        </>);
+        </Stack>);
     }
 
     public get isValid(): boolean {
@@ -151,6 +152,6 @@ export class BaseFieldRenderer extends React.Component<IBaseFieldRendererProps, 
         const errorStyle = {
             color: 'red'
         };
-        return (<>{validationErrors.map((err: string, i: number) => <div key={`err_${i}`} style={errorStyle}>{err}</div>)}</>);
+        return (<Stack verticalFill>{validationErrors.map((err: string, i: number) => <div key={`err_${i}`} style={errorStyle}>{err}</div>)}</Stack>);
     }
 }

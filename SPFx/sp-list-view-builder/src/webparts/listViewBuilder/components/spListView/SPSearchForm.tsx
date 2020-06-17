@@ -61,21 +61,7 @@ export class SPSearchForm extends React.Component<ISPSearchFormProps, ISPSearchF
         let { fields } = this.props;
         const { headerText, regionalSettings, timeZone } = this.props;
         const { isOpen, isSearching, filter } = this.state;
-        if (isOpen === true) {
-            if (fields instanceof Array) {
-                fields = [...fields];
-                if (filter) {
-                    const defaultValues = this.getFilterValues(filter);
-                    for (const field of fields) {
-                        field.DefaultValue = defaultValues[field.Name];
-                    }
-                }
-                else{
-                    for (const field of fields) {
-                        field.DefaultValue = null;
-                    }
-                }
-            }
+        if (isOpen === true) {           
             return <Panel isLightDismiss isOpen={isOpen === true}
                 onLightDismissClick={() => {
                     if (this._searchForm.current && this._searchForm.current.isDirty) {
@@ -91,6 +77,7 @@ export class SPSearchForm extends React.Component<ISPSearchFormProps, ISPSearchF
                 <CommandBar items={this.getCommandItems()}
                     farItems={this.getFarCommandItems()} />
                 {<SearchForm ref={this._searchForm}
+                    filter={filter}
                     regionalSettings={regionalSettings}
                     timeZone={timeZone}
                     fields={fields}
@@ -98,31 +85,6 @@ export class SPSearchForm extends React.Component<ISPSearchFormProps, ISPSearchF
             </Panel>;
         }
         return null;
-    }
-
-    private getFilterValues(filter: IFilterGroup): Record<string, any> {
-        const values: Record<string, any> = {};
-        if (filter) {
-            if (filter.LeftFilter) {
-                values[filter.LeftFilter.Field] = filter.LeftFilter.Value;
-            }
-            if (filter.RightFilter) {
-                values[filter.RightFilter.Field] = filter.RightFilter.Value;
-            }
-            if (filter.LeftFilterGroup) {
-                const leftFilterValues = this.getFilterValues(filter.LeftFilterGroup);
-                for (const key in leftFilterValues) {
-                    values[key] = leftFilterValues[key];
-                }
-            }
-            if (filter.RightFilterGroup) {
-                const rightFilterValues = this.getFilterValues(filter.RightFilterGroup);
-                for (const key in rightFilterValues) {
-                    values[key] = rightFilterValues[key];
-                }
-            }
-        }
-        return values;
     }
 
     protected onFilterChange(filter: IFilterGroup) {

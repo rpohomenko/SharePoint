@@ -45,7 +45,7 @@ export class ListItemPicker extends React.Component<IListItemPickerProps, IListI
         const { label, list, disabled, placeholder, suggestionsLimit, selectionLimit, resolveDelay, selected, fieldName, minCharacters } = this.props;
 
         return <div>
-            <Label>{label}</Label>
+            {label && <Label>{label}</Label>}
             <TagPicker
                 itemLimit={selectionLimit || 1}
                 removeButtonAriaLabel="Remove"

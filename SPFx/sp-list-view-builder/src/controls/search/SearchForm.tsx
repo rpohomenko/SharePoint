@@ -54,92 +54,81 @@ export class SearchForm extends React.Component<ISearchFormProps, ISearchFormSta
     }
 
     public render() {
-        const { fields, onChange } = this.props;
+        const { fields, filter, onChange } = this.props;
         this._searchFields = [];
         const visibleFields = fields instanceof Array && fields.length > 0
             ? fields.filter(field => field.Filterable === true && SPService.is_Filterable(field.DataType) && !field.PrimaryFieldName)
             : null;
-        /*if (visibleFields) {
-            visibleFields.forEach(field => {
-                field.DefaultValue = null;
-            });
-        }*/
-        return <ErrorBoundary>
-            <div className={styles.searchform}>
-                <div style={{ marginTop: 5 }}>
-                    {visibleFields instanceof Array && visibleFields.length > 0
-                        && visibleFields.map(field =>
-                            <SearchField key={field.Id || field.Name}
-                                disabled={false}
-                                defaultValue={undefined}
-                                ref={ref => {
-                                    if (ref != null) {
-                                        this._searchFields.push(ref);
-                                    }
-                                }}
-                                field={field}
-                                filterType={FilterType.Equals}
-                                regionalSettings={this.props.regionalSettings}
-                                timeZone={this.props.timeZone}
-                                onValidate={(result) => {
+        if (visibleFields instanceof Array) {
+            const ff = filter ? this.getFilters(filter) : null;
+            return <ErrorBoundary>
+                <div className={styles.searchform}>
+                    <div style={{ marginTop: 5 }}>
+                        {visibleFields instanceof Array && visibleFields.length > 0
+                            && visibleFields.map(field => {
+                                field.DefaultValue = null;
+                                const fff = ff ? ff[field.Name] : null;
+                                return <SearchField key={field.Id || field.Name}
+                                    disabled={false}
+                                    defaultValue={fff ? fff.Value : null}
+                                    ref={ref => {
+                                        if (ref != null) {
+                                            this._searchFields.push(ref);
+                                        }
+                                    }}
+                                    field={field}
+                                    filterType={fff ? fff.Type : FilterType.Equals}
+                                    regionalSettings={this.props.regionalSettings}
+                                    timeZone={this.props.timeZone}
+                                    onValidate={(result) => {
 
-                                }}
-                                onGetFieldRenderer={(ref, defaultRenderer) => {
-                                    return defaultRenderer();
-                                }}
-                                onChange={(filter) => {
-                                    const filters = this._searchFields instanceof Array
-                                        ? this._searchFields/*.filter(searchField => !isEqual(searchField.props.field, field))*/.map(searchField => searchField.get_Filter())
-                                            .filter(f => f !== null)
-                                        : [];
-                                    filter = SPService.get_FilterGroup(this.props.filterJoin === undefined ? FilterJoin.And : this.props.filterJoin, ...filters);
-                                    if (onChange instanceof Function) {
-                                        onChange(filter);
-                                    }
-                                }} />
-                        )}
+                                    }}
+                                    onGetFieldRenderer={(ref, defaultRenderer) => {
+                                        return defaultRenderer();
+                                    }}
+                                    onChange={(f) => {
+                                        const filters = this._searchFields instanceof Array
+                                            ? this._searchFields.map(searchField => searchField.get_Filter())
+                                                .filter(ffff => ffff !== null)
+                                            : [];
+                                        f = SPService.get_FilterGroup(this.props.filterJoin === undefined ? FilterJoin.And : this.props.filterJoin, ...filters);
+                                        if (onChange instanceof Function) {
+                                            onChange(f);
+                                        }
+                                    }} />;
+                            }
+                            )}
+                    </div>
                 </div>
-            </div>
-        </ErrorBoundary>;
+            </ErrorBoundary>;
+        }
+        return null;
     }
 
-   /* private get_Filter(rightFilter: IFilter, filters: IFilter[], filterJoin?: FilterJoin): IFilterGroup {
-        if (!rightFilter && !(filters instanceof Array && filters.length > 0)) return null;
-
-        if (!filterJoin) {
-            filterJoin = this.props.filterJoin === undefined ? FilterJoin.And : this.props.filterJoin;
-        }
-
-        let leftFilter: IFilter;
-        let leftFilterGroup: IFilterGroup;
-
-        do {
-            leftFilter = filters instanceof Array && filters.length > 0 ? filters[0] : null;
-            filters = filters.slice(1);
-            if (leftFilter !== null) {
-                leftFilterGroup = filters.length > 0 ? this.get_Filter(leftFilter, filters, filterJoin) : null;
+    private getFilters(filter: IFilterGroup): Record<string, IFilter> {
+        const values: Record<string, IFilter> = {};
+        if (filter) {
+            if (filter.LeftFilter) {
+                values[filter.LeftFilter.Field] = filter.LeftFilter;
+            }
+            if (filter.RightFilter) {
+                values[filter.RightFilter.Field] = filter.RightFilter;
+            }
+            if (filter.LeftFilterGroup) {
+                const leftFilterValues = this.getFilters(filter.LeftFilterGroup);
+                for (const key in leftFilterValues) {
+                    values[key] = leftFilterValues[key];
+                }
+            }
+            if (filter.RightFilterGroup) {
+                const rightFilterValues = this.getFilters(filter.RightFilterGroup);
+                for (const key in rightFilterValues) {
+                    values[key] = rightFilterValues[key];
+                }
             }
         }
-        while (leftFilter === null && filters.length > 0);
-
-        if (rightFilter === null) {
-            return leftFilterGroup || {
-                RightFilter: leftFilter
-            } as IFilterGroup;
-        }
-
-        if (leftFilterGroup && !leftFilterGroup.LeftFilter && !leftFilterGroup.LeftFilterGroup) {
-            leftFilterGroup = null;
-        }
-
-        const filterGroup: IFilterGroup = {
-            LeftFilter: !!leftFilterGroup ? null : leftFilter,
-            LeftFilterGroup: leftFilterGroup,
-            Join: filterJoin,
-            RightFilter: rightFilter
-        };
-        return filterGroup;
-    }*/
+        return values;
+    }
 
     public async search(): Promise<any> {
         await this.validate(true);
@@ -182,7 +171,7 @@ export class SearchForm extends React.Component<ISearchFormProps, ISearchFormSta
         return false;
     }
 
-    public clear(){
+    public clear() {
         if (this._searchFields instanceof Array) {
             for (const searchField of this._searchFields) {
                 if (searchField) {

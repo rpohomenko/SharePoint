@@ -238,7 +238,8 @@ export class FormField extends React.Component<IFormFieldProps | IDateFormFieldP
             case DataType.MultiUser:
                 const userValues: IUserFieldValue[] = defaultValue
                     ? field.DataType === DataType.MultiUser
-                        ? defaultValue.results instanceof Array && defaultValue.results.length > 0 ? defaultValue.results.map((v: any) => { return { Id: v.ID, Title: v.Title, Email: v.EMail, Name: v.Name } as IUserFieldValue; }) : null
+                        ? defaultValue instanceof Array ? defaultValue
+                            : defaultValue.results instanceof Array && defaultValue.results.length > 0 ? defaultValue.results.map((v: any) => { return { Id: v.ID, Title: v.Title, Email: v.EMail, Name: v.Name } as IUserFieldValue; }) : null
                         : (defaultValue.ID > 0 ? [{ Id: defaultValue.ID, Title: defaultValue.Title, Email: defaultValue.EMail, Name: defaultValue.Name } as IUserFieldValue] : null)
                     : null;
                 return React.createElement(UserFieldRenderer, {
@@ -259,7 +260,8 @@ export class FormField extends React.Component<IFormFieldProps | IDateFormFieldP
             case DataType.MultiLookup:
                 const lookupValues = defaultValue
                     ? field.DataType === DataType.MultiLookup
-                        ? defaultValue.results instanceof Array ? defaultValue.results.map(v => { return { Id: v.ID, Title: v[field.LookupFieldName || "Title"] } as ILookupFieldValue; }) : null
+                        ? defaultValue instanceof Array ? defaultValue
+                            : defaultValue.results instanceof Array ? defaultValue.results.map(v => { return { Id: v.ID, Title: v[field.LookupFieldName || "Title"] } as ILookupFieldValue; }) : null
                         : (defaultValue.ID > 0 ? [{ Id: defaultValue.ID, Title: defaultValue[field.LookupFieldName || "Title"] } as ILookupFieldValue] : null)
                     : null;
                 return React.createElement(LookupFieldRenderer, {

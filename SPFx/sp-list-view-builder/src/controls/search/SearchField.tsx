@@ -4,6 +4,7 @@ import { ISearchFieldProps, ISearchFieldState } from './ISearchFieldProps';
 import { FormField } from '../form/FormField';
 import { IValidationResult } from '../form/fieldRenderer/IBaseFieldRendererProps';
 import SPService from '../../utilities/SPService';
+import { Dropdown, Stack, IDropdownOption } from 'office-ui-fabric-react';
 
 export class SearchField extends React.Component<ISearchFieldProps, ISearchFieldState> {
 
@@ -13,7 +14,7 @@ export class SearchField extends React.Component<ISearchFieldProps, ISearchField
         super(props);
 
         this.state = {
-
+            filterType: this.props.filterType
         };
 
         this._formField = React.createRef();
@@ -23,7 +24,9 @@ export class SearchField extends React.Component<ISearchFieldProps, ISearchField
     }
 
     public componentDidUpdate(prevProps: ISearchFieldProps, prevState: ISearchFieldState) {
-
+        if (prevProps.filterType !== this.props.filterType) {
+            this.setState({ filterType: this.props.filterType });
+        }
     }
 
     public componentWillUnmount() {
@@ -31,7 +34,9 @@ export class SearchField extends React.Component<ISearchFieldProps, ISearchField
     }
 
     public render() {
-        const { field, filterType, defaultValue, disabled, regionalSettings, timeZone, onChange, onGetFieldRenderer, onValidate } = this.props;
+        const { field, defaultValue, disabled, regionalSettings, timeZone, onChange, onGetFieldRenderer, onValidate } = this.props;
+        const { filterType } = this.state;
+
         const f = field ? { ...field } : null;
         if (f) {
             //f.DefaultValue = null;
@@ -46,6 +51,9 @@ export class SearchField extends React.Component<ISearchFieldProps, ISearchField
                 f.DataType = DataType.MultiChoice;
             }
         }
+
+        const options: IDropdownOption[] = this.getOptions();
+
         return f && <FormField ref={this._formField}
             label={null}
             field={f}
@@ -54,7 +62,32 @@ export class SearchField extends React.Component<ISearchFieldProps, ISearchField
             regionalSettings={regionalSettings}
             timeZone={timeZone}
             defaultValue={defaultValue}
-            onGetFieldRenderer={onGetFieldRenderer}
+            onGetFieldRenderer={((ref, defaultRenderer) => {
+                const fieldRenderer = onGetFieldRenderer(ref, defaultRenderer);
+                return fieldRenderer && <Stack horizontal>
+                    <Dropdown
+                        styles={{ root: { marginRight: 2 } }}
+                        className="filter-type"
+                        placeholder={"Select a filter..."}
+                        selectedKey={filterType}
+                        dropdownWidth={50}
+                        onChange={(ev, item) => {
+                            if (item) {
+                                this.setState({ filterType: item.key as FilterType }, () => {
+                                    if (this.isDirty /*&& this.isValid*/) {
+                                        const filter = this.get_Filter();
+                                        if (onChange instanceof Function) {
+                                            onChange(filter);
+                                        }
+                                    }
+                                });
+                            }
+                        }}
+                        options={options}
+                    />
+                    {filterType !== FilterType.Empty && filterType !== FilterType.NotEmpty && fieldRenderer}
+                </Stack>;
+            })}
             onValidate={onValidate}
             onChange={(value: any, isDirty: boolean) => {
                 let filter = null;
@@ -68,6 +101,44 @@ export class SearchField extends React.Component<ISearchFieldProps, ISearchField
             }} />;
     }
 
+    private getOptions(): IDropdownOption[] {
+        const { field } = this.props;
+        const options: IDropdownOption[] = [
+            { key: FilterType.Equals, title: "Equal to", text: "=" },
+            { key: FilterType.NotEquals, title: "Not equal to", text: "≠" }
+        ];
+
+        switch (field.DataType) {
+            case DataType.Text:
+            case DataType.URL:
+                options.push({ key: FilterType.StartsWith, title: "Starts with", text: "^" });
+                options.push({ key: FilterType.Contains, title: "Contains", text: "~" });
+                break;
+            case DataType.Boolean:
+                break;
+            case DataType.Date:
+            case DataType.DateTime:
+            case DataType.Number:
+                options.push({ key: FilterType.Less, title: "Less than", text: "<" });
+                options.push({ key: FilterType.LessOrEquals, title: "Less than or equal to", text: "≤" });
+                options.push({ key: FilterType.Greater, title: "Greater than", text: ">" });
+                options.push({ key: FilterType.GreaterOrEquals, title: "Greater than or equal to", text: "≥" });
+                break;
+            case DataType.Lookup:
+            case DataType.MultiLookup:
+            case DataType.User:
+            case DataType.MultiUser:
+            case DataType.Choice:
+            case DataType.MultiChoice:
+                break;
+            default:
+                break;
+        }
+        options.push({ key: FilterType.Empty, title: "Empty", text: "∅" });
+        options.push({ key: FilterType.NotEmpty, title: "Not empty", text: "≠∅" });
+        return options;
+    }
+
     public async validate(disableEvents?: boolean): Promise<IValidationResult> {
         if (this._formField.current) {
             return await this._formField.current.validate(disableEvents);
@@ -75,19 +146,28 @@ export class SearchField extends React.Component<ISearchFieldProps, ISearchField
     }
 
     public get isValid(): boolean {
+        const { filterType } = this.state;
+        if (filterType === FilterType.Empty || filterType === FilterType.NotEmpty) {
+            return true;
+        }
         if (this._formField.current) {
             return this._formField.current.isValid;
         }
     }
 
     public get isDirty(): boolean {
+        const { filterType } = this.state;
+        if (filterType === FilterType.Empty || filterType === FilterType.NotEmpty) {
+            return true;
+        }
         if (this._formField.current) {
             return this._formField.current.isDirty;
         }
     }
 
     public get_Filter(): IFilter | IFilterGroup {
-        const { field, filterType } = this.props;
+        const { field } = this.props;
+        const { filterType } = this.state;
 
         if (!this.isDirty || !this.isValid) return null;
 
@@ -115,7 +195,7 @@ export class SearchField extends React.Component<ISearchFieldProps, ISearchField
                 case DataType.URL:
                     filter.FilterValue = !value ? null : (value as IUrlFieldValue).Url;
                     break;
-                case DataType.Lookup:                   
+                case DataType.Lookup:
                 case DataType.MultiLookup:
                     if ((value instanceof Array && value.length > 0)) {
                         const lookupValues = (value as ILookupFieldValue[]).filter(v => v.Id > 0);
@@ -126,22 +206,57 @@ export class SearchField extends React.Component<ISearchFieldProps, ISearchField
                             const filters = lookupValues.map(lookupValue => {
                                 return {
                                     ...filter,
-                                    Value: lookupValue,
+                                    //Value: lookupValue,
                                     FilterValue: String(lookupValue.Id)
                                 } as IFilter;
                             });
-                            const filterGroup = SPService.get_FilterGroup(FilterJoin.Or, ...filters);
+                            const filterGroup = SPService.get_FilterGroup(
+                                filterType === FilterType.NotEquals || filterType === FilterType.NotEmpty ? FilterJoin.And : FilterJoin.Or, ...filters);
                             return filterGroup;
                         }
                     }
                     break;
                 case DataType.User:
                 case DataType.MultiUser:
-                    //filter.FilterValue = !(value instanceof Array && value.length > 0) ? null : (value as IUserFieldValue[]).map(v => `'${v.Name}'`);
+                    if ((value instanceof Array && value.length > 0)) {
+                        const userValues = (value as IUserFieldValue[]).filter(v => v.Name);
+                        if (userValues.length === 1) {
+                            filter.FilterValue = String(userValues[0].Name);
+                        }
+                        else if (userValues.length > 1) {
+                            const filters = userValues.map(userValue => {
+                                return {
+                                    ...filter,
+                                    //Value: userValue,
+                                    FilterValue: `'${userValue.Name}'`
+                                } as IFilter;
+                            });
+                            const filterGroup = SPService.get_FilterGroup(
+                                filterType === FilterType.NotEquals || filterType === FilterType.NotEmpty ? FilterJoin.And : FilterJoin.Or, ...filters);
+                            return filterGroup;
+                        }
+                    }
                     break;
                 case DataType.Choice:
                 case DataType.MultiChoice:
-                    //filter.FilterValue = !(value instanceof Array && value.length > 0) ? null : `${value as string[]}`;
+                    if ((value instanceof Array && value.length > 0)) {
+                        const choices = value as string[];
+                        if (choices.length === 1) {
+                            filter.FilterValue = String(choices[0]);
+                        }
+                        else if (choices.length > 1) {
+                            const filters = choices.map(choice => {
+                                return {
+                                    ...filter,
+                                    //Value: choice,
+                                    FilterValue: `'${choice}'`
+                                } as IFilter;
+                            });
+                            const filterGroup = SPService.get_FilterGroup(
+                                filterType === FilterType.NotEquals || filterType === FilterType.NotEmpty ? FilterJoin.And : FilterJoin.Or, ...filters);
+                            return filterGroup;
+                        }
+                    }
                     break;
                 case DataType.Number:
                     filter.FilterValue = `${value}`;
