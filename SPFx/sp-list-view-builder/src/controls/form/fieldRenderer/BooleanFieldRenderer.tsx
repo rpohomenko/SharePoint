@@ -80,6 +80,10 @@ export class BooleanFieldRenderer extends BaseFieldRenderer {
     public get isDirty(): boolean {
         const { mode, defaultValue } = this.props;
         const prevValue = this.parseValue(defaultValue);        
-        return /*mode === FormMode.New ? this.hasValue() :*/ !isEqual(this.getValue(), prevValue);
+        return mode === FormMode.New ? this.hasValue() : !isEqual(this.getValue(), prevValue);
+    }
+
+    public setValue(newValue: any) {
+        super.setValue(newValue);
     }
 }

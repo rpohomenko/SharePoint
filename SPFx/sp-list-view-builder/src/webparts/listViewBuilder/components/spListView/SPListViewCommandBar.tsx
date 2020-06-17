@@ -171,17 +171,20 @@ export class SPListViewCommandBar extends React.Component<ISPListViewCommandBarP
                             this.setState({ filterCommandEnabled: false, refreshCommandEnabled: false, deleteCommandEnabled: false, addCommandEnabled: false, editCommandEnabled: false, viewCommandEnabled: false });
                             searchForm.open(() => {
                                 this.setState({ filterCommandEnabled: true, refreshCommandEnabled: true, addCommandEnabled: canAddItem, editCommandEnabled: true, viewCommandEnabled: true, deleteCommandEnabled: true });
-                            });
+                            }, listView ? listView.state.filter : undefined);
                         }
                     }
                 });
-            if (!!searchForm.state.filter) {
+            if (listView && listView.state.filter) {
                 commandItems.push(
                     {
                         key: 'clearfilter', text: 'Clear Filter', iconProps: { iconName: 'ClearFilter' }, iconOnly: true,
                         disabled: !searchForm || !filterCommandEnabled,
                         onClick: () => {
-                            if (listView) {
+                            if (searchForm) {
+                                searchForm.clear();
+                            }
+                            else if (listView) {
                                 this.setState({ filterCommandEnabled: false, refreshCommandEnabled: false, deleteCommandEnabled: false, addCommandEnabled: false, editCommandEnabled: false, viewCommandEnabled: false });
                                 listView.search(null).then(() => {
                                     //this.setState({ filterCommandEnabled: true, refreshCommandEnabled: true, addCommandEnabled: canAddItem, editCommandEnabled: true, viewCommandEnabled: true, deleteCommandEnabled: true });

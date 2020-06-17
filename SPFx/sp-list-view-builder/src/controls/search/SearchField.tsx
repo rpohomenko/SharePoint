@@ -34,7 +34,7 @@ export class SearchField extends React.Component<ISearchFieldProps, ISearchField
         const { field, filterType, defaultValue, disabled, regionalSettings, timeZone, onChange, onGetFieldRenderer, onValidate } = this.props;
         const f = field ? { ...field } : null;
         if (f) {
-            f.DefaultValue = null;
+            //f.DefaultValue = null;
             f.Required = false;
             if (f.DataType === DataType.Lookup) {
                 f.DataType = DataType.MultiLookup;

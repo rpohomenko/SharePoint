@@ -34,7 +34,7 @@ export class SPSearchForm extends React.Component<ISPSearchFormProps, ISPSearchF
         // Initialize state
         this.state = {
             isOpen: this.props.isOpen,
-            filter: this.props.filter
+            filter: this.props.filter ? { ...this.props.filter } : null
         };
 
         this._searchForm = React.createRef();
@@ -49,7 +49,7 @@ export class SPSearchForm extends React.Component<ISPSearchFormProps, ISPSearchF
             this.setState({ isOpen: this.props.isOpen });
         }
         if (!isEqual(prevProps.filter, this.props.filter)) {
-            this.setState({ filter: this.props.filter });
+            this.setState({ filter: this.props.filter ? { ...this.props.filter } : null });
         }
     }
 
@@ -58,28 +58,71 @@ export class SPSearchForm extends React.Component<ISPSearchFormProps, ISPSearchF
     }
 
     public render(): React.ReactElement {
-        const { fields, headerText, regionalSettings, timeZone } = this.props;
+        let { fields } = this.props;
+        const { headerText, regionalSettings, timeZone } = this.props;
         const { isOpen, isSearching, filter } = this.state;
-        return isOpen === true && <Panel isLightDismiss isOpen={isOpen === true}
-            onLightDismissClick={() => {
-                if (this._searchForm.current && this._searchForm.current.isDirty) {
-                    return;
+        if (isOpen === true) {
+            if (fields instanceof Array) {
+                fields = [...fields];
+                if (filter) {
+                    const defaultValues = this.getFilterValues(filter);
+                    for (const field of fields) {
+                        field.DefaultValue = defaultValues[field.Name];
+                    }
                 }
-                this.close();
-            }} onDismiss={() => {
-                this.close();
-            }} closeButtonAriaLabel={"Close"}
-            headerText={`${headerText ? headerText + ": " : ""}${"Filter"}`}
-            onRenderFooterContent={this.renderFooterContent.bind(this)}
-            isFooterAtBottom={false}>
-            <CommandBar items={this.getCommandItems()}
-                farItems={this.getFarCommandItems()} />         
-            {<SearchForm ref={this._searchForm}
-                regionalSettings={regionalSettings}
-                timeZone={timeZone}
-                fields={fields}
-                onChange={this.onFilterChange.bind(this)} />}
-        </Panel>;
+                else{
+                    for (const field of fields) {
+                        field.DefaultValue = null;
+                    }
+                }
+            }
+            return <Panel isLightDismiss isOpen={isOpen === true}
+                onLightDismissClick={() => {
+                    if (this._searchForm.current && this._searchForm.current.isDirty) {
+                        return;
+                    }
+                    this.close();
+                }} onDismiss={() => {
+                    this.close();
+                }} closeButtonAriaLabel={"Close"}
+                headerText={`${headerText ? headerText + ": " : ""}${"Filter"}`}
+                onRenderFooterContent={this.renderFooterContent.bind(this)}
+                isFooterAtBottom={false}>
+                <CommandBar items={this.getCommandItems()}
+                    farItems={this.getFarCommandItems()} />
+                {<SearchForm ref={this._searchForm}
+                    regionalSettings={regionalSettings}
+                    timeZone={timeZone}
+                    fields={fields}
+                    onChange={this.onFilterChange.bind(this)} />}
+            </Panel>;
+        }
+        return null;
+    }
+
+    private getFilterValues(filter: IFilterGroup): Record<string, any> {
+        const values: Record<string, any> = {};
+        if (filter) {
+            if (filter.LeftFilter) {
+                values[filter.LeftFilter.Field] = filter.LeftFilter.Value;
+            }
+            if (filter.RightFilter) {
+                values[filter.RightFilter.Field] = filter.RightFilter.Value;
+            }
+            if (filter.LeftFilterGroup) {
+                const leftFilterValues = this.getFilterValues(filter.LeftFilterGroup);
+                for (const key in leftFilterValues) {
+                    values[key] = leftFilterValues[key];
+                }
+            }
+            if (filter.RightFilterGroup) {
+                const rightFilterValues = this.getFilterValues(filter.RightFilterGroup);
+                for (const key in rightFilterValues) {
+                    values[key] = rightFilterValues[key];
+                }
+            }
+        }
+        return values;
     }
 
     protected onFilterChange(filter: IFilterGroup) {
@@ -87,20 +130,18 @@ export class SPSearchForm extends React.Component<ISPSearchFormProps, ISPSearchF
             const { isSearching } = this.state;
             const isValid = this._searchForm.current.isValid;
             const isDirty = this._searchForm.current.isDirty;
-            /*if (isSearching) {
-                this.setState({ isSearching: true });
-            }*/
-
-            this.setState({ filter: filter, searchCommandEnabled: true }, () => {
-                this.search();
-            });
+            if (isDirty) {
+                this.setState({ filter: filter, searchCommandEnabled: true }, () => {
+                    //this.search();
+                });
+            }
         }
     }
 
     private renderFooterContent = () => {
-        const { searchCommandEnabled } = this.state;
+        const { searchCommandEnabled, filter } = this.state;
         return (<div>
-            <PrimaryButton disabled={!searchCommandEnabled} onClick={() => {
+            <PrimaryButton disabled={!searchCommandEnabled || !filter} onClick={() => {
                 this.search();
             }} styles={{ root: { marginRight: 8 } }}>
                 {"Filter"}
@@ -117,24 +158,32 @@ export class SPSearchForm extends React.Component<ISPSearchFormProps, ISPSearchF
                 key: 'clearfilter', text: 'Clear Filter', iconProps: { iconName: 'ClearFilter' }, iconOnly: true,
                 disabled: !searchCommandEnabled || isSearching === true,
                 onClick: () => {
-                    this.setState({ filter: undefined }, () => {
-                        if (this._searchForm.current) {
-                            this._searchForm.current.clear();
-                        }
-                    });
+                    this.clear();
                 }
             });
         }
         return items;
     }
 
+    public clear() {
+        const { listView } = this.props;
+        this.setState({ filter: undefined }, () => {
+            if (this._searchForm.current) {
+                this._searchForm.current.clear();
+            }
+            if (listView && listView.state.filter) {
+                this.search();
+            }
+        });
+    }
+
     protected getCommandItems(): ICommandBarItemProps[] {
-        const { searchCommandEnabled, isSearching } = this.state;
+        const { searchCommandEnabled, isSearching, filter } = this.state;
         const items: ICommandBarItemProps[] = [];
 
         items.push({
             key: 'filter', text: 'Filter', iconProps: { iconName: 'Filter' }, iconOnly: true,
-            disabled: !searchCommandEnabled || isSearching === true,
+            disabled: !searchCommandEnabled || isSearching === true || !filter,
             onClick: () => {
                 this.search();
             }
@@ -160,8 +209,11 @@ export class SPSearchForm extends React.Component<ISPSearchFormProps, ISPSearchF
         }
     }
 
-    public open(onClose?: () => void) {
+    public open(onClose?: () => void, filter?: IFilterGroup) {
         this.setState({ isOpen: true });
+        if(filter){
+            this.setState({ filter: filter });
+        }
         if (onClose instanceof Function) {
             this._onClose = onClose;
         }
@@ -169,7 +221,7 @@ export class SPSearchForm extends React.Component<ISPSearchFormProps, ISPSearchF
 
     public close() {
         const onClose = this._onClose;
-        this.setState({ isOpen: false }, () => {
+        this.setState({ isOpen: false, filter: null }, () => {
             if (onClose instanceof Function) {
                 onClose();
             }

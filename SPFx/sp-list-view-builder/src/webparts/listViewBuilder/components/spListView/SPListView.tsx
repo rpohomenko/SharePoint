@@ -89,7 +89,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
 
     public render(): React.ReactElement {
         const { list, formFields } = this.props;
-        const { items, columns, groupBy, isLoading, selection, error } = this.state;
+        const { items, columns, groupBy, isLoading, selection, error, filter } = this.state;
         const page = this._page;
         return <ErrorBoundary>
             {this._isMounted === true && this.props.showCommandBar === true && this.renderCommandBar()}
@@ -131,6 +131,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
                 itemId={selection instanceof Array && selection.length > 0 ? selection[0].ID : 0}
             />}
             {!error && <SPSearchForm ref={this._searchForm} isOpen={false} listView={this} fields={formFields}
+                filter={filter}
                 headerText={this.props.rootFolder ? this.props.rootFolder.Name : ""}
                 regionalSettings={this._regionalSettings} timeZone={this._timeZone} />}
             {error && <span style={{
