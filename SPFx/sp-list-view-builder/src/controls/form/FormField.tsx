@@ -225,8 +225,12 @@ export class FormField extends React.Component<IFormFieldProps | IDateFormFieldP
                     multiSelect: field.DataType === DataType.MultiChoice,
                     choices: field.Choices,
                     disabled: field.ReadOnly === true || disabled === true,
-                    defaultValue: !!setDefaultValue ? (field.DataType === DataType.Choice ? (setDefaultValue instanceof Array ? setDefaultValue : [setDefaultValue])
-                     : (defaultValue ? defaultValue.results : (setDefaultValue instanceof Array ? setDefaultValue : [setDefaultValue]))) : null,
+                    defaultValue: !!setDefaultValue
+                        ? (field.DataType === DataType.Choice
+                            ? setDefaultValue && (setDefaultValue instanceof Array ? setDefaultValue : [setDefaultValue])
+                            : setDefaultValue && (setDefaultValue instanceof Array ? setDefaultValue
+                                : setDefaultValue.results))
+                        : null,
                     required: field.Required === true,
                     mode: mode,
                     dataType: field.DataType,
@@ -236,11 +240,11 @@ export class FormField extends React.Component<IFormFieldProps | IDateFormFieldP
                 } as IChoiceFieldRendererProps);
             case DataType.User:
             case DataType.MultiUser:
-                const userValues: IUserFieldValue[] = defaultValue
+                const userValues: IUserFieldValue[] = setDefaultValue
                     ? field.DataType === DataType.MultiUser
-                        ? defaultValue instanceof Array ? defaultValue
-                            : defaultValue.results instanceof Array && defaultValue.results.length > 0 ? defaultValue.results.map((v: any) => { return { Id: v.ID, Title: v.Title, Email: v.EMail, Name: v.Name } as IUserFieldValue; }) : null
-                        : (defaultValue.ID > 0 ? [{ Id: defaultValue.ID, Title: defaultValue.Title, Email: defaultValue.EMail, Name: defaultValue.Name } as IUserFieldValue] : null)
+                        ? setDefaultValue instanceof Array ? setDefaultValue
+                            : setDefaultValue.results instanceof Array && setDefaultValue.results.length > 0 ? setDefaultValue.results.map((v: any) => { return { Id: v.ID, Title: v.Title, Email: v.EMail, Name: v.Name } as IUserFieldValue; }) : null
+                        : (setDefaultValue.ID > 0 ? [{ Id: setDefaultValue.ID, Title: setDefaultValue.Title, Email: setDefaultValue.EMail, Name: setDefaultValue.Name } as IUserFieldValue] : null)
                     : null;
                 return React.createElement(UserFieldRenderer, {
                     key: field.Name,
@@ -258,11 +262,11 @@ export class FormField extends React.Component<IFormFieldProps | IDateFormFieldP
                 } as IUserFieldRendererProps);
             case DataType.Lookup:
             case DataType.MultiLookup:
-                const lookupValues = defaultValue
+                const lookupValues = setDefaultValue
                     ? field.DataType === DataType.MultiLookup
-                        ? defaultValue instanceof Array ? defaultValue
-                            : defaultValue.results instanceof Array ? defaultValue.results.map(v => { return { Id: v.ID, Title: v[field.LookupFieldName || "Title"] } as ILookupFieldValue; }) : null
-                        : (defaultValue.ID > 0 ? [{ Id: defaultValue.ID, Title: defaultValue[field.LookupFieldName || "Title"] } as ILookupFieldValue] : null)
+                        ? setDefaultValue instanceof Array ? setDefaultValue
+                            : setDefaultValue.results instanceof Array ? setDefaultValue.results.map(v => { return { Id: v.ID, Title: v[field.LookupFieldName || "Title"] } as ILookupFieldValue; }) : null
+                        : (setDefaultValue.ID > 0 ? [{ Id: setDefaultValue.ID, Title: setDefaultValue[field.LookupFieldName || "Title"] } as ILookupFieldValue] : null)
                     : null;
                 return React.createElement(LookupFieldRenderer, {
                     key: field.Name,

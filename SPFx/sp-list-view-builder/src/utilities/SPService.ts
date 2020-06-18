@@ -318,11 +318,11 @@ export default class SPService {
 
   public static is_Filterable(dataType: DataType) {
     switch (dataType) {
-      case DataType.MultiLookup:
-      case DataType.MultiChoice:
+      //case DataType.MultiLookup:
+      //case DataType.MultiChoice:
       case DataType.MultiLineText:
       case DataType.RichText:
-      case DataType.MultiUser:
+      //case DataType.MultiUser:
       case DataType.URL:
         return false;
       default: return true;
@@ -548,10 +548,10 @@ export default class SPService {
         case FilterType.StartsWith:
           query = `startswith(${filter.Field},${filter.FilterValue})`;
           break;
-        case FilterType.Greater:
+        case FilterType.Less:
           query = `${filter.Field} lt ${filter.FilterValue}`;
           break;
-        case FilterType.GreaterOrEquals:
+        case FilterType.LessOrEquals:
           query = `${filter.Field} le ${filter.FilterValue}`;
           break;
         case FilterType.Greater:

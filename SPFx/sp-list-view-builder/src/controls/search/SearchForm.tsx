@@ -6,9 +6,9 @@ import { IRegionalSettingsInfo } from '@pnp/sp/regional-settings';
 import SPService from '../../utilities/SPService';
 import ErrorBoundary from '../ErrorBoundary';
 import '../../utilities/StringExtensions';
-import { isEqual } from '@microsoft/sp-lodash-subset';
+import { isEqual, cloneDeep } from '@microsoft/sp-lodash-subset';
 import { SearchField } from './SearchField';
-import { FilterType, IFilterGroup, FilterJoin, IFilter } from '../../utilities/Entities';
+import { FilterType, IFilterGroup, FilterJoin, IFilter, DataType } from '../../utilities/Entities';
 
 export class SearchForm extends React.Component<ISearchFormProps, ISearchFormState> {
     private _searchFields: SearchField[];
@@ -66,7 +66,21 @@ export class SearchForm extends React.Component<ISearchFormProps, ISearchFormSta
                     <div style={{ marginTop: 5 }}>
                         {visibleFields instanceof Array && visibleFields.length > 0
                             && visibleFields.map(field => {
+                                //clone
+                                field = cloneDeep(field);
                                 field.DefaultValue = null;
+                                field.Required = false;
+
+                                if (field.DataType === DataType.Lookup) {
+                                    field.DataType = DataType.MultiLookup;
+                                }
+                                else if (field.DataType === DataType.User) {
+                                    field.DataType = DataType.MultiUser;
+                                }
+                                else if (field.DataType === DataType.Choice) {
+                                    field.DataType = DataType.MultiChoice;
+                                }
+
                                 const fff = ff ? ff[field.Name] : null;
                                 return <SearchField key={field.Id || field.Name}
                                     disabled={false}

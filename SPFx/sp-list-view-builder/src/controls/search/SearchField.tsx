@@ -35,28 +35,13 @@ export class SearchField extends React.Component<ISearchFieldProps, ISearchField
 
     public render() {
         const { field, defaultValue, disabled, regionalSettings, timeZone, onChange, onGetFieldRenderer, onValidate } = this.props;
-        const { filterType } = this.state;
-
-        const f = field ? { ...field } : null;
-        if (f) {
-            //f.DefaultValue = null;
-            f.Required = false;
-            if (f.DataType === DataType.Lookup) {
-                f.DataType = DataType.MultiLookup;
-            }
-            else if (f.DataType === DataType.User) {
-                f.DataType = DataType.MultiUser;
-            }
-            else if (f.DataType === DataType.Choice) {
-                f.DataType = DataType.MultiChoice;
-            }
-        }
+        const { filterType } = this.state;     
 
         const options: IDropdownOption[] = this.getOptions();
 
-        return f && <FormField ref={this._formField}
+        return field && <FormField ref={this._formField}
             label={null}
-            field={f}
+            field={field}
             mode={FormMode.New}
             disabled={disabled}
             regionalSettings={regionalSettings}
@@ -219,16 +204,16 @@ export class SearchField extends React.Component<ISearchFieldProps, ISearchField
                 case DataType.User:
                 case DataType.MultiUser:
                     if ((value instanceof Array && value.length > 0)) {
-                        const userValues = (value as IUserFieldValue[]).filter(v => v.Name);
+                        const userValues = (value as IUserFieldValue[]).filter(v => /*v.Name*/ v.Id > 0);
                         if (userValues.length === 1) {
-                            filter.FilterValue = String(userValues[0].Name);
+                            filter.FilterValue = `${userValues[0].Id}`;  //`'${userValues[0].Name}'`;
                         }
                         else if (userValues.length > 1) {
                             const filters = userValues.map(userValue => {
                                 return {
                                     ...filter,
                                     //Value: userValue,
-                                    FilterValue: `'${userValue.Name}'`
+                                    FilterValue: `${userValue.Id}`//`'${userValue.Name}'`
                                 } as IFilter;
                             });
                             const filterGroup = SPService.get_FilterGroup(
@@ -242,7 +227,7 @@ export class SearchField extends React.Component<ISearchFieldProps, ISearchField
                     if ((value instanceof Array && value.length > 0)) {
                         const choices = value as string[];
                         if (choices.length === 1) {
-                            filter.FilterValue = String(choices[0]);
+                            filter.FilterValue = `'${choices[0]}'`;
                         }
                         else if (choices.length > 1) {
                             const filters = choices.map(choice => {
