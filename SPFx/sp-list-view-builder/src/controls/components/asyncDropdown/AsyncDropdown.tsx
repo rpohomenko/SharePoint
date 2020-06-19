@@ -3,13 +3,10 @@ import { Dropdown, IDropdownOption, Spinner } from 'office-ui-fabric-react' /* '
 import { IAsyncDropdownProps } from './IAsyncDropdownProps';
 import { IAsyncDropdownState } from './IAsyncDropdownState';
 
-export class AsyncDropdown extends React.Component<IAsyncDropdownProps, IAsyncDropdownState> {
-  private selectedKey: React.ReactText;
+export class AsyncDropdown extends React.Component<IAsyncDropdownProps, IAsyncDropdownState> { 
 
   constructor(props: IAsyncDropdownProps, state: IAsyncDropdownState) {
     super(props);
-    this.selectedKey = props.selectedKey;
-
     this.state = {
       loading: false,
       options: undefined,
@@ -24,7 +21,7 @@ export class AsyncDropdown extends React.Component<IAsyncDropdownProps, IAsyncDr
   public componentDidUpdate(prevProps: IAsyncDropdownProps, prevState: IAsyncDropdownState): void {
     if (this.props.disabled !== prevProps.disabled /*||
       this.props.stateKey !== prevProps.stateKey*/) {
-      this.loadOptions();
+      //this.loadOptions();
     }
   }
 
@@ -39,7 +36,7 @@ export class AsyncDropdown extends React.Component<IAsyncDropdownProps, IAsyncDr
         <Dropdown label={this.props.label}
           disabled={this.props.disabled || this.state.loading || this.state.error !== undefined}
           onChange={this.onChange.bind(this)}
-          selectedKey={this.selectedKey}
+          selectedKey={this.props.selectedKey}
           options={this.state.options}
           placeholder={this.props.placeholder || ""}
           {...loading ? { onRenderCaretDown: () => <Spinner /> } : {}} />
@@ -81,8 +78,7 @@ export class AsyncDropdown extends React.Component<IAsyncDropdownProps, IAsyncDr
     }
   }
 
-  private onChange(e, option: IDropdownOption, index?: number): void {
-    this.selectedKey = option.key;
+  private onChange(e, option: IDropdownOption, index?: number): void {   
     // reset previously selected options
     const options: IDropdownOption[] = this.state.options;
     options.forEach((o: IDropdownOption): void => {

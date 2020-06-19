@@ -23,13 +23,13 @@ export class BooleanFieldRenderer extends BaseFieldRenderer {
     }
 
     private parseValue(value: any): boolean {
-        if (typeof this.props.defaultValue === "boolean") {
-            return this.props.defaultValue;
+        if (typeof value === "boolean") {
+            return value;
         }
-        else if (this.props.defaultValue === "0" || this.props.defaultValue === "false" || this.props.defaultValue === "FALSE") {
+        else if (value === "0" || value === "false" || value === "FALSE") {
             return false;
         }
-        else if (this.props.defaultValue === "1" || this.props.defaultValue === "true" || this.props.defaultValue === "TRUE") {
+        else if (value === "1" || value === "true" || value === "TRUE") {
             return true;
         }
         return null;
@@ -81,9 +81,5 @@ export class BooleanFieldRenderer extends BaseFieldRenderer {
         const { mode, defaultValue } = this.props;
         const prevValue = this.parseValue(defaultValue);        
         return mode === FormMode.New ? this.hasValue() : !isEqual(this.getValue(), prevValue);
-    }
-
-    public setValue(newValue: any) {
-        super.setValue(newValue);
-    }
+    }   
 }

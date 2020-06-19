@@ -82,7 +82,7 @@ export class SPListViewCommandBar extends React.Component<ISPListViewCommandBarP
         const canEdit = items instanceof Array && items.length === 1 && items[0].CanEdit && this.props.formFields instanceof Array && this.props.formFields.length > 0;
         const canDelete = items instanceof Array && items.length > 0 && items.filter(item => item.CanDelete === true).length === items.length;
         const canView = items instanceof Array && items.length === 1 && this.props.formFields instanceof Array && this.props.formFields.length > 0;
-
+     
         return [
             {
                 key: 'add', text: 'Add', iconProps: { iconName: 'Add' }, iconOnly: true,
@@ -144,6 +144,7 @@ export class SPListViewCommandBar extends React.Component<ISPListViewCommandBarP
     protected getFarCommandItems(): ICommandBarItemProps[] {
         const { listView, canAddItem, items, searchForm } = this.props;
         const { refreshCommandEnabled, filterCommandEnabled } = this.state;
+        const canSearch = this.props.formFields instanceof Array && this.props.formFields.length > 0;
         let commandItems = [];
         if (items instanceof Array && items.length > 0) {
             commandItems.push({
@@ -165,7 +166,7 @@ export class SPListViewCommandBar extends React.Component<ISPListViewCommandBarP
             commandItems.push(
                 {
                     key: 'filter', text: 'Filter', iconProps: { iconName: 'Filter' }, iconOnly: true,
-                    disabled: !searchForm || !filterCommandEnabled,
+                    disabled: !searchForm || !filterCommandEnabled || !canSearch,
                     onClick: () => {
                         if (searchForm) {
                             this.setState({ filterCommandEnabled: false, refreshCommandEnabled: false, deleteCommandEnabled: false, addCommandEnabled: false, editCommandEnabled: false, viewCommandEnabled: false });
@@ -179,7 +180,7 @@ export class SPListViewCommandBar extends React.Component<ISPListViewCommandBarP
                 commandItems.push(
                     {
                         key: 'clearfilter', text: 'Clear Filter', iconProps: { iconName: 'ClearFilter' }, iconOnly: true,
-                        disabled: !searchForm || !filterCommandEnabled,
+                        disabled: !searchForm || !filterCommandEnabled || !canSearch,
                         onClick: () => {
                             if (searchForm) {
                                 searchForm.clear();

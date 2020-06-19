@@ -182,3 +182,8 @@ export enum FilterType {
     Empty = 8,
     NotEmpty = 9
 }
+
+export interface IContentType {
+    Id: string;
+    Name: string;
+}

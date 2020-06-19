@@ -15,6 +15,7 @@ import { RichTextFieldRenderer } from './fieldRenderer/RichTextFieldRenderer';
 import { NumberFieldRenderer } from './fieldRenderer/NumberFieldRenderer';
 import { ChoiceFieldRenderer, IChoiceFieldRendererProps } from './fieldRenderer/ChoiceFieldRenderer';
 import { UrlFieldRenderer, IUrlFieldRendererProps } from './fieldRenderer/UrlFieldRenderer';
+import { ContentTypeFieldRenderer, IContentTypeFieldRendererProps } from './fieldRenderer/ContentTypeFieldRenderer';
 
 export class FormField extends React.Component<IFormFieldProps | IDateFormFieldProps | ITextFormFieldProps | IChoiceFormFieldProps | INumberFormFieldProps | ILookupFormFieldProps | IUserFormFieldProps, IFormFieldState> {
 
@@ -128,18 +129,29 @@ export class FormField extends React.Component<IFormFieldProps | IDateFormFieldP
     }
 
     private _getFieldRenderer(): JSX.Element {
-        const { field, defaultValue, onChange, onValidate, disabled } = this.props;
+        const { field, defaultValue, onChange, onValidate, disabled, list } = this.props;
         const { mode } = this.state;
-        if (field.Name === "ContentType") {
-            field.ReadOnly = true;
-            return defaultValue ? defaultValue.Name : null;
-        }
         let setDefaultValue: any = defaultValue;
         if (mode === FormMode.New) {
             if (defaultValue === null || defaultValue === undefined) {
                 setDefaultValue = field.DefaultValue;
             }
         }
+        if (field.Name === "ContentType") {
+            return React.createElement(ContentTypeFieldRenderer, {
+                key: field.Name,
+                ref: this._fieldControl,
+                list: list,
+                disabled: field.ReadOnly === true || disabled === true,
+                defaultValue: setDefaultValue,
+                required: field.Required === true,
+                mode: mode,
+                dataType: field.DataType,
+                title: field.Title,             
+                onValidate: onValidate,
+                onChange: onChange
+            } as IContentTypeFieldRendererProps);       
+        }      
         switch (field.DataType) {
             case DataType.Text:
             case DataType.MultiLineText:

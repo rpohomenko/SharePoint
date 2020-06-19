@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { FormMode, IFilter, FilterType, DataType, IUrlFieldValue, ILookupFieldValue, IUserFieldValue, IFilterGroup, FilterJoin } from '../../utilities/Entities';
+import { FormMode, IFilter, FilterType, DataType, IUrlFieldValue, ILookupFieldValue, IUserFieldValue, IFilterGroup, FilterJoin, IContentType } from '../../utilities/Entities';
 import { ISearchFieldProps, ISearchFieldState } from './ISearchFieldProps';
 import { FormField } from '../form/FormField';
 import { IValidationResult } from '../form/fieldRenderer/IBaseFieldRendererProps';
@@ -34,14 +34,15 @@ export class SearchField extends React.Component<ISearchFieldProps, ISearchField
     }
 
     public render() {
-        const { field, defaultValue, disabled, regionalSettings, timeZone, onChange, onGetFieldRenderer, onValidate } = this.props;
-        const { filterType } = this.state;     
+        const { field, list, defaultValue, disabled, regionalSettings, timeZone, onChange, onGetFieldRenderer, onValidate } = this.props;
+        const { filterType } = this.state;
 
         const options: IDropdownOption[] = this.getOptions();
 
         return field && <FormField ref={this._formField}
             label={null}
             field={field}
+            list={list}
             mode={FormMode.New}
             disabled={disabled}
             regionalSettings={regionalSettings}
@@ -76,13 +77,12 @@ export class SearchField extends React.Component<ISearchFieldProps, ISearchField
             onValidate={onValidate}
             onChange={(value: any, isDirty: boolean) => {
                 let filter = null;
-                if (isDirty /*&& this.isValid*/) {
-                    filter = this.get_Filter();
-                }
-
+                //if (isDirty /*&& this.isValid*/) {
+                filter = this.get_Filter();
                 if (onChange instanceof Function) {
                     onChange(filter);
                 }
+                //}
             }} />;
     }
 
@@ -164,92 +164,97 @@ export class SearchField extends React.Component<ISearchFieldProps, ISearchField
                 Value: value
             };
 
-            switch (field.DataType) {
-                case DataType.Text:
-                    filter.FilterValue = `'${value}'`;
-                    break;
-                case DataType.Boolean:
-                    filter.FilterValue = value === true ? "1" : "0";
-                    break;
-                case DataType.Date:
-                    filter.FilterValue = `'${value}'`;
-                    break;
-                case DataType.DateTime:
-                    filter.FilterValue = `datetime'${value}'`;
-                    break;
-                case DataType.URL:
-                    filter.FilterValue = !value ? null : (value as IUrlFieldValue).Url;
-                    break;
-                case DataType.Lookup:
-                case DataType.MultiLookup:
-                    if ((value instanceof Array && value.length > 0)) {
-                        const lookupValues = (value as ILookupFieldValue[]).filter(v => v.Id > 0);
-                        if (lookupValues.length === 1) {
-                            filter.FilterValue = String(lookupValues[0].Id);
-                        }
-                        else if (lookupValues.length > 1) {
-                            const filters = lookupValues.map(lookupValue => {
-                                return {
-                                    ...filter,
-                                    //Value: lookupValue,
-                                    FilterValue: String(lookupValue.Id)
-                                } as IFilter;
-                            });
-                            const filterGroup = SPService.get_FilterGroup(
-                                filterType === FilterType.NotEquals || filterType === FilterType.NotEmpty ? FilterJoin.And : FilterJoin.Or, ...filters);
-                            return filterGroup;
-                        }
-                    }
-                    break;
-                case DataType.User:
-                case DataType.MultiUser:
-                    if ((value instanceof Array && value.length > 0)) {
-                        const userValues = (value as IUserFieldValue[]).filter(v => /*v.Name*/ v.Id > 0);
-                        if (userValues.length === 1) {
-                            filter.FilterValue = `${userValues[0].Id}`;  //`'${userValues[0].Name}'`;
-                        }
-                        else if (userValues.length > 1) {
-                            const filters = userValues.map(userValue => {
-                                return {
-                                    ...filter,
-                                    //Value: userValue,
-                                    FilterValue: `${userValue.Id}`//`'${userValue.Name}'`
-                                } as IFilter;
-                            });
-                            const filterGroup = SPService.get_FilterGroup(
-                                filterType === FilterType.NotEquals || filterType === FilterType.NotEmpty ? FilterJoin.And : FilterJoin.Or, ...filters);
-                            return filterGroup;
-                        }
-                    }
-                    break;
-                case DataType.Choice:
-                case DataType.MultiChoice:
-                    if ((value instanceof Array && value.length > 0)) {
-                        const choices = value as string[];
-                        if (choices.length === 1) {
-                            filter.FilterValue = `'${choices[0]}'`;
-                        }
-                        else if (choices.length > 1) {
-                            const filters = choices.map(choice => {
-                                return {
-                                    ...filter,
-                                    //Value: choice,
-                                    FilterValue: `'${choice}'`
-                                } as IFilter;
-                            });
-                            const filterGroup = SPService.get_FilterGroup(
-                                filterType === FilterType.NotEquals || filterType === FilterType.NotEmpty ? FilterJoin.And : FilterJoin.Or, ...filters);
-                            return filterGroup;
-                        }
-                    }
-                    break;
-                case DataType.Number:
-                    filter.FilterValue = `${value}`;
-                    break;
-                default:
-                    break;
+            if (filter.Field === "ContentType") {
+                filter.Field = "ContentTypeId";
+                filter.FilterValue = value ? `'${(value as IContentType).Id}'` : null;
             }
-
+            else {
+                switch (field.DataType) {
+                    case DataType.Text:
+                        filter.FilterValue = `'${value}'`;
+                        break;
+                    case DataType.Boolean:
+                        filter.FilterValue = value === true ? "1" : "0";
+                        break;
+                    case DataType.Date:
+                        filter.FilterValue = `'${value}'`;
+                        break;
+                    case DataType.DateTime:
+                        filter.FilterValue = `datetime'${value}'`;
+                        break;
+                    case DataType.URL:
+                        filter.FilterValue = !value ? null : (value as IUrlFieldValue).Url;
+                        break;
+                    case DataType.Lookup:
+                    case DataType.MultiLookup:
+                        if ((value instanceof Array && value.length > 0)) {
+                            const lookupValues = (value as ILookupFieldValue[]).filter(v => v.Id > 0);
+                            if (lookupValues.length === 1) {
+                                filter.FilterValue = String(lookupValues[0].Id);
+                            }
+                            else if (lookupValues.length > 1) {
+                                const filters = lookupValues.map(lookupValue => {
+                                    return {
+                                        ...filter,
+                                        //Value: lookupValue,
+                                        FilterValue: String(lookupValue.Id)
+                                    } as IFilter;
+                                });
+                                const filterGroup = SPService.get_FilterGroup(
+                                    filterType === FilterType.NotEquals || filterType === FilterType.NotEmpty ? FilterJoin.And : FilterJoin.Or, ...filters);
+                                return filterGroup;
+                            }
+                        }
+                        break;
+                    case DataType.User:
+                    case DataType.MultiUser:
+                        if ((value instanceof Array && value.length > 0)) {
+                            const userValues = (value as IUserFieldValue[]).filter(v => /*v.Name*/ v.Id > 0);
+                            if (userValues.length === 1) {
+                                filter.FilterValue = `${userValues[0].Id}`;  //`'${userValues[0].Name}'`;
+                            }
+                            else if (userValues.length > 1) {
+                                const filters = userValues.map(userValue => {
+                                    return {
+                                        ...filter,
+                                        //Value: userValue,
+                                        FilterValue: `${userValue.Id}`//`'${userValue.Name}'`
+                                    } as IFilter;
+                                });
+                                const filterGroup = SPService.get_FilterGroup(
+                                    filterType === FilterType.NotEquals || filterType === FilterType.NotEmpty ? FilterJoin.And : FilterJoin.Or, ...filters);
+                                return filterGroup;
+                            }
+                        }
+                        break;
+                    case DataType.Choice:
+                    case DataType.MultiChoice:
+                        if ((value instanceof Array && value.length > 0)) {
+                            const choices = value as string[];
+                            if (choices.length === 1) {
+                                filter.FilterValue = `'${choices[0]}'`;
+                            }
+                            else if (choices.length > 1) {
+                                const filters = choices.map(choice => {
+                                    return {
+                                        ...filter,
+                                        //Value: choice,
+                                        FilterValue: `'${choice}'`
+                                    } as IFilter;
+                                });
+                                const filterGroup = SPService.get_FilterGroup(
+                                    filterType === FilterType.NotEquals || filterType === FilterType.NotEmpty ? FilterJoin.And : FilterJoin.Or, ...filters);
+                                return filterGroup;
+                            }
+                        }
+                        break;
+                    case DataType.Number:
+                        filter.FilterValue = `${value}`;
+                        break;
+                    default:
+                        break;
+                }
+            }
             if (filterType === FilterType.Equals || filterType === FilterType.NotEquals) {
                 if (filter.Value === "" || filter.Value === null || (filter.Value instanceof Array && filter.Value.length === 0)) {
                     filter.Value = null;
@@ -258,6 +263,7 @@ export class SearchField extends React.Component<ISearchFieldProps, ISearchField
                 }
             }
             return filter;
+
         }
         return null;
     }

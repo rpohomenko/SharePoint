@@ -2,9 +2,11 @@ import { IFormField, FilterType, IFilter, IFilterGroup } from "../../utilities/E
 import { IValidationResult } from "../form/fieldRenderer/IBaseFieldRendererProps";
 import { BaseFieldRenderer } from "../form/fieldRenderer/BaseFieldRenderer";
 import { IRegionalSettingsInfo, ITimeZoneInfo } from "@pnp/sp/regional-settings/types";
+import { IList } from "@pnp/sp/lists";
 
 export interface ISearchFieldProps {
     field: IFormField;
+    list: IList;
     defaultValue?: any;
     filterType?: FilterType;
     disabled?: boolean;

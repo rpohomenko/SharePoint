@@ -2,7 +2,7 @@ import * as React from 'react';
 import styles from './listform.module.scss';
 import { IListFormProps, IListFormState } from './IListFormProps';
 import { FormField } from './FormField';
-import { FormMode, IListItem, IFormField, DataType, IUserFieldValue, ILookupFieldValue, IUrlFieldValue } from '../../utilities/Entities';
+import { FormMode, IListItem, IFormField, DataType, IUserFieldValue, ILookupFieldValue, IUrlFieldValue, IContentType } from '../../utilities/Entities';
 import { cancelable, CancelablePromise } from 'cancelable-promise';
 import { ProgressIndicator } from 'office-ui-fabric-react' /* '@fluentui/react'*/;
 import { IItem } from '@pnp/sp/items';
@@ -135,6 +135,7 @@ export class ListForm extends React.Component<IListFormProps, IListFormState> {
                 <div style={{ marginTop: 5 }}>
                     {!isLoading && visibleFields instanceof Array && visibleFields.length > 0
                         && visibleFields.map(field => <FormField key={field.Id || field.Name}
+                            list={list}
                             disabled={isLoading || isSaving}
                             defaultValue={item ? item[field.PrimaryFieldName ? field.PrimaryFieldName : field.Name] : undefined}
                             ref={ref => {
@@ -151,11 +152,16 @@ export class ListForm extends React.Component<IListFormProps, IListFormState> {
                             }}
                             onChange={(value, isDirty) => {
                                 const itemChanges: IListItem = this._itemChanges || {} as IListItem;
+                                let fieldName = field.Name;
+                                if (fieldName === "ContentType") {
+                                    fieldName = "ContentTypeId";
+                                    value = value ? (value as IContentType).Id : null;
+                                }
                                 if (isDirty === true) {
-                                    itemChanges[field.Name] = value;
+                                    itemChanges[fieldName] = value;
                                 }
                                 else {
-                                    delete itemChanges[field.Name];
+                                    delete itemChanges[fieldName];
                                 }
                                 this._itemChanges = itemChanges;
                                 if (onChange instanceof Function) {
@@ -188,7 +194,12 @@ export class ListForm extends React.Component<IListFormProps, IListFormState> {
                     delete item[field.Name];
                 }
                 else {
-                    item[field.Name] = value;
+                    if (field.Name === "ContentType") {
+                        item["ContentTypeId"] = value;
+                    }
+                    else {
+                        item[field.Name] = value;
+                    }
                 }
             }
         }
@@ -215,13 +226,21 @@ export class ListForm extends React.Component<IListFormProps, IListFormState> {
 
         const formUpdateValues: IListItemFormUpdateValue[] = [];
         for (const fName in item) {
-            const fields = this.props.fields.filter(f => f.Name === fName);
-            if (fields.length > 0) {
-                const field = fields[0];
+            if (fName === "ContentTypeId") {
                 formUpdateValues.push({
-                    FieldName: field.Name.removePrefix("OData_"),
-                    FieldValue: this.getFieldValue(field, item, FormMode.Edit)
+                    FieldName: "ContentTypeId",
+                    FieldValue: item["ContentTypeId"]
                 });
+            }
+            else {
+                const fields = this.props.fields.filter(f => f.Name === fName);
+                if (fields.length > 0) {
+                    const field = fields[0];
+                    formUpdateValues.push({
+                        FieldName: field.Name.removePrefix("OData_"),
+                        FieldValue: this.getFieldValue(field, item, FormMode.Edit)
+                    });
+                }
             }
         }
         if (itemVersion > 0) {
@@ -301,6 +320,11 @@ export class ListForm extends React.Component<IListFormProps, IListFormState> {
     private getFieldValue(field: IFormField, item: any, mode: FormMode) {
         if (field && item) {
             let value = item[field.Name];
+
+            if(field.Name === "ContentType" /*|| field.Name === "ContentTypeId"*/){
+               return value ? (value as IContentType).Id: null;
+            }
+
             switch (field.DataType) {
                 case DataType.Date:
                 case DataType.DateTime:
@@ -433,6 +457,7 @@ export class ListForm extends React.Component<IListFormProps, IListFormState> {
             }
             else if (formField.Name === "ContentType") {
                 select.push("ContentType/Name");
+                select.push("ContentType/Id");
                 expand.push("ContentType");
             }
             else if (formField.DataType === DataType.Lookup

@@ -6,9 +6,11 @@ import { SPListView } from '../spListView';
 import { PrimaryButton, DefaultButton, ProgressIndicator, Panel, CommandBar, ICommandBarItemProps } from 'office-ui-fabric-react' /* '@fluentui/react'*/;
 import { SearchForm } from '../../../../controls/search/SearchForm';
 import { cancelable } from 'cancelable-promise';
+import { IList } from '@pnp/sp/lists';
 
 export interface ISPSearchFormProps {
     fields: IFormField[];
+    list: IList;
     regionalSettings?: IRegionalSettingsInfo;
     timeZone?: ITimeZoneInfo;
     headerText: string;
@@ -34,7 +36,8 @@ export class SPSearchForm extends React.Component<ISPSearchFormProps, ISPSearchF
         // Initialize state
         this.state = {
             isOpen: this.props.isOpen,
-            filter: this.props.filter ? { ...this.props.filter } : null
+            filter: this.props.filter ? { ...this.props.filter } : null,
+            searchCommandEnabled: !!this.props.listView && !!this.props.filter
         };
 
         this._searchForm = React.createRef();
@@ -49,7 +52,10 @@ export class SPSearchForm extends React.Component<ISPSearchFormProps, ISPSearchF
             this.setState({ isOpen: this.props.isOpen });
         }
         if (!isEqual(prevProps.filter, this.props.filter)) {
-            this.setState({ filter: this.props.filter ? { ...this.props.filter } : null });
+            this.setState({
+                filter: this.props.filter ? { ...this.props.filter } : null,
+                searchCommandEnabled: !!this.props.listView && !!this.props.filter
+            });
         }
     }
 
@@ -58,7 +64,7 @@ export class SPSearchForm extends React.Component<ISPSearchFormProps, ISPSearchF
     }
 
     public render(): React.ReactElement {
-        let { fields } = this.props;
+        let { fields, list } = this.props;
         const { headerText, regionalSettings, timeZone } = this.props;
         const { isOpen, isSearching, filter } = this.state;
         if (isOpen === true) {           
@@ -78,6 +84,7 @@ export class SPSearchForm extends React.Component<ISPSearchFormProps, ISPSearchF
                     farItems={this.getFarCommandItems()} />
                 {<SearchForm ref={this._searchForm}
                     filter={filter}
+                    list={list}
                     regionalSettings={regionalSettings}
                     timeZone={timeZone}
                     fields={fields}
@@ -88,23 +95,21 @@ export class SPSearchForm extends React.Component<ISPSearchFormProps, ISPSearchF
     }
 
     protected onFilterChange(filter: IFilterGroup) {
-        if (this._searchForm.current) {
-            const { isSearching } = this.state;
-            const isValid = this._searchForm.current.isValid;
-            const isDirty = this._searchForm.current.isDirty;
-            if (isDirty) {
-                this.setState({ filter: filter, searchCommandEnabled: true }, () => {
-                    //this.search();
-                });
-            }
-        }
+        this.setState({
+            //filter: filter,
+            searchCommandEnabled: !!this.props.listView && (!!filter || !!this.state.filter)
+        });
     }
 
     private renderFooterContent = () => {
-        const { searchCommandEnabled, filter } = this.state;
+        const { searchCommandEnabled } = this.state;
         return (<div>
-            <PrimaryButton disabled={!searchCommandEnabled || !filter} onClick={() => {
-                this.search();
+            <PrimaryButton disabled={!searchCommandEnabled} onClick={() => {
+                this.setState({ filter: this._searchForm.current.getFilter() }, () => {
+                    this.search();
+                    this.close();
+                });
+
             }} styles={{ root: { marginRight: 8 } }}>
                 {"Filter"}
             </PrimaryButton>
@@ -128,26 +133,30 @@ export class SPSearchForm extends React.Component<ISPSearchFormProps, ISPSearchF
     }
 
     public clear() {
-        const { listView } = this.props;
-        this.setState({ filter: undefined }, () => {
+        //const { listView } = this.props;
+        this.setState({ filter: null, searchCommandEnabled: false }, () => {
             if (this._searchForm.current) {
                 this._searchForm.current.clear();
             }
-            if (listView && listView.state.filter) {
-                this.search();
-            }
+            //if (listView && listView.state.filter) {
+            this.search();
+            //}
         });
     }
 
     protected getCommandItems(): ICommandBarItemProps[] {
-        const { searchCommandEnabled, isSearching, filter } = this.state;
+        const { searchCommandEnabled, isSearching } = this.state;
         const items: ICommandBarItemProps[] = [];
 
         items.push({
             key: 'filter', text: 'Filter', iconProps: { iconName: 'Filter' }, iconOnly: true,
-            disabled: !searchCommandEnabled || isSearching === true || !filter,
+            disabled: !searchCommandEnabled || isSearching === true,
             onClick: () => {
-                this.search();
+                if (this._searchForm.current) {
+                    this.setState({ filter: this._searchForm.current.getFilter() }, () => {
+                        this.search();
+                    });
+                }
             }
         });
 
@@ -155,8 +164,8 @@ export class SPSearchForm extends React.Component<ISPSearchFormProps, ISPSearchF
     }
 
     private search() {
-        const { listView } = this.props;
-        const { filter } = this.state;
+        const { listView } = this.props;      
+        const filter = this.state.filter;
         if (listView) {
             this.setState({ searchCommandEnabled: false, isSearching: true });
             cancelable(listView.search(filter)).then(() => {
@@ -166,7 +175,7 @@ export class SPSearchForm extends React.Component<ISPSearchFormProps, ISPSearchF
 
                 })
                 .finally(() => {
-                    this.setState({ searchCommandEnabled: true, isSearching: false });
+                    this.setState({ searchCommandEnabled: !!listView && !!filter, isSearching: false });
                 });
         }
     }

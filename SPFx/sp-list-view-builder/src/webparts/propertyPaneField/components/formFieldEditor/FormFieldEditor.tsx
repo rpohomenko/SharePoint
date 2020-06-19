@@ -57,6 +57,7 @@ export class FormFieldEditor extends React.Component<IFormFieldEditorProps, IFor
   }
 
   public render(): React.ReactElement {
+    const { list } = this.props;
     const { isOpen, field, regionalSettings, timeZone } = this.state;
     const changedField = this.state.changedField || { ...field, Modes: field.Modes instanceof Array ? [...field.Modes] : [] };
     if (!field) return null;
@@ -144,6 +145,7 @@ export class FormFieldEditor extends React.Component<IFormFieldEditorProps, IFor
           />
           {isDefaultValueSupported && <FormField label={"Default"}
             disabled={false}
+            list={list}
             defaultValue={field.DefaultValue}
             field={field}
             mode={FormMode.New}

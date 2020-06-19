@@ -2,11 +2,13 @@ import { FormMode, IFormField } from '../../utilities/Entities';
 import { BaseFieldRenderer } from './fieldRenderer/BaseFieldRenderer';
 import { IValidationResult } from './fieldRenderer/IBaseFieldRendererProps';
 import { IRegionalSettingsInfo, ITimeZoneInfo } from '@pnp/sp/regional-settings';
+import { IList } from '@pnp/sp/lists';
 
 export interface IFormFieldProps {
     label?: string;
     mode: FormMode;
     field: IFormField;
+    list: IList;
     defaultValue?: any;
     disabled?: boolean;
     onChange: (value: any, isDirty: boolean) => void;

@@ -131,6 +131,7 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
                 itemId={selection instanceof Array && selection.length > 0 ? selection[0].ID : 0}
             />}
             {!error && <SPSearchForm ref={this._searchForm} isOpen={false} listView={this} fields={formFields}
+                list={list}
                 filter={filter}
                 headerText={this.props.rootFolder ? this.props.rootFolder.Name : ""}
                 regionalSettings={this._regionalSettings} timeZone={this._timeZone} />}
@@ -759,7 +760,8 @@ export class SPListView extends React.Component<ISPListViewProps, ISPListViewSta
         const { formFields } = this.props;
         const { canAddItem } = this.state;
         const selection = this._processListItems(...this.state.selection);
-        return <SPListViewCommandBar ref={this._commandBar} listView={this} listForm={this._listForm.current} searchForm={this._searchForm.current} items={selection} formFields={formFields} canAddItem={canAddItem} />;
+        return <SPListViewCommandBar ref={this._commandBar} listView={this} listForm={this._listForm.current}
+            searchForm={this._searchForm.current} items={selection} formFields={formFields} canAddItem={canAddItem} />;
     }
 
     public async deleteItem(...deletedItems: IEditableListItem[]): Promise<void> {

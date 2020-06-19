@@ -153,7 +153,7 @@ export class PropertyPaneFormFieldList extends PropertyPaneFieldList {
             const items = this.properties.items instanceof Array ? [... this.properties.items, ...fields] : fields;
             this.set_items(items);
          }} />
-         <FormFieldEditor ref={this._formFieldEditor} timeZone={this._timeZone} regionalSettings={this._regionalSettings} onChange={(field) => {
+         <FormFieldEditor ref={this._formFieldEditor} list={this._list} timeZone={this._timeZone} regionalSettings={this._regionalSettings} onChange={(field) => {
             const items: IFormField[] =  this.properties.items instanceof Array ? [... this.properties.items] : [];
             for (const item of items.filter(i => i.Name === field.Name)) {
                items[items.indexOf(item)] = field;

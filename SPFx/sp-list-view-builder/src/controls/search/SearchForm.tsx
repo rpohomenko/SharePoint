@@ -54,13 +54,13 @@ export class SearchForm extends React.Component<ISearchFormProps, ISearchFormSta
     }
 
     public render() {
-        const { fields, filter, onChange } = this.props;
+        const { list, fields, filter, onChange } = this.props;
         this._searchFields = [];
         const visibleFields = fields instanceof Array && fields.length > 0
             ? fields.filter(field => field.Filterable === true && SPService.is_Filterable(field.DataType) && !field.PrimaryFieldName)
             : null;
         if (visibleFields instanceof Array) {
-            const ff = filter ? this.getFilters(filter) : null;
+            const filters = filter ? this.getFilters(filter) : null;
             return <ErrorBoundary>
                 <div className={styles.searchform}>
                     <div style={{ marginTop: 5 }}>
@@ -81,17 +81,18 @@ export class SearchForm extends React.Component<ISearchFormProps, ISearchFormSta
                                     field.DataType = DataType.MultiChoice;
                                 }
 
-                                const fff = ff ? ff[field.Name] : null;
+                                const f = filters ? filters[field.Name] : null;
                                 return <SearchField key={field.Id || field.Name}
+                                    list={list}
                                     disabled={false}
-                                    defaultValue={fff ? fff.Value : null}
+                                    defaultValue={f ? f.Value : null}
                                     ref={ref => {
                                         if (ref != null) {
                                             this._searchFields.push(ref);
                                         }
                                     }}
                                     field={field}
-                                    filterType={fff ? fff.Type : FilterType.Equals}
+                                    filterType={f ? f.Type : FilterType.Equals}
                                     regionalSettings={this.props.regionalSettings}
                                     timeZone={this.props.timeZone}
                                     onValidate={(result) => {
@@ -100,14 +101,9 @@ export class SearchForm extends React.Component<ISearchFormProps, ISearchFormSta
                                     onGetFieldRenderer={(ref, defaultRenderer) => {
                                         return defaultRenderer();
                                     }}
-                                    onChange={(f) => {
-                                        const filters = this._searchFields instanceof Array
-                                            ? this._searchFields.map(searchField => searchField.get_Filter())
-                                                .filter(ffff => ffff !== null)
-                                            : [];
-                                        f = SPService.get_FilterGroup(this.props.filterJoin === undefined ? FilterJoin.And : this.props.filterJoin, ...filters);
-                                        if (onChange instanceof Function) {
-                                            onChange(f);
+                                    onChange={(newFilter) => {                                        
+                                        if (onChange instanceof Function) {                                     
+                                            onChange(this.getFilter());
                                         }
                                     }} />;
                             }
@@ -119,36 +115,44 @@ export class SearchForm extends React.Component<ISearchFormProps, ISearchFormSta
         return null;
     }
 
-    private getFilters(filter: IFilterGroup): Record<string, IFilter> {
+    public getFilter(): IFilterGroup {
+        const filters = this._searchFields instanceof Array
+            ? this._searchFields.map(searchField => searchField.get_Filter()).filter(filter => filter !== null)
+            : [];
+        return SPService.get_FilterGroup(this.props.filterJoin === undefined ? FilterJoin.And : this.props.filterJoin, ...filters);
+    }
+
+    private getFilters(filterGroup: IFilterGroup): Record<string, IFilter> {
         const values: Record<string, IFilter> = {};
-        if (filter) {
-            if (filter.LeftFilter) {
-                values[filter.LeftFilter.Field] = filter.LeftFilter;
+        if (filterGroup) {
+            let filter: IFilter;
+            if (filterGroup.LeftFilter) {
+                filter = filterGroup.LeftFilter;
             }
-            if (filter.RightFilter) {
-                values[filter.RightFilter.Field] = filter.RightFilter;
+            if (filterGroup.RightFilter) {
+                filter = filterGroup.RightFilter;
             }
-            if (filter.LeftFilterGroup) {
-                const leftFilterValues = this.getFilters(filter.LeftFilterGroup);
+            if (filter) {
+                if (filter.Field === "ContentTypeId") {
+                    values["ContentType"] = filter;
+                }
+                values[filter.Field] = filter;
+            }
+
+            if (filterGroup.LeftFilterGroup) {
+                const leftFilterValues = this.getFilters(filterGroup.LeftFilterGroup);
                 for (const key in leftFilterValues) {
                     values[key] = leftFilterValues[key];
                 }
             }
-            if (filter.RightFilterGroup) {
-                const rightFilterValues = this.getFilters(filter.RightFilterGroup);
+            if (filterGroup.RightFilterGroup) {
+                const rightFilterValues = this.getFilters(filterGroup.RightFilterGroup);
                 for (const key in rightFilterValues) {
                     values[key] = rightFilterValues[key];
                 }
             }
         }
         return values;
-    }
-
-    public async search(): Promise<any> {
-        await this.validate(true);
-        if (this.isValid && this.isDirty) {
-
-        }
     }
 
     public async validate(disableEvents?: boolean) {
