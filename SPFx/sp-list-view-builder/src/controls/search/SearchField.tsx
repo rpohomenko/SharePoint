@@ -50,7 +50,7 @@ export class SearchField extends React.Component<ISearchFieldProps, ISearchField
             defaultValue={defaultValue}
             onGetFieldRenderer={((ref, defaultRenderer) => {
                 const fieldRenderer = onGetFieldRenderer(ref, defaultRenderer);
-                return fieldRenderer && <Stack horizontal>
+                return !!fieldRenderer && <Stack horizontal styles={{ root: { width: '100%' } }}>
                     <Dropdown
                         styles={{ root: { marginRight: 2 } }}
                         className="filter-type"
@@ -71,7 +71,7 @@ export class SearchField extends React.Component<ISearchFieldProps, ISearchField
                         }}
                         options={options}
                     />
-                    {filterType !== FilterType.Empty && filterType !== FilterType.NotEmpty && fieldRenderer}
+                    {(filterType !== FilterType.Empty && filterType !== FilterType.NotEmpty) && fieldRenderer}
                 </Stack>;
             })}
             onValidate={onValidate}

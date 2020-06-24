@@ -64,7 +64,7 @@ export class FormFieldEditor extends React.Component<IFormFieldEditorProps, IFor
     const isFilterable = SPService.is_Filterable(changedField.DataType) && !changedField.PrimaryFieldName;
     const isDefaultValueSupported = field.DataType === DataType.Text || field.DataType === DataType.Number
       || field.DataType === DataType.Date || field.DataType === DataType.DateTime || field.DataType === DataType.Choice
-      || field.DataType === DataType.MultiChoice || field.DataType === DataType.Boolean;
+      || field.DataType === DataType.MultiChoice || field.DataType === DataType.Boolean /*|| field.DataType === DataType.Lookup || field.DataType === DataType.MultiLookup*/;
 
     return (
       <Panel className={styles.formFieldEditor} isLightDismiss isOpen={isOpen} onDismiss={() => this.close()} closeButtonAriaLabel={"Close"} headerText={`Edit: ${field.Title}`}
@@ -118,7 +118,7 @@ export class FormFieldEditor extends React.Component<IFormFieldEditorProps, IFor
               { key: FormMode.New.toString(), text: 'New' }
             ]}
             disabled={field.ReadOnly === true}
-            selectedKeys={changedField.Modes instanceof Array ? changedField.Modes.map(mode => mode.toString()) : undefined}
+            selectedKeys={field.ReadOnly === true ? [ FormMode.Display.toString() ] : changedField.Modes instanceof Array ? changedField.Modes.map(mode => mode.toString()) : undefined}
             onChange={(event, option, index) => {
               let modes = changedField.Modes || [];
               const currentMode: FormMode = Number(option.key);

@@ -54,6 +54,7 @@ export class TextFieldRenderer extends BaseFieldRenderer {
             disabled={disabled}
             multiline={multiline}
             maxLength={maxLength}
+            styles={{ root: { minWidth: 180 } }}
             onChange={(ev, newValue) => {
                 this.setValue(newValue);
             }}

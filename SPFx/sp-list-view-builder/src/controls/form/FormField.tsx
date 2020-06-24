@@ -60,9 +60,9 @@ export class FormField extends React.Component<IFormFieldProps | IDateFormFieldP
             ? onGetFieldRenderer(this._fieldControl, () => this._getFieldRenderer())
             : this._getFieldRenderer();
         return <div className="form-field">
-            { label || field.Title &&
+            {label || field.Title &&
                 (<Stack horizontal verticalAlign="center" styles={{ root: { padding: 2 } }}>
-                    <Label className="form-field-label" required={mode !== FormMode.Display && field.Required === true}>{label || field.Title}</Label>
+                    {(label || field.Title) && <Label className="form-field-label" required={mode !== FormMode.Display && field.Required === true}>{label || field.Title}</Label>}
                     {field.Description &&
                         (<IconButton
                             id={this._iconButtonId}
